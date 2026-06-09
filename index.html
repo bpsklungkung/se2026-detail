@@ -241,12 +241,100 @@ body {
 #tblData thead th.sorting_desc::after {
   color: rgba(255,255,255,.4) !important;
 }
+/* base cell */
 #tblData tbody td {
-  padding: 7px 12px !important;
+  padding: 6px 12px !important;
   vertical-align: middle !important;
   font-size: 12px !important;
+  font-weight: 400 !important;
+  color: #475569 !important;
   border-bottom: 1px solid #e2e8f0 !important;
   border-right: 1px solid #e2e8f0 !important;
+  white-space: nowrap;
+}
+/* col 0 — Assignment: badge-like, bold, accent color */
+#tblData tbody td:nth-child(1) {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #0d6efd !important;
+  letter-spacing: .02em;
+}
+/* col 1 — Nama: primary identifier, bold, dark */
+#tblData tbody td:nth-child(2) {
+  font-weight: 600 !important;
+  color: #0f172a !important;
+  font-size: 12px !important;
+  min-width: 160px;
+  white-space: normal !important;
+}
+/* col 2 — Alamat: supporting info, regular, slightly muted */
+#tblData tbody td:nth-child(3) {
+  font-size: 11px !important;
+  color: #64748b !important;
+  min-width: 140px;
+  white-space: normal !important;
+}
+/* col 3 — SBR: code, monospace */
+#tblData tbody td:nth-child(4) {
+  font-family: 'Courier New', monospace !important;
+  font-size: 11px !important;
+  color: #64748b !important;
+  text-align: center;
+}
+/* col 4 — Username: indigo */
+#tblData tbody td:nth-child(5) {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: #6366f1 !important;
+  letter-spacing: .01em;
+}
+/* col 5 — User: bold role label */
+#tblData tbody td:nth-child(6) {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #334155 !important;
+  text-align: center;
+}
+/* col 6 — Provinsi: muted, small */
+#tblData tbody td:nth-child(7) {
+  font-size: 10px !important;
+  font-weight: 400 !important;
+  color: #94a3b8 !important;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+/* col 7 — Kabupaten: medium */
+#tblData tbody td:nth-child(8) {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: #475569 !important;
+}
+/* col 8 — Kecamatan: medium */
+#tblData tbody td:nth-child(9) {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: #475569 !important;
+}
+/* col 9 — Desa: slightly bolder */
+#tblData tbody td:nth-child(10) {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #334155 !important;
+}
+/* col 10 — SLS */
+#tblData tbody td:nth-child(11) {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: #475569 !important;
+}
+/* col 11 — SubSLS: small code */
+#tblData tbody td:nth-child(12) {
+  font-family: 'Courier New', monospace !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #64748b !important;
+  text-align: center;
 }
 #tblData.table-striped > tbody > tr:nth-of-type(odd) > * {
   --bs-table-accent-bg: transparent;
@@ -284,8 +372,16 @@ body {
 <div class="topbar">
   <div class="topbar-logo">📊</div>
   <div>
-    <div class="topbar-title">Dashboard Monitoring SE2026 Kabupaten Klungkung</div>
-    <div class="topbar-sub">Last Update 9 Juni 2025 05:00 WITA</div>
+    <div class="topbar-title">Dashboard Monitoring SE2026</div>
+    <div class="topbar-sub">Kabupaten Klungkung — Provinsi Bali Update 9 Juni 2025 13:00 WITA</div>
+    <div class="topbar-sub" style="margin-top:3px; opacity:.85;">
+      Ambil link data di :
+      <a href="https://drive.google.com/drive/folders/1mPGqB-w-yq-7Z5F7_wy1m0mIOkAN1Xrj?usp=sharing"
+         target="_blank"
+         style="color:#93c5fd; text-decoration:underline; font-weight:500;">
+        Google Drive ↗
+      </a>
+    </div>
   </div>
   <div class="topbar-badge" id="topbarTotal">Memuat data…</div>
 </div>
@@ -340,6 +436,10 @@ body {
         <select id="pvFilterUsername" class="form-select"><option value="">Semua</option></select>
       </div>
       <div class="col-md-auto" style="min-width:130px">
+        <label class="filter-label">Filter User</label>
+        <select id="pvFilterUser" class="form-select"><option value="">Semua</option></select>
+      </div>
+      <div class="col-md-auto" style="min-width:130px">
         <label class="filter-label">Filter Kabupaten</label>
         <select id="pvFilterKabupaten" class="form-select"><option value="">Semua</option></select>
       </div>
@@ -385,6 +485,10 @@ body {
         <label class="filter-label">Username</label>
         <select id="filterUsername" class="form-select"><option value="">Semua</option></select>
       </div>
+      <div class="col-md-auto" style="min-width:130px">
+        <label class="filter-label">User</label>
+        <select id="filterUser" class="form-select"><option value="">Semua</option></select>
+      </div>
       <div class="col-md-auto" style="min-width:145px">
         <label class="filter-label">Assignment</label>
         <select id="filterAssignment" class="form-select"><option value="">Semua</option></select>
@@ -416,7 +520,7 @@ body {
         <thead>
           <tr>
             <th>Assignment</th><th>Nama</th><th>Alamat</th><th>SBR</th>
-            <th>Skala</th><th>Username</th><th>User</th><th>Provinsi</th>
+            <th>Username</th><th>User</th><th>Provinsi</th>
             <th>Kabupaten</th><th>Kecamatan</th><th>Desa</th><th>SLS</th><th>SubSLS</th>
           </tr>
         </thead>
@@ -453,26 +557,76 @@ Papa.parse(CSV_URL, {
   }
 });
 
+/* ══════════════════════════════════════
+   HELPERS
+══════════════════════════════════════ */
 function unique(f){ return [...new Set(rawData.map(x=>x[f]).filter(Boolean))].sort(); }
-function fillSelectEl(el, vals){ vals.forEach(v=>el.insertAdjacentHTML("beforeend",`<option value="${v}">${v}</option>`)); }
-function fillSelect(id, f){ fillSelectEl(document.getElementById(id), unique(f)); }
-
-/* ── Main filters ── */
-function fillFilters(){
-  [["filterUsername","Username"],["filterAssignment","Assignment"],
-   ["filterKabupaten","Kabupaten"],["filterKecamatan","Kecamatan"],
-   ["filterDesa","Desa"],["filterSLS","SLS"],["filterSubSLS","SubSLS"]]
-  .forEach(([id,f])=>fillSelect(id,f));
+function fillSelectEl(el, vals){
+  vals.forEach(v=>el.insertAdjacentHTML("beforeend",`<option value="${v}">${v}</option>`));
 }
+function rebuildSelect(el, field, subset){
+  const cur=el.value;
+  el.innerHTML=`<option value="">Semua</option>`;
+  const vals=[...new Set(subset.map(r=>r[field]).filter(Boolean))].sort();
+  fillSelectEl(el,vals);
+  el.value=vals.includes(cur)?cur:"";
+}
+
+/* ══════════════════════════════════════
+   MAIN TABLE — CASCADE FILTERS
+══════════════════════════════════════ */
+const MAIN_IDS = ["filterUsername","filterUser","filterAssignment",
+                  "filterKabupaten","filterKecamatan","filterDesa","filterSLS","filterSubSLS"];
+
+// field mapped to each select id
+const MAIN_FIELD = {
+  filterUsername:"Username", filterUser:"User", filterAssignment:"Assignment",
+  filterKabupaten:"Kabupaten", filterKecamatan:"Kecamatan",
+  filterDesa:"Desa", filterSLS:"SLS", filterSubSLS:"SubSLS"
+};
+
+function getMainFiltered(excludeId){
+  // filter rawData by all main filters EXCEPT excludeId
+  return rawData.filter(r=>{
+    return MAIN_IDS.every(id=>{
+      if(id===excludeId) return true;
+      const v=document.getElementById(id).value;
+      return !v || r[MAIN_FIELD[id]]===v;
+    });
+  });
+}
+
+function rebuildMainSelect(id){
+  // rebuild options for this select based on what the other filters allow
+  rebuildSelect(document.getElementById(id), MAIN_FIELD[id], getMainFiltered(id));
+}
+
+function onMainFilterChange(){
+  // rebuild every OTHER select's options, then redraw table
+  MAIN_IDS.forEach(id=>rebuildMainSelect(id));
+  if(table) table.draw();
+}
+
+function fillFilters(){
+  // initial fill — all options from full dataset
+  MAIN_IDS.forEach(id=>{
+    const el=document.getElementById(id);
+    el.innerHTML=`<option value="">Semua</option>`;
+    fillSelectEl(el, unique(MAIN_FIELD[id]));
+  });
+}
+
 $.fn.dataTable.ext.search.push(function(s,data){
+  // col indices after Skala removed: 0=Assign,1=Nama,2=Alamat,3=SBR,4=Username,5=User,6=Provinsi,7=Kab,8=Kec,9=Desa,10=SLS,11=SubSLS
   const g=id=>document.getElementById(id).value;
-  return (!g("filterUsername")||data[5]===g("filterUsername"))
+  return (!g("filterUsername")||data[4]===g("filterUsername"))
+    &&(!g("filterUser")||data[5]===g("filterUser"))
     &&(!g("filterAssignment")||data[0]===g("filterAssignment"))
-    &&(!g("filterKabupaten")||data[8]===g("filterKabupaten"))
-    &&(!g("filterKecamatan")||data[9]===g("filterKecamatan"))
-    &&(!g("filterDesa")||data[10]===g("filterDesa"))
-    &&(!g("filterSLS")||data[11]===g("filterSLS"))
-    &&(!g("filterSubSLS")||data[12]===g("filterSubSLS"));
+    &&(!g("filterKabupaten")||data[7]===g("filterKabupaten"))
+    &&(!g("filterKecamatan")||data[8]===g("filterKecamatan"))
+    &&(!g("filterDesa")||data[9]===g("filterDesa"))
+    &&(!g("filterSLS")||data[10]===g("filterSLS"))
+    &&(!g("filterSubSLS")||data[11]===g("filterSubSLS"));
 });
 
 /* ── Cards ── */
@@ -513,7 +667,7 @@ function buildTable(){
     buttons:['excel','csv','pdf','print'],
     columns:[
       {data:'Assignment'},{data:'Nama'},{data:'Alamat'},{data:'SBR'},
-      {data:'Skala'},{data:'Username'},{data:'User'},{data:'Provinsi'},
+      {data:'Username'},{data:'User'},{data:'Provinsi'},
       {data:'Kabupaten'},{data:'Kecamatan'},{data:'Desa'},{data:'SLS'},{data:'SubSLS'}
     ]
   });
@@ -525,51 +679,55 @@ function buildTable(){
   updateAssignmentCards(rawData); updateUserCards(rawData);
   document.getElementById("cntDetail").textContent=`${rawData.length.toLocaleString()} record`;
 }
-["filterUsername","filterAssignment","filterKabupaten","filterKecamatan",
- "filterDesa","filterSLS","filterSubSLS"].forEach(id=>{
-  document.getElementById(id).addEventListener("change",()=>table.draw());
+
+MAIN_IDS.forEach(id=>{
+  document.getElementById(id).addEventListener("change", onMainFilterChange);
 });
 
-/* ══ PIVOT ══ */
-function fillPivotFilters(){
-  fillSelect("pvFilterUsername","Username"); fillSelect("pvFilterKabupaten","Kabupaten");
-  fillSelect("pvFilterKecamatan","Kecamatan"); fillSelect("pvFilterDesa","Desa");
-  fillSelect("pvFilterSLS","SLS"); fillSelect("pvFilterSubSLS","SubSLS");
+/* ══════════════════════════════════════
+   PIVOT — CASCADE FILTERS
+══════════════════════════════════════ */
+const PV_IDS = ["pvFilterUser","pvFilterUsername","pvFilterKabupaten",
+                "pvFilterKecamatan","pvFilterDesa","pvFilterSLS","pvFilterSubSLS"];
+const PV_FIELD = {
+  pvFilterUser:"User", pvFilterUsername:"Username", pvFilterKabupaten:"Kabupaten",
+  pvFilterKecamatan:"Kecamatan", pvFilterDesa:"Desa", pvFilterSLS:"SLS", pvFilterSubSLS:"SubSLS"
+};
 
-  function cascade(elId, field, filterFn){
-    const el=document.getElementById(elId), cur=el.value;
+function getPvFiltered(excludeId){
+  return rawData.filter(r=>{
+    return PV_IDS.every(id=>{
+      if(id===excludeId) return true;
+      const v=document.getElementById(id).value;
+      return !v || r[PV_FIELD[id]]===v;
+    });
+  });
+}
+
+function rebuildPvSelect(id){
+  rebuildSelect(document.getElementById(id), PV_FIELD[id], getPvFiltered(id));
+}
+
+function onPvFilterChange(){
+  PV_IDS.forEach(id=>rebuildPvSelect(id));
+}
+
+function fillPivotFilters(){
+  PV_IDS.forEach(id=>{
+    const el=document.getElementById(id);
     el.innerHTML=`<option value="">Semua</option>`;
-    const vals=[...new Set(rawData.filter(filterFn).map(r=>r[field]).filter(Boolean))].sort();
-    fillSelectEl(el,vals); el.value=vals.includes(cur)?cur:"";
-  }
-  const g=id=>document.getElementById(id).value;
-  $("#pvFilterKabupaten").on("change",function(){
-    cascade("pvFilterKecamatan","Kecamatan",r=>!this.value||r.Kabupaten===this.value);
-    document.getElementById("pvFilterKecamatan").dispatchEvent(new Event("change"));
-  });
-  $("#pvFilterKecamatan").on("change",function(){
-    cascade("pvFilterDesa","Desa",r=>(!g("pvFilterKabupaten")||r.Kabupaten===g("pvFilterKabupaten"))&&(!this.value||r.Kecamatan===this.value));
-    document.getElementById("pvFilterDesa").dispatchEvent(new Event("change"));
-  });
-  $("#pvFilterDesa").on("change",function(){
-    cascade("pvFilterSLS","SLS",r=>(!g("pvFilterKabupaten")||r.Kabupaten===g("pvFilterKabupaten"))&&(!g("pvFilterKecamatan")||r.Kecamatan===g("pvFilterKecamatan"))&&(!this.value||r.Desa===this.value));
-    document.getElementById("pvFilterSLS").dispatchEvent(new Event("change"));
-  });
-  $("#pvFilterSLS").on("change",function(){
-    cascade("pvFilterSubSLS","SubSLS",r=>(!g("pvFilterKabupaten")||r.Kabupaten===g("pvFilterKabupaten"))&&(!g("pvFilterKecamatan")||r.Kecamatan===g("pvFilterKecamatan"))&&(!g("pvFilterDesa")||r.Desa===g("pvFilterDesa"))&&(!this.value||r.SLS===this.value));
+    fillSelectEl(el, unique(PV_FIELD[id]));
+    el.addEventListener("change", onPvFilterChange);
   });
 }
 
 function getPivotData(){
-  const g=id=>document.getElementById(id).value;
-  return rawData.filter(r=>
-    (!g("pvFilterUsername")||r.Username===g("pvFilterUsername"))&&
-    (!g("pvFilterKabupaten")||r.Kabupaten===g("pvFilterKabupaten"))&&
-    (!g("pvFilterKecamatan")||r.Kecamatan===g("pvFilterKecamatan"))&&
-    (!g("pvFilterDesa")||r.Desa===g("pvFilterDesa"))&&
-    (!g("pvFilterSLS")||r.SLS===g("pvFilterSLS"))&&
-    (!g("pvFilterSubSLS")||r.SubSLS===g("pvFilterSubSLS"))
-  );
+  return rawData.filter(r=>{
+    return PV_IDS.every(id=>{
+      const v=document.getElementById(id).value;
+      return !v || r[PV_FIELD[id]]===v;
+    });
+  });
 }
 
 let lastPivotResult=null;
@@ -592,14 +750,12 @@ function renderPivot(){
   html+=`<th class="row-header">${rowField}</th>`;
   colKeys.forEach(c=>{html+=`<th>${c}</th>`;});
   html+=`<th class="total-col">Total</th></tr></thead><tbody>`;
-
   rowKeys.forEach(r=>{
     const rt=rowTotal[r]||0;
     html+=`<tr><td class="row-label">${r}</td>`;
     colKeys.forEach(c=>{
-      const val=count[r][c]||0;
+      const val=count[r][c]||0, iz=val===0;
       const pct=rt>0?((val/rt)*100).toFixed(1):"0.0";
-      const iz=val===0;
       html+=`<td><div class="pivot-cell">
         <div class="pv-val${iz?" zero":""}">${iz?"–":val.toLocaleString()}</div>
         <div class="pv-pct${iz?" zero":""}">${iz?"":pct+"%"}</div>
@@ -607,7 +763,6 @@ function renderPivot(){
     });
     html+=`<td class="total-col"><div class="pivot-cell"><div class="pv-val">${rt.toLocaleString()}</div><div class="pv-pct">100%</div></div></td></tr>`;
   });
-
   html+=`<tr class="total-row"><td class="row-label">Total</td>`;
   colKeys.forEach(c=>{
     const val=colTotal[c]||0;
@@ -615,22 +770,17 @@ function renderPivot(){
     html+=`<td><div class="pivot-cell"><div class="pv-val">${val.toLocaleString()}</div><div class="pv-pct">${pct}%</div></div></td>`;
   });
   html+=`<td class="total-col"><div class="pivot-cell"><div class="pv-val">${grand.toLocaleString()}</div><div class="pv-pct">100%</div></div></td></tr></tbody>`;
-
   document.getElementById("pvTable").innerHTML=html;
   document.getElementById("pvStatus").textContent=
     `${rowKeys.length} baris × ${colKeys.length} kolom | ${grand.toLocaleString()} record`;
 }
 
 function resetPivot(){
-  ["pvFilterUsername","pvFilterKabupaten","pvFilterKecamatan",
-   "pvFilterDesa","pvFilterSLS","pvFilterSubSLS"].forEach(id=>{
-    document.getElementById(id).value="";
-  });
-  ["pvFilterKecamatan","pvFilterDesa","pvFilterSLS","pvFilterSubSLS"].forEach(id=>{
-    const field={pvFilterKecamatan:"Kecamatan",pvFilterDesa:"Desa",pvFilterSLS:"SLS",pvFilterSubSLS:"SubSLS"}[id];
+  PV_IDS.forEach(id=>{ document.getElementById(id).value=""; });
+  PV_IDS.forEach(id=>{
     const el=document.getElementById(id);
     el.innerHTML=`<option value="">Semua</option>`;
-    unique(field).forEach(v=>el.insertAdjacentHTML("beforeend",`<option value="${v}">${v}</option>`));
+    fillSelectEl(el, unique(PV_FIELD[id]));
   });
   renderPivot();
 }
