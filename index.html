@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard Monitoring SE2026 Kabupaten Klungkung</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+<link href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" rel="stylesheet">
+<style>
+body { background:#f5f6fa; }
+.assignment-card { border:none; border-radius:15px; box-shadow:0 2px 10px rgba(0,0,0,.08); }
+.filter-box { background:white; border-radius:15px; padding:15px; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,.08); }
+.assignment-value { font-size:28px; font-weight:bold; }
+.assignment-percent { color:#6c757d; font-size:13px; }
+.dataTables_wrapper .dt-buttons { margin-bottom:10px; }
+
+/* ── DataTable styled to match pivot table ── */
+#tblData,
+#tblData thead th,
+#tblData tbody td {
+  font-size: 13px !important;
+}
+#tblData thead th {
+  background: #212529 !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  padding: 8px 10px !important;
+  border-color: #454d55 !important;
+  white-space: nowrap;
+}
+#tblData thead th::after,
+#tblData thead th::before {
+  color: rgba(255,255,255,.5) !important;
+}
+#tblData tbody td {
+  padding: 6px 10px !important;
+  vertical-align: middle;
+}
+#tblData.table-striped > tbody > tr:nth-of-type(odd) > * {
+  --bs-table-accent-bg: transparent;
+  background-color: #fff !important;
+}
+#tblData.table-striped > tbody > tr:nth-of-type(even) > * {
+  --bs-table-accent-bg: transparent;
+  background-color: #e9ecef !important;
+}
+#tblData tbody tr:hover > * {
+  background-color: #e8f4fd !important;
+}
+#tblData.table-bordered > :not(caption) > * > * { border-color: #dee2e6; }
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter,
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_paginate {
+  font-size: 13px;
+}
+/* DT buttons — match pivot Terapkan button */
+.dt-buttons .btn { font-size: 12px !important; padding: 4px 10px !important; }
+
+/* Pivot Section */
+.pivot-section {
+  background: white;
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.08);
+}
+.pivot-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+  align-items: flex-end;
+}
+.pivot-controls .ctrl-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 140px;
+  min-width: 130px;
+}
+.pivot-controls label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: #6c757d;
+  margin-bottom: 0;
+}
+.pivot-controls .form-select { font-size: 13px; padding: 5px 10px; }
+.pivot-btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
+.pivot-status { font-size: 13px; color: #6c757d; margin-bottom: 8px; }
+.pivot-table-wrap { overflow-x: auto; }
+
+/* Pivot Table — matched to DataTables bootstrap5 style */
+.pivot-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+  border: 1px solid #dee2e6;
+}
+.pivot-table th {
+  background: #212529;
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 10px;
+  border: 1px solid #454d55;
+  white-space: nowrap;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.pivot-table th.row-header { text-align: left; }
+.pivot-table tbody tr:nth-child(odd)  { background: #fff; }
+.pivot-table tbody tr:nth-child(even) { background: #f2f2f2; }
+.pivot-table tbody tr:hover { background: #e8f4fd !important; }
+.pivot-table tbody td {
+  border: 1px solid #dee2e6;
+  padding: 6px 10px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.pivot-table tbody td.row-label {
+  text-align: left;
+  font-weight: 500;
+  background: #f8f9fa;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  border-right: 2px solid #dee2e6;
+}
+/* value+pct stacked in one cell */
+.pivot-cell { text-align: center; }
+.pv-val { font-weight: 600; color: #0d6efd; }
+.pv-val.zero { color: #adb5bd; font-weight: 400; }
+.pv-pct { font-size: 11px; color: #6c757d; }
+.pv-pct.zero { color: #ced4da; }
+/* total column */
+.pivot-table td.total-col,
+.pivot-table th.total-col {
+  background: #e9ecef !important;
+  font-weight: 700;
+  border-left: 2px solid #adb5bd;
+}
+/* total row */
+.pivot-table tr.total-row td {
+  background: #dee2e6 !important;
+  font-weight: 700;
+  border-top: 2px solid #adb5bd;
+}
+.pivot-table tr.total-row td.row-label { background: #d3d9df !important; }
+</style>
+</head>
+<body>
+<div class="container-fluid py-3">
+
+  <div class="mb-3">
+
+    <h2 class="mb-0 fw-bold">
+        Dashboard Monitoring SE2026 Kabupaten Klungkung
+    </h2>
+
+    <div style="font-size:13px;color:#6c757d;">
+        Last Update 9 Juni 2025 05:00 WITA
+    </div>
+
+  </div>
+
+  <h5 class="mt-2">Assignment</h5>
+  <div class="row mb-3" id="assignmentCards"></div>
+
+  <h5 class="mt-4">User</h5>
+  <div class="row mb-3" id="userCards"></div>
+
+  <!-- ===== PIVOT TABLE ===== -->
+  <h5 class="mt-4">Pivot Tabel</h5>
+  <div class="pivot-section">
+
+    <div class="pivot-controls">
+      <div class="ctrl-group">
+        <label>Baris (Row)</label>
+        <select id="pvRowField" class="form-select">
+          <option value="Username">Username</option>
+          <option value="Kabupaten">Kabupaten</option>
+          <option value="Kecamatan">Kecamatan</option>
+          <option value="Desa">Desa</option>
+          <option value="SLS">SLS</option>
+          <option value="SubSLS">SubSLS</option>
+        </select>
+      </div>
+      <div class="ctrl-group">
+        <label>Kolom (Column)</label>
+        <select id="pvColField" class="form-select">
+          <option value="Assignment">Assignment</option>
+          <option value="User">User</option>
+        </select>
+      </div>
+      <div class="ctrl-group">
+        <label>Filter Username</label>
+        <select id="pvFilterUsername" class="form-select">
+          <option value="">Semua Username</option>
+        </select>
+      </div>
+      <div class="ctrl-group">
+        <label>Filter Kabupaten</label>
+        <select id="pvFilterKabupaten" class="form-select">
+          <option value="">Semua Kabupaten</option>
+        </select>
+      </div>
+      <div class="ctrl-group">
+        <label>Filter Kecamatan</label>
+        <select id="pvFilterKecamatan" class="form-select">
+          <option value="">Semua Kecamatan</option>
+        </select>
+      </div>
+      <div class="ctrl-group">
+        <label>Filter Desa</label>
+        <select id="pvFilterDesa" class="form-select">
+          <option value="">Semua Desa</option>
+        </select>
+      </div>
+      <div class="ctrl-group">
+        <label>Filter SLS</label>
+        <select id="pvFilterSLS" class="form-select">
+          <option value="">Semua SLS</option>
+        </select>
+      </div>
+      <div class="ctrl-group">
+        <label>Filter SubSLS</label>
+        <select id="pvFilterSubSLS" class="form-select">
+          <option value="">Semua SubSLS</option>
+        </select>
+      </div>
+      <div class="ctrl-group" style="justify-content:flex-end;">
+        <label>&nbsp;</label>
+        <div class="pivot-btn-group">
+          <button class="btn btn-primary btn-sm" onclick="renderPivot()">Terapkan</button>
+          <button class="btn btn-outline-secondary btn-sm" onclick="resetPivot()">Reset</button>
+          <button class="btn btn-outline-success btn-sm" onclick="exportPivotCSV()">↓ CSV</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="pivot-status" id="pvStatus"></div>
+    <div class="pivot-table-wrap">
+      <table class="pivot-table" id="pvTable"></table>
+    </div>
+
+  </div>
+  <!-- ===== END PIVOT TABLE ===== -->
+
+  <div class="filter-box">
+    <div class="row g-2">
+      <div class="col-md-2">
+        <select id="filterUsername" class="form-select"><option value="">Semua Username</option></select>
+      </div>
+      <div class="col-md-2">
+        <select id="filterAssignment" class="form-select"><option value="">Semua Assignment</option></select>
+      </div>
+      <div class="col-md-2">
+        <select id="filterKabupaten" class="form-select"><option value="">Semua Kabupaten</option></select>
+      </div>
+      <div class="col-md-2">
+        <select id="filterKecamatan" class="form-select"><option value="">Semua Kecamatan</option></select>
+      </div>
+      <div class="col-md-2">
+        <select id="filterDesa" class="form-select"><option value="">Semua Desa</option></select>
+      </div>
+      <div class="col-md-2">
+        <select id="filterSLS" class="form-select"><option value="">Semua SLS</option></select>
+      </div>
+      <div class="col-md-2">
+        <select id="filterSubSLS" class="form-select"><option value="">Semua SubSLS</option></select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <table id="tblData" class="table table-striped table-bordered w-100">
+        <thead>
+          <tr>
+            <th>Assignment</th><th>Nama</th><th>Alamat</th><th>SBR</th>
+            <th>Skala</th><th>Username</th><th>User</th><th>Provinsi</th>
+            <th>Kabupaten</th><th>Kecamatan</th><th>Desa</th><th>SLS</th><th>SubSLS</th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+<script>
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ27Y0FnXR-U2sFBVHtKKspENrnedukpubHql2jJAzs23HSmZrIa6TQHytEqb8jbD-UWo0puQZ-AwSs/pub?output=csv";
+
+let rawData = [];
+let table;
+let allUsers = [];
+
+Papa.parse(CSV_URL, {
+  download: true, header: true, skipEmptyLines: true,
+  complete: function(results) {
+    rawData = results.data;
+    allUsers = [...new Set(rawData.map(x => x.User).filter(v => v))].sort();
+    fillFilters();
+    buildTable();
+    fillPivotFilters();
+    renderPivot();
+  }
+});
+
+function unique(field) {
+  return [...new Set(rawData.map(x => x[field]).filter(v => v))].sort();
+}
+
+function fillSelectEl(el, values) {
+  values.forEach(v => el.insertAdjacentHTML("beforeend", `<option value="${v}">${v}</option>`));
+}
+
+function fillSelect(id, field) {
+  fillSelectEl(document.getElementById(id), unique(field));
+}
+
+/* ── Main table filters ── */
+function fillFilters() {
+  ["filterUsername,Username","filterAssignment,Assignment","filterKabupaten,Kabupaten",
+   "filterKecamatan,Kecamatan","filterDesa,Desa","filterSLS,SLS","filterSubSLS,SubSLS"]
+  .forEach(s => { const [id,f] = s.split(","); fillSelect(id, f); });
+}
+
+$.fn.dataTable.ext.search.push(function(settings, data) {
+  return (
+    ($("#filterUsername").val() === "" || data[5] === $("#filterUsername").val()) &&
+    ($("#filterAssignment").val() === "" || data[0] === $("#filterAssignment").val()) &&
+    ($("#filterKabupaten").val() === "" || data[8] === $("#filterKabupaten").val()) &&
+    ($("#filterKecamatan").val() === "" || data[9] === $("#filterKecamatan").val()) &&
+    ($("#filterDesa").val() === "" || data[10] === $("#filterDesa").val()) &&
+    ($("#filterSLS").val() === "" || data[11] === $("#filterSLS").val()) &&
+    ($("#filterSubSLS").val() === "" || data[12] === $("#filterSubSLS").val())
+  );
+});
+
+/* ── Summary cards ── */
+function updateAssignmentCards(data) {
+  const container = document.getElementById("assignmentCards");
+  container.innerHTML = "";
+  const total = data.length;
+  const summary = {};
+  data.forEach(row => { const k = row.Assignment||"Tidak Ada"; summary[k]=(summary[k]||0)+1; });
+  Object.entries(summary).sort((a,b)=>b[1]-a[1]).forEach(([k, jumlah]) => {
+    const persen = total > 0 ? ((jumlah/total)*100).toFixed(1) : 0;
+    container.insertAdjacentHTML("beforeend", `
+      <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 mb-3">
+        <div class="card assignment-card"><div class="card-body">
+          <div class="text-muted">${k}</div>
+          <div class="assignment-value">${jumlah.toLocaleString()}</div>
+          <div class="assignment-percent">${persen}% dari total</div>
+          <div class="progress mt-2"><div class="progress-bar" style="width:${persen}%"></div></div>
+        </div></div>
+      </div>`);
+  });
+}
+
+function updateUserCards(data) {
+  const container = document.getElementById("userCards");
+  container.innerHTML = "";
+  const total = data.length;
+  const summary = {};
+  data.forEach(row => { const k = row.User||"Tidak Ada"; summary[k]=(summary[k]||0)+1; });
+  allUsers.forEach(user => {
+    const jumlah = summary[user] || 0;
+    const persen = total > 0 ? ((jumlah/total)*100).toFixed(1) : 0;
+    container.insertAdjacentHTML("beforeend", `
+      <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 mb-3">
+        <div class="card assignment-card"><div class="card-body">
+          <div class="text-muted">${user}</div>
+          <div class="assignment-value">${jumlah.toLocaleString()}</div>
+          <div class="assignment-percent">${persen}% dari total</div>
+          <div class="progress mt-2"><div class="progress-bar" style="width:${persen}%"></div></div>
+        </div></div>
+      </div>`);
+  });
+}
+
+/* ── DataTable ── */
+function buildTable() {
+  table = $('#tblData').DataTable({
+    data: rawData, responsive: true, pageLength: 25, dom: 'Bfrtip',
+    buttons: ['excel','csv','pdf','print'],
+    columns: [
+      {data:'Assignment'},{data:'Nama'},{data:'Alamat'},{data:'SBR'},
+      {data:'Skala'},{data:'Username'},{data:'User'},{data:'Provinsi'},
+      {data:'Kabupaten'},{data:'Kecamatan'},{data:'Desa'},{data:'SLS'},{data:'SubSLS'}
+    ]
+  });
+  table.on('draw', function() {
+    const filtered = table.rows({search:'applied'}).data().toArray();
+    updateAssignmentCards(filtered);
+    updateUserCards(filtered);
+  });
+  updateAssignmentCards(rawData);
+  updateUserCards(rawData);
+}
+
+["filterUsername","filterAssignment","filterKabupaten","filterKecamatan",
+ "filterDesa","filterSLS","filterSubSLS"].forEach(id => {
+  document.getElementById(id).addEventListener("change", () => table.draw());
+});
+
+/* ══════════════════════════════════════
+   PIVOT TABLE
+══════════════════════════════════════ */
+function fillPivotFilters() {
+  fillSelect("pvFilterUsername", "Username");
+  fillSelect("pvFilterKabupaten", "Kabupaten");
+  fillSelect("pvFilterKecamatan", "Kecamatan");
+  fillSelect("pvFilterDesa", "Desa");
+  fillSelect("pvFilterSLS", "SLS");
+  fillSelect("pvFilterSubSLS", "SubSLS");
+
+  // Cascade helpers
+  function cascadeOptions(elId, field, filterFn) {
+    const el = document.getElementById(elId);
+    const cur = el.value;
+    el.innerHTML = `<option value="">Semua ${field}</option>`;
+    const vals = [...new Set(rawData.filter(filterFn).map(r => r[field]).filter(Boolean))].sort();
+    fillSelectEl(el, vals);
+    el.value = vals.includes(cur) ? cur : "";
+  }
+
+  $("#pvFilterKabupaten").on("change", function() {
+    const kab = this.value;
+    cascadeOptions("pvFilterKecamatan","Kecamatan", r => !kab||r.Kabupaten===kab);
+    document.getElementById("pvFilterKecamatan").dispatchEvent(new Event("change"));
+  });
+  $("#pvFilterKecamatan").on("change", function() {
+    const kab=document.getElementById("pvFilterKabupaten").value, kec=this.value;
+    cascadeOptions("pvFilterDesa","Desa", r => (!kab||r.Kabupaten===kab)&&(!kec||r.Kecamatan===kec));
+    document.getElementById("pvFilterDesa").dispatchEvent(new Event("change"));
+  });
+  $("#pvFilterDesa").on("change", function() {
+    const kab=document.getElementById("pvFilterKabupaten").value,
+          kec=document.getElementById("pvFilterKecamatan").value, desa=this.value;
+    cascadeOptions("pvFilterSLS","SLS", r =>
+      (!kab||r.Kabupaten===kab)&&(!kec||r.Kecamatan===kec)&&(!desa||r.Desa===desa));
+    document.getElementById("pvFilterSLS").dispatchEvent(new Event("change"));
+  });
+  $("#pvFilterSLS").on("change", function() {
+    const kab=document.getElementById("pvFilterKabupaten").value,
+          kec=document.getElementById("pvFilterKecamatan").value,
+          desa=document.getElementById("pvFilterDesa").value, sls=this.value;
+    cascadeOptions("pvFilterSubSLS","SubSLS", r =>
+      (!kab||r.Kabupaten===kab)&&(!kec||r.Kecamatan===kec)&&
+      (!desa||r.Desa===desa)&&(!sls||r.SLS===sls));
+  });
+}
+
+function getPivotData() {
+  const g = id => document.getElementById(id).value;
+  return rawData.filter(r =>
+    (!g("pvFilterUsername") || r.Username === g("pvFilterUsername")) &&
+    (!g("pvFilterKabupaten") || r.Kabupaten === g("pvFilterKabupaten")) &&
+    (!g("pvFilterKecamatan") || r.Kecamatan === g("pvFilterKecamatan")) &&
+    (!g("pvFilterDesa") || r.Desa === g("pvFilterDesa")) &&
+    (!g("pvFilterSLS") || r.SLS === g("pvFilterSLS")) &&
+    (!g("pvFilterSubSLS") || r.SubSLS === g("pvFilterSubSLS"))
+  );
+}
+
+let lastPivotResult = null;
+
+function renderPivot() {
+  const rowField = document.getElementById("pvRowField").value;
+  const colField = document.getElementById("pvColField").value;
+  const data = getPivotData();
+
+  const rowKeys = [...new Set(data.map(r => r[rowField]||"(Kosong)"))].sort();
+  const colKeys = [...new Set(data.map(r => r[colField]||"(Kosong)"))].sort();
+
+  const count = {}, rowTotal = {}, colTotal = {};
+  let grand = 0;
+  rowKeys.forEach(r => { count[r] = {}; rowTotal[r] = 0; });
+  colKeys.forEach(c => { colTotal[c] = 0; });
+
+  data.forEach(row => {
+    const r = row[rowField]||"(Kosong)", c = row[colField]||"(Kosong)";
+    count[r][c] = (count[r][c]||0) + 1;
+    rowTotal[r]++;
+    colTotal[c]++;
+    grand++;
+  });
+
+  lastPivotResult = { rowField, colField, rowKeys, colKeys, count, rowTotal, colTotal, grand };
+
+  // Build HTML
+  // Header: rowLabel | col1 | col2 | ... | Total
+  // Each data cell shows: value (bold) + % of row total (small, grey)
+  let html = "<thead><tr>";
+  html += `<th class="row-header">${rowField}</th>`;
+  colKeys.forEach(c => { html += `<th>${c}</th>`; });
+  html += `<th class="total-col">Total</th></tr></thead><tbody>`;
+
+  rowKeys.forEach(r => {
+    const rt = rowTotal[r] || 0;
+    html += `<tr><td class="row-label">${r}</td>`;
+    colKeys.forEach(c => {
+      const val = count[r][c] || 0;
+      const pct = rt > 0 ? ((val / rt) * 100).toFixed(1) : "0.0";
+      const isZero = val === 0;
+      html += `<td>
+        <div class="pivot-cell">
+          <div class="pv-val${isZero?" zero":""}">${isZero ? "–" : val.toLocaleString()}</div>
+          <div class="pv-pct${isZero?" zero":""}">${isZero ? "" : pct+"%"}</div>
+        </div>
+      </td>`;
+    });
+    html += `<td class="total-col">
+      <div class="pivot-cell">
+        <div class="pv-val">${rt.toLocaleString()}</div>
+        <div class="pv-pct">100%</div>
+      </div>
+    </td></tr>`;
+  });
+
+  // Total row — show col % of grand total
+  html += `<tr class="total-row"><td class="row-label">Total</td>`;
+  colKeys.forEach(c => {
+    const val = colTotal[c] || 0;
+    const pct = grand > 0 ? ((val / grand) * 100).toFixed(1) : "0.0";
+    html += `<td>
+      <div class="pivot-cell">
+        <div class="pv-val">${val.toLocaleString()}</div>
+        <div class="pv-pct">${pct}%</div>
+      </div>
+    </td>`;
+  });
+  html += `<td class="total-col">
+    <div class="pivot-cell">
+      <div class="pv-val">${grand.toLocaleString()}</div>
+      <div class="pv-pct">100%</div>
+    </div>
+  </td></tr>`;
+  html += "</tbody>";
+
+  document.getElementById("pvTable").innerHTML = html;
+  document.getElementById("pvStatus").textContent =
+    `${rowKeys.length} baris × ${colKeys.length} kolom | ${grand.toLocaleString()} record`;
+}
+
+function resetPivot() {
+  ["pvFilterUsername","pvFilterKabupaten","pvFilterKecamatan",
+   "pvFilterDesa","pvFilterSLS","pvFilterSubSLS"].forEach(id => {
+    document.getElementById(id).value = "";
+  });
+  // Re-populate selects to full list
+  ["pvFilterKecamatan","pvFilterDesa","pvFilterSLS","pvFilterSubSLS"].forEach(id => {
+    const field = {pvFilterKecamatan:"Kecamatan",pvFilterDesa:"Desa",
+                   pvFilterSLS:"SLS",pvFilterSubSLS:"SubSLS"}[id];
+    const el = document.getElementById(id);
+    el.innerHTML = `<option value="">Semua ${field}</option>`;
+    unique(field).forEach(v => el.insertAdjacentHTML("beforeend",`<option value="${v}">${v}</option>`));
+  });
+  renderPivot();
+}
+
+function exportPivotCSV() {
+  if (!lastPivotResult) return;
+  const { rowField, colField, rowKeys, colKeys, count, rowTotal, colTotal, grand } = lastPivotResult;
+  const rows = [];
+  // header
+  rows.push([rowField, ...colKeys.flatMap(c=>[c, c+"_%"]), "Total", "Total_%"].join(","));
+  rowKeys.forEach(r => {
+    const rt = rowTotal[r] || 0;
+    const cells = colKeys.flatMap(c => {
+      const val = count[r][c]||0;
+      const pct = rt > 0 ? ((val/rt)*100).toFixed(1) : "0.0";
+      return [val, pct+"%"];
+    });
+    rows.push([`"${r}"`, ...cells, rt, "100%"].join(","));
+  });
+  const totCells = colKeys.flatMap(c => {
+    const val = colTotal[c]||0;
+    const pct = grand > 0 ? ((val/grand)*100).toFixed(1) : "0.0";
+    return [val, pct+"%"];
+  });
+  rows.push(["Total", ...totCells, grand, "100%"].join(","));
+
+  const blob = new Blob([rows.join("\n")], {type:"text/csv;charset=utf-8;"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `pivot_${rowField}_x_${colField}.csv`;
+  a.click();
+}
+</script>
+</body>
+</html>
