@@ -219,6 +219,27 @@ body {
 .pivot-status { font-size: 11px; color: #94a3b8; margin-bottom: 10px; }
 .pivot-btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
 
+/* sort indicators on pivot headers */
+.pivot-table thead th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background .15s;
+}
+.pivot-table thead th.sortable:hover { background: #334155 !important; }
+.pivot-table thead th .sort-icon {
+  display: inline-block;
+  margin-left: 5px;
+  opacity: .35;
+  font-style: normal;
+  font-size: 10px;
+  vertical-align: middle;
+}
+.pivot-table thead th.sort-asc  .sort-icon,
+.pivot-table thead th.sort-desc .sort-icon { opacity: 1; color: #7dd3fc; }
+.pivot-table thead th.sort-asc  .sort-icon::after { content: " ▲"; }
+.pivot-table thead th.sort-desc .sort-icon::after { content: " ▼"; }
+.pivot-table thead th:not(.sort-asc):not(.sort-desc) .sort-icon::after { content: " ⇅"; }
+
 /* ── DataTable overrides ── */
 #tblData_wrapper { font-size: 12px; }
 #tblData thead th {
@@ -731,6 +752,8 @@ function getPivotData(){
 }
 
 let lastPivotResult=null;
+let pvSort = { col: null, dir: 'desc' }; // col: index into colKeys (-1 = row label, colKeys.length = total)
+
 function renderPivot(){
   const rowField=document.getElementById("pvRowField").value;
   const colField=document.getElementById("pvColField").value;
@@ -746,11 +769,39 @@ function renderPivot(){
   });
   lastPivotResult={rowField,colField,rowKeys,colKeys,count,rowTotal,colTotal,grand};
 
+  // --- apply sort to rowKeys copy ---
+  let sortedRows = [...rowKeys];
+  if(pvSort.col !== null){
+    sortedRows.sort((a,b)=>{
+      let va, vb;
+      if(pvSort.col === -1){
+        va = a; vb = b; // sort by row label (alphabetical)
+        return pvSort.dir==='asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+      } else if(pvSort.col === colKeys.length){
+        va = rowTotal[a]||0; vb = rowTotal[b]||0;
+      } else {
+        va = count[a][colKeys[pvSort.col]]||0;
+        vb = count[b][colKeys[pvSort.col]]||0;
+      }
+      return pvSort.dir==='asc' ? va-vb : vb-va;
+    });
+  }
+
+  // --- header ---
+  const sortClass = (idx) => {
+    if(pvSort.col !== idx) return '';
+    return pvSort.dir==='asc' ? ' sort-asc' : ' sort-desc';
+  };
   let html="<thead><tr>";
-  html+=`<th class="row-header">${rowField}</th>`;
-  colKeys.forEach(c=>{html+=`<th>${c}</th>`;});
-  html+=`<th class="total-col">Total</th></tr></thead><tbody>`;
-  rowKeys.forEach(r=>{
+  html+=`<th class="row-header sortable${sortClass(-1)}" data-colidx="-1">${rowField}<i class="sort-icon"></i></th>`;
+  colKeys.forEach((c,i)=>{
+    html+=`<th class="sortable${sortClass(i)}" data-colidx="${i}">${c}<i class="sort-icon"></i></th>`;
+  });
+  html+=`<th class="total-col sortable${sortClass(colKeys.length)}" data-colidx="${colKeys.length}">Total<i class="sort-icon"></i></th>`;
+  html+=`</tr></thead><tbody>`;
+
+  // --- body ---
+  sortedRows.forEach(r=>{
     const rt=rowTotal[r]||0;
     html+=`<tr><td class="row-label">${r}</td>`;
     colKeys.forEach(c=>{
@@ -763,6 +814,8 @@ function renderPivot(){
     });
     html+=`<td class="total-col"><div class="pivot-cell"><div class="pv-val">${rt.toLocaleString()}</div><div class="pv-pct">100%</div></div></td></tr>`;
   });
+
+  // --- total row ---
   html+=`<tr class="total-row"><td class="row-label">Total</td>`;
   colKeys.forEach(c=>{
     const val=colTotal[c]||0;
@@ -770,12 +823,28 @@ function renderPivot(){
     html+=`<td><div class="pivot-cell"><div class="pv-val">${val.toLocaleString()}</div><div class="pv-pct">${pct}%</div></div></td>`;
   });
   html+=`<td class="total-col"><div class="pivot-cell"><div class="pv-val">${grand.toLocaleString()}</div><div class="pv-pct">100%</div></div></td></tr></tbody>`;
+
   document.getElementById("pvTable").innerHTML=html;
   document.getElementById("pvStatus").textContent=
     `${rowKeys.length} baris × ${colKeys.length} kolom | ${grand.toLocaleString()} record`;
+
+  // bind sort clicks
+  document.querySelectorAll("#pvTable thead th.sortable").forEach(th=>{
+    th.addEventListener("click",()=>{
+      const idx = parseInt(th.dataset.colidx);
+      if(pvSort.col === idx){
+        pvSort.dir = pvSort.dir==='desc' ? 'asc' : 'desc';
+      } else {
+        pvSort.col = idx;
+        pvSort.dir = 'desc';
+      }
+      renderPivot();
+    });
+  });
 }
 
 function resetPivot(){
+  pvSort = { col: null, dir: 'desc' };
   PV_IDS.forEach(id=>{ document.getElementById(id).value=""; });
   PV_IDS.forEach(id=>{
     const el=document.getElementById(id);
