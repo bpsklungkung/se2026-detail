@@ -401,7 +401,7 @@ body {
   <div class="topbar-logo">📊</div>
   <div>
     <div class="topbar-title">Dashboard Monitoring SE2026</div>
-    <div class="topbar-sub">Kabupaten Klungkung — Provinsi Bali</div>
+    <div class="topbar-sub">Kabupaten Klungkung — Provinsi Bali Last Update: 10 Juni 2026 Pukul 05:00 WITA</div>
     <div class="topbar-sub" style="margin-top:3px; opacity:.85;">
       Ambil link data di :
       <a href="https://drive.google.com/drive/folders/1mPGqB-w-yq-7Z5F7_wy1m0mIOkAN1Xrj?usp=sharing"
@@ -502,6 +502,7 @@ body {
           <button class="btn btn-primary btn-sm" onclick="renderPivot()">Terapkan</button>
           <button class="btn btn-outline-secondary btn-sm" onclick="resetPivot()">Reset</button>
           <button class="btn btn-outline-success btn-sm" onclick="exportPivotCSV()">↓ CSV</button>
+          <button class="btn btn-outline-warning btn-sm" onclick="showColumnNames()" title="Lihat nama semua kolom CSV">🔍 Kolom</button>
         </div>
       </div>
     </div>
@@ -827,15 +828,35 @@ function getPivotData(){
 let lastPivotResult=null;
 let pvSort = { col: null, dir: 'desc' }; // col: index into colKeys (-1 = row label, colKeys.length = total)
 
-// Find "Pencacah awal" column key from rawData headers (col S = index 18, 0-based)
+// Find "Pencacah awal" column key from rawData headers (col S = index 18, 0-based after header)
+// Logs all column names to console for debugging
 function getPencacahKey(){
   if(!rawData.length) return null;
   const keys = Object.keys(rawData[0]);
-  // Try by name first (case-insensitive)
-  const byName = keys.find(k => /pencacah.?awal/i.test(k));
-  if(byName) return byName;
-  // Fallback: column S = index 18
-  return keys[18] || null;
+  // Log all keys so we can identify col S
+  console.log('[DEBUG] All CSV columns:', keys.map((k,i)=>i+':'+k).join(', '));
+
+  // Try name patterns first
+  const byName = keys.find(k => /pencacah/i.test(k));
+  if(byName){ console.log('[DEBUG] Pencacah key (by name):', byName); return byName; }
+
+  // Col S = 19th column (index 18, 0-based)
+  const byIndex = keys[18];
+  console.log('[DEBUG] Col S fallback (index 18):', byIndex);
+  return byIndex || null;
+}
+
+// Show all CSV column names in an overlay for debugging
+function showColumnNames(){
+  if(!rawData.length){ alert('Data belum dimuat'); return; }
+  const keys = Object.keys(rawData[0]);
+  const sample = rawData[0];
+  let msg = 'Kolom CSV (index : nama : contoh nilai):\n\n';
+  keys.forEach((k,i)=>{
+    const alpha = String.fromCharCode(65 + (i < 26 ? i : 25));
+    msg += `${alpha}(${i}) : "${k}" : "${sample[k] ?? ''}"\n`;
+  });
+  alert(msg);
 }
 
 function renderPivot(){
@@ -846,26 +867,54 @@ function renderPivot(){
   const colKeys=[...new Set(data.map(r=>r[colField]||"(Kosong)"))].sort();
   const count={}, rowTotal={}, colTotal={}; let grand=0;
 
-  // Pencacah awal: sum per rowKey, total — only meaningful when rowField=Username
-  const showPencacah = (rowField === 'Username');
-  const pencacahKey  = showPencacah ? getPencacahKey() : null;
-  const pencacahSum  = {};   // rowKey → sum of Pencacah awal
-  let   pencacahGrand = 0;
-  let   openGrand     = 0;
+ // Pencacah awal: count per rowKey, total — only meaningful when rowField=Username
+const showPencacah = (rowField === 'Username');
+const pencacahKey  = showPencacah ? getPencacahKey() : null;
 
-  rowKeys.forEach(r=>{ count[r]={}; rowTotal[r]=0; if(showPencacah) pencacahSum[r]=0; });
-  colKeys.forEach(c=>{ colTotal[c]=0; });
+const pencacahSum  = {};   // rowKey → count of records
+let   pencacahGrand = 0;
+let   openGrand     = 0;
 
-  data.forEach(row=>{
-    const r=row[rowField]||"(Kosong)", c=row[colField]||"(Kosong)";
-    count[r][c]=(count[r][c]||0)+1; rowTotal[r]++; colTotal[c]++; grand++;
-    if(showPencacah && pencacahKey){
-      const v = parseInt(row[pencacahKey]) || 0;
-      pencacahSum[r] = (pencacahSum[r]||0) + v;
-      pencacahGrand += v;
-    }
-    if(showPencacah && (row[colField]||'').toString().toUpperCase().includes('OPEN')) openGrand++;
-  });
+rowKeys.forEach(r => {
+  count[r] = {};
+  rowTotal[r] = 0;
+
+  if (showPencacah) {
+    pencacahSum[r] = 0;
+  }
+});
+
+colKeys.forEach(c => {
+  colTotal[c] = 0;
+});
+
+data.forEach(row => {
+  const r = row[rowField] || "(Kosong)";
+  const c = row[colField] || "(Kosong)";
+
+  // Count utama pivot
+  count[r][c] = (count[r][c] || 0) + 1;
+  rowTotal[r]++;
+  colTotal[c]++;
+  grand++;
+
+  // COUNT record per Username (bukan SUM nilai kolom)
+  if (showPencacah) {
+    pencacahSum[r] = (pencacahSum[r] || 0) + 1;
+    pencacahGrand++;
+  }
+
+  // Count status OPEN
+  if (
+    showPencacah &&
+    (row[colField] || '')
+      .toString()
+      .toUpperCase()
+      .includes('OPEN')
+  ) {
+    openGrand++;
+  }
+});
 
   lastPivotResult={rowField,colField,rowKeys,colKeys,count,rowTotal,colTotal,grand,
                    showPencacah,pencacahKey,pencacahSum,pencacahGrand};
