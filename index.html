@@ -230,6 +230,20 @@ body {
 .pivot-table tr.total-row td.pencacah-col {
   background: #fef08a !important;
 }
+/* capaian harian — biru muda */
+.pivot-table td.capaian-col,
+.pivot-table th.capaian-col {
+  background: #eff6ff !important;
+  border-left: 2px solid #bfdbfe;
+}
+.pivot-table th.capaian-col {
+  background: #1d4ed8 !important;
+  color: #bfdbfe !important;
+  border-left: 2px solid #1e40af !important;
+}
+.pivot-table tr.total-row td.capaian-col {
+  background: #dbeafe !important;
+}
 .pivot-status { font-size: 11px; color: #94a3b8; margin-bottom: 10px; }
 .pivot-btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
 
@@ -260,10 +274,11 @@ body {
   background: #1e293b !important;
   color: #e2e8f0 !important;
   font-weight: 600 !important;
-  font-size: 11px !important;
+  font-size: 10px !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
   text-transform: uppercase !important;
-  letter-spacing: .05em !important;
-  padding: 9px 12px !important;
+  letter-spacing: .06em !important;
+  padding: 8px 10px !important;
   border: none !important;
   border-bottom: 2px solid #334155 !important;
   white-space: nowrap;
@@ -276,20 +291,60 @@ body {
 #tblData thead th.sorting_desc::after {
   color: rgba(255,255,255,.4) !important;
 }
-/* base cell — uniform typography */
+/* base cell — Inter, matched to pivot */
 #tblData tbody td {
-  padding: 6px 12px !important;
+  padding: 5px 10px !important;
   vertical-align: middle !important;
-  font-size: 12px !important;
+  font-size: 11px !important;
   font-weight: 400 !important;
-  color: #334155 !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  color: #475569 !important;
   border-bottom: 1px solid #e2e8f0 !important;
   border-right: 1px solid #e2e8f0 !important;
   white-space: nowrap;
+  line-height: 1.4;
 }
-/* Nama & Alamat columns can wrap */
-#tblData tbody td:nth-child(2) { min-width: 160px; white-space: normal !important; }
-#tblData tbody td:nth-child(3) { min-width: 140px; white-space: normal !important; }
+/* col 0 Assignment — semibold, accent */
+#tblData tbody td:nth-child(1) {
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  color: #1e40af !important;
+  letter-spacing: .01em;
+}
+/* col 1 Nama — bold, dark */
+#tblData tbody td:nth-child(2) {
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  color: #0f172a !important;
+  min-width: 150px;
+  white-space: normal !important;
+}
+/* col 2 Alamat — regular, muted, wrap */
+#tblData tbody td:nth-child(3) {
+  font-size: 10px !important;
+  color: #64748b !important;
+  min-width: 130px;
+  white-space: normal !important;
+}
+/* col 5 Username — medium, indigo */
+#tblData tbody td:nth-child(5) {
+  font-size: 10px !important;
+  font-weight: 500 !important;
+  color: #4f46e5 !important;
+}
+/* col 6 User — semibold */
+#tblData tbody td:nth-child(6) {
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  color: #334155 !important;
+}
+/* col 7 Provinsi — uppercase tiny, muted */
+#tblData tbody td:nth-child(7) {
+  font-size: 10px !important;
+  color: #94a3b8 !important;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
 /* selected/highlighted row from map click */
 #tblData tbody tr.row-selected > * {
   background-color: #dbeafe !important;
@@ -401,7 +456,7 @@ body {
   <div class="topbar-logo">📊</div>
   <div>
     <div class="topbar-title">Dashboard Monitoring SE2026</div>
-    <div class="topbar-sub">Kabupaten Klungkung — Provinsi Bali Last Update: 10 Juni 2026 Pukul 05:00 WITA</div>
+    <div class="topbar-sub">Kabupaten Klungkung — Provinsi Bali</div>
     <div class="topbar-sub" style="margin-top:3px; opacity:.85;">
       Ambil link data di :
       <a href="https://drive.google.com/drive/folders/1mPGqB-w-yq-7Z5F7_wy1m0mIOkAN1Xrj?usp=sharing"
@@ -466,6 +521,14 @@ body {
       <div class="col-md-auto" style="min-width:130px">
         <label class="filter-label">Filter User</label>
         <select id="pvFilterUser" class="form-select"><option value="">Semua</option></select>
+      </div>
+      <div class="col-md-auto" style="min-width:150px">
+        <label class="filter-label">Filter Pencacah Awal</label>
+        <select id="pvFilterPencacah" class="form-select"><option value="">Semua</option></select>
+      </div>
+      <div class="col-md-auto" style="min-width:150px">
+        <label class="filter-label">Filter Pengawas Awal</label>
+        <select id="pvFilterPengawas" class="form-select"><option value="">Semua</option></select>
       </div>
       <div class="col-md-auto" style="min-width:130px">
         <label class="filter-label">Filter Kabupaten</label>
@@ -619,7 +682,7 @@ Papa.parse(CSV_URL, {
     allUsers = [...new Set(rawData.map(x=>x.User).filter(Boolean))].sort();
     document.getElementById("topbarTotal").textContent =
       `${rawData.length.toLocaleString()} record`;
-    fillFilters(); buildTable(); fillPivotFilters(); renderPivot();
+    fillFilters(); buildTable(); fillPivotFilters(); resolveSpecialKeys(); renderPivot();
   }
 });
 
@@ -782,11 +845,15 @@ MAIN_IDS.forEach(id=>{
 /* ══════════════════════════════════════
    PIVOT — CASCADE FILTERS
 ══════════════════════════════════════ */
-const PV_IDS = ["pvFilterUser","pvFilterUsername","pvFilterKabupaten",
+const PV_IDS = ["pvFilterUser","pvFilterUsername","pvFilterPencacah","pvFilterPengawas","pvFilterKabupaten",
                 "pvFilterKecamatan","pvFilterDesa","pvFilterSLS","pvFilterSubSLS"];
+// PV_FIELD maps select id → row property name; Pencacah uses the resolved col S key
+// We store a placeholder and resolve after rawData loads
 const PV_FIELD = {
-  pvFilterUser:"User", pvFilterUsername:"Username", pvFilterKabupaten:"Kabupaten",
-  pvFilterKecamatan:"Kecamatan", pvFilterDesa:"Desa", pvFilterSLS:"SLS", pvFilterSubSLS:"SubSLS"
+  pvFilterUser:"User", pvFilterUsername:"Username",
+  pvFilterPencacah:"__pencacah__", pvFilterPengawas:"__pengawas__",
+  pvFilterKabupaten:"Kabupaten", pvFilterKecamatan:"Kecamatan",
+  pvFilterDesa:"Desa", pvFilterSLS:"SLS", pvFilterSubSLS:"SubSLS"
 };
 
 function getPvFiltered(excludeId){
@@ -828,33 +895,47 @@ function getPivotData(){
 let lastPivotResult=null;
 let pvSort = { col: null, dir: 'desc' }; // col: index into colKeys (-1 = row label, colKeys.length = total)
 
-// Find "Pencacah awal" column key from rawData headers (col S = index 18, 0-based after header)
-// Logs all column names to console for debugging
-function getPencacahKey(){
-  if(!rawData.length) return null;
+// Col S = "Pencacah Awal", Col T = "Pengawas Awal" — exact names from CSV header
+// Resolved once after rawData loads
+let PENCACAH_KEY  = null;   // col S
+let PENGAWAS_KEY  = null;   // col T
+
+function resolveSpecialKeys(){
+  if(!rawData.length) return;
   const keys = Object.keys(rawData[0]);
-  // Log all keys so we can identify col S
-  console.log('[DEBUG] All CSV columns:', keys.map((k,i)=>i+':'+k).join(', '));
-
-  // Try name patterns first
-  const byName = keys.find(k => /pencacah/i.test(k));
-  if(byName){ console.log('[DEBUG] Pencacah key (by name):', byName); return byName; }
-
-  // Col S = 19th column (index 18, 0-based)
-  const byIndex = keys[18];
-  console.log('[DEBUG] Col S fallback (index 18):', byIndex);
-  return byIndex || null;
+  PENCACAH_KEY = keys.find(k=>/pencacah.?awal/i.test(k))
+              || keys.find(k=>/pencacah/i.test(k))
+              || keys[18] || null;
+  PENGAWAS_KEY = keys.find(k=>/pengawas.?awal/i.test(k))
+              || keys.find(k=>/pengawas/i.test(k))
+              || keys[19] || null;
+  // Update PV_FIELD so cascade filters use real key
+  if(PENCACAH_KEY) PV_FIELD['pvFilterPencacah'] = PENCACAH_KEY;
+  if(PENGAWAS_KEY) PV_FIELD['pvFilterPengawas'] = PENGAWAS_KEY;
+  // Fill pencacah filter options
+  const elP = document.getElementById('pvFilterPencacah');
+  if(elP && PENCACAH_KEY){
+    elP.innerHTML = '<option value="">Semua</option>';
+    fillSelectEl(elP, unique(PENCACAH_KEY));
+  }
+  // Fill pengawas filter options
+  const elW = document.getElementById('pvFilterPengawas');
+  if(elW && PENGAWAS_KEY){
+    elW.innerHTML = '<option value="">Semua</option>';
+    fillSelectEl(elW, unique(PENGAWAS_KEY));
+  }
+  console.log('[INFO] Pencacah key:', PENCACAH_KEY, '| Pengawas key:', PENGAWAS_KEY);
 }
 
-// Show all CSV column names in an overlay for debugging
+// Show all CSV column names in a modal-like overlay for debugging
 function showColumnNames(){
   if(!rawData.length){ alert('Data belum dimuat'); return; }
   const keys = Object.keys(rawData[0]);
   const sample = rawData[0];
   let msg = 'Kolom CSV (index : nama : contoh nilai):\n\n';
   keys.forEach((k,i)=>{
-    const alpha = String.fromCharCode(65 + (i < 26 ? i : 25));
-    msg += `${alpha}(${i}) : "${k}" : "${sample[k] ?? ''}"\n`;
+    const alpha = i<26 ? String.fromCharCode(65+i) : '?';
+    msg += `${alpha}(${i}) : "${k}" : "${sample[k]??''}"\n`;
   });
   alert(msg);
 }
@@ -867,57 +948,48 @@ function renderPivot(){
   const colKeys=[...new Set(data.map(r=>r[colField]||"(Kosong)"))].sort();
   const count={}, rowTotal={}, colTotal={}; let grand=0;
 
- // Pencacah awal: count per rowKey, total — only meaningful when rowField=Username
-const showPencacah = (rowField === 'Username');
-const pencacahKey  = showPencacah ? getPencacahKey() : null;
+  // ── jumlah hari sejak 8 Juni 2026 (inklusif tanggal itu sendiri) ──
+  const START_DATE = new Date('2026-06-08T00:00:00');
+  const today      = new Date(); today.setHours(0,0,0,0);
+  const hariKerja  = Math.max(1, Math.floor((today - START_DATE) / 86400000) + 1);
 
-const pencacahSum  = {};   // rowKey → count of records
-let   pencacahGrand = 0;
-let   openGrand     = 0;
+  // ── mode flags ──
+  const showPencacah   = (rowField === 'Username');
+  const filterUserVal  = document.getElementById('pvFilterUser').value;
+  const isPencacahMode = showPencacah && /pencacah/i.test(filterUserVal);   // filter User = Pencacah
+  const isPengawasMode = showPencacah && /pengawas/i.test(filterUserVal);   // filter User = Pengawas
 
-rowKeys.forEach(r => {
-  count[r] = {};
-  rowTotal[r] = 0;
+  // ── pre-compute counts ──
+  const pencacahCount = {};   // username → target (rows di col S = username tsb)
+  const pengawasName  = {};   // username → nama Pengawas Awal (col T)
+  let   pencacahGrand = 0;
 
-  if (showPencacah) {
-    pencacahSum[r] = 0;
-  }
-});
+  rowKeys.forEach(r=>{ count[r]={}; rowTotal[r]=0; });
+  colKeys.forEach(c=>{ colTotal[c]=0; });
 
-colKeys.forEach(c => {
-  colTotal[c] = 0;
-});
-
-data.forEach(row => {
-  const r = row[rowField] || "(Kosong)";
-  const c = row[colField] || "(Kosong)";
-
-  // Count utama pivot
-  count[r][c] = (count[r][c] || 0) + 1;
-  rowTotal[r]++;
-  colTotal[c]++;
-  grand++;
-
-  // COUNT record per Username (bukan SUM nilai kolom)
-  if (showPencacah) {
-    pencacahSum[r] = (pencacahSum[r] || 0) + 1;
-    pencacahGrand++;
+  if(showPencacah && PENCACAH_KEY){
+    rawData.forEach(row=>{
+      const pencacah = row[PENCACAH_KEY]||'';
+      if(pencacah) pencacahCount[pencacah] = (pencacahCount[pencacah]||0) + 1;
+    });
+    if(PENGAWAS_KEY){
+      rawData.forEach(row=>{
+        const uname = row[rowField]||'';
+        if(uname && !pengawasName[uname] && row[PENGAWAS_KEY])
+          pengawasName[uname] = row[PENGAWAS_KEY];
+      });
+    }
   }
 
-  // Count status OPEN
-  if (
-    showPencacah &&
-    (row[colField] || '')
-      .toString()
-      .toUpperCase()
-      .includes('OPEN')
-  ) {
-    openGrand++;
-  }
-});
+  data.forEach(row=>{
+    const r=row[rowField]||"(Kosong)", c=row[colField]||"(Kosong)";
+    count[r][c]=(count[r][c]||0)+1; rowTotal[r]++; colTotal[c]++; grand++;
+  });
+
+  if(showPencacah) rowKeys.forEach(r=>{ pencacahGrand += pencacahCount[r]||0; });
 
   lastPivotResult={rowField,colField,rowKeys,colKeys,count,rowTotal,colTotal,grand,
-                   showPencacah,pencacahKey,pencacahSum,pencacahGrand};
+                   showPencacah,pencacahCount,pencacahGrand,pengawasName};
 
   // ── sort ──
   const sortMode = document.getElementById('pvSortMode') ? document.getElementById('pvSortMode').value : 'count_desc';
@@ -925,16 +997,40 @@ data.forEach(row => {
   if(pvSort.col !== null){
     sortedRows.sort((a,b)=>{
       if(pvSort.col === -1) return pvSort.dir==='asc' ? a.localeCompare(b) : b.localeCompare(a);
-      // extra cols: colKeys.length = Total, +1 = Pencacah awal, +2 = % Open/Target
-      if(pvSort.col === colKeys.length+1){ // Pencacah awal
-        const va=pencacahSum[a]||0, vb=pencacahSum[b]||0;
+      if(pvSort.col === colKeys.length+1){
+        const va=pencacahCount[a]||0, vb=pencacahCount[b]||0;
         return pvSort.dir==='asc'?va-vb:vb-va;
       }
-      if(pvSort.col === colKeys.length+2){ // % Open/Target
-        const getOpen=(x)=>{ const ok=colKeys.find(k=>k.toUpperCase().includes('OPEN')); return ok?(count[x][ok]||0):0; };
-        const va=pencacahSum[a]>0?getOpen(a)/pencacahSum[a]:0;
-        const vb=pencacahSum[b]>0?getOpen(b)/pencacahSum[b]:0;
+      if(pvSort.col === colKeys.length+2){
+        const ok=colKeys.find(k=>k.toUpperCase().includes('OPEN'));
+        const getOpen=(x)=>ok?(count[x][ok]||0):0;
+        const va=pencacahCount[a]>0?getOpen(a)/pencacahCount[a]:0;
+        const vb=pencacahCount[b]>0?getOpen(b)/pencacahCount[b]:0;
         return pvSort.dir==='asc'?va-vb:vb-va;
+      }
+      if(pvSort.col === colKeys.length+3 && (isPencacahMode||isPengawasMode)){ // capaian harian
+        const capaian=(x)=>{
+          if(isPencacahMode){
+            const ok=colKeys.find(k=>k.toUpperCase().includes('OPEN'));
+            const openV=ok?(count[x][ok]||0):0;
+            return ((pencacahCount[x]||0)-openV)/hariKerja;
+          }
+          if(isPengawasMode){
+            const apv=colKeys.find(k=>/approved.+pengawas/i.test(k));
+            const rej=colKeys.find(k=>/rejected.+pengawas/i.test(k));
+            const rev=colKeys.find(k=>/revoked.+pengawas/i.test(k));
+            return ((apv?count[x][apv]:0)+(rej?count[x][rej]:0)+(rev?count[x][rev]:0))/hariKerja;
+          }
+          return 0;
+        };
+        return pvSort.dir==='asc'?capaian(a)-capaian(b):capaian(b)-capaian(a);
+      }
+      // Pengawas Awal: N+3 (default mode) or N+4 (pencacah mode with capaian at N+3)
+      if( (pvSort.col === colKeys.length+3 && !isPencacahMode && !isPengawasMode) ||
+           pvSort.col === colKeys.length+4 ){
+        const pgwA = (pengawasName[a]||'').toLowerCase();
+        const pgwB = (pengawasName[b]||'').toLowerCase();
+        return pvSort.dir==='asc' ? pgwA.localeCompare(pgwB) : pgwB.localeCompare(pgwA);
       }
       const va = pvSort.col===colKeys.length ? rowTotal[a]||0 : count[a][colKeys[pvSort.col]]||0;
       const vb = pvSort.col===colKeys.length ? rowTotal[b]||0 : count[b][colKeys[pvSort.col]]||0;
@@ -953,9 +1049,22 @@ data.forEach(row => {
     });
   }
 
+  // ── helper: find colKey by pattern ──
+  const findCol = pat => colKeys.find(k=>pat.test(k)) || null;
+  const openColKey   = findCol(/^open$/i) || findCol(/open/i);
+  const apvPgwKey    = findCol(/approved.+pengawas/i);
+  const rejPgwKey    = findCol(/rejected.+pengawas/i);
+  const revPgwKey    = findCol(/revoked.+pengawas/i);
+
   // ── header ──
   const sortClass = idx => pvSort.col!==idx ? '' : (pvSort.dir==='asc' ? ' sort-asc' : ' sort-desc');
-  const N = colKeys.length; // used as offset for extra cols
+  const N = colKeys.length;
+  // Dynamic index for Pengawas Awal col:
+  // - isPencacahMode: N+1=Target, N+2=%OPEN, N+3=Capaian, N+4=Pengawas
+  // - isPengawasMode: N+1=Target, N+2=%OPEN, N+3=Capaian  (no Pengawas col)
+  // - default:        N+1=Target, N+2=%OPEN, N+3=Pengawas
+  const pgwColIdx = isPencacahMode ? N+4 : N+3;
+
   let html="<thead><tr>";
   html+=`<th class="row-header sortable${sortClass(-1)}" data-colidx="-1">${rowField}<i class="sort-icon"></i></th>`;
   colKeys.forEach((c,i)=>{
@@ -963,15 +1072,28 @@ data.forEach(row => {
   });
   html+=`<th class="total-col sortable${sortClass(N)}" data-colidx="${N}">Total<i class="sort-icon"></i></th>`;
   if(showPencacah){
-    html+=`<th class="pencacah-col sortable${sortClass(N+1)}" data-colidx="${N+1}" title="Jumlah Pencacah Awal (kolom S)">Pencacah Awal<i class="sort-icon"></i></th>`;
-    html+=`<th class="pencacah-col sortable${sortClass(N+2)}" data-colidx="${N+2}" title="Persentase OPEN terhadap Pencacah Awal">% OPEN/<br>Target<i class="sort-icon"></i></th>`;
+    html+=`<th class="pencacah-col sortable${sortClass(N+1)}" data-colidx="${N+1}" title="Jumlah record di-assign ke username ini (kolom S)">Target<br><span style="font-weight:400;font-size:10px;opacity:.7">(Pencacah Awal)</span><i class="sort-icon"></i></th>`;
+    html+=`<th class="pencacah-col sortable${sortClass(N+2)}" data-colidx="${N+2}" title="Persentase OPEN terhadap Target">% OPEN/<br>Target<i class="sort-icon"></i></th>`;
+    if(isPencacahMode){
+      html+=`<th class="capaian-col sortable${sortClass(N+3)}" data-colidx="${N+3}"
+        title="(Target − OPEN) ÷ ${hariKerja} hari (sejak 8 Jun 2026)">
+        Capaian Harian<br><span style="font-weight:400;font-size:10px;opacity:.8">Pencacahan</span>
+        <i class="sort-icon"></i></th>`;
+      if(PENGAWAS_KEY) html+=`<th class="pencacah-col sortable${sortClass(pgwColIdx)}" data-colidx="${pgwColIdx}" style="min-width:130px" title="Urutkan berdasarkan nama Pengawas Awal">Pengawas Awal<i class="sort-icon"></i></th>`;
+    }
+    if(isPengawasMode){
+      html+=`<th class="capaian-col sortable${sortClass(N+3)}" data-colidx="${N+3}"
+        title="(Approved+Rejected+Revoked by Pengawas) ÷ ${hariKerja} hari (sejak 8 Jun 2026)">
+        Capaian Harian<br><span style="font-weight:400;font-size:10px;opacity:.8">Pengawasan</span>
+        <i class="sort-icon"></i></th>`;
+    }
+    if(!isPencacahMode && !isPengawasMode && PENGAWAS_KEY){
+      // Pengawas Awal hanya muncul saat filter User = Pencacah
+    }
   }
   html+=`</tr></thead><tbody>`;
 
   // ── body ──
-  // find OPEN col key once
-  const openColKey = colKeys.find(k=>k.toUpperCase().includes('OPEN')) || null;
-
   sortedRows.forEach(r=>{
     const rt=rowTotal[r]||0;
     html+=`<tr><td class="row-label">${r}</td>`;
@@ -984,18 +1106,53 @@ data.forEach(row => {
       </div></td>`;
     });
     html+=`<td class="total-col"><div class="pivot-cell"><div class="pv-val">${rt.toLocaleString()}</div><div class="pv-pct">100%</div></div></td>`;
+
     if(showPencacah){
-      const ps = pencacahSum[r]||0;
+      const target  = pencacahCount[r]||0;
       const openVal = openColKey ? (count[r][openColKey]||0) : 0;
-      const pctOpen = ps>0 ? ((openVal/ps)*100).toFixed(1) : '–';
-      const pctColor = ps>0 ? (parseFloat(pctOpen)>=80?'#22c55e':parseFloat(pctOpen)>=50?'#f59e0b':'#ef4444') : '#94a3b8';
+      const pctOpen = target>0 ? ((openVal/target)*100).toFixed(1) : '–';
+      const pctColor= target>0 ? (parseFloat(pctOpen)>=80?'#22c55e':parseFloat(pctOpen)>=50?'#f59e0b':'#ef4444') : '#94a3b8';
+
       html+=`<td class="pencacah-col"><div class="pivot-cell">
-        <div class="pv-val">${ps>0?ps.toLocaleString():'–'}</div>
+        <div class="pv-val">${target>0?target.toLocaleString():'–'}</div>
+        <div class="pv-pct">${rt>0&&target>0?Math.round((rt/target)*100)+'% selesai':''}</div>
       </div></td>`;
       html+=`<td class="pencacah-col"><div class="pivot-cell">
         <div class="pv-val" style="color:${pctColor}">${pctOpen!=='–'?pctOpen+'%':'–'}</div>
         <div class="pv-pct">${openVal>0?openVal+' OPEN':''}</div>
       </div></td>`;
+
+      // ── Capaian Harian Pencacahan ──
+      if(isPencacahMode){
+        const selesai  = target - openVal;           // Target − OPEN
+        const capaian  = selesai / hariKerja;
+        const capaianStr = capaian.toFixed(1);
+        const capColor = capaian >= 10 ? '#22c55e' : capaian >= 5 ? '#f59e0b' : '#ef4444';
+        html+=`<td class="capaian-col"><div class="pivot-cell">
+          <div class="pv-val" style="color:${capColor}">${capaianStr}</div>
+          <div class="pv-pct">${selesai} selesai ÷ ${hariKerja}h</div>
+        </div></td>`;
+        if(PENGAWAS_KEY){
+          html+=`<td class="pencacah-col" style="text-align:left;font-weight:500;color:#334155">${pengawasName[r]||'–'}</td>`;
+        }
+      }
+
+      // ── Capaian Harian Pengawasan ──
+      if(isPengawasMode){
+        const apvV = apvPgwKey ? (count[r][apvPgwKey]||0) : 0;
+        const rejV = rejPgwKey ? (count[r][rejPgwKey]||0) : 0;
+        const revV = revPgwKey ? (count[r][revPgwKey]||0) : 0;
+        const total3   = apvV + rejV + revV;
+        const capaian  = total3 / hariKerja;
+        const capaianStr = capaian.toFixed(1);
+        const capColor = capaian >= 10 ? '#22c55e' : capaian >= 5 ? '#f59e0b' : '#ef4444';
+        html+=`<td class="capaian-col"><div class="pivot-cell">
+          <div class="pv-val" style="color:${capColor}">${capaianStr}</div>
+          <div class="pv-pct">${total3} aksi ÷ ${hariKerja}h</div>
+        </div></td>`;
+      }
+
+      // ── Pengawas Awal (hanya muncul saat filter User = Pencacah, sudah ditangani di isPencacahMode) ──
     }
     html+=`</tr>`;
   });
@@ -1009,21 +1166,51 @@ data.forEach(row => {
   });
   html+=`<td class="total-col"><div class="pivot-cell"><div class="pv-val">${grand.toLocaleString()}</div><div class="pv-pct">100%</div></div></td>`;
   if(showPencacah){
-    const totalOpen = openColKey ? (colTotal[openColKey]||0) : 0;
+    const totalOpen    = openColKey ? (colTotal[openColKey]||0) : 0;
     const pctTotalOpen = pencacahGrand>0 ? ((totalOpen/pencacahGrand)*100).toFixed(1) : '–';
-    const pctColor = pencacahGrand>0 ? (parseFloat(pctTotalOpen)>=80?'#22c55e':parseFloat(pctTotalOpen)>=50?'#f59e0b':'#ef4444') : '#94a3b8';
-    html+=`<td class="pencacah-col"><div class="pivot-cell"><div class="pv-val">${pencacahGrand>0?pencacahGrand.toLocaleString():'–'}</div></div></td>`;
+    const pctColor     = pencacahGrand>0 ? (parseFloat(pctTotalOpen)>=80?'#22c55e':parseFloat(pctTotalOpen)>=50?'#f59e0b':'#ef4444') : '#94a3b8';
+    html+=`<td class="pencacah-col"><div class="pivot-cell">
+      <div class="pv-val">${pencacahGrand>0?pencacahGrand.toLocaleString():'–'}</div>
+      <div class="pv-pct">${grand>0&&pencacahGrand>0?Math.round((grand/pencacahGrand)*100)+'% selesai':''}</div>
+    </div></td>`;
     html+=`<td class="pencacah-col"><div class="pivot-cell">
       <div class="pv-val" style="color:${pctColor}">${pctTotalOpen!=='–'?pctTotalOpen+'%':'–'}</div>
       <div class="pv-pct">${totalOpen>0?totalOpen+' OPEN':''}</div>
     </div></td>`;
+
+    if(isPencacahMode){
+      const selesaiTotal = pencacahGrand - totalOpen;
+      const capTotal     = (selesaiTotal/hariKerja).toFixed(1);
+      const capColor     = parseFloat(capTotal)>=10?'#22c55e':parseFloat(capTotal)>=5?'#f59e0b':'#ef4444';
+      html+=`<td class="capaian-col"><div class="pivot-cell">
+        <div class="pv-val" style="color:${capColor}">${capTotal}</div>
+        <div class="pv-pct">${selesaiTotal} selesai ÷ ${hariKerja}h</div>
+      </div></td>`;
+      if(PENGAWAS_KEY) html+=`<td class="pencacah-col"></td>`;
+    }
+    if(isPengawasMode){
+      const apvT=(apvPgwKey?colTotal[apvPgwKey]:0)||0;
+      const rejT=(rejPgwKey?colTotal[rejPgwKey]:0)||0;
+      const revT=(revPgwKey?colTotal[revPgwKey]:0)||0;
+      const tot3T   = apvT+rejT+revT;
+      const capTotal=(tot3T/hariKerja).toFixed(1);
+      const capColor=parseFloat(capTotal)>=10?'#22c55e':parseFloat(capTotal)>=5?'#f59e0b':'#ef4444';
+      html+=`<td class="capaian-col"><div class="pivot-cell">
+        <div class="pv-val" style="color:${capColor}">${capTotal}</div>
+        <div class="pv-pct">${tot3T} aksi ÷ ${hariKerja}h</div>
+      </div></td>`;
+    }
+    if(!isPencacahMode && !isPengawasMode && PENGAWAS_KEY){
+      // tidak ada kolom Pengawas Awal di mode default
+    }
   }
   html+=`</tr></tbody>`;
 
   document.getElementById("pvTable").innerHTML=html;
   document.getElementById("pvStatus").textContent=
     `${rowKeys.length} baris × ${colKeys.length} kolom | ${grand.toLocaleString()} record` +
-    (showPencacah && pencacahKey ? ` · kolom Pencacah: "${pencacahKey}"` : '');
+    (showPencacah && PENCACAH_KEY ? ` · Pencacah: "${PENCACAH_KEY}"` + (PENGAWAS_KEY?` · Pengawas: "${PENGAWAS_KEY}"`:'') : '') +
+    ` · ${hariKerja} hari (sejak 8 Jun 2026)`;
 
   // bind sort clicks
   document.querySelectorAll("#pvTable thead th.sortable").forEach(th=>{
