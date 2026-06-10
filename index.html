@@ -217,6 +217,19 @@ body {
   background: #cbd5e1 !important;
   border-left-color: #64748b;
 }
+/* pencacah awal + % open/target — kuning */
+.pivot-table td.pencacah-col {
+  background: #fefce8 !important;
+  border-left: 2px solid #fde68a;
+}
+.pivot-table th.pencacah-col {
+  background: #78350f !important;
+  color: #fef08a !important;
+  border-left: 2px solid #92400e !important;
+}
+.pivot-table tr.total-row td.pencacah-col {
+  background: #fef08a !important;
+}
 .pivot-status { font-size: 11px; color: #94a3b8; margin-bottom: 10px; }
 .pivot-btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
 
@@ -388,7 +401,7 @@ body {
   <div class="topbar-logo">📊</div>
   <div>
     <div class="topbar-title">Dashboard Monitoring SE2026</div>
-    <div class="topbar-sub">Kabupaten Klungkung — Provinsi Bali Update 10 Juni 2026 Pukul 05:00 WITA</div>
+    <div class="topbar-sub">Kabupaten Klungkung — Provinsi Bali</div>
     <div class="topbar-sub" style="margin-top:3px; opacity:.85;">
       Ambil link data di :
       <a href="https://drive.google.com/drive/folders/1mPGqB-w-yq-7Z5F7_wy1m0mIOkAN1Xrj?usp=sharing"
@@ -814,6 +827,17 @@ function getPivotData(){
 let lastPivotResult=null;
 let pvSort = { col: null, dir: 'desc' }; // col: index into colKeys (-1 = row label, colKeys.length = total)
 
+// Find "Pencacah awal" column key from rawData headers (col S = index 18, 0-based)
+function getPencacahKey(){
+  if(!rawData.length) return null;
+  const keys = Object.keys(rawData[0]);
+  // Try by name first (case-insensitive)
+  const byName = keys.find(k => /pencacah.?awal/i.test(k));
+  if(byName) return byName;
+  // Fallback: column S = index 18
+  return keys[18] || null;
+}
+
 function renderPivot(){
   const rowField=document.getElementById("pvRowField").value;
   const colField=document.getElementById("pvColField").value;
@@ -821,28 +845,53 @@ function renderPivot(){
   const rowKeys=[...new Set(data.map(r=>r[rowField]||"(Kosong)"))].sort();
   const colKeys=[...new Set(data.map(r=>r[colField]||"(Kosong)"))].sort();
   const count={}, rowTotal={}, colTotal={}; let grand=0;
-  rowKeys.forEach(r=>{count[r]={};rowTotal[r]=0;});
-  colKeys.forEach(c=>{colTotal[c]=0;});
+
+  // Pencacah awal: sum per rowKey, total — only meaningful when rowField=Username
+  const showPencacah = (rowField === 'Username');
+  const pencacahKey  = showPencacah ? getPencacahKey() : null;
+  const pencacahSum  = {};   // rowKey → sum of Pencacah awal
+  let   pencacahGrand = 0;
+  let   openGrand     = 0;
+
+  rowKeys.forEach(r=>{ count[r]={}; rowTotal[r]=0; if(showPencacah) pencacahSum[r]=0; });
+  colKeys.forEach(c=>{ colTotal[c]=0; });
+
   data.forEach(row=>{
     const r=row[rowField]||"(Kosong)", c=row[colField]||"(Kosong)";
     count[r][c]=(count[r][c]||0)+1; rowTotal[r]++; colTotal[c]++; grand++;
+    if(showPencacah && pencacahKey){
+      const v = parseInt(row[pencacahKey]) || 0;
+      pencacahSum[r] = (pencacahSum[r]||0) + v;
+      pencacahGrand += v;
+    }
+    if(showPencacah && (row[colField]||'').toString().toUpperCase().includes('OPEN')) openGrand++;
   });
-  lastPivotResult={rowField,colField,rowKeys,colKeys,count,rowTotal,colTotal,grand};
 
-  // --- apply sort: header-click OR sort-mode dropdown ---
-  // pvSort.col is set by header click; pvSortMode is the dropdown
+  lastPivotResult={rowField,colField,rowKeys,colKeys,count,rowTotal,colTotal,grand,
+                   showPencacah,pencacahKey,pencacahSum,pencacahGrand};
+
+  // ── sort ──
   const sortMode = document.getElementById('pvSortMode') ? document.getElementById('pvSortMode').value : 'count_desc';
   let sortedRows = [...rowKeys];
   if(pvSort.col !== null){
-    // header-click sort takes priority
     sortedRows.sort((a,b)=>{
       if(pvSort.col === -1) return pvSort.dir==='asc' ? a.localeCompare(b) : b.localeCompare(a);
+      // extra cols: colKeys.length = Total, +1 = Pencacah awal, +2 = % Open/Target
+      if(pvSort.col === colKeys.length+1){ // Pencacah awal
+        const va=pencacahSum[a]||0, vb=pencacahSum[b]||0;
+        return pvSort.dir==='asc'?va-vb:vb-va;
+      }
+      if(pvSort.col === colKeys.length+2){ // % Open/Target
+        const getOpen=(x)=>{ const ok=colKeys.find(k=>k.toUpperCase().includes('OPEN')); return ok?(count[x][ok]||0):0; };
+        const va=pencacahSum[a]>0?getOpen(a)/pencacahSum[a]:0;
+        const vb=pencacahSum[b]>0?getOpen(b)/pencacahSum[b]:0;
+        return pvSort.dir==='asc'?va-vb:vb-va;
+      }
       const va = pvSort.col===colKeys.length ? rowTotal[a]||0 : count[a][colKeys[pvSort.col]]||0;
       const vb = pvSort.col===colKeys.length ? rowTotal[b]||0 : count[b][colKeys[pvSort.col]]||0;
       return pvSort.dir==='asc' ? va-vb : vb-va;
     });
   } else {
-    // dropdown sort
     sortedRows.sort((a,b)=>{
       if(sortMode==='label') return a.localeCompare(b);
       const va_n=rowTotal[a]||0, vb_n=rowTotal[b]||0;
@@ -855,20 +904,25 @@ function renderPivot(){
     });
   }
 
-  // --- header ---
-  const sortClass = (idx) => {
-    if(pvSort.col !== idx) return '';
-    return pvSort.dir==='asc' ? ' sort-asc' : ' sort-desc';
-  };
+  // ── header ──
+  const sortClass = idx => pvSort.col!==idx ? '' : (pvSort.dir==='asc' ? ' sort-asc' : ' sort-desc');
+  const N = colKeys.length; // used as offset for extra cols
   let html="<thead><tr>";
   html+=`<th class="row-header sortable${sortClass(-1)}" data-colidx="-1">${rowField}<i class="sort-icon"></i></th>`;
   colKeys.forEach((c,i)=>{
     html+=`<th class="sortable${sortClass(i)}" data-colidx="${i}">${c}<i class="sort-icon"></i></th>`;
   });
-  html+=`<th class="total-col sortable${sortClass(colKeys.length)}" data-colidx="${colKeys.length}">Total<i class="sort-icon"></i></th>`;
+  html+=`<th class="total-col sortable${sortClass(N)}" data-colidx="${N}">Total<i class="sort-icon"></i></th>`;
+  if(showPencacah){
+    html+=`<th class="pencacah-col sortable${sortClass(N+1)}" data-colidx="${N+1}" title="Jumlah Pencacah Awal (kolom S)">Pencacah Awal<i class="sort-icon"></i></th>`;
+    html+=`<th class="pencacah-col sortable${sortClass(N+2)}" data-colidx="${N+2}" title="Persentase OPEN terhadap Pencacah Awal">% OPEN/<br>Target<i class="sort-icon"></i></th>`;
+  }
   html+=`</tr></thead><tbody>`;
 
-  // --- body ---
+  // ── body ──
+  // find OPEN col key once
+  const openColKey = colKeys.find(k=>k.toUpperCase().includes('OPEN')) || null;
+
   sortedRows.forEach(r=>{
     const rt=rowTotal[r]||0;
     html+=`<tr><td class="row-label">${r}</td>`;
@@ -880,21 +934,47 @@ function renderPivot(){
         <div class="pv-pct${iz?" zero":""}">${iz?"":pct+"%"}</div>
       </div></td>`;
     });
-    html+=`<td class="total-col"><div class="pivot-cell"><div class="pv-val">${rt.toLocaleString()}</div><div class="pv-pct">100%</div></div></td></tr>`;
+    html+=`<td class="total-col"><div class="pivot-cell"><div class="pv-val">${rt.toLocaleString()}</div><div class="pv-pct">100%</div></div></td>`;
+    if(showPencacah){
+      const ps = pencacahSum[r]||0;
+      const openVal = openColKey ? (count[r][openColKey]||0) : 0;
+      const pctOpen = ps>0 ? ((openVal/ps)*100).toFixed(1) : '–';
+      const pctColor = ps>0 ? (parseFloat(pctOpen)>=80?'#22c55e':parseFloat(pctOpen)>=50?'#f59e0b':'#ef4444') : '#94a3b8';
+      html+=`<td class="pencacah-col"><div class="pivot-cell">
+        <div class="pv-val">${ps>0?ps.toLocaleString():'–'}</div>
+      </div></td>`;
+      html+=`<td class="pencacah-col"><div class="pivot-cell">
+        <div class="pv-val" style="color:${pctColor}">${pctOpen!=='–'?pctOpen+'%':'–'}</div>
+        <div class="pv-pct">${openVal>0?openVal+' OPEN':''}</div>
+      </div></td>`;
+    }
+    html+=`</tr>`;
   });
 
-  // --- total row ---
+  // ── total row ──
   html+=`<tr class="total-row"><td class="row-label">Total</td>`;
   colKeys.forEach(c=>{
     const val=colTotal[c]||0;
     const pct=grand>0?((val/grand)*100).toFixed(1):"0.0";
     html+=`<td><div class="pivot-cell"><div class="pv-val">${val.toLocaleString()}</div><div class="pv-pct">${pct}%</div></div></td>`;
   });
-  html+=`<td class="total-col"><div class="pivot-cell"><div class="pv-val">${grand.toLocaleString()}</div><div class="pv-pct">100%</div></div></td></tr></tbody>`;
+  html+=`<td class="total-col"><div class="pivot-cell"><div class="pv-val">${grand.toLocaleString()}</div><div class="pv-pct">100%</div></div></td>`;
+  if(showPencacah){
+    const totalOpen = openColKey ? (colTotal[openColKey]||0) : 0;
+    const pctTotalOpen = pencacahGrand>0 ? ((totalOpen/pencacahGrand)*100).toFixed(1) : '–';
+    const pctColor = pencacahGrand>0 ? (parseFloat(pctTotalOpen)>=80?'#22c55e':parseFloat(pctTotalOpen)>=50?'#f59e0b':'#ef4444') : '#94a3b8';
+    html+=`<td class="pencacah-col"><div class="pivot-cell"><div class="pv-val">${pencacahGrand>0?pencacahGrand.toLocaleString():'–'}</div></div></td>`;
+    html+=`<td class="pencacah-col"><div class="pivot-cell">
+      <div class="pv-val" style="color:${pctColor}">${pctTotalOpen!=='–'?pctTotalOpen+'%':'–'}</div>
+      <div class="pv-pct">${totalOpen>0?totalOpen+' OPEN':''}</div>
+    </div></td>`;
+  }
+  html+=`</tr></tbody>`;
 
   document.getElementById("pvTable").innerHTML=html;
   document.getElementById("pvStatus").textContent=
-    `${rowKeys.length} baris × ${colKeys.length} kolom | ${grand.toLocaleString()} record`;
+    `${rowKeys.length} baris × ${colKeys.length} kolom | ${grand.toLocaleString()} record` +
+    (showPencacah && pencacahKey ? ` · kolom Pencacah: "${pencacahKey}"` : '');
 
   // bind sort clicks
   document.querySelectorAll("#pvTable thead th.sortable").forEach(th=>{
