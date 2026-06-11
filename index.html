@@ -244,6 +244,31 @@ body {
 .pivot-table tr.total-row td.capaian-col {
   background: #dbeafe !important;
 }
+/* geo capaian columns — hijau */
+.pivot-table td.geo-cap-col,
+.pivot-table th.geo-cap-col {
+  background: #f0fdf4 !important;
+  border-left: 2px solid #bbf7d0;
+}
+.pivot-table th.geo-cap-col {
+  background: #14532d !important;
+  color: #bbf7d0 !important;
+  border-left: 2px solid #166534 !important;
+}
+.pivot-table tr.total-row td.geo-cap-col {
+  background: #dcfce7 !important;
+}
+.pivot-table td.geo-parent-col {
+  background: #f8fafc !important;
+  font-size: 11px !important;
+  color: #64748b !important;
+  font-style: italic;
+}
+.pivot-table th.geo-parent-col {
+  background: #334155 !important;
+  color: #cbd5e1 !important;
+  font-style: normal;
+}
 .pivot-status { font-size: 11px; color: #94a3b8; margin-bottom: 10px; }
 .pivot-btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
 
@@ -457,6 +482,7 @@ body {
   <div>
     <div class="topbar-title">Dashboard Monitoring SE2026</div>
     <div class="topbar-sub">Kabupaten Klungkung — Provinsi Bali</div>
+    <div class="topbar-sub" id="topbarUpdate" style="margin-top:2px;opacity:.7;font-size:11px;"></div>
     <div class="topbar-sub" style="margin-top:3px; opacity:.85;">
       Ambil link data di :
       <a href="https://drive.google.com/drive/folders/1mPGqB-w-yq-7Z5F7_wy1m0mIOkAN1Xrj?usp=sharing"
@@ -504,7 +530,6 @@ body {
           <option value="Kecamatan">Kecamatan</option>
           <option value="Desa">Desa</option>
           <option value="SLS">SLS</option>
-          <option value="SubSLS">SubSLS</option>
         </select>
       </div>
       <div class="col-md-auto" style="min-width:140px">
@@ -546,10 +571,7 @@ body {
         <label class="filter-label">Filter SLS</label>
         <select id="pvFilterSLS" class="form-select"><option value="">Semua</option></select>
       </div>
-      <div class="col-md-auto" style="min-width:110px">
-        <label class="filter-label">Filter SubSLS</label>
-        <select id="pvFilterSubSLS" class="form-select"><option value="">Semua</option></select>
-      </div>
+
       <div class="col-md-auto d-flex align-items-end gap-2 flex-wrap">
         <div class="pv-sort-mode">
           <label>Urutkan</label>
@@ -611,10 +633,7 @@ body {
         <label class="filter-label">SLS</label>
         <select id="filterSLS" class="form-select"><option value="">Semua</option></select>
       </div>
-      <div class="col-md-auto" style="min-width:110px">
-        <label class="filter-label">SubSLS</label>
-        <select id="filterSubSLS" class="form-select"><option value="">Semua</option></select>
-      </div>
+
     </div>
 
 
@@ -649,7 +668,7 @@ body {
           <tr>
             <th>Assignment</th><th>Nama</th><th>Alamat</th><th>SBR</th>
             <th>Username</th><th>User</th><th>Provinsi</th>
-            <th>Kabupaten</th><th>Kecamatan</th><th>Desa</th><th>SLS</th><th>SubSLS</th>
+            <th>Kabupaten</th><th>Kecamatan</th><th>Desa</th><th>SLS</th>
           </tr>
         </thead>
       </table>
@@ -679,6 +698,14 @@ Papa.parse(CSV_URL, {
   download:true, header:true, skipEmptyLines:true,
   complete(results) {
     rawData = results.data;
+    // Set update timestamp
+    (function(){
+      const now = new Date();
+      const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+      const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+      const str = `Diupdate pada ${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}, pukul 05:00 WITA`;
+      document.getElementById('topbarUpdate').textContent = str;
+    })();
     allUsers = [...new Set(rawData.map(x=>x.User).filter(Boolean))].sort();
     document.getElementById("topbarTotal").textContent =
       `${rawData.length.toLocaleString()} record`;
@@ -705,13 +732,13 @@ function rebuildSelect(el, field, subset){
    MAIN TABLE — CASCADE FILTERS
 ══════════════════════════════════════ */
 const MAIN_IDS = ["filterUsername","filterUser","filterAssignment",
-                  "filterKabupaten","filterKecamatan","filterDesa","filterSLS","filterSubSLS"];
+                  "filterKabupaten","filterKecamatan","filterDesa","filterSLS"];
 
 // field mapped to each select id
 const MAIN_FIELD = {
   filterUsername:"Username", filterUser:"User", filterAssignment:"Assignment",
   filterKabupaten:"Kabupaten", filterKecamatan:"Kecamatan",
-  filterDesa:"Desa", filterSLS:"SLS", filterSubSLS:"SubSLS"
+  filterDesa:"Desa", filterSLS:"SLS"
 };
 
 function getMainFiltered(excludeId){
@@ -754,8 +781,7 @@ $.fn.dataTable.ext.search.push(function(s,data){
     &&(!g("filterKabupaten")||data[7]===g("filterKabupaten"))
     &&(!g("filterKecamatan")||data[8]===g("filterKecamatan"))
     &&(!g("filterDesa")||data[9]===g("filterDesa"))
-    &&(!g("filterSLS")||data[10]===g("filterSLS"))
-    &&(!g("filterSubSLS")||data[11]===g("filterSubSLS"));
+    &&(!g("filterSLS")||data[10]===g("filterSLS"));
 });
 
 /* ── Cards ── */
@@ -797,7 +823,7 @@ function buildTable(){
     columns:[
       {data:'Assignment'},{data:'Nama'},{data:'Alamat'},{data:'SBR'},
       {data:'Username'},{data:'User'},{data:'Provinsi'},
-      {data:'Kabupaten'},{data:'Kecamatan'},{data:'Desa'},{data:'SLS'},{data:'SubSLS'}
+      {data:'Kabupaten'},{data:'Kecamatan'},{data:'Desa'},{data:'SLS'}
     ]
   });
   table.on('draw',function(){
@@ -846,14 +872,14 @@ MAIN_IDS.forEach(id=>{
    PIVOT — CASCADE FILTERS
 ══════════════════════════════════════ */
 const PV_IDS = ["pvFilterUser","pvFilterUsername","pvFilterPencacah","pvFilterPengawas","pvFilterKabupaten",
-                "pvFilterKecamatan","pvFilterDesa","pvFilterSLS","pvFilterSubSLS"];
-// PV_FIELD maps select id → row property name; Pencacah uses the resolved col S key
+                "pvFilterKecamatan","pvFilterDesa","pvFilterSLS"];
+// note: pvFilterSubSLS removed
 // We store a placeholder and resolve after rawData loads
 const PV_FIELD = {
   pvFilterUser:"User", pvFilterUsername:"Username",
   pvFilterPencacah:"__pencacah__", pvFilterPengawas:"__pengawas__",
   pvFilterKabupaten:"Kabupaten", pvFilterKecamatan:"Kecamatan",
-  pvFilterDesa:"Desa", pvFilterSLS:"SLS", pvFilterSubSLS:"SubSLS"
+  pvFilterDesa:"Desa", pvFilterSLS:"SLS"
 };
 
 function getPvFiltered(excludeId){
@@ -988,27 +1014,112 @@ function renderPivot(){
 
   if(showPencacah) rowKeys.forEach(r=>{ pencacahGrand += pencacahCount[r]||0; });
 
+  // helper available early for geo block
+  const findCol = pat => colKeys.find(k=>pat.test(k)) || null;
+
+  // ── Geo-level capaian (Kabupaten / Kecamatan / Desa / SLS) ──
+  const GEO_FIELDS = ['Kabupaten','Kecamatan','Desa','SLS'];
+  const showGeoCap = GEO_FIELDS.includes(rowField);
+
+  // For each row-key: total records from rawData with same geo value (full dataset, not filtered)
+  // For Desa & SLS: also track parent name (Kecamatan for Desa, Desa for SLS)
+  const geoTotal   = {};  // rowKey → total records (full rawData)
+  const geoOpen    = {};  // rowKey → count OPEN (from filtered data = count)
+  const geoPgwDone = {};  // rowKey → Approved+Rejected+Revoked by Pengawas (full rawData)
+  const geoParent  = {};  // Desa→Kecamatan, SLS→Desa+Kecamatan
+
+  if(showGeoCap){
+    // scan full rawData for totals & pengawas counts
+    rawData.forEach(row=>{
+      const key = row[rowField]||'(Kosong)';
+      geoTotal[key]   = (geoTotal[key]||0) + 1;
+      const asgn = (row[colField]||'').toString();
+      if(/approved.+pengawas/i.test(asgn)||/rejected.+pengawas/i.test(asgn)||/revoked.+pengawas/i.test(asgn)){
+        geoPgwDone[key] = (geoPgwDone[key]||0)+1;
+      }
+      // parent name
+      if(rowField==='Desa'   && !geoParent[key]) geoParent[key] = row['Kecamatan']||'';
+      if(rowField==='SLS'    && !geoParent[key]) geoParent[key] = (row['Desa']||'') + (row['Kecamatan']?' — '+row['Kecamatan']:'');
+    });
+    // OPEN count from filtered data
+    rowKeys.forEach(r=>{
+      const ok = findCol(/^open$/i) || findCol(/open/i);
+      geoOpen[r] = ok ? (count[r][ok]||0) : 0;
+    });
+  }
+
   lastPivotResult={rowField,colField,rowKeys,colKeys,count,rowTotal,colTotal,grand,
-                   showPencacah,pencacahCount,pencacahGrand,pengawasName};
+                   showPencacah,pencacahCount,pencacahGrand,pengawasName,
+                   showGeoCap,geoTotal,geoOpen,geoPgwDone,geoParent};
 
   // ── sort ──
   const sortMode = document.getElementById('pvSortMode') ? document.getElementById('pvSortMode').value : 'count_desc';
   let sortedRows = [...rowKeys];
+
+  // Pre-compute geo col indices (needed in both sort and header)
+  const hasParent = (rowField==='Desa'||rowField==='SLS');
+  const GEO = {
+    parent : hasParent ? 'N+1' : null,
+    t1     : hasParent ? 'N+2' : 'N+1',
+    c1     : hasParent ? 'N+3' : 'N+2',
+    t2     : hasParent ? 'N+4' : 'N+3',
+    c2     : hasParent ? 'N+5' : 'N+4',
+  };
+  // resolve to actual numbers after N is known — do it as a function
+  function geoIdx(key, N){
+    return {
+      parent : hasParent ? N+1 : null,
+      t1     : hasParent ? N+2 : N+1,
+      c1     : hasParent ? N+3 : N+2,
+      t2     : hasParent ? N+4 : N+3,
+      c2     : hasParent ? N+5 : N+4,
+    }[key];
+  }
+
   if(pvSort.col !== null){
     sortedRows.sort((a,b)=>{
+      const N = colKeys.length;
       if(pvSort.col === -1) return pvSort.dir==='asc' ? a.localeCompare(b) : b.localeCompare(a);
-      if(pvSort.col === colKeys.length+1){
+
+      // ── Geo extra cols ──
+      if(showGeoCap){
+        const gParent=geoIdx('parent',N), gT1=geoIdx('t1',N), gC1=geoIdx('c1',N),
+              gT2=geoIdx('t2',N), gC2=geoIdx('c2',N);
+        if(gParent!==null && pvSort.col===gParent){
+          const va=(geoParent[a]||'').toLowerCase(), vb=(geoParent[b]||'').toLowerCase();
+          return pvSort.dir==='asc'?va.localeCompare(vb):vb.localeCompare(va);
+        }
+        if(pvSort.col===gT1||pvSort.col===gT2){
+          const va=geoTotal[a]||0, vb=geoTotal[b]||0;
+          return pvSort.dir==='asc'?va-vb:vb-va;
+        }
+        if(pvSort.col===gC1){
+          const gt_a=geoTotal[a]||0, gt_b=geoTotal[b]||0;
+          const va=gt_a>0?(gt_a-(geoOpen[a]||0))/gt_a:0;
+          const vb=gt_b>0?(gt_b-(geoOpen[b]||0))/gt_b:0;
+          return pvSort.dir==='asc'?va-vb:vb-va;
+        }
+        if(pvSort.col===gC2){
+          const gt_a=geoTotal[a]||0, gt_b=geoTotal[b]||0;
+          const va=gt_a>0?(geoPgwDone[a]||0)/gt_a:0;
+          const vb=gt_b>0?(geoPgwDone[b]||0)/gt_b:0;
+          return pvSort.dir==='asc'?va-vb:vb-va;
+        }
+      }
+
+      // ── Username extra cols ──
+      if(pvSort.col === colKeys.length+1 && showPencacah){
         const va=pencacahCount[a]||0, vb=pencacahCount[b]||0;
         return pvSort.dir==='asc'?va-vb:vb-va;
       }
-      if(pvSort.col === colKeys.length+2){
+      if(pvSort.col === colKeys.length+2 && showPencacah){
         const ok=colKeys.find(k=>k.toUpperCase().includes('OPEN'));
         const getOpen=(x)=>ok?(count[x][ok]||0):0;
         const va=pencacahCount[a]>0?getOpen(a)/pencacahCount[a]:0;
         const vb=pencacahCount[b]>0?getOpen(b)/pencacahCount[b]:0;
         return pvSort.dir==='asc'?va-vb:vb-va;
       }
-      if(pvSort.col === colKeys.length+3 && (isPencacahMode||isPengawasMode)){ // capaian harian
+      if(pvSort.col === colKeys.length+3 && (isPencacahMode||isPengawasMode)){
         const capaian=(x)=>{
           if(isPencacahMode){
             const ok=colKeys.find(k=>k.toUpperCase().includes('OPEN'));
@@ -1025,13 +1136,13 @@ function renderPivot(){
         };
         return pvSort.dir==='asc'?capaian(a)-capaian(b):capaian(b)-capaian(a);
       }
-      // Pengawas Awal: N+3 (default mode) or N+4 (pencacah mode with capaian at N+3)
       if( (pvSort.col === colKeys.length+3 && !isPencacahMode && !isPengawasMode) ||
            pvSort.col === colKeys.length+4 ){
         const pgwA = (pengawasName[a]||'').toLowerCase();
         const pgwB = (pengawasName[b]||'').toLowerCase();
         return pvSort.dir==='asc' ? pgwA.localeCompare(pgwB) : pgwB.localeCompare(pgwA);
       }
+
       const va = pvSort.col===colKeys.length ? rowTotal[a]||0 : count[a][colKeys[pvSort.col]]||0;
       const vb = pvSort.col===colKeys.length ? rowTotal[b]||0 : count[b][colKeys[pvSort.col]]||0;
       return pvSort.dir==='asc' ? va-vb : vb-va;
@@ -1049,8 +1160,6 @@ function renderPivot(){
     });
   }
 
-  // ── helper: find colKey by pattern ──
-  const findCol = pat => colKeys.find(k=>pat.test(k)) || null;
   const openColKey   = findCol(/^open$/i) || findCol(/open/i);
   const apvPgwKey    = findCol(/approved.+pengawas/i);
   const rejPgwKey    = findCol(/rejected.+pengawas/i);
@@ -1071,6 +1180,17 @@ function renderPivot(){
     html+=`<th class="sortable${sortClass(i)}" data-colidx="${i}">${c}<i class="sort-icon"></i></th>`;
   });
   html+=`<th class="total-col sortable${sortClass(N)}" data-colidx="${N}">Total<i class="sort-icon"></i></th>`;
+  if(showGeoCap){
+    const geoLabel = rowField;
+    const gParent=geoIdx('parent',N), gT1=geoIdx('t1',N), gC1=geoIdx('c1',N),
+          gT2=geoIdx('t2',N), gC2=geoIdx('c2',N);
+    if(rowField==='Desa') html+=`<th class="geo-parent-col sortable${sortClass(gParent)}" data-colidx="${gParent}">Kecamatan<i class="sort-icon"></i></th>`;
+    if(rowField==='SLS')  html+=`<th class="geo-parent-col sortable${sortClass(gParent)}" data-colidx="${gParent}">Desa — Kecamatan<i class="sort-icon"></i></th>`;
+    html+=`<th class="geo-cap-col sortable${sortClass(gT1)}" data-colidx="${gT1}" title="Total record ${geoLabel} ini (seluruh data)">Target<br>Pendataan<i class="sort-icon"></i></th>`;
+    html+=`<th class="geo-cap-col sortable${sortClass(gC1)}" data-colidx="${gC1}" title="(Total−OPEN) ÷ Total, progress pendataan">Capaian<br>Pendataan<i class="sort-icon"></i></th>`;
+    html+=`<th class="geo-cap-col sortable${sortClass(gT2)}" data-colidx="${gT2}" title="Total record ${geoLabel} ini (seluruh data)">Target<br>Pemeriksaan<i class="sort-icon"></i></th>`;
+    html+=`<th class="geo-cap-col sortable${sortClass(gC2)}" data-colidx="${gC2}" title="(Approved+Rejected+Revoked by Pengawas) ÷ Total">Capaian<br>Pemeriksaan<i class="sort-icon"></i></th>`;
+  }
   if(showPencacah){
     html+=`<th class="pencacah-col sortable${sortClass(N+1)}" data-colidx="${N+1}" title="Jumlah record di-assign ke username ini (kolom S)">Target<br><span style="font-weight:400;font-size:10px;opacity:.7">(Pencacah Awal)</span><i class="sort-icon"></i></th>`;
     html+=`<th class="pencacah-col sortable${sortClass(N+2)}" data-colidx="${N+2}" title="Persentase OPEN terhadap Target">% OPEN/<br>Target<i class="sort-icon"></i></th>`;
@@ -1106,6 +1226,21 @@ function renderPivot(){
       </div></td>`;
     });
     html+=`<td class="total-col"><div class="pivot-cell"><div class="pv-val">${rt.toLocaleString()}</div><div class="pv-pct">100%</div></div></td>`;
+
+    if(showGeoCap){
+      const gt  = geoTotal[r]||0;
+      const go  = geoOpen[r]||0;
+      const gpg = geoPgwDone[r]||0;
+      const capData = gt>0 ? (((gt-go)/gt)*100).toFixed(1)+'%' : '–';
+      const capPgw  = gt>0 ? ((gpg/gt)*100).toFixed(1)+'%' : '–';
+      const colData = gt>0 ? (parseFloat(capData)>=80?'#22c55e':parseFloat(capData)>=50?'#f59e0b':'#ef4444') : '#94a3b8';
+      const colPgw  = gt>0 ? (parseFloat(capPgw)>=80?'#22c55e':parseFloat(capPgw)>=50?'#f59e0b':'#ef4444') : '#94a3b8';
+      if(rowField==='Desa'||rowField==='SLS') html+=`<td class="geo-parent-col">${geoParent[r]||'–'}</td>`;
+      html+=`<td class="geo-cap-col"><div class="pivot-cell"><div class="pv-val">${gt>0?gt.toLocaleString():'–'}</div></div></td>`;
+      html+=`<td class="geo-cap-col"><div class="pivot-cell"><div class="pv-val" style="color:${colData}">${capData}</div><div class="pv-pct">${gt-go} selesai</div></div></td>`;
+      html+=`<td class="geo-cap-col"><div class="pivot-cell"><div class="pv-val">${gt>0?gt.toLocaleString():'–'}</div></div></td>`;
+      html+=`<td class="geo-cap-col"><div class="pivot-cell"><div class="pv-val" style="color:${colPgw}">${capPgw}</div><div class="pv-pct">${gpg} diperiksa</div></div></td>`;
+    }
 
     if(showPencacah){
       const target  = pencacahCount[r]||0;
@@ -1165,6 +1300,20 @@ function renderPivot(){
     html+=`<td><div class="pivot-cell"><div class="pv-val">${val.toLocaleString()}</div><div class="pv-pct">${pct}%</div></div></td>`;
   });
   html+=`<td class="total-col"><div class="pivot-cell"><div class="pv-val">${grand.toLocaleString()}</div><div class="pv-pct">100%</div></div></td>`;
+  if(showGeoCap){
+    const allGt  = Object.values(geoTotal).reduce((a,b)=>a+b,0);
+    const allGo  = Object.values(geoOpen).reduce((a,b)=>a+b,0);
+    const allGpg = Object.values(geoPgwDone).reduce((a,b)=>a+b,0);
+    const tCapData = allGt>0?(((allGt-allGo)/allGt)*100).toFixed(1)+'%':'–';
+    const tCapPgw  = allGt>0?((allGpg/allGt)*100).toFixed(1)+'%':'–';
+    const tColData = allGt>0?(parseFloat(tCapData)>=80?'#22c55e':parseFloat(tCapData)>=50?'#f59e0b':'#ef4444'):'#94a3b8';
+    const tColPgw  = allGt>0?(parseFloat(tCapPgw)>=80?'#22c55e':parseFloat(tCapPgw)>=50?'#f59e0b':'#ef4444'):'#94a3b8';
+    if(rowField==='Desa'||rowField==='SLS') html+=`<td class="geo-parent-col"></td>`;
+    html+=`<td class="geo-cap-col"><div class="pivot-cell"><div class="pv-val">${allGt>0?allGt.toLocaleString():'–'}</div></div></td>`;
+    html+=`<td class="geo-cap-col"><div class="pivot-cell"><div class="pv-val" style="color:${tColData}">${tCapData}</div><div class="pv-pct">${allGt-allGo} selesai</div></div></td>`;
+    html+=`<td class="geo-cap-col"><div class="pivot-cell"><div class="pv-val">${allGt>0?allGt.toLocaleString():'–'}</div></div></td>`;
+    html+=`<td class="geo-cap-col"><div class="pivot-cell"><div class="pv-val" style="color:${tColPgw}">${tCapPgw}</div><div class="pv-pct">${allGpg} diperiksa</div></div></td>`;
+  }
   if(showPencacah){
     const totalOpen    = openColKey ? (colTotal[openColKey]||0) : 0;
     const pctTotalOpen = pencacahGrand>0 ? ((totalOpen/pencacahGrand)*100).toFixed(1) : '–';
