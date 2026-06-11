@@ -269,6 +269,52 @@ body {
   color: #cbd5e1 !important;
   font-style: normal;
 }
+/* SubSLS codes col */
+.pivot-table td.geo-subsls-col {
+  background: #fafaf9 !important;
+  font-size: 11px !important;
+  color: #57534e !important;
+  text-align: center;
+  white-space: normal !important;
+  max-width: 120px;
+  line-height: 1.5;
+}
+.pivot-table th.geo-subsls-col {
+  background: #44403c !important;
+  color: #d6d3d1 !important;
+  text-align: center;
+  white-space: nowrap;
+}
+.pivot-table tr.total-row td.geo-subsls-col {
+  background: #e7e5e4 !important;
+}
+/* SLS expand toggle */
+.sls-toggle {
+  display: inline-flex; align-items: center; gap: 5px;
+  cursor: pointer; user-select: none; width: 100%;
+}
+.sls-toggle-icon {
+  font-size: 10px; color: #94a3b8;
+  transition: transform .18s;
+  flex-shrink: 0;
+}
+.sls-toggle.open .sls-toggle-icon { transform: rotate(90deg); color: #0d6efd; }
+/* SubSLS child rows */
+.pivot-table tr.subsls-child { display: none; }
+.pivot-table tr.subsls-child.visible { display: table-row; }
+.pivot-table tr.subsls-child td { background: #f0f9ff !important; }
+.pivot-table tr.subsls-child td.row-label {
+  padding-left: 28px !important;
+  border-left: 4px solid #93c5fd !important;
+  font-weight: 500 !important;
+  color: #1e40af !important;
+  font-size: 11px !important;
+  background: #e0f2fe !important;
+}
+.pivot-table tr.subsls-child:hover td { background: #dbeafe !important; }
+.pivot-table tr.subsls-child td.geo-cap-col { background: #ecfdf5 !important; }
+.pivot-table tr.subsls-child td.geo-subsls-col { background: #f0f9ff !important; }
+.pivot-table tr.sls-parent-row td.row-label { cursor: pointer; }
 .pivot-status { font-size: 11px; color: #94a3b8; margin-bottom: 10px; }
 .pivot-btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
 
@@ -404,7 +450,7 @@ body {
 
 /* ── Map ── */
 #mapPanel { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.07), 0 4px 16px rgba(0,0,0,.04); margin-bottom: 22px; }
-#mapContainer { height: 480px; width: 100%; background: #e8edf2; }
+#mapContainer { height: 620px; width: 100%; background: #e8edf2; }
 /* Layer toggle buttons */
 .map-layer-bar {
   background: white;
@@ -966,6 +1012,14 @@ function showColumnNames(){
   alert(msg);
 }
 
+// ── Geo expand/collapse (works for all levels) ──
+function toggleGeoRow(el, rowId){
+  el.classList.toggle('open');
+  document.querySelectorAll(`#pvTable tr.subsls-child[data-parent="${rowId}"]`).forEach(tr=>{
+    tr.classList.toggle('visible');
+  });
+}
+
 function renderPivot(){
   const rowField=document.getElementById("pvRowField").value;
   const colField=document.getElementById("pvColField").value;
@@ -1027,28 +1081,57 @@ function renderPivot(){
   const geoOpen    = {};  // rowKey → count OPEN (from filtered data = count)
   const geoPgwDone = {};  // rowKey → Approved+Rejected+Revoked by Pengawas (full rawData)
   const geoParent  = {};  // Desa→Kecamatan, SLS→Desa+Kecamatan
+  const geoSubSLS  = {};  // SLS→Set of SubSLS codes (kept for SubSLS col display)
+  const subslsDetail= {};  // SLS→{SubSLS→{total,open,pgwDone,cols}}
+  // childDetail: parent→{child→{total,open,pgwDone,cols}} for Kabupaten/Kecamatan/Desa
+  const childDetail= {};
+  // child field per rowField
+  const CHILD_FIELD = {Kabupaten:'Kecamatan', Kecamatan:'Desa', Desa:'SLS', SLS:'SubSLS'};
+  const childField  = CHILD_FIELD[rowField] || null;
 
   if(showGeoCap){
-    // scan full rawData for totals & pengawas counts
     rawData.forEach(row=>{
-      const key = row[rowField]||'(Kosong)';
-      geoTotal[key]   = (geoTotal[key]||0) + 1;
+      const key  = row[rowField]||'(Kosong)';
       const asgn = (row[colField]||'').toString();
-      if(/approved.+pengawas/i.test(asgn)||/rejected.+pengawas/i.test(asgn)||/revoked.+pengawas/i.test(asgn)){
-        geoPgwDone[key] = (geoPgwDone[key]||0)+1;
+      const isPgw = /approved.+pengawas/i.test(asgn)||/rejected.+pengawas/i.test(asgn)||/revoked.+pengawas/i.test(asgn);
+      geoTotal[key]   = (geoTotal[key]||0) + 1;
+      if(isPgw) geoPgwDone[key] = (geoPgwDone[key]||0)+1;
+
+      if(rowField==='Desa' && !geoParent[key]) geoParent[key] = row['Kecamatan']||'';
+      if(rowField==='SLS'  && !geoParent[key]) geoParent[key] = (row['Desa']||'') + (row['Kecamatan']?' — '+row['Kecamatan']:'');
+
+      if(rowField==='SLS'){
+        if(!geoSubSLS[key]) geoSubSLS[key] = new Set();
+        const sub = (row['SubSLS']||'').toString().trim();
+        if(sub) geoSubSLS[key].add(sub);
+        if(sub){
+          if(!subslsDetail[key])      subslsDetail[key] = {};
+          if(!subslsDetail[key][sub]) subslsDetail[key][sub] = {total:0,open:0,pgwDone:0,cols:{}};
+          subslsDetail[key][sub].total++;
+          if(isPgw) subslsDetail[key][sub].pgwDone++;
+          const col = (row[colField]||'(Kosong)');
+          subslsDetail[key][sub].cols[col] = (subslsDetail[key][sub].cols[col]||0)+1;
+          if(/^open$/i.test(col)||/\bopen\b/i.test(col)) subslsDetail[key][sub].open++;
+        }
       }
-      // parent name
-      if(rowField==='Desa'   && !geoParent[key]) geoParent[key] = row['Kecamatan']||'';
-      if(rowField==='SLS'    && !geoParent[key]) geoParent[key] = (row['Desa']||'') + (row['Kecamatan']?' — '+row['Kecamatan']:'');
+
+      // Generic child detail: Kabupaten→Kecamatan, Kecamatan→Desa, Desa→SLS
+      if(childField && rowField!=='SLS'){
+        const child = (row[childField]||'(Kosong)').toString().trim();
+        if(!childDetail[key])         childDetail[key] = {};
+        if(!childDetail[key][child])  childDetail[key][child] = {total:0,open:0,pgwDone:0,cols:{}};
+        childDetail[key][child].total++;
+        if(isPgw) childDetail[key][child].pgwDone++;
+        const col = (row[colField]||'(Kosong)');
+        childDetail[key][child].cols[col] = (childDetail[key][child].cols[col]||0)+1;
+        if(/^open$/i.test(col)||/\bopen\b/i.test(col)) childDetail[key][child].open++;
+      }
     });
-    // OPEN count from filtered data
-    rowKeys.forEach(r=>{
-      const ok = findCol(/^open$/i) || findCol(/open/i);
-      geoOpen[r] = ok ? (count[r][ok]||0) : 0;
-    });
+    const ok = findCol(/^open$/i) || findCol(/open/i);
+    rowKeys.forEach(r=>{ geoOpen[r] = ok ? (count[r][ok]||0) : 0; });
   }
 
-  lastPivotResult={rowField,colField,rowKeys,colKeys,count,rowTotal,colTotal,grand,
+    lastPivotResult={rowField,colField,rowKeys,colKeys,count,rowTotal,colTotal,grand,
                    showPencacah,pencacahCount,pencacahGrand,pengawasName,
                    showGeoCap,geoTotal,geoOpen,geoPgwDone,geoParent};
 
@@ -1057,22 +1140,20 @@ function renderPivot(){
   let sortedRows = [...rowKeys];
 
   // Pre-compute geo col indices (needed in both sort and header)
-  const hasParent = (rowField==='Desa'||rowField==='SLS');
-  const GEO = {
-    parent : hasParent ? 'N+1' : null,
-    t1     : hasParent ? 'N+2' : 'N+1',
-    c1     : hasParent ? 'N+3' : 'N+2',
-    t2     : hasParent ? 'N+4' : 'N+3',
-    c2     : hasParent ? 'N+5' : 'N+4',
-  };
+  const hasParent  = (rowField==='Desa'||rowField==='SLS');
+  const hasSubSLS  = (rowField==='SLS');
   // resolve to actual numbers after N is known — do it as a function
   function geoIdx(key, N){
+    // offsets: parent(+1 if Desa/SLS), subsls(+1 if SLS only), then T1,C1,T2,C2
+    const pOff = hasParent ? 1 : 0;
+    const sOff = hasSubSLS ? 1 : 0;
     return {
-      parent : hasParent ? N+1 : null,
-      t1     : hasParent ? N+2 : N+1,
-      c1     : hasParent ? N+3 : N+2,
-      t2     : hasParent ? N+4 : N+3,
-      c2     : hasParent ? N+5 : N+4,
+      parent : hasParent  ? N+1          : null,
+      subsls : hasSubSLS  ? N+1+pOff-1+1 : null,  // N+2 when SLS (after parent)
+      t1     : N+pOff+sOff+1,
+      c1     : N+pOff+sOff+2,
+      t2     : N+pOff+sOff+3,
+      c2     : N+pOff+sOff+4,
     }[key];
   }
 
@@ -1182,10 +1263,14 @@ function renderPivot(){
   html+=`<th class="total-col sortable${sortClass(N)}" data-colidx="${N}">Total<i class="sort-icon"></i></th>`;
   if(showGeoCap){
     const geoLabel = rowField;
-    const gParent=geoIdx('parent',N), gT1=geoIdx('t1',N), gC1=geoIdx('c1',N),
+    const gParent=geoIdx('parent',N), gSubSLS=geoIdx('subsls',N),
+          gT1=geoIdx('t1',N), gC1=geoIdx('c1',N),
           gT2=geoIdx('t2',N), gC2=geoIdx('c2',N);
     if(rowField==='Desa') html+=`<th class="geo-parent-col sortable${sortClass(gParent)}" data-colidx="${gParent}">Kecamatan<i class="sort-icon"></i></th>`;
-    if(rowField==='SLS')  html+=`<th class="geo-parent-col sortable${sortClass(gParent)}" data-colidx="${gParent}">Desa — Kecamatan<i class="sort-icon"></i></th>`;
+    if(rowField==='SLS'){
+      html+=`<th class="geo-parent-col sortable${sortClass(gParent)}" data-colidx="${gParent}">Desa — Kecamatan<i class="sort-icon"></i></th>`;
+      html+=`<th class="geo-subsls-col" title="Kode SubSLS dalam SLS ini">SubSLS</th>`;
+    }
     html+=`<th class="geo-cap-col sortable${sortClass(gT1)}" data-colidx="${gT1}" title="Total record ${geoLabel} ini (seluruh data)">Target<br>Pendataan<i class="sort-icon"></i></th>`;
     html+=`<th class="geo-cap-col sortable${sortClass(gC1)}" data-colidx="${gC1}" title="(Total−OPEN) ÷ Total, progress pendataan">Capaian<br>Pendataan<i class="sort-icon"></i></th>`;
     html+=`<th class="geo-cap-col sortable${sortClass(gT2)}" data-colidx="${gT2}" title="Total record ${geoLabel} ini (seluruh data)">Target<br>Pemeriksaan<i class="sort-icon"></i></th>`;
@@ -1214,9 +1299,34 @@ function renderPivot(){
   html+=`</tr></thead><tbody>`;
 
   // ── body ──
+  // helper: geo cap cells
+  function geoCapCells(gt, go, gpg){
+    const capData = gt>0?(((gt-go)/gt)*100).toFixed(1)+'%':'–';
+    const capPgw  = gt>0?((gpg/gt)*100).toFixed(1)+'%':'–';
+    const colData = gt>0?(parseFloat(capData)>=80?'#22c55e':parseFloat(capData)>=50?'#f59e0b':'#ef4444'):'#94a3b8';
+    const colPgw  = gt>0?(parseFloat(capPgw) >=80?'#22c55e':parseFloat(capPgw) >=50?'#f59e0b':'#ef4444'):'#94a3b8';
+    return `<td class="geo-cap-col"><div class="pivot-cell"><div class="pv-val">${gt>0?gt.toLocaleString():'–'}</div></div></td>`
+      +`<td class="geo-cap-col"><div class="pivot-cell"><div class="pv-val" style="color:${colData}">${capData}</div><div class="pv-pct">${gt>0?gt-go+' selesai':''}</div></div></td>`
+      +`<td class="geo-cap-col"><div class="pivot-cell"><div class="pv-val">${gt>0?gt.toLocaleString():'–'}</div></div></td>`
+      +`<td class="geo-cap-col"><div class="pivot-cell"><div class="pv-val" style="color:${colPgw}">${capPgw}</div><div class="pv-pct">${gpg>0?gpg+' diperiksa':''}</div></div></td>`;
+  }
+
+  const totalCols = colKeys.length + 1 +   // data cols + Total
+    (showGeoCap ? (hasParent?1:0) + (hasSubSLS?1:0) + 4 : 0) +
+    (showPencacah ? 2 + (isPencacahMode?1+(PENGAWAS_KEY?1:0):0) + (isPengawasMode?1:0) : 0);
+
   sortedRows.forEach(r=>{
     const rt=rowTotal[r]||0;
-    html+=`<tr><td class="row-label">${r}</td>`;
+    const slsId = r.replace(/[^a-z0-9]/gi,'_') + '_' + rowField;
+
+    // parent row — if SLS, add toggle and class
+    const hasChildren = ['Kabupaten','Kecamatan','Desa','SLS'].includes(rowField);
+    const rowClass = hasChildren ? ' class="sls-parent-row"' : '';
+    const labelContent = hasChildren
+      ? `<span class="sls-toggle" onclick="toggleGeoRow(this,'${slsId}')"><span class="sls-toggle-icon">▶</span>${r}</span>`
+      : r;
+    html+=`<tr${rowClass}><td class="row-label">${labelContent}</td>`;
+
     colKeys.forEach(c=>{
       const val=count[r][c]||0, iz=val===0;
       const pct=rt>0?((val/rt)*100).toFixed(1):"0.0";
@@ -1231,15 +1341,12 @@ function renderPivot(){
       const gt  = geoTotal[r]||0;
       const go  = geoOpen[r]||0;
       const gpg = geoPgwDone[r]||0;
-      const capData = gt>0 ? (((gt-go)/gt)*100).toFixed(1)+'%' : '–';
-      const capPgw  = gt>0 ? ((gpg/gt)*100).toFixed(1)+'%' : '–';
-      const colData = gt>0 ? (parseFloat(capData)>=80?'#22c55e':parseFloat(capData)>=50?'#f59e0b':'#ef4444') : '#94a3b8';
-      const colPgw  = gt>0 ? (parseFloat(capPgw)>=80?'#22c55e':parseFloat(capPgw)>=50?'#f59e0b':'#ef4444') : '#94a3b8';
       if(rowField==='Desa'||rowField==='SLS') html+=`<td class="geo-parent-col">${geoParent[r]||'–'}</td>`;
-      html+=`<td class="geo-cap-col"><div class="pivot-cell"><div class="pv-val">${gt>0?gt.toLocaleString():'–'}</div></div></td>`;
-      html+=`<td class="geo-cap-col"><div class="pivot-cell"><div class="pv-val" style="color:${colData}">${capData}</div><div class="pv-pct">${gt-go} selesai</div></div></td>`;
-      html+=`<td class="geo-cap-col"><div class="pivot-cell"><div class="pv-val">${gt>0?gt.toLocaleString():'–'}</div></div></td>`;
-      html+=`<td class="geo-cap-col"><div class="pivot-cell"><div class="pv-val" style="color:${colPgw}">${capPgw}</div><div class="pv-pct">${gpg} diperiksa</div></div></td>`;
+      if(rowField==='SLS'){
+        const codes = geoSubSLS[r] ? [...geoSubSLS[r]].sort().join(', ') : '–';
+        html+=`<td class="geo-subsls-col" style="font-family:'Courier New',monospace">${codes}</td>`;
+      }
+      html += geoCapCells(gt, go, gpg);
     }
 
     if(showPencacah){
@@ -1290,6 +1397,54 @@ function renderPivot(){
       // ── Pengawas Awal (hanya muncul saat filter User = Pencacah, sudah ditangani di isPencacahMode) ──
     }
     html+=`</tr>`;
+
+    // ── child rows (Kabupaten→Kec, Kecamatan→Desa, Desa→SLS, SLS→SubSLS) ──
+    const childSource = rowField==='SLS' ? subslsDetail : childDetail;
+    const childLabel  = {Kabupaten:'Kecamatan', Kecamatan:'Desa', Desa:'SLS', SLS:'SubSLS'}[rowField]||'';
+    // child row colours per level
+    const childColors = {
+      Kabupaten: {bg:'#fff7ed', border:'#fdba74', label:'#9a3412', lbg:'#ffedd5', tbg:'#ffedd5', dot:'#fb923c'},
+      Kecamatan: {bg:'#f0fdf4', border:'#86efac', label:'#166534', lbg:'#dcfce7', tbg:'#dcfce7', dot:'#4ade80'},
+      Desa:      {bg:'#fdf4ff', border:'#d8b4fe', label:'#6b21a8', lbg:'#f3e8ff', tbg:'#f3e8ff', dot:'#c084fc'},
+      SLS:       {bg:'#f0f9ff', border:'#93c5fd', label:'#1e40af', lbg:'#e0f2fe', tbg:'#e0f2fe', dot:'#60a5fa'},
+    };
+    const cc = childColors[rowField] || childColors.SLS;
+
+    if(childSource[r]){
+      const children = Object.keys(childSource[r]).sort();
+      children.forEach(child=>{
+        const d   = childSource[r][child];
+        const st  = d.total, so = d.open, spg = d.pgwDone;
+        html+=`<tr class="subsls-child" data-parent="${slsId}">`;
+        // label cell
+        html+=`<td class="row-label" style="padding-left:26px!important;border-left:4px solid ${cc.border}!important;font-weight:600!important;color:${cc.label}!important;background:${cc.lbg}!important;font-size:11px">${child}</td>`;
+        // col counts
+        colKeys.forEach(c=>{
+          const val=d.cols[c]||0, iz=val===0;
+          const pct=st>0?((val/st)*100).toFixed(1):'0.0';
+          html+=`<td style="background:${cc.bg}"><div class="pivot-cell">
+            <div class="pv-val${iz?' zero':''}">${iz?'–':val.toLocaleString()}</div>
+            <div class="pv-pct${iz?' zero':''}">${iz?'':pct+'%'}</div>
+          </div></td>`;
+        });
+        // total
+        html+=`<td class="total-col" style="background:${cc.tbg}!important"><div class="pivot-cell"><div class="pv-val">${st.toLocaleString()}</div><div class="pv-pct">100%</div></div></td>`;
+        // geo cap cols
+        if(showGeoCap){
+          // parent col — show child's own parent name where applicable
+          if(rowField==='Desa'||rowField==='SLS'){
+            // for Desa children (=SLS), show the desa name; for SLS children (=SubSLS) show SLS name
+            html+=`<td class="geo-parent-col" style="background:${cc.lbg}!important">${r}</td>`;
+          }
+          // subsls col for SLS children
+          if(rowField==='SLS'){
+            html+=`<td class="geo-subsls-col" style="font-family:'Courier New',monospace;font-weight:700">${child}</td>`;
+          }
+          html += geoCapCells(st, so, spg);
+        }
+        html+=`</tr>`;
+      });
+    }
   });
 
   // ── total row ──
@@ -1309,10 +1464,8 @@ function renderPivot(){
     const tColData = allGt>0?(parseFloat(tCapData)>=80?'#22c55e':parseFloat(tCapData)>=50?'#f59e0b':'#ef4444'):'#94a3b8';
     const tColPgw  = allGt>0?(parseFloat(tCapPgw)>=80?'#22c55e':parseFloat(tCapPgw)>=50?'#f59e0b':'#ef4444'):'#94a3b8';
     if(rowField==='Desa'||rowField==='SLS') html+=`<td class="geo-parent-col"></td>`;
-    html+=`<td class="geo-cap-col"><div class="pivot-cell"><div class="pv-val">${allGt>0?allGt.toLocaleString():'–'}</div></div></td>`;
-    html+=`<td class="geo-cap-col"><div class="pivot-cell"><div class="pv-val" style="color:${tColData}">${tCapData}</div><div class="pv-pct">${allGt-allGo} selesai</div></div></td>`;
-    html+=`<td class="geo-cap-col"><div class="pivot-cell"><div class="pv-val">${allGt>0?allGt.toLocaleString():'–'}</div></div></td>`;
-    html+=`<td class="geo-cap-col"><div class="pivot-cell"><div class="pv-val" style="color:${tColPgw}">${tCapPgw}</div><div class="pv-pct">${allGpg} diperiksa</div></div></td>`;
+    if(rowField==='SLS') html+=`<td class="geo-subsls-col"></td>`;
+    html += geoCapCells(allGt, allGo, allGpg);
   }
   if(showPencacah){
     const totalOpen    = openColKey ? (colTotal[openColKey]||0) : 0;
