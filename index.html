@@ -1355,6 +1355,7 @@ let PENCACAH_KEY  = null;   // col S
 let PENGAWAS_KEY  = null;   // col T
 let PROGRESS_CACAH_KEY = null;  // col V — Progress Pencacahan
 let PROGRESS_RIKSA_KEY = null;  // col W — Progress Pemeriksaan
+let CEK_BANGUNAN_KEY   = null;  // col X — Cek Bangunan
 
 function resolveSpecialKeys(){
   if(!rawData.length) return;
@@ -1371,6 +1372,8 @@ function resolveSpecialKeys(){
   PROGRESS_RIKSA_KEY = keys.find(k=>/progress.{0,5}pemer/i.test(k))
                     || keys.find(k=>/progres.{0,5}pemer/i.test(k))
                     || keys[22] || null;
+  CEK_BANGUNAN_KEY   = keys.find(k=>/cek.{0,5}bangunan/i.test(k))
+                    || keys[23] || null;
   // Update PV_FIELD so cascade filters use real key
   if(PENCACAH_KEY) PV_FIELD['pvFilterPencacah'] = PENCACAH_KEY;
   if(PENGAWAS_KEY) PV_FIELD['pvFilterPengawas'] = PENGAWAS_KEY;
@@ -1480,6 +1483,17 @@ function renderPivot(){
     });
   }
 
+  // ── Pre-compute SUM Cek Bangunan (col X) per rowField key — berlaku semua mode ──
+  const cekBangunanMap = {};
+  if(CEK_BANGUNAN_KEY){
+    rawData.forEach(row=>{
+      const key = row[rowField]||'';
+      if(!key) return;
+      const v = parseFloat(String(row[CEK_BANGUNAN_KEY]||'').replace(',','.'));
+      if(!isNaN(v)) cekBangunanMap[key] = (cekBangunanMap[key]||0) + v;
+    });
+  }
+
   data.forEach(row=>{
     const r=row[rowField]||"(Kosong)", c=row[colField]||"(Kosong)";
     count[r][c]=(count[r][c]||0)+1; rowTotal[r]++; colTotal[c]++; grand++;
@@ -1525,12 +1539,13 @@ function renderPivot(){
         if(sub) geoSubSLS[key].add(sub);
         if(sub){
           if(!subslsDetail[key])      subslsDetail[key] = {};
-          if(!subslsDetail[key][sub]) subslsDetail[key][sub] = {total:0,open:0,pgwDone:0,cols:{}};
+          if(!subslsDetail[key][sub]) subslsDetail[key][sub] = {total:0,open:0,pgwDone:0,cols:{},pencacahs:new Set()};
           subslsDetail[key][sub].total++;
           if(isPgw) subslsDetail[key][sub].pgwDone++;
           const col = (row[colField]||'(Kosong)');
           subslsDetail[key][sub].cols[col] = (subslsDetail[key][sub].cols[col]||0)+1;
           if(/^open$/i.test(col)||/\bopen\b/i.test(col)) subslsDetail[key][sub].open++;
+          if(PENCACAH_KEY && row[PENCACAH_KEY]) subslsDetail[key][sub].pencacahs.add(String(row[PENCACAH_KEY]).trim());
         }
       }
 
@@ -1563,22 +1578,47 @@ function renderPivot(){
   const hasSubSLS  = (rowField==='SLS');
   // resolve to actual numbers after N is known — do it as a function
   function geoIdx(key, N){
-    // offsets: parent(+1 if Desa/SLS), subsls(+1 if SLS only), then T1,C1,T2,C2
+    // offsets: parent(+1 if Desa/SLS), subsls(+1 if SLS only), then T1,C1,T2,C2, then V,W,CekB
     const pOff = hasParent ? 1 : 0;
     const sOff = hasSubSLS ? 1 : 0;
+    const base = N+pOff+sOff+4; // index after c2
+    const vOff  = showColV         ? 1 : 0;
+    const wOff  = showColW         ? vOff+1 : vOff;
+    const cbOff = CEK_BANGUNAN_KEY ? wOff+1 : wOff;
     return {
       parent : hasParent  ? N+1          : null,
-      subsls : hasSubSLS  ? N+1+pOff-1+1 : null,  // N+2 when SLS (after parent)
+      subsls : hasSubSLS  ? N+1+pOff-1+1 : null,
       t1     : N+pOff+sOff+1,
       c1     : N+pOff+sOff+2,
       t2     : N+pOff+sOff+3,
       c2     : N+pOff+sOff+4,
+      progv  : showColV         ? base+vOff  : null,
+      progw  : showColW         ? base+wOff  : null,
+      cekb   : CEK_BANGUNAN_KEY ? base+cbOff : null,
     }[key];
   }
 
+  // ── Column index declarations (dipakai oleh sort handler DAN header builder) ──
+  const N = colKeys.length;
+  const pgwColIdx = isPencacahMode ? N+4 : N+3;
+
+  // Geo extra col indices (V, W, CekB)
+  const _geoProgVIdx = showGeoCap ? geoIdx('progv', N) : null;
+  const _geoProgWIdx = showGeoCap ? geoIdx('progw', N) : null;
+  const _geoCekBIdx  = showGeoCap ? geoIdx('cekb',  N) : null;
+
+  // Username extra col indices — order: [V?] [W?] [CekB?] Target %OPEN Capaian [Pengawas]
+  const _uProgVIdx   = showPencacah && showColV         ? N+1 : null;
+  const _uProgWIdx   = showPencacah && showColW         ? N+(showColV?1:0)+1 : null;
+  const _uCekBIdx    = showPencacah && CEK_BANGUNAN_KEY ? N+(showColV?1:0)+(showColW?1:0)+1 : null;
+  const _uExtraOff   = (showColV?1:0)+(showColW?1:0)+(CEK_BANGUNAN_KEY?1:0);
+  const _uTargetIdx  = showPencacah ? N+_uExtraOff+1 : null;
+  const _uPctOpenIdx = showPencacah ? N+_uExtraOff+2 : null;
+  const _uCapaianIdx = showPencacah && (isPencacahMode||isPengawasMode) ? N+_uExtraOff+3 : null;
+  const _uPgwIdx     = showPencacah && isPencacahMode && PENGAWAS_KEY   ? N+_uExtraOff+4 : null;
+
   if(pvSort.col !== null){
     sortedRows.sort((a,b)=>{
-      const N = colKeys.length;
       if(pvSort.col === -1) return pvSort.dir==='asc' ? a.localeCompare(b) : b.localeCompare(a);
 
       // ── Geo extra cols ──
@@ -1605,42 +1645,69 @@ function renderPivot(){
           const vb=gt_b>0?(geoPgwDone[b]||0)/gt_b:0;
           return pvSort.dir==='asc'?va-vb:vb-va;
         }
+        // Progress & Cek Bangunan untuk Geo — pakai _idx yang akan dideklarasikan di bawah
+        // (sort dijalankan setelah idx dideklarasikan via closure — refs dievaluasi saat klik)
+        if(typeof _geoProgVIdx!=='undefined' && _geoProgVIdx!==null && pvSort.col===_geoProgVIdx){
+          const va=progressCacahMap[a]||0, vb=progressCacahMap[b]||0;
+          return pvSort.dir==='asc'?va-vb:vb-va;
+        }
+        if(typeof _geoProgWIdx!=='undefined' && _geoProgWIdx!==null && pvSort.col===_geoProgWIdx){
+          const va=progressRiksaMap[a]||0, vb=progressRiksaMap[b]||0;
+          return pvSort.dir==='asc'?va-vb:vb-va;
+        }
+        if(typeof _geoCekBIdx!=='undefined' && _geoCekBIdx!==null && pvSort.col===_geoCekBIdx){
+          const va=cekBangunanMap[a]||0, vb=cekBangunanMap[b]||0;
+          return pvSort.dir==='asc'?va-vb:vb-va;
+        }
       }
 
       // ── Username extra cols ──
-      if(pvSort.col === colKeys.length+1 && showPencacah){
-        const va=pencacahCount[a]||0, vb=pencacahCount[b]||0;
-        return pvSort.dir==='asc'?va-vb:vb-va;
-      }
-      if(pvSort.col === colKeys.length+2 && showPencacah){
-        const ok=colKeys.find(k=>k.toUpperCase().includes('OPEN'));
-        const getOpen=(x)=>ok?(count[x][ok]||0):0;
-        const va=pencacahCount[a]>0?getOpen(a)/pencacahCount[a]:0;
-        const vb=pencacahCount[b]>0?getOpen(b)/pencacahCount[b]:0;
-        return pvSort.dir==='asc'?va-vb:vb-va;
-      }
-      if(pvSort.col === colKeys.length+3 && (isPencacahMode||isPengawasMode)){
-        const capaian=(x)=>{
-          if(isPencacahMode){
-            const ok=colKeys.find(k=>k.toUpperCase().includes('OPEN'));
-            const openV=ok?(count[x][ok]||0):0;
-            return ((pencacahCount[x]||0)-openV)/hariKerja;
-          }
-          if(isPengawasMode){
-            const apv=colKeys.find(k=>/approved.+pengawas/i.test(k));
-            const rej=colKeys.find(k=>/rejected.+pengawas/i.test(k));
-            const rev=colKeys.find(k=>/revoked.+pengawas/i.test(k));
-            return ((apv?count[x][apv]:0)+(rej?count[x][rej]:0)+(rev?count[x][rev]:0))/hariKerja;
-          }
-          return 0;
-        };
-        return pvSort.dir==='asc'?capaian(a)-capaian(b):capaian(b)-capaian(a);
-      }
-      if( (pvSort.col === colKeys.length+3 && !isPencacahMode && !isPengawasMode) ||
-           pvSort.col === colKeys.length+4 ){
-        const pgwA = (pengawasName[a]||'').toLowerCase();
-        const pgwB = (pengawasName[b]||'').toLowerCase();
-        return pvSort.dir==='asc' ? pgwA.localeCompare(pgwB) : pgwB.localeCompare(pgwA);
+      if(showPencacah){
+        if(typeof _uProgVIdx!=='undefined' && _uProgVIdx!==null && pvSort.col===_uProgVIdx){
+          const va=progressCacahMap[a]||0, vb=progressCacahMap[b]||0;
+          return pvSort.dir==='asc'?va-vb:vb-va;
+        }
+        if(typeof _uProgWIdx!=='undefined' && _uProgWIdx!==null && pvSort.col===_uProgWIdx){
+          const va=progressRiksaMap[a]||0, vb=progressRiksaMap[b]||0;
+          return pvSort.dir==='asc'?va-vb:vb-va;
+        }
+        if(typeof _uCekBIdx!=='undefined' && _uCekBIdx!==null && pvSort.col===_uCekBIdx){
+          const va=cekBangunanMap[a]||0, vb=cekBangunanMap[b]||0;
+          return pvSort.dir==='asc'?va-vb:vb-va;
+        }
+        if(typeof _uTargetIdx!=='undefined' && _uTargetIdx!==null && pvSort.col===_uTargetIdx){
+          const va=pencacahCount[a]||0, vb=pencacahCount[b]||0;
+          return pvSort.dir==='asc'?va-vb:vb-va;
+        }
+        if(typeof _uPctOpenIdx!=='undefined' && _uPctOpenIdx!==null && pvSort.col===_uPctOpenIdx){
+          const ok=colKeys.find(k=>k.toUpperCase().includes('OPEN'));
+          const getOpen=(x)=>ok?(count[x][ok]||0):0;
+          const va=pencacahCount[a]>0?getOpen(a)/pencacahCount[a]:0;
+          const vb=pencacahCount[b]>0?getOpen(b)/pencacahCount[b]:0;
+          return pvSort.dir==='asc'?va-vb:vb-va;
+        }
+        if(typeof _uCapaianIdx!=='undefined' && _uCapaianIdx!==null && pvSort.col===_uCapaianIdx){
+          const capaian=(x)=>{
+            if(isPencacahMode){
+              const ok=colKeys.find(k=>k.toUpperCase().includes('OPEN'));
+              const openV=ok?(count[x][ok]||0):0;
+              return ((pencacahCount[x]||0)-openV)/hariKerja;
+            }
+            if(isPengawasMode){
+              const apv=colKeys.find(k=>/approved.+pengawas/i.test(k));
+              const rej=colKeys.find(k=>/rejected.+pengawas/i.test(k));
+              const rev=colKeys.find(k=>/revoked.+pengawas/i.test(k));
+              return ((apv?count[x][apv]:0)+(rej?count[x][rej]:0)+(rev?count[x][rev]:0))/hariKerja;
+            }
+            return 0;
+          };
+          return pvSort.dir==='asc'?capaian(a)-capaian(b):capaian(b)-capaian(a);
+        }
+        if(typeof _uPgwIdx!=='undefined' && _uPgwIdx!==null && pvSort.col===_uPgwIdx){
+          const pgwA=(pengawasName[a]||'').toLowerCase();
+          const pgwB=(pengawasName[b]||'').toLowerCase();
+          return pvSort.dir==='asc'?pgwA.localeCompare(pgwB):pgwB.localeCompare(pgwA);
+        }
       }
 
       const va = pvSort.col===colKeys.length ? rowTotal[a]||0 : count[a][colKeys[pvSort.col]]||0;
@@ -1667,12 +1734,6 @@ function renderPivot(){
 
   // ── header ──
   const sortClass = idx => pvSort.col!==idx ? '' : (pvSort.dir==='asc' ? ' sort-asc' : ' sort-desc');
-  const N = colKeys.length;
-  // Dynamic index for Pengawas Awal col:
-  // - isPencacahMode: N+1=Target, N+2=%OPEN, N+3=Capaian, N+4=Pengawas
-  // - isPengawasMode: N+1=Target, N+2=%OPEN, N+3=Capaian  (no Pengawas col)
-  // - default:        N+1=Target, N+2=%OPEN, N+3=Pengawas
-  const pgwColIdx = isPencacahMode ? N+4 : N+3;
 
   let html="<thead><tr>";
   html+=`<th class="row-header sortable${sortClass(-1)}" data-colidx="-1">${rowField}<i class="sort-icon"></i></th>`;
@@ -1689,30 +1750,33 @@ function renderPivot(){
     if(rowField==='SLS'){
       html+=`<th class="geo-parent-col sortable${sortClass(gParent)}" data-colidx="${gParent}">Desa — Kecamatan<i class="sort-icon"></i></th>`;
       html+=`<th class="geo-subsls-col" title="Kode SubSLS dalam SLS ini">SubSLS</th>`;
+      if(PENCACAH_KEY) html+=`<th class="geo-subsls-col" style="background:#1e3a8a!important;color:#bfdbfe!important;min-width:120px" title="Nama Pencacah Awal untuk SubSLS ini">Pencacah Awal</th>`;
     }
     html+=`<th class="geo-cap-col sortable${sortClass(gT1)}" data-colidx="${gT1}" title="Total record ${geoLabel} ini (seluruh data)">Target<br>Pendataan<i class="sort-icon"></i></th>`;
     html+=`<th class="geo-cap-col sortable${sortClass(gC1)}" data-colidx="${gC1}" title="(Total−OPEN) ÷ Total, progress pendataan">Capaian<br>Pendataan<i class="sort-icon"></i></th>`;
     html+=`<th class="geo-cap-col sortable${sortClass(gT2)}" data-colidx="${gT2}" title="Total record ${geoLabel} ini (seluruh data)">Target<br>Pemeriksaan<i class="sort-icon"></i></th>`;
     html+=`<th class="geo-cap-col sortable${sortClass(gC2)}" data-colidx="${gC2}" title="(Approved+Rejected+Revoked by Pengawas) ÷ Total">Capaian<br>Pemeriksaan<i class="sort-icon"></i></th>`;
     // Kolom V & W untuk Geo
-    if(showColV) html+=`<th class="capaian-col" style="background:#1e3a5f!important;color:#93c5fd!important" title="Jumlah (SUM) nilai kolom '${PROGRESS_CACAH_KEY}' untuk ${rowField} ini">Σ Progress<br>Pencacahan</th>`;
-    if(showColW) html+=`<th class="capaian-col" style="background:#14532d!important;color:#86efac!important" title="Jumlah (SUM) nilai kolom '${PROGRESS_RIKSA_KEY}' untuk ${rowField} ini">Σ Progress<br>Pemeriksaan</th>`;
+    if(showColV) html+=`<th class="capaian-col sortable${sortClass(_geoProgVIdx)}" data-colidx="${_geoProgVIdx}" style="background:#1e3a5f!important;color:#93c5fd!important" title="Jumlah (SUM) nilai kolom '${PROGRESS_CACAH_KEY}' untuk ${rowField} ini">Σ Progress<br>Pencacahan<i class="sort-icon"></i></th>`;
+    if(showColW) html+=`<th class="capaian-col sortable${sortClass(_geoProgWIdx)}" data-colidx="${_geoProgWIdx}" style="background:#14532d!important;color:#86efac!important" title="Jumlah (SUM) nilai kolom '${PROGRESS_RIKSA_KEY}' untuk ${rowField} ini">Σ Progress<br>Pemeriksaan<i class="sort-icon"></i></th>`;
+    if(CEK_BANGUNAN_KEY) html+=`<th class="capaian-col sortable${sortClass(_geoCekBIdx)}" data-colidx="${_geoCekBIdx}" style="background:#78350f!important;color:#fde68a!important" title="Jumlah (SUM) nilai kolom '${CEK_BANGUNAN_KEY}' untuk ${rowField} ini">Σ Cek<br>Bangunan<i class="sort-icon"></i></th>`;
   }
   if(showPencacah){
     // Kolom V (Pencacah mode) atau W (Pengawas mode) — ditampilkan setelah Total, sebelum pencacah-col
-    if(showColV) html+=`<th class="capaian-col" style="background:#1e3a5f!important;color:#93c5fd!important" title="Jumlah (SUM) nilai kolom '${PROGRESS_CACAH_KEY}' per username">Σ Progress<br>Pencacahan</th>`;
-    if(showColW) html+=`<th class="capaian-col" style="background:#14532d!important;color:#86efac!important" title="Jumlah (SUM) nilai kolom '${PROGRESS_RIKSA_KEY}' per username">Σ Progress<br>Pemeriksaan</th>`;
-    html+=`<th class="pencacah-col sortable${sortClass(N+1)}" data-colidx="${N+1}" title="Jumlah record di-assign ke username ini (kolom S)">Target<br><span style="font-weight:400;font-size:10px;opacity:.7">(Pencacah Awal)</span><i class="sort-icon"></i></th>`;
-    html+=`<th class="pencacah-col sortable${sortClass(N+2)}" data-colidx="${N+2}" title="Persentase OPEN terhadap Target">% OPEN/<br>Target<i class="sort-icon"></i></th>`;
+    if(showColV) html+=`<th class="capaian-col sortable${sortClass(_uProgVIdx)}" data-colidx="${_uProgVIdx}" style="background:#1e3a5f!important;color:#93c5fd!important" title="Jumlah (SUM) nilai kolom '${PROGRESS_CACAH_KEY}' per username">Σ Progress<br>Pencacahan<i class="sort-icon"></i></th>`;
+    if(showColW) html+=`<th class="capaian-col sortable${sortClass(_uProgWIdx)}" data-colidx="${_uProgWIdx}" style="background:#14532d!important;color:#86efac!important" title="Jumlah (SUM) nilai kolom '${PROGRESS_RIKSA_KEY}' per username">Σ Progress<br>Pemeriksaan<i class="sort-icon"></i></th>`;
+    if(CEK_BANGUNAN_KEY) html+=`<th class="capaian-col sortable${sortClass(_uCekBIdx)}" data-colidx="${_uCekBIdx}" style="background:#78350f!important;color:#fde68a!important" title="Jumlah (SUM) nilai kolom '${CEK_BANGUNAN_KEY}' per username">Σ Cek<br>Bangunan<i class="sort-icon"></i></th>`;
+    html+=`<th class="pencacah-col sortable${sortClass(_uTargetIdx)}" data-colidx="${_uTargetIdx}" title="Jumlah record di-assign ke username ini (kolom S)">Target<br><span style="font-weight:400;font-size:10px;opacity:.7">(Pencacah Awal)</span><i class="sort-icon"></i></th>`;
+    html+=`<th class="pencacah-col sortable${sortClass(_uPctOpenIdx)}" data-colidx="${_uPctOpenIdx}" title="Persentase OPEN terhadap Target">% OPEN/<br>Target<i class="sort-icon"></i></th>`;
     if(isPencacahMode){
-      html+=`<th class="capaian-col sortable${sortClass(N+3)}" data-colidx="${N+3}"
+      html+=`<th class="capaian-col sortable${sortClass(_uCapaianIdx)}" data-colidx="${_uCapaianIdx}"
         title="(Target − OPEN) ÷ ${hariKerja} hari (sejak 8 Jun 2026)">
         Capaian Harian<br><span style="font-weight:400;font-size:10px;opacity:.8">Pencacahan</span>
         <i class="sort-icon"></i></th>`;
-      if(PENGAWAS_KEY) html+=`<th class="pencacah-col sortable${sortClass(pgwColIdx)}" data-colidx="${pgwColIdx}" style="min-width:130px" title="Urutkan berdasarkan nama Pengawas Awal">Pengawas Awal<i class="sort-icon"></i></th>`;
+      if(PENGAWAS_KEY) html+=`<th class="pencacah-col sortable${sortClass(_uPgwIdx)}" data-colidx="${_uPgwIdx}" style="min-width:130px" title="Urutkan berdasarkan nama Pengawas Awal">Pengawas Awal<i class="sort-icon"></i></th>`;
     }
     if(isPengawasMode){
-      html+=`<th class="capaian-col sortable${sortClass(N+3)}" data-colidx="${N+3}"
+      html+=`<th class="capaian-col sortable${sortClass(_uCapaianIdx)}" data-colidx="${_uCapaianIdx}"
         title="(Approved+Rejected+Revoked by Pengawas) ÷ ${hariKerja} hari (sejak 8 Jun 2026)">
         Capaian Harian<br><span style="font-weight:400;font-size:10px;opacity:.8">Pengawasan</span>
         <i class="sort-icon"></i></th>`;
@@ -1734,7 +1798,9 @@ function renderPivot(){
   }
 
   const totalCols = colKeys.length + 1 +   // data cols + Total
-    (showGeoCap ? (hasParent?1:0) + (hasSubSLS?1:0) + 4 : 0) +
+    (showGeoCap ? (hasParent?1:0) + (hasSubSLS?1:0) + (hasSubSLS&&PENCACAH_KEY?1:0) + 4 : 0) +
+    (showGeoCap ? (showColV?1:0) + (showColW?1:0) + (CEK_BANGUNAN_KEY?1:0) : 0) +
+    (showPencacah ? (showColV?1:0) + (showColW?1:0) + (CEK_BANGUNAN_KEY?1:0) : 0) +
     (showPencacah ? 2 + (isPencacahMode?1+(PENGAWAS_KEY?1:0):0) + (isPengawasMode?1:0) : 0);
 
   sortedRows.forEach(r=>{
@@ -1767,38 +1833,18 @@ function renderPivot(){
       if(rowField==='SLS'){
         const codes = geoSubSLS[r] ? [...geoSubSLS[r]].sort().join(', ') : '–';
         html+=`<td class="geo-subsls-col" style="font-family:'Courier New',monospace">${codes}</td>`;
+        if(PENCACAH_KEY) html+=`<td class="geo-subsls-col" style="background:#e0f2fe!important"></td>`;
       }
       html += geoCapCells(gt, go, gpg);
-      // Σ Progress Pencacahan & Pemeriksaan untuk Geo rows
-      if(showColV){
-        const sv = progressCacahMap[r]||0;
-        html+=`<td class="capaian-col" style="background:#eff6ff!important"><div class="pivot-cell">
-          <div class="pv-val" style="color:#3b82f6">${sv.toLocaleString(undefined,{maximumFractionDigits:1})}</div>
-        </div></td>`;
-      }
-      if(showColW){
-        const sw = progressRiksaMap[r]||0;
-        html+=`<td class="capaian-col" style="background:#f0fdf4!important"><div class="pivot-cell">
-          <div class="pv-val" style="color:#22c55e">${sw.toLocaleString(undefined,{maximumFractionDigits:1})}</div>
-        </div></td>`;
-      }
+      if(showColV){ const sv=progressCacahMap[r]||0; html+=`<td class="capaian-col" style="background:#eff6ff!important"><div class="pivot-cell"><div class="pv-val" style="color:#3b82f6">${sv.toLocaleString(undefined,{maximumFractionDigits:1})}</div></div></td>`; }
+      if(showColW){ const sw=progressRiksaMap[r]||0; html+=`<td class="capaian-col" style="background:#f0fdf4!important"><div class="pivot-cell"><div class="pv-val" style="color:#22c55e">${sw.toLocaleString(undefined,{maximumFractionDigits:1})}</div></div></td>`; }
+      if(CEK_BANGUNAN_KEY){ const cb=cekBangunanMap[r]||0; html+=`<td class="capaian-col" style="background:#fef3c7!important"><div class="pivot-cell"><div class="pv-val" style="color:#b45309">${cb.toLocaleString(undefined,{maximumFractionDigits:0})}</div></div></td>`; }
     }
 
     if(showPencacah){
-      // Σ Progress Pencacahan (hanya Pencacah mode, col V)
-      if(showColV){
-        const sv = progressCacahMap[r]||0;
-        html+=`<td class="capaian-col" style="background:#eff6ff!important"><div class="pivot-cell">
-          <div class="pv-val" style="color:#3b82f6">${sv.toLocaleString(undefined,{maximumFractionDigits:1})}</div>
-        </div></td>`;
-      }
-      // Σ Progress Pemeriksaan (hanya Pengawas mode, col W)
-      if(showColW){
-        const sw = progressRiksaMap[r]||0;
-        html+=`<td class="capaian-col" style="background:#f0fdf4!important"><div class="pivot-cell">
-          <div class="pv-val" style="color:#22c55e">${sw.toLocaleString(undefined,{maximumFractionDigits:1})}</div>
-        </div></td>`;
-      }
+      if(showColV){ const sv=progressCacahMap[r]||0; html+=`<td class="capaian-col" style="background:#eff6ff!important"><div class="pivot-cell"><div class="pv-val" style="color:#3b82f6">${sv.toLocaleString(undefined,{maximumFractionDigits:1})}</div></div></td>`; }
+      if(showColW){ const sw=progressRiksaMap[r]||0; html+=`<td class="capaian-col" style="background:#f0fdf4!important"><div class="pivot-cell"><div class="pv-val" style="color:#22c55e">${sw.toLocaleString(undefined,{maximumFractionDigits:1})}</div></div></td>`; }
+      if(CEK_BANGUNAN_KEY){ const cb=cekBangunanMap[r]||0; html+=`<td class="capaian-col" style="background:#fef3c7!important"><div class="pivot-cell"><div class="pv-val" style="color:#b45309">${cb.toLocaleString(undefined,{maximumFractionDigits:0})}</div></div></td>`; }
       const target  = pencacahCount[r]||0;
       const openVal = openColKey ? (count[r][openColKey]||0) : 0;
       const pctOpen = target>0 ? ((openVal/target)*100).toFixed(1) : '–';
@@ -1889,10 +1935,15 @@ function renderPivot(){
           if(rowField==='SLS'){
             html+=`<td class="geo-subsls-col" style="font-family:'Courier New',monospace;font-weight:700">${child}</td>`;
           }
+          // Pencacah Awal col for SubSLS children
+          if(rowField==='SLS' && PENCACAH_KEY){
+            const pencacahList = d.pencacahs ? [...d.pencacahs].sort().join(', ') : '–';
+            html+=`<td class="geo-subsls-col" style="font-size:11px;font-weight:600;color:#1e40af;background:#e0f2fe!important;min-width:120px;max-width:180px;white-space:normal;word-break:break-word">${pencacahList||'–'}</td>`;
+          }
           html += geoCapCells(st, so, spg);
-          // empty progress cols untuk child rows
           if(showColV) html+=`<td class="capaian-col" style="background:#eff6ff!important"></td>`;
           if(showColW) html+=`<td class="capaian-col" style="background:#f0fdf4!important"></td>`;
+          if(CEK_BANGUNAN_KEY) html+=`<td class="capaian-col" style="background:#fef3c7!important"></td>`;
         }
         html+=`</tr>`;
       });
@@ -1913,39 +1964,16 @@ function renderPivot(){
     const allGpg = Object.values(geoPgwDone).reduce((a,b)=>a+b,0);
     if(rowField==='Desa'||rowField==='SLS') html+=`<td class="geo-parent-col"></td>`;
     if(rowField==='SLS') html+=`<td class="geo-subsls-col"></td>`;
+    if(rowField==='SLS' && PENCACAH_KEY) html+=`<td class="geo-subsls-col"></td>`;
     html += geoCapCells(allGt, allGo, allGpg);
-    // Σ total kolom V & W untuk Geo
-    if(showColV){
-      const tot = rowKeys.reduce((s,r)=>s+(progressCacahMap[r]||0),0);
-      html+=`<td class="capaian-col" style="background:#dbeafe!important"><div class="pivot-cell">
-        <div class="pv-val" style="color:#3b82f6">${tot.toLocaleString(undefined,{maximumFractionDigits:1})}</div>
-        <div class="pv-pct">total</div>
-      </div></td>`;
-    }
-    if(showColW){
-      const tot = rowKeys.reduce((s,r)=>s+(progressRiksaMap[r]||0),0);
-      html+=`<td class="capaian-col" style="background:#dcfce7!important"><div class="pivot-cell">
-        <div class="pv-val" style="color:#22c55e">${tot.toLocaleString(undefined,{maximumFractionDigits:1})}</div>
-        <div class="pv-pct">total</div>
-      </div></td>`;
-    }
+    if(showColV){ const tot=rowKeys.reduce((s,r)=>s+(progressCacahMap[r]||0),0); html+=`<td class="capaian-col" style="background:#dbeafe!important"><div class="pivot-cell"><div class="pv-val" style="color:#3b82f6">${tot.toLocaleString(undefined,{maximumFractionDigits:1})}</div><div class="pv-pct">total</div></div></td>`; }
+    if(showColW){ const tot=rowKeys.reduce((s,r)=>s+(progressRiksaMap[r]||0),0); html+=`<td class="capaian-col" style="background:#dcfce7!important"><div class="pivot-cell"><div class="pv-val" style="color:#22c55e">${tot.toLocaleString(undefined,{maximumFractionDigits:1})}</div><div class="pv-pct">total</div></div></td>`; }
+    if(CEK_BANGUNAN_KEY){ const tot=rowKeys.reduce((s,r)=>s+(cekBangunanMap[r]||0),0); html+=`<td class="capaian-col" style="background:#fde68a!important"><div class="pivot-cell"><div class="pv-val" style="color:#b45309">${tot.toLocaleString(undefined,{maximumFractionDigits:0})}</div><div class="pv-pct">total</div></div></td>`; }
   }
   if(showPencacah){
-    // Σ progress total untuk Username rows
-    if(showColV){
-      const tot = rowKeys.reduce((s,r)=>s+(progressCacahMap[r]||0),0);
-      html+=`<td class="capaian-col" style="background:#dbeafe!important"><div class="pivot-cell">
-        <div class="pv-val" style="color:#3b82f6">${tot.toLocaleString(undefined,{maximumFractionDigits:1})}</div>
-        <div class="pv-pct">total</div>
-      </div></td>`;
-    }
-    if(showColW){
-      const tot = rowKeys.reduce((s,r)=>s+(progressRiksaMap[r]||0),0);
-      html+=`<td class="capaian-col" style="background:#dcfce7!important"><div class="pivot-cell">
-        <div class="pv-val" style="color:#22c55e">${tot.toLocaleString(undefined,{maximumFractionDigits:1})}</div>
-        <div class="pv-pct">total</div>
-      </div></td>`;
-    }
+    if(showColV){ const tot=rowKeys.reduce((s,r)=>s+(progressCacahMap[r]||0),0); html+=`<td class="capaian-col" style="background:#dbeafe!important"><div class="pivot-cell"><div class="pv-val" style="color:#3b82f6">${tot.toLocaleString(undefined,{maximumFractionDigits:1})}</div><div class="pv-pct">total</div></div></td>`; }
+    if(showColW){ const tot=rowKeys.reduce((s,r)=>s+(progressRiksaMap[r]||0),0); html+=`<td class="capaian-col" style="background:#dcfce7!important"><div class="pivot-cell"><div class="pv-val" style="color:#22c55e">${tot.toLocaleString(undefined,{maximumFractionDigits:1})}</div><div class="pv-pct">total</div></div></td>`; }
+    if(CEK_BANGUNAN_KEY){ const tot=rowKeys.reduce((s,r)=>s+(cekBangunanMap[r]||0),0); html+=`<td class="capaian-col" style="background:#fde68a!important"><div class="pivot-cell"><div class="pv-val" style="color:#b45309">${tot.toLocaleString(undefined,{maximumFractionDigits:0})}</div><div class="pv-pct">total</div></div></td>`; }
     const totalOpen    = openColKey ? (colTotal[openColKey]||0) : 0;
     const pctTotalOpen = pencacahGrand>0 ? ((totalOpen/pencacahGrand)*100).toFixed(1) : '–';
     const pctColor     = pencacahGrand>0 ? (parseFloat(pctTotalOpen)>=80?'#22c55e':parseFloat(pctTotalOpen)>=50?'#f59e0b':'#ef4444') : '#94a3b8';
