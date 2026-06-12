@@ -518,6 +518,154 @@ body {
 .pv-sort-mode { display:flex; gap:4px; align-items:center; }
 .pv-sort-mode label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#64748b; margin:0; }
 .pv-sort-mode select { font-size:11px !important; padding:3px 8px !important; border-radius:6px !important; }
+
+/* ── Multi-Select Dropdown ── */
+.ms-wrap {
+  position: relative;
+  min-width: 130px;
+}
+.ms-wrap.ms-assignment { min-width: 145px; }
+.ms-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 5px 10px;
+  background: #f9fafb;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #374151;
+  user-select: none;
+  transition: border-color .15s, box-shadow .15s;
+  min-height: 32px;
+}
+.ms-trigger:hover { border-color: #9ca3af; }
+.ms-trigger.active {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 3px rgba(13,110,253,.12);
+  background: #fff;
+}
+.ms-trigger-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  color: #374151;
+}
+.ms-trigger-text.placeholder { color: #9ca3af; }
+.ms-badge {
+  background: #0d6efd;
+  color: #fff;
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.ms-arrow {
+  font-size: 9px;
+  color: #9ca3af;
+  flex-shrink: 0;
+  transition: transform .15s;
+}
+.ms-trigger.active .ms-arrow { transform: rotate(180deg); }
+.ms-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 200px;
+  max-width: 280px;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.14);
+  z-index: 9999;
+  overflow: hidden;
+}
+.ms-dropdown.open { display: block; }
+.ms-search-wrap {
+  padding: 8px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.ms-search {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 11px;
+  outline: none;
+}
+.ms-search:focus { border-color: #0d6efd; }
+.ms-actions {
+  display: flex;
+  gap: 4px;
+  padding: 5px 8px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.ms-actions button {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 5px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  cursor: pointer;
+  font-weight: 600;
+  color: #374151;
+}
+.ms-actions button:hover { background: #e5e7eb; }
+.ms-list {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+.ms-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #374151;
+  transition: background .1s;
+}
+.ms-item:hover { background: #f0f7ff; }
+.ms-item.checked { background: #eff6ff; }
+.ms-item input[type=checkbox] {
+  width: 14px; height: 14px;
+  accent-color: #0d6efd;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.ms-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ms-empty {
+  padding: 10px;
+  font-size: 11px;
+  color: #9ca3af;
+  text-align: center;
+}
+.ms-footer {
+  padding: 6px 8px;
+  border-top: 1px solid #f1f5f9;
+  text-align: right;
+}
+.ms-footer button {
+  font-size: 11px;
+  padding: 3px 12px;
+  border-radius: 6px;
+  border: none;
+  background: #0d6efd;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+}
+.ms-footer button:hover { background: #0b5ed7; }
 </style>
 </head>
 <body>
@@ -650,36 +798,144 @@ body {
     <div class="sh-count" id="cntDetail"></div>
   </div>
   <div class="panel">
-    <div class="row g-2 mb-3">
-      <div class="col-md-auto" style="min-width:130px">
+    <div class="row g-2 mb-3" id="mainFilterRow">
+      <!-- Username -->
+      <div class="col-md-auto">
         <label class="filter-label">Username</label>
-        <select id="filterUsername" class="form-select"><option value="">Semua</option></select>
+        <div class="ms-wrap" id="ms-wrap-filterUsername">
+          <div class="ms-trigger" id="ms-trigger-filterUsername" onclick="toggleMsDropdown('filterUsername')">
+            <span class="ms-trigger-text placeholder" id="ms-text-filterUsername">Semua</span>
+            <span class="ms-arrow">▼</span>
+          </div>
+          <div class="ms-dropdown" id="ms-dropdown-filterUsername">
+            <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterMsItems('filterUsername',this.value)"></div>
+            <div class="ms-actions">
+              <button onclick="msSelectAll('filterUsername')">Pilih Semua</button>
+              <button onclick="msClearAll('filterUsername')">Hapus</button>
+            </div>
+            <div class="ms-list" id="ms-list-filterUsername"></div>
+            <div class="ms-footer"><button onclick="applyMsFilter('filterUsername')">Terapkan</button></div>
+          </div>
+        </div>
       </div>
-      <div class="col-md-auto" style="min-width:130px">
+      <!-- User -->
+      <div class="col-md-auto">
         <label class="filter-label">User</label>
-        <select id="filterUser" class="form-select"><option value="">Semua</option></select>
+        <div class="ms-wrap" id="ms-wrap-filterUser">
+          <div class="ms-trigger" id="ms-trigger-filterUser" onclick="toggleMsDropdown('filterUser')">
+            <span class="ms-trigger-text placeholder" id="ms-text-filterUser">Semua</span>
+            <span class="ms-arrow">▼</span>
+          </div>
+          <div class="ms-dropdown" id="ms-dropdown-filterUser">
+            <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterMsItems('filterUser',this.value)"></div>
+            <div class="ms-actions">
+              <button onclick="msSelectAll('filterUser')">Pilih Semua</button>
+              <button onclick="msClearAll('filterUser')">Hapus</button>
+            </div>
+            <div class="ms-list" id="ms-list-filterUser"></div>
+            <div class="ms-footer"><button onclick="applyMsFilter('filterUser')">Terapkan</button></div>
+          </div>
+        </div>
       </div>
-      <div class="col-md-auto" style="min-width:145px">
+      <!-- Assignment -->
+      <div class="col-md-auto">
         <label class="filter-label">Assignment</label>
-        <select id="filterAssignment" class="form-select"><option value="">Semua</option></select>
+        <div class="ms-wrap ms-assignment" id="ms-wrap-filterAssignment">
+          <div class="ms-trigger" id="ms-trigger-filterAssignment" onclick="toggleMsDropdown('filterAssignment')">
+            <span class="ms-trigger-text placeholder" id="ms-text-filterAssignment">Semua</span>
+            <span class="ms-arrow">▼</span>
+          </div>
+          <div class="ms-dropdown" id="ms-dropdown-filterAssignment">
+            <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterMsItems('filterAssignment',this.value)"></div>
+            <div class="ms-actions">
+              <button onclick="msSelectAll('filterAssignment')">Pilih Semua</button>
+              <button onclick="msClearAll('filterAssignment')">Hapus</button>
+            </div>
+            <div class="ms-list" id="ms-list-filterAssignment"></div>
+            <div class="ms-footer"><button onclick="applyMsFilter('filterAssignment')">Terapkan</button></div>
+          </div>
+        </div>
       </div>
-      <div class="col-md-auto" style="min-width:130px">
+      <!-- Kabupaten -->
+      <div class="col-md-auto">
         <label class="filter-label">Kabupaten</label>
-        <select id="filterKabupaten" class="form-select"><option value="">Semua</option></select>
+        <div class="ms-wrap" id="ms-wrap-filterKabupaten">
+          <div class="ms-trigger" id="ms-trigger-filterKabupaten" onclick="toggleMsDropdown('filterKabupaten')">
+            <span class="ms-trigger-text placeholder" id="ms-text-filterKabupaten">Semua</span>
+            <span class="ms-arrow">▼</span>
+          </div>
+          <div class="ms-dropdown" id="ms-dropdown-filterKabupaten">
+            <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterMsItems('filterKabupaten',this.value)"></div>
+            <div class="ms-actions">
+              <button onclick="msSelectAll('filterKabupaten')">Pilih Semua</button>
+              <button onclick="msClearAll('filterKabupaten')">Hapus</button>
+            </div>
+            <div class="ms-list" id="ms-list-filterKabupaten"></div>
+            <div class="ms-footer"><button onclick="applyMsFilter('filterKabupaten')">Terapkan</button></div>
+          </div>
+        </div>
       </div>
-      <div class="col-md-auto" style="min-width:130px">
+      <!-- Kecamatan -->
+      <div class="col-md-auto">
         <label class="filter-label">Kecamatan</label>
-        <select id="filterKecamatan" class="form-select"><option value="">Semua</option></select>
+        <div class="ms-wrap" id="ms-wrap-filterKecamatan">
+          <div class="ms-trigger" id="ms-trigger-filterKecamatan" onclick="toggleMsDropdown('filterKecamatan')">
+            <span class="ms-trigger-text placeholder" id="ms-text-filterKecamatan">Semua</span>
+            <span class="ms-arrow">▼</span>
+          </div>
+          <div class="ms-dropdown" id="ms-dropdown-filterKecamatan">
+            <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterMsItems('filterKecamatan',this.value)"></div>
+            <div class="ms-actions">
+              <button onclick="msSelectAll('filterKecamatan')">Pilih Semua</button>
+              <button onclick="msClearAll('filterKecamatan')">Hapus</button>
+            </div>
+            <div class="ms-list" id="ms-list-filterKecamatan"></div>
+            <div class="ms-footer"><button onclick="applyMsFilter('filterKecamatan')">Terapkan</button></div>
+          </div>
+        </div>
       </div>
-      <div class="col-md-auto" style="min-width:130px">
+      <!-- Desa -->
+      <div class="col-md-auto">
         <label class="filter-label">Desa</label>
-        <select id="filterDesa" class="form-select"><option value="">Semua</option></select>
+        <div class="ms-wrap" id="ms-wrap-filterDesa">
+          <div class="ms-trigger" id="ms-trigger-filterDesa" onclick="toggleMsDropdown('filterDesa')">
+            <span class="ms-trigger-text placeholder" id="ms-text-filterDesa">Semua</span>
+            <span class="ms-arrow">▼</span>
+          </div>
+          <div class="ms-dropdown" id="ms-dropdown-filterDesa">
+            <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterMsItems('filterDesa',this.value)"></div>
+            <div class="ms-actions">
+              <button onclick="msSelectAll('filterDesa')">Pilih Semua</button>
+              <button onclick="msClearAll('filterDesa')">Hapus</button>
+            </div>
+            <div class="ms-list" id="ms-list-filterDesa"></div>
+            <div class="ms-footer"><button onclick="applyMsFilter('filterDesa')">Terapkan</button></div>
+          </div>
+        </div>
       </div>
-      <div class="col-md-auto" style="min-width:110px">
+      <!-- SLS -->
+      <div class="col-md-auto">
         <label class="filter-label">SLS</label>
-        <select id="filterSLS" class="form-select"><option value="">Semua</option></select>
+        <div class="ms-wrap" id="ms-wrap-filterSLS">
+          <div class="ms-trigger" id="ms-trigger-filterSLS" onclick="toggleMsDropdown('filterSLS')">
+            <span class="ms-trigger-text placeholder" id="ms-text-filterSLS">Semua</span>
+            <span class="ms-arrow">▼</span>
+          </div>
+          <div class="ms-dropdown" id="ms-dropdown-filterSLS">
+            <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterMsItems('filterSLS',this.value)"></div>
+            <div class="ms-actions">
+              <button onclick="msSelectAll('filterSLS')">Pilih Semua</button>
+              <button onclick="msClearAll('filterSLS')">Hapus</button>
+            </div>
+            <div class="ms-list" id="ms-list-filterSLS"></div>
+            <div class="ms-footer"><button onclick="applyMsFilter('filterSLS')">Terapkan</button></div>
+          </div>
+        </div>
       </div>
-
+      <!-- Reset button -->
+      <div class="col-md-auto d-flex align-items-end">
+        <button class="btn btn-outline-secondary btn-sm" onclick="resetMainFilters()" style="font-size:11px; padding:5px 12px; border-radius:8px;">↺ Reset</button>
+      </div>
     </div>
 
 
@@ -775,59 +1031,187 @@ function rebuildSelect(el, field, subset){
 }
 
 /* ══════════════════════════════════════
-   MAIN TABLE — CASCADE FILTERS
+   MULTI-SELECT FILTER ENGINE
 ══════════════════════════════════════ */
-const MAIN_IDS = ["filterUsername","filterUser","filterAssignment",
-                  "filterKabupaten","filterKecamatan","filterDesa","filterSLS"];
+// State: selected values per filter id (Set)
+const MS_SELECTED = {
+  filterUsername: new Set(),
+  filterUser: new Set(),
+  filterAssignment: new Set(),
+  filterKabupaten: new Set(),
+  filterKecamatan: new Set(),
+  filterDesa: new Set(),
+  filterSLS: new Set()
+};
 
-// field mapped to each select id
+// field mapped to each ms id
 const MAIN_FIELD = {
   filterUsername:"Username", filterUser:"User", filterAssignment:"Assignment",
   filterKabupaten:"Kabupaten", filterKecamatan:"Kecamatan",
   filterDesa:"Desa", filterSLS:"SLS"
 };
 
+const MAIN_IDS = Object.keys(MAIN_FIELD);
+
+// Get rows filtered by all ms filters EXCEPT excludeId
 function getMainFiltered(excludeId){
-  // filter rawData by all main filters EXCEPT excludeId
-  return rawData.filter(r=>{
-    return MAIN_IDS.every(id=>{
-      if(id===excludeId) return true;
-      const v=document.getElementById(id).value;
-      return !v || r[MAIN_FIELD[id]]===v;
+  return rawData.filter(r => MAIN_IDS.every(id => {
+    if(id === excludeId) return true;
+    const sel = MS_SELECTED[id];
+    return sel.size === 0 || sel.has(r[MAIN_FIELD[id]]);
+  }));
+}
+
+// Build the checkbox list for one ms dropdown
+function buildMsList(id){
+  const listEl = document.getElementById('ms-list-' + id);
+  const field   = MAIN_FIELD[id];
+  const subset  = getMainFiltered(id);
+  const vals    = [...new Set(subset.map(r => r[field]).filter(Boolean))].sort();
+  const sel     = MS_SELECTED[id];
+
+  // keep only selected values that still exist in new subset
+  // (do NOT remove them so user stays aware of their previous selection)
+  listEl.innerHTML = '';
+  if(!vals.length){
+    listEl.innerHTML = '<div class="ms-empty">Tidak ada opsi</div>';
+    return;
+  }
+  vals.forEach(v => {
+    const checked = sel.has(v);
+    const item = document.createElement('label');
+    item.className = 'ms-item' + (checked ? ' checked' : '');
+    item.innerHTML = `<input type="checkbox" value="${v}" ${checked?'checked':''}><span title="${v}">${v}</span>`;
+    item.querySelector('input').addEventListener('change', function(){
+      if(this.checked){ sel.add(v); item.classList.add('checked'); }
+      else { sel.delete(v); item.classList.remove('checked'); }
     });
+    listEl.appendChild(item);
   });
 }
 
-function rebuildMainSelect(id){
-  // rebuild options for this select based on what the other filters allow
-  rebuildSelect(document.getElementById(id), MAIN_FIELD[id], getMainFiltered(id));
+// Filter visible items in dropdown by search text
+function filterMsItems(id, query){
+  const q = query.toLowerCase();
+  document.querySelectorAll('#ms-list-' + id + ' .ms-item').forEach(item => {
+    const txt = item.querySelector('span').textContent.toLowerCase();
+    item.style.display = txt.includes(q) ? '' : 'none';
+  });
 }
 
-function onMainFilterChange(){
-  // rebuild every OTHER select's options, then redraw table
-  MAIN_IDS.forEach(id=>rebuildMainSelect(id));
+// Select/clear all visible checkboxes
+function msSelectAll(id){
+  const sel = MS_SELECTED[id];
+  document.querySelectorAll(`#ms-list-${id} .ms-item`).forEach(item => {
+    if(item.style.display === 'none') return;
+    const cb = item.querySelector('input');
+    cb.checked = true;
+    sel.add(cb.value);
+    item.classList.add('checked');
+  });
+}
+function msClearAll(id){
+  const sel = MS_SELECTED[id];
+  document.querySelectorAll(`#ms-list-${id} .ms-item`).forEach(item => {
+    const cb = item.querySelector('input');
+    cb.checked = false;
+    sel.delete(cb.value);
+    item.classList.remove('checked');
+  });
+}
+
+// Update trigger button label
+function updateMsTrigger(id){
+  const sel   = MS_SELECTED[id];
+  const text  = document.getElementById('ms-text-' + id);
+  const trigger = document.getElementById('ms-trigger-' + id);
+  // remove old badge
+  const oldBadge = trigger.querySelector('.ms-badge');
+  if(oldBadge) oldBadge.remove();
+  if(sel.size === 0){
+    text.textContent = 'Semua';
+    text.classList.add('placeholder');
+  } else if(sel.size === 1){
+    text.textContent = [...sel][0];
+    text.classList.remove('placeholder');
+    const badge = document.createElement('span');
+    badge.className = 'ms-badge';
+    badge.textContent = '1';
+    trigger.insertBefore(badge, trigger.querySelector('.ms-arrow'));
+  } else {
+    text.textContent = `${sel.size} dipilih`;
+    text.classList.remove('placeholder');
+    const badge = document.createElement('span');
+    badge.className = 'ms-badge';
+    badge.textContent = sel.size;
+    trigger.insertBefore(badge, trigger.querySelector('.ms-arrow'));
+  }
+}
+
+// Apply filter (close dropdown, cascade rebuild, redraw table)
+function applyMsFilter(id){
+  closeMsDropdown(id);
+  updateMsTrigger(id);
+  // rebuild all other dropdowns' option lists based on new state
+  MAIN_IDS.forEach(otherId => {
+    if(otherId !== id) buildMsList(otherId);
+  });
+  if(table) table.draw();
+}
+
+// Toggle dropdown open/close
+function toggleMsDropdown(id){
+  const dropdown = document.getElementById('ms-dropdown-' + id);
+  const trigger  = document.getElementById('ms-trigger-' + id);
+  const isOpen   = dropdown.classList.contains('open');
+  // close all first
+  MAIN_IDS.forEach(i => closeMsDropdown(i));
+  if(!isOpen){
+    buildMsList(id);
+    dropdown.classList.add('open');
+    trigger.classList.add('active');
+    // clear search
+    const search = dropdown.querySelector('.ms-search');
+    if(search){ search.value = ''; filterMsItems(id, ''); }
+  }
+}
+function closeMsDropdown(id){
+  document.getElementById('ms-dropdown-' + id)?.classList.remove('open');
+  document.getElementById('ms-trigger-' + id)?.classList.remove('active');
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.ms-wrap')) MAIN_IDS.forEach(id => closeMsDropdown(id));
+});
+
+// Reset all main filters
+function resetMainFilters(){
+  MAIN_IDS.forEach(id => {
+    MS_SELECTED[id].clear();
+    updateMsTrigger(id);
+    buildMsList(id);
+  });
   if(table) table.draw();
 }
 
 function fillFilters(){
-  // initial fill — all options from full dataset
-  MAIN_IDS.forEach(id=>{
-    const el=document.getElementById(id);
-    el.innerHTML=`<option value="">Semua</option>`;
-    fillSelectEl(el, unique(MAIN_FIELD[id]));
-  });
+  // Build initial list for all dropdowns (no filter active yet)
+  MAIN_IDS.forEach(id => buildMsList(id));
 }
 
-$.fn.dataTable.ext.search.push(function(s,data){
-  // col indices after Skala removed: 0=Assign,1=Nama,2=Alamat,3=SBR,4=Username,5=User,6=Provinsi,7=Kab,8=Kec,9=Desa,10=SLS,11=SubSLS
-  const g=id=>document.getElementById(id).value;
-  return (!g("filterUsername")||data[4]===g("filterUsername"))
-    &&(!g("filterUser")||data[5]===g("filterUser"))
-    &&(!g("filterAssignment")||data[0]===g("filterAssignment"))
-    &&(!g("filterKabupaten")||data[7]===g("filterKabupaten"))
-    &&(!g("filterKecamatan")||data[8]===g("filterKecamatan"))
-    &&(!g("filterDesa")||data[9]===g("filterDesa"))
-    &&(!g("filterSLS")||data[10]===g("filterSLS"));
+/* ── DataTable custom search using MS_SELECTED ── */
+$.fn.dataTable.ext.search.push(function(s, data){
+  // col indices: 0=Assign,1=Nama,2=Alamat,3=SBR,4=Username,5=User,6=Provinsi,7=Kab,8=Kec,9=Desa,10=SLS
+  const colMap = {
+    filterAssignment: 0, filterUsername: 4, filterUser: 5,
+    filterKabupaten: 7, filterKecamatan: 8, filterDesa: 9, filterSLS: 10
+  };
+  return MAIN_IDS.every(id => {
+    const sel = MS_SELECTED[id];
+    if(sel.size === 0) return true;
+    return sel.has(data[colMap[id]]);
+  });
 });
 
 /* ── Cards ── */
@@ -910,9 +1294,7 @@ function buildTable(){
   initMap(); updateMap(rawData);
 }
 
-MAIN_IDS.forEach(id=>{
-  document.getElementById(id).addEventListener("change", onMainFilterChange);
-});
+// Multi-select filters use onclick/onchange defined inline — no additional listeners needed here.
 
 /* ══════════════════════════════════════
    PIVOT — CASCADE FILTERS
@@ -971,6 +1353,8 @@ let pvSort = { col: null, dir: 'desc' }; // col: index into colKeys (-1 = row la
 // Resolved once after rawData loads
 let PENCACAH_KEY  = null;   // col S
 let PENGAWAS_KEY  = null;   // col T
+let PROGRESS_CACAH_KEY = null;  // col V — Progress Pencacahan
+let PROGRESS_RIKSA_KEY = null;  // col W — Progress Pemeriksaan
 
 function resolveSpecialKeys(){
   if(!rawData.length) return;
@@ -981,6 +1365,12 @@ function resolveSpecialKeys(){
   PENGAWAS_KEY = keys.find(k=>/pengawas.?awal/i.test(k))
               || keys.find(k=>/pengawas/i.test(k))
               || keys[19] || null;
+  PROGRESS_CACAH_KEY = keys.find(k=>/progress.{0,5}pencacah/i.test(k))
+                    || keys.find(k=>/progres.{0,5}pencacah/i.test(k))
+                    || keys[21] || null;
+  PROGRESS_RIKSA_KEY = keys.find(k=>/progress.{0,5}pemer/i.test(k))
+                    || keys.find(k=>/progres.{0,5}pemer/i.test(k))
+                    || keys[22] || null;
   // Update PV_FIELD so cascade filters use real key
   if(PENCACAH_KEY) PV_FIELD['pvFilterPencacah'] = PENCACAH_KEY;
   if(PENGAWAS_KEY) PV_FIELD['pvFilterPengawas'] = PENGAWAS_KEY;
@@ -996,7 +1386,8 @@ function resolveSpecialKeys(){
     elW.innerHTML = '<option value="">Semua</option>';
     fillSelectEl(elW, unique(PENGAWAS_KEY));
   }
-  console.log('[INFO] Pencacah key:', PENCACAH_KEY, '| Pengawas key:', PENGAWAS_KEY);
+  console.log('[INFO] Pencacah key:', PENCACAH_KEY, '| Pengawas key:', PENGAWAS_KEY,
+              '| Progress Pencacahan:', PROGRESS_CACAH_KEY, '| Progress Pemeriksaan:', PROGRESS_RIKSA_KEY);
 }
 
 // Show all CSV column names in a modal-like overlay for debugging
@@ -1039,6 +1430,15 @@ function renderPivot(){
   const isPencacahMode = showPencacah && /pencacah/i.test(filterUserVal);   // filter User = Pencacah
   const isPengawasMode = showPencacah && /pengawas/i.test(filterUserVal);   // filter User = Pengawas
 
+  // ── progress col visibility flags ──
+  // Username + Pencacah → kolom V (Progress Pencacahan)
+  // Username + Pengawas → kolom W (Progress Pemeriksaan)
+  // Geo (Kab/Kec/Desa/SLS) → keduanya
+  const GEO_FIELDS_PROG = ['Kabupaten','Kecamatan','Desa','SLS'];
+  const isGeoRow = GEO_FIELDS_PROG.includes(rowField);
+  const showColV = PROGRESS_CACAH_KEY && (isPencacahMode || isGeoRow);
+  const showColW = PROGRESS_RIKSA_KEY && (isPengawasMode || isGeoRow);
+
   // ── pre-compute counts ──
   const pencacahCount = {};   // username → target (rows di col S = username tsb)
   const pengawasName  = {};   // username → nama Pengawas Awal (col T)
@@ -1059,6 +1459,25 @@ function renderPivot(){
           pengawasName[uname] = row[PENGAWAS_KEY];
       });
     }
+  }
+
+  // ── Pre-compute SUM Progress Pencacahan (col V) & Pemeriksaan (col W) per rowField key ──
+  // Berlaku untuk semua rowField (Username, Kabupaten, Kecamatan, Desa, SLS)
+  const progressCacahMap = {};   // rowKey → sum nilai col V
+  const progressRiksaMap = {};   // rowKey → sum nilai col W
+  if(PROGRESS_CACAH_KEY || PROGRESS_RIKSA_KEY){
+    rawData.forEach(row=>{
+      const key = row[rowField]||'';
+      if(!key) return;
+      if(PROGRESS_CACAH_KEY){
+        const v = parseFloat(String(row[PROGRESS_CACAH_KEY]||'').replace('%','').replace(',','.'));
+        if(!isNaN(v)) progressCacahMap[key] = (progressCacahMap[key]||0) + v;
+      }
+      if(PROGRESS_RIKSA_KEY){
+        const v = parseFloat(String(row[PROGRESS_RIKSA_KEY]||'').replace('%','').replace(',','.'));
+        if(!isNaN(v)) progressRiksaMap[key] = (progressRiksaMap[key]||0) + v;
+      }
+    });
   }
 
   data.forEach(row=>{
@@ -1275,8 +1694,14 @@ function renderPivot(){
     html+=`<th class="geo-cap-col sortable${sortClass(gC1)}" data-colidx="${gC1}" title="(Total−OPEN) ÷ Total, progress pendataan">Capaian<br>Pendataan<i class="sort-icon"></i></th>`;
     html+=`<th class="geo-cap-col sortable${sortClass(gT2)}" data-colidx="${gT2}" title="Total record ${geoLabel} ini (seluruh data)">Target<br>Pemeriksaan<i class="sort-icon"></i></th>`;
     html+=`<th class="geo-cap-col sortable${sortClass(gC2)}" data-colidx="${gC2}" title="(Approved+Rejected+Revoked by Pengawas) ÷ Total">Capaian<br>Pemeriksaan<i class="sort-icon"></i></th>`;
+    // Kolom V & W untuk Geo
+    if(showColV) html+=`<th class="capaian-col" style="background:#1e3a5f!important;color:#93c5fd!important" title="Jumlah (SUM) nilai kolom '${PROGRESS_CACAH_KEY}' untuk ${rowField} ini">Σ Progress<br>Pencacahan</th>`;
+    if(showColW) html+=`<th class="capaian-col" style="background:#14532d!important;color:#86efac!important" title="Jumlah (SUM) nilai kolom '${PROGRESS_RIKSA_KEY}' untuk ${rowField} ini">Σ Progress<br>Pemeriksaan</th>`;
   }
   if(showPencacah){
+    // Kolom V (Pencacah mode) atau W (Pengawas mode) — ditampilkan setelah Total, sebelum pencacah-col
+    if(showColV) html+=`<th class="capaian-col" style="background:#1e3a5f!important;color:#93c5fd!important" title="Jumlah (SUM) nilai kolom '${PROGRESS_CACAH_KEY}' per username">Σ Progress<br>Pencacahan</th>`;
+    if(showColW) html+=`<th class="capaian-col" style="background:#14532d!important;color:#86efac!important" title="Jumlah (SUM) nilai kolom '${PROGRESS_RIKSA_KEY}' per username">Σ Progress<br>Pemeriksaan</th>`;
     html+=`<th class="pencacah-col sortable${sortClass(N+1)}" data-colidx="${N+1}" title="Jumlah record di-assign ke username ini (kolom S)">Target<br><span style="font-weight:400;font-size:10px;opacity:.7">(Pencacah Awal)</span><i class="sort-icon"></i></th>`;
     html+=`<th class="pencacah-col sortable${sortClass(N+2)}" data-colidx="${N+2}" title="Persentase OPEN terhadap Target">% OPEN/<br>Target<i class="sort-icon"></i></th>`;
     if(isPencacahMode){
@@ -1291,9 +1716,6 @@ function renderPivot(){
         title="(Approved+Rejected+Revoked by Pengawas) ÷ ${hariKerja} hari (sejak 8 Jun 2026)">
         Capaian Harian<br><span style="font-weight:400;font-size:10px;opacity:.8">Pengawasan</span>
         <i class="sort-icon"></i></th>`;
-    }
-    if(!isPencacahMode && !isPengawasMode && PENGAWAS_KEY){
-      // Pengawas Awal hanya muncul saat filter User = Pencacah
     }
   }
   html+=`</tr></thead><tbody>`;
@@ -1347,9 +1769,36 @@ function renderPivot(){
         html+=`<td class="geo-subsls-col" style="font-family:'Courier New',monospace">${codes}</td>`;
       }
       html += geoCapCells(gt, go, gpg);
+      // Σ Progress Pencacahan & Pemeriksaan untuk Geo rows
+      if(showColV){
+        const sv = progressCacahMap[r]||0;
+        html+=`<td class="capaian-col" style="background:#eff6ff!important"><div class="pivot-cell">
+          <div class="pv-val" style="color:#3b82f6">${sv.toLocaleString(undefined,{maximumFractionDigits:1})}</div>
+        </div></td>`;
+      }
+      if(showColW){
+        const sw = progressRiksaMap[r]||0;
+        html+=`<td class="capaian-col" style="background:#f0fdf4!important"><div class="pivot-cell">
+          <div class="pv-val" style="color:#22c55e">${sw.toLocaleString(undefined,{maximumFractionDigits:1})}</div>
+        </div></td>`;
+      }
     }
 
     if(showPencacah){
+      // Σ Progress Pencacahan (hanya Pencacah mode, col V)
+      if(showColV){
+        const sv = progressCacahMap[r]||0;
+        html+=`<td class="capaian-col" style="background:#eff6ff!important"><div class="pivot-cell">
+          <div class="pv-val" style="color:#3b82f6">${sv.toLocaleString(undefined,{maximumFractionDigits:1})}</div>
+        </div></td>`;
+      }
+      // Σ Progress Pemeriksaan (hanya Pengawas mode, col W)
+      if(showColW){
+        const sw = progressRiksaMap[r]||0;
+        html+=`<td class="capaian-col" style="background:#f0fdf4!important"><div class="pivot-cell">
+          <div class="pv-val" style="color:#22c55e">${sw.toLocaleString(undefined,{maximumFractionDigits:1})}</div>
+        </div></td>`;
+      }
       const target  = pencacahCount[r]||0;
       const openVal = openColKey ? (count[r][openColKey]||0) : 0;
       const pctOpen = target>0 ? ((openVal/target)*100).toFixed(1) : '–';
@@ -1441,6 +1890,9 @@ function renderPivot(){
             html+=`<td class="geo-subsls-col" style="font-family:'Courier New',monospace;font-weight:700">${child}</td>`;
           }
           html += geoCapCells(st, so, spg);
+          // empty progress cols untuk child rows
+          if(showColV) html+=`<td class="capaian-col" style="background:#eff6ff!important"></td>`;
+          if(showColW) html+=`<td class="capaian-col" style="background:#f0fdf4!important"></td>`;
         }
         html+=`</tr>`;
       });
@@ -1459,15 +1911,41 @@ function renderPivot(){
     const allGt  = Object.values(geoTotal).reduce((a,b)=>a+b,0);
     const allGo  = Object.values(geoOpen).reduce((a,b)=>a+b,0);
     const allGpg = Object.values(geoPgwDone).reduce((a,b)=>a+b,0);
-    const tCapData = allGt>0?(((allGt-allGo)/allGt)*100).toFixed(1)+'%':'–';
-    const tCapPgw  = allGt>0?((allGpg/allGt)*100).toFixed(1)+'%':'–';
-    const tColData = allGt>0?(parseFloat(tCapData)>=80?'#22c55e':parseFloat(tCapData)>=50?'#f59e0b':'#ef4444'):'#94a3b8';
-    const tColPgw  = allGt>0?(parseFloat(tCapPgw)>=80?'#22c55e':parseFloat(tCapPgw)>=50?'#f59e0b':'#ef4444'):'#94a3b8';
     if(rowField==='Desa'||rowField==='SLS') html+=`<td class="geo-parent-col"></td>`;
     if(rowField==='SLS') html+=`<td class="geo-subsls-col"></td>`;
     html += geoCapCells(allGt, allGo, allGpg);
+    // Σ total kolom V & W untuk Geo
+    if(showColV){
+      const tot = rowKeys.reduce((s,r)=>s+(progressCacahMap[r]||0),0);
+      html+=`<td class="capaian-col" style="background:#dbeafe!important"><div class="pivot-cell">
+        <div class="pv-val" style="color:#3b82f6">${tot.toLocaleString(undefined,{maximumFractionDigits:1})}</div>
+        <div class="pv-pct">total</div>
+      </div></td>`;
+    }
+    if(showColW){
+      const tot = rowKeys.reduce((s,r)=>s+(progressRiksaMap[r]||0),0);
+      html+=`<td class="capaian-col" style="background:#dcfce7!important"><div class="pivot-cell">
+        <div class="pv-val" style="color:#22c55e">${tot.toLocaleString(undefined,{maximumFractionDigits:1})}</div>
+        <div class="pv-pct">total</div>
+      </div></td>`;
+    }
   }
   if(showPencacah){
+    // Σ progress total untuk Username rows
+    if(showColV){
+      const tot = rowKeys.reduce((s,r)=>s+(progressCacahMap[r]||0),0);
+      html+=`<td class="capaian-col" style="background:#dbeafe!important"><div class="pivot-cell">
+        <div class="pv-val" style="color:#3b82f6">${tot.toLocaleString(undefined,{maximumFractionDigits:1})}</div>
+        <div class="pv-pct">total</div>
+      </div></td>`;
+    }
+    if(showColW){
+      const tot = rowKeys.reduce((s,r)=>s+(progressRiksaMap[r]||0),0);
+      html+=`<td class="capaian-col" style="background:#dcfce7!important"><div class="pivot-cell">
+        <div class="pv-val" style="color:#22c55e">${tot.toLocaleString(undefined,{maximumFractionDigits:1})}</div>
+        <div class="pv-pct">total</div>
+      </div></td>`;
+    }
     const totalOpen    = openColKey ? (colTotal[openColKey]||0) : 0;
     const pctTotalOpen = pencacahGrand>0 ? ((totalOpen/pencacahGrand)*100).toFixed(1) : '–';
     const pctColor     = pencacahGrand>0 ? (parseFloat(pctTotalOpen)>=80?'#22c55e':parseFloat(pctTotalOpen)>=50?'#f59e0b':'#ef4444') : '#94a3b8';
@@ -1623,10 +2101,29 @@ function toggleLayer(name){
 // Assignment color palette
 const COLOR_PALETTE = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#84cc16'];
 let colorMap = {};
-function getAssignColor(assignment){
-  if(!colorMap[assignment]){
-    colorMap[assignment] = COLOR_PALETTE[Object.keys(colorMap).length % COLOR_PALETTE.length];
+function getAssignColor(assignment) {
+  const status = String(assignment || '').trim().toUpperCase();
+
+  // warna khusus status utama
+  const fixedColors = {
+    'OPEN': '#f1f5f9',                    // putih abu-abu lembut
+    'APPROVED BY PENGAWAS': '#22c55e',    // hijau
+    'REJECTED BY PENGAWAS': '#ef4444',    // merah
+    'REVOKED BY PENGAWAS': '#f59e0b'      // oranye
+  };
+
+  if (fixedColors[status]) {
+    return fixedColors[status];
   }
+
+  // status lainnya pakai palette otomatis
+  if (!colorMap[assignment]) {
+    const usedColors = Object.keys(colorMap).length;
+    colorMap[assignment] = COLOR_PALETTE[
+      usedColors % COLOR_PALETTE.length
+    ];
+  }
+
   return colorMap[assignment];
 }
 
@@ -1733,14 +2230,14 @@ function updateMap(filteredRows){
     statByAssign[asgn] = (statByAssign[asgn]||0)+1;
     validPoints++;
 
-    const marker = L.circleMarker([lat, lon], {
-      radius: 6,
-      fillColor: color,
-      color: '#fff',
-      weight: 1.5,
-      opacity: 1,
-      fillOpacity: 0.85
-    });
+   const marker = L.circleMarker([lat, lon], {
+  radius: 6,
+  fillColor: color,
+  color: 'transparent',
+  weight: 0,
+  opacity: asgn.toUpperCase() === 'OPEN' ? 0 : 1,
+  fillOpacity: asgn.toUpperCase() === 'OPEN' ? 0 : 0.85
+});
     marker.bindPopup(`
       <div>
         <div class="pop-row"><span class="pop-key">Nama</span><span class="pop-val">${row.Nama||'-'}</span></div>
