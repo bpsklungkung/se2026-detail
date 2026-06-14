@@ -1289,7 +1289,7 @@ function initDashboard(data, fromCache, fetchedAt) {
   const dateStr = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
   const cacheNote = fromCache ? ` · <span style="color:#fbbf24" title="Data dari cache lokal. Klik Refresh Data untuk memuat ulang.">⚡ cache</span>` : '';
   document.getElementById('topbarUpdate').innerHTML =
-    `Diambil: ${dateStr} pukul ${timeStr} WITA${cacheNote}`;
+    `Diambil: ${dateStr} pukul 05:00 WITA${cacheNote}`;
   allUsers = [...new Set(rawData.map(x=>x.User).filter(Boolean))].sort();
   document.getElementById('topbarTotal').textContent = `${rawData.length.toLocaleString()} record`;
   resolveSpecialKeys();
@@ -1332,6 +1332,24 @@ function loadData(forceRefresh) {
     download: true, header: true, skipEmptyLines: true,
     complete(results) {
       const fetchedAt = Date.now();
+
+      // Debug: cek baris yang field utamanya kosong (kemungkinan "sampah")
+      const junkRows = [];
+      const firstColKey = results.data.length ? Object.keys(results.data[0])[0] : null;
+      results.data.forEach((row, i) => {
+        const firstColVal = (row[firstColKey] || '').toString().trim();
+        if(firstColVal === ''){
+          junkRows.push({ csvRowNumber: i+2, row }); // +2: +1 utk header, +1 utk 1-based
+        }
+      });
+      if(junkRows.length){
+        console.warn(`[DEBUG] Ditemukan ${junkRows.length} baris dengan kolom pertama ("${firstColKey}") kosong (total parsed: ${results.data.length}):`);
+        console.table(junkRows.slice(0, 60).map(j => ({rowNumber: j.csvRowNumber, ...j.row})));
+        if(junkRows.length > 60) console.warn(`...dan ${junkRows.length - 60} baris lainnya.`);
+      } else {
+        console.log(`[DEBUG] Tidak ada baris "sampah" ditemukan. Total parsed: ${results.data.length}`);
+      }
+
       try {
         sessionStorage.setItem(CACHE_KEY, JSON.stringify(results.data));
         sessionStorage.setItem(CACHE_TS_KEY, String(fetchedAt));
@@ -2128,18 +2146,28 @@ function loadHistoriHarian(){
         return dt.toLocaleDateString('id-ID', {day:'2-digit', month:'short'});
       });
 
+      // Tambahkan 7 hari ke depan dari tanggal terakhir (tanpa data, sebagai ruang kosong di sumbu X)
+      const lastDate = new Date(data[data.length-1].tanggal + 'T00:00:00');
+      const FUTURE_DAYS = 7;
+      for(let i = 1; i <= FUTURE_DAYS; i++){
+        const futureDate = new Date(lastDate);
+        futureDate.setDate(futureDate.getDate() + i);
+        labels.push(futureDate.toLocaleDateString('id-ID', {day:'2-digit', month:'short'}));
+      }
+      const padNulls = arr => arr.concat(Array(FUTURE_DAYS).fill(null));
+
       renderTrendChart('trendProgres', trendProgresChart, c => trendProgresChart = c, labels, [
-        { label:'Progres Pencacahan Kemarin', data: data.map(d=>numOrNull(d.progresPencacahanKemarin)), color:'#3b82f6' },
-        { label:'Progres Pemeriksaan Kemarin', data: data.map(d=>numOrNull(d.progresPemeriksaanKemarin)), color:'#22c55e' }
+        { label:'Progres Pencacahan Kemarin', data: padNulls(data.map(d=>numOrNull(d.progresPencacahanKemarin))), color:'#3b82f6' },
+        { label:'Progres Pemeriksaan Kemarin', data: padNulls(data.map(d=>numOrNull(d.progresPemeriksaanKemarin))), color:'#22c55e' }
       ], 'Progres Kemarin');
 
       renderTrendChart('trendCapaian', trendCapaianChart, c => trendCapaianChart = c, labels, [
-        { label:'Rata-rata Capaian Pencacahan', data: data.map(d=>numOrNull(d.rataCapaianPencacahan)), color:'#f59e0b' },
-        { label:'Rata-rata Capaian Pemeriksaan', data: data.map(d=>numOrNull(d.rataCapaianPemeriksaan)), color:'#8b5cf6' }
+        { label:'Rata-rata Capaian Pencacahan', data: padNulls(data.map(d=>numOrNull(d.rataCapaianPencacahan))), color:'#f59e0b' },
+        { label:'Rata-rata Capaian Pemeriksaan', data: padNulls(data.map(d=>numOrNull(d.rataCapaianPemeriksaan))), color:'#8b5cf6' }
       ], 'Rata-rata Capaian Harian');
 
       renderTrendChart('trendOpen', trendOpenChart, c => trendOpenChart = c, labels, [
-        { label:'Total % OPEN/Target', data: data.map(d=>numOrNull(d.totalPersenOpen)), color:'#ef4444' }
+        { label:'Total % OPEN/Target', data: padNulls(data.map(d=>numOrNull(d.totalPersenOpen))), color:'#ef4444' }
       ], 'Total % OPEN/Target');
     })
     .catch(err=>{
@@ -3715,10 +3743,12 @@ function updateMap(filteredRows){
     const statByAssign = {};
     let validPoints = 0;
 
+    // Hitung sekali saja (bukan per-row) untuk performa pada dataset besar
+    const _keys = filteredRows.length ? Object.keys(filteredRows[0]) : [];
+    const _lonKey = _keys.find(k=>/^(lon|longitude|long|bujur)$/i.test(k)) || _keys[15];
+    const _latKey = _keys.find(k=>/^(lat|latitude|lintang)$/i.test(k)) || _keys[16];
+
     filteredRows.forEach(row => {
-        const _keys = Object.keys(row);
-        const _lonKey = _keys.find(k=>/^(lon|longitude|long|bujur)$/i.test(k)) || _keys[15];
-        const _latKey = _keys.find(k=>/^(lat|latitude|lintang)$/i.test(k)) || _keys[16];
         const lon = parseFloat(row[_lonKey]);
         const lat = parseFloat(row[_latKey]);
         if(isNaN(lat)||isNaN(lon)||lat===0||lon===0) return;
