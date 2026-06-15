@@ -2729,6 +2729,12 @@ function renderPivot(){
     ? (PENGAWAS_KEY ? N+_uExtraOff+5 : N+_uExtraOff+4)
     : null;
 
+  const openColKey   = findCol(/^open$/i) || findCol(/open/i);
+  const apvPgwKey    = findCol(/approved.+pengawas/i);
+  const rejPgwKey    = findCol(/rejected.+pengawas/i);
+  const revPgwKey    = findCol(/revoked.+pengawas/i);
+  const subPencacahKey = findCol(/submitted.+pencacah/i);
+
   if(pvSort.col !== null){
     sortedRows.sort((a,b)=>{
       if(pvSort.col === -1) return pvSort.dir==='asc' ? a.localeCompare(b) : b.localeCompare(a);
@@ -2853,12 +2859,6 @@ function renderPivot(){
       return 0;
     });
   }
-
-  const openColKey   = findCol(/^open$/i) || findCol(/open/i);
-  const apvPgwKey    = findCol(/approved.+pengawas/i);
-  const rejPgwKey    = findCol(/rejected.+pengawas/i);
-  const revPgwKey    = findCol(/revoked.+pengawas/i);
-  const subPencacahKey = findCol(/submitted.+pencacah/i);
 
   const sortClass = idx => pvSort.col!==idx ? '' : (pvSort.dir==='asc' ? ' sort-asc' : ' sort-desc');
 
