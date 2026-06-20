@@ -1633,7 +1633,7 @@ function initDashboard(data, fromCache, fetchedAt) {
   const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
   const timeStr = now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
   // const dateStr = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
-  const dateStr = new Date().toLocaleDateString('en-GB', {
+  const dateStr = new Date().toLocaleDateString('id-ID', {
     timeZone: 'Africa/Nairobi',
     day: '2-digit',
     month: 'long',
