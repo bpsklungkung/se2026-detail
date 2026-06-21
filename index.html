@@ -953,9 +953,9 @@ body {
       style="padding:8px 22px;border:none;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;background:#0d6efd;color:#fff;border-bottom:2px solid #0d6efd;margin-bottom:-2px">
       Main
     </button>
-    <button type="button" id="tabBtnMetabase" onclick="switchTab('metabase')"
+    <button type="button" id="tabBtnMetabase" onclick="window.open('https://bpsklungkung.github.io/se2026-chart/', '_blank')"
       style="padding:8px 22px;border:none;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;background:#f1f5f9;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px">
-      Metabase
+      Metabase ↗
     </button>
   </div>
 
@@ -1815,17 +1815,6 @@ body {
 </div>
 
 </div><!-- /tabMain -->
-
-  <!-- Metabase Content -->
-  <div id="tabMetabase" style="display:none">
-    <iframe
-      id="metabaseFrame"
-      src=""
-      data-src="https://bpsklungkung.github.io/se2026-chart/"
-      style="width:100%;height:calc(100vh - 160px);border:none;border-radius:12px;
-             box-shadow:0 1px 4px rgba(0,0,0,.07), 0 4px 16px rgba(0,0,0,.04)">
-    </iframe>
-  </div>
 
 </div><!-- /container -->
 
@@ -4958,23 +4947,11 @@ function setBtnBusy(onclickName, busy, busyLabel){
 
 // ── Helper: kunci posisi scroll selama proses download (cegah "lompat ke atas") ──
 function switchTab(tab){
-  const isMain = tab === 'main';
-  document.getElementById('tabMain').style.display      = isMain ? '' : 'none';
-  document.getElementById('tabMetabase').style.display  = isMain ? 'none' : '';
+  // Hanya tab "main" yang tersisa; Metabase kini membuka tab baru, bukan tab internal.
+  document.getElementById('tabMain').style.display = '';
 
-  // Lazy-load iframe hanya saat pertama kali Metabase diklik
-  if(!isMain){
-    const frame = document.getElementById('metabaseFrame');
-    if(!frame.src || frame.src === window.location.href){
-      frame.src = frame.dataset.src;
-    }
-  }
-
-  // Update style tombol tab
-  const styleActive   = 'padding:8px 22px;border:none;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;background:#0d6efd;color:#fff;border-bottom:2px solid #0d6efd;margin-bottom:-2px';
-  const styleInactive = 'padding:8px 22px;border:none;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;background:#f1f5f9;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px';
-  document.getElementById('tabBtnMain').setAttribute('style', isMain ? styleActive : styleInactive);
-  document.getElementById('tabBtnMetabase').setAttribute('style', isMain ? styleInactive : styleActive);
+  const styleActive = 'padding:8px 22px;border:none;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;background:#0d6efd;color:#fff;border-bottom:2px solid #0d6efd;margin-bottom:-2px';
+  document.getElementById('tabBtnMain').setAttribute('style', styleActive);
 }
 
 function downloadBlob(blob, filename){
