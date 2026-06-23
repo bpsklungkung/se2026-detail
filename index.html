@@ -1067,7 +1067,7 @@ body {
           <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetPivot()">Reset</button>
           <button type="button" class="btn btn-outline-success btn-sm" onclick="exportPivotCSV()">↓ CSV</button>
           <button type="button" class="btn btn-outline-success btn-sm" onclick="exportPivotExcel()" style="background:#e8f5e9;border-color:#2e7d32;color:#1b5e20" title="Download tabel pivot sebagai file Excel (.xlsx)">↓ Excel</button>
-          <button type="button" class="btn btn-outline-warning btn-sm" onclick="showColumnNames()" title="Lihat nama semua kolom CSV">🔍 Kolom</button>
+          <button type="button" class="btn btn-outline-warning btn-sm" onclick="openKolomModal()" title="Cari data di semua kolom CSV">🔍 Kolom</button>
         </div>
       </div>
     </div>
@@ -2290,22 +2290,24 @@ function makeCard(label, jumlah, persen){
     </div></div>
   </div>`;
 }
-// Kartu statistik tanpa progress bar (untuk Progres Kemarin & Rata-rata Capaian)
+// Kartu statistik (legacy - masih bisa dipakai)
 function makeStatCard(label, valDisplay, subText, color){
-  return `<div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
-    <div class="card summary-card" style="border-left:4px solid ${color}"><div class="card-body">
-      <div class="sc-label">${label}</div>
-      <div class="sc-val" style="color:${color}">${valDisplay}</div>
-      <div class="sc-pct">${subText}</div>
-    </div></div>
-  </div>`;
+  return '<div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">'
+    + '<div class="card summary-card" style="border-left:4px solid ' + color + '"><div class="card-body">'
+    + '<div class="sc-label">' + label + '</div>'
+    + '<div class="sc-val" style="color:' + color + '">' + valDisplay + '</div>'
+    + '<div class="sc-pct">' + subText + '</div>'
+    + '</div></div></div>';
 }
 function updateProgresCards(data){
   const el = document.getElementById("progresCards");
   if(!el) return;
   el.innerHTML = "";
 
-  // Card 1 & 2: SUM dari "Progres Pencacahan Kemarin" & "Progres Pemeriksaan Kemarin"
+  const START_DATE = new Date('2026-06-08T00:00:00');
+  const today      = new Date(); today.setHours(0,0,0,0);
+  const hariKerja  = Math.max(1, Math.floor((today - START_DATE) / 86400000));
+
   let sumCacah = 0, sumRiksa = 0;
   if(PROGRESS_CACAH_KEY || PROGRESS_RIKSA_KEY){
     data.forEach(r=>{
@@ -2320,15 +2322,6 @@ function updateProgresCards(data){
     });
   }
 
-  // Card 3 & 4: rata-rata Capaian Harian Pencacahan & Pengawasan
-  // Mengikuti perhitungan yang sama seperti pivot Username × Assignment:
-  //   Capaian Pencacahan = (Target Pencacah - OPEN) / hariKerja, dirata-rata per username
-  //   Capaian Pengawasan = (Approved+Rejected+Revoked by Pengawas) / hariKerja, dirata-rata per username
-  const START_DATE = new Date('2026-06-08T00:00:00');
-  const today      = new Date(); today.setHours(0,0,0,0);
-  const hariKerja  = Math.max(1, Math.floor((today - START_DATE) / 86400000));
-
-  // Hitung target per Pencacah Awal (dari seluruh rawData, sesuai pivot)
   const pencacahCount = {};
   if(PENCACAH_KEY){
     rawData.forEach(row=>{
@@ -2337,8 +2330,7 @@ function updateProgresCards(data){
     });
   }
 
-  // Group `data` (sesuai filter aktif) per Username, hitung count per Assignment status
-  const usernameCount = {}; // {username: {assignmentStatus: count}}
+  const usernameCount = {};
   const usernames = new Set();
   data.forEach(row=>{
     const uname = row.Username || '';
@@ -2349,7 +2341,6 @@ function updateProgresCards(data){
     usernameCount[uname][asgn] = (usernameCount[uname][asgn]||0) + 1;
   });
 
-  // Cari nama status Assignment untuk OPEN dan Approved/Rejected/Revoked by Pengawas
   const allAsgnKeys = new Set();
   data.forEach(row=>{ if(row.Assignment) allAsgnKeys.add(row.Assignment); });
   const openColKey = [...allAsgnKeys].find(k=>/^open$/i.test(k)) || [...allAsgnKeys].find(k=>/open/i.test(k));
@@ -2359,60 +2350,135 @@ function updateProgresCards(data){
 
   let totalCapaianCacah = 0, nCacah = 0;
   let totalCapaianRiksa = 0, nRiksa = 0;
+  let totalOpen = 0, totalTarget = 0;
+  let totalSubmit = 0, totalRejected = 0, totalApproved = 0;
+
   usernames.forEach(uname=>{
     const counts = usernameCount[uname] || {};
-    // Capaian Pencacahan
     const target = pencacahCount[uname] || 0;
+    const openV  = openColKey ? (counts[openColKey] || 0) : 0;
+    const apvV   = apvPgwKey  ? (counts[apvPgwKey]  || 0) : 0;
+    const rejV   = rejPgwKey  ? (counts[rejPgwKey]  || 0) : 0;
+    const revV   = revPgwKey  ? (counts[revPgwKey]  || 0) : 0;
     if(target > 0){
-      const openV   = openColKey ? (counts[openColKey] || 0) : 0;
-      const selesai = target - openV;
-      const capaian = selesai / hariKerja;
-      if(!isNaN(capaian) && isFinite(capaian)){
-        totalCapaianCacah += capaian;
-        nCacah++;
-      }
+      totalTarget += target;
+      totalOpen   += openV;
+      const capaian = (target - openV) / hariKerja;
+      if(!isNaN(capaian) && isFinite(capaian)){ totalCapaianCacah += capaian; nCacah++; }
     }
-    // Capaian Pengawasan
-    const apvV = apvPgwKey ? (counts[apvPgwKey] || 0) : 0;
-    const rejV = rejPgwKey ? (counts[rejPgwKey] || 0) : 0;
-    const revV = revPgwKey ? (counts[revPgwKey] || 0) : 0;
     const total3 = apvV + rejV + revV;
     if(total3 > 0){
       const capaian = total3 / hariKerja;
-      if(!isNaN(capaian) && isFinite(capaian)){
-        totalCapaianRiksa += capaian;
-        nRiksa++;
-      }
+      if(!isNaN(capaian) && isFinite(capaian)){ totalCapaianRiksa += capaian; nRiksa++; }
     }
+    totalSubmit   += (target - openV);
+    totalRejected += rejV;
+    totalApproved += apvV;
   });
 
-  const avgCacah = nCacah > 0 ? totalCapaianCacah / nCacah : 0;
-  const avgRiksa = nRiksa > 0 ? totalCapaianRiksa / nRiksa : 0;
+  const avgCacah    = nCacah > 0 ? totalCapaianCacah / nCacah : 0;
+  const avgRiksa    = nRiksa > 0 ? totalCapaianRiksa / nRiksa : 0;
+  const pctOpen     = totalTarget > 0 ? (totalOpen / totalTarget * 100)     : 0;
+  const pctSubmit   = totalTarget > 0 ? (totalSubmit / totalTarget * 100)   : 0;
+  const pctApproved = totalTarget > 0 ? (totalApproved / totalTarget * 100) : 0;
+  const pctRejected = totalTarget > 0 ? (totalRejected / totalTarget * 100) : 0;
 
-  el.insertAdjacentHTML("beforeend", makeStatCard(
-    "Progres Pencacahan Kemarin",
-    sumCacah.toLocaleString(undefined,{maximumFractionDigits:1}),
-    PROGRESS_CACAH_KEY ? "total kemarin" : "kolom tidak ditemukan",
-    "#3b82f6"
-  ));
-  el.insertAdjacentHTML("beforeend", makeStatCard(
-    "Progres Pemeriksaan Kemarin",
-    sumRiksa.toLocaleString(undefined,{maximumFractionDigits:1}),
-    PROGRESS_RIKSA_KEY ? "total kemarin" : "kolom tidak ditemukan",
-    "#22c55e"
-  ));
-  el.insertAdjacentHTML("beforeend", makeStatCard(
-    "Rata-rata Capaian Pencacahan",
-    avgCacah.toLocaleString(undefined,{maximumFractionDigits:1}),
-    nCacah > 0 ? `rata-rata ${nCacah.toLocaleString()} username` : "tidak ada data",
-    "#f59e0b"
-  ));
-  el.insertAdjacentHTML("beforeend", makeStatCard(
-    "Rata-rata Capaian Pemeriksaan",
-    avgRiksa.toLocaleString(undefined,{maximumFractionDigits:1}),
-    nRiksa > 0 ? `rata-rata ${nRiksa.toLocaleString()} username` : "tidak ada data",
-    "#8b5cf6"
-  ));
+  const f1 = v => v.toLocaleString('id-ID',{maximumFractionDigits:1});
+  const f0 = v => v.toLocaleString('id-ID',{maximumFractionDigits:0});
+
+  el.innerHTML = '<div class="col-12">'
+    + '<div class="card" style="border:none;border-radius:14px;box-shadow:0 2px 16px rgba(30,58,95,.10);overflow:hidden">'
+    + '<div class="card-body p-0">'
+
+    /* ── Baris atas: 5 metrik utama ── */
+    + '<div style="display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid #e2e8f0">'
+
+    /* Progres Pencacahan */
+    + '<div style="padding:14px 16px;border-right:1px solid #e2e8f0">'
+    + '<div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Progres Pencacahan</div>'
+    + '<div style="font-size:24px;font-weight:800;color:#3b82f6;line-height:1">' + f0(sumCacah) + '</div>'
+    + '<div style="font-size:10px;color:#94a3b8;margin-top:3px">SLS selesai dicacah</div>'
+    + '</div>'
+
+    /* Progres Pemeriksaan */
+    + '<div style="padding:14px 16px;border-right:1px solid #e2e8f0">'
+    + '<div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Progres Pemeriksaan</div>'
+    + '<div style="font-size:24px;font-weight:800;color:#22c55e;line-height:1">' + f0(sumRiksa) + '</div>'
+    + '<div style="font-size:10px;color:#94a3b8;margin-top:3px">SLS selesai diperiksa</div>'
+    + '</div>'
+
+    /* % OPEN / Target */
+    + '<div style="padding:14px 16px;border-right:1px solid #e2e8f0;background:#fff7ed">'
+    + '<div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">% OPEN / Target</div>'
+    + '<div style="font-size:24px;font-weight:800;color:#f97316;line-height:1">' + f1(pctOpen) + '%</div>'
+    + '<div style="font-size:10px;color:#94a3b8;margin-top:3px">' + f0(totalOpen) + ' dari ' + f0(totalTarget) + ' target</div>'
+    + '<div style="margin-top:5px;height:4px;border-radius:99px;background:#fed7aa;overflow:hidden">'
+    + '<div style="height:100%;width:' + Math.min(pctOpen,100) + '%;background:#f97316;border-radius:99px"></div></div>'
+    + '</div>'
+
+    /* Rata-rata Capaian Pencacahan */
+    + '<div style="padding:14px 16px;border-right:1px solid #e2e8f0">'
+    + '<div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Rata-rata Capaian Pencacahan</div>'
+    + '<div style="font-size:24px;font-weight:800;color:#f59e0b;line-height:1">' + f1(avgCacah) + '</div>'
+    + '<div style="font-size:10px;color:#94a3b8;margin-top:3px">SLS/hari &middot; ' + nCacah + ' Pencacah</div>'
+    + '</div>'
+
+    /* Rata-rata Capaian Pemeriksaan */
+    + '<div style="padding:14px 16px">'
+    + '<div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Rata-rata Capaian Pemeriksaan</div>'
+    + '<div style="font-size:24px;font-weight:800;color:#8b5cf6;line-height:1">' + f1(avgRiksa) + '</div>'
+    + '<div style="font-size:10px;color:#94a3b8;margin-top:3px">SLS/hari &middot; ' + nRiksa + ' Pengawas</div>'
+    + '</div>'
+
+    + '</div>' /* end grid baris atas */
+
+    /* ── Baris bawah: Submit, Rejected, Approved ── */
+    + '<div style="display:grid;grid-template-columns:repeat(3,1fr)">'
+
+    /* Submit by Pencacah */
+    + '<div style="padding:11px 16px;border-right:1px solid #e2e8f0;display:flex;align-items:center;gap:10px">'
+    + '<div style="width:34px;height:34px;border-radius:9px;background:#eff6ff;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">📤</div>'
+    + '<div style="flex:1">'
+    + '<div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em">Submit by Pencacah</div>'
+    + '<div style="display:flex;align-items:baseline;gap:6px;margin-top:1px">'
+    + '<span style="font-size:17px;font-weight:800;color:#3b82f6">' + f0(totalSubmit) + '</span>'
+    + '<span style="font-size:11px;font-weight:700;color:#3b82f6">' + f1(pctSubmit) + '%</span>'
+    + '<span style="font-size:10px;color:#94a3b8">dari ' + f0(totalTarget) + '</span>'
+    + '</div>'
+    + '<div style="margin-top:4px;height:3px;border-radius:99px;background:#dbeafe;overflow:hidden">'
+    + '<div style="height:100%;width:' + Math.min(pctSubmit,100) + '%;background:#3b82f6;border-radius:99px"></div></div>'
+    + '</div></div>'
+
+    /* Rejected by Pengawas */
+    + '<div style="padding:11px 16px;border-right:1px solid #e2e8f0;display:flex;align-items:center;gap:10px">'
+    + '<div style="width:34px;height:34px;border-radius:9px;background:#fff1f2;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">❌</div>'
+    + '<div style="flex:1">'
+    + '<div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em">Rejected by Pengawas</div>'
+    + '<div style="display:flex;align-items:baseline;gap:6px;margin-top:1px">'
+    + '<span style="font-size:17px;font-weight:800;color:#ef4444">' + f0(totalRejected) + '</span>'
+    + '<span style="font-size:11px;font-weight:700;color:#ef4444">' + f1(pctRejected) + '%</span>'
+    + '<span style="font-size:10px;color:#94a3b8">dari ' + f0(totalTarget) + '</span>'
+    + '</div>'
+    + '<div style="margin-top:4px;height:3px;border-radius:99px;background:#fee2e2;overflow:hidden">'
+    + '<div style="height:100%;width:' + Math.min(pctRejected,100) + '%;background:#ef4444;border-radius:99px"></div></div>'
+    + '</div></div>'
+
+    /* Approved by Pengawas */
+    + '<div style="padding:11px 16px;display:flex;align-items:center;gap:10px">'
+    + '<div style="width:34px;height:34px;border-radius:9px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">✅</div>'
+    + '<div style="flex:1">'
+    + '<div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em">Approved by Pengawas</div>'
+    + '<div style="display:flex;align-items:baseline;gap:6px;margin-top:1px">'
+    + '<span style="font-size:17px;font-weight:800;color:#22c55e">' + f0(totalApproved) + '</span>'
+    + '<span style="font-size:11px;font-weight:700;color:#22c55e">' + f1(pctApproved) + '%</span>'
+    + '<span style="font-size:10px;color:#94a3b8">dari ' + f0(totalTarget) + '</span>'
+    + '</div>'
+    + '<div style="margin-top:4px;height:3px;border-radius:99px;background:#dcfce7;overflow:hidden">'
+    + '<div style="height:100%;width:' + Math.min(pctApproved,100) + '%;background:#22c55e;border-radius:99px"></div></div>'
+    + '</div></div>'
+
+    + '</div>' /* end grid baris bawah */
+    + '</div></div></div>'; /* end card-body, card, col */
 }
 
 /* ══════════════════════════════════════
@@ -3764,8 +3830,9 @@ function renderTrenChart(chartId){
     return;
   }
 
-  // Mode filter: rata-rata/jumlah per-tanggal, per kecamatan jika >1 kecamatan dipilih
-  if(!historiUsernameData.length) return;
+  // Mode filter: hitung progres LANGSUNG dari rawData (sama dengan pivot)
+  // capaianHarian tetap dari historiUsernameData (per tanggal)
+  if(!historiUsernameData.length && !rawData.length) return;
   const tanggals = [...new Set(historiUsernameData.map(r=>r.tanggal).filter(Boolean))].sort();
   const labels   = makeTrenLabels(tanggals);
 
@@ -3776,7 +3843,6 @@ function renderTrenChart(chartId){
     Capaian: ['progresPemeriksaanKemarin','capaianHarianPengawasan'],
     Open:    ['persenOpenTarget']
   };
-  // Field mana yang harus dijumlah (sum) vs dirata-rata (avg)
   const sumFields = new Set(['progresPencacahanKemarin','progresPemeriksaanKemarin']);
 
   const labelMap  = {
@@ -3793,73 +3859,100 @@ function renderTrenChart(chartId){
   };
   const titleMap2 = { Progres:'Pencacahan (Filter)', Capaian:'Pemeriksaan (Filter)', Open:'% OPEN/Target (Filter)' };
 
-  const role    = roleMap[chartId];
-  const fields  = fieldsMap[chartId];
-
-  // Filter rows sesuai kec+user
-  let rows = historiUsernameData.filter(r => String(r.user||'').trim() === role);
-  if(userSel.size > 0) rows = rows.filter(r => userSel.has(r.username));
-
-  // Warna per kecamatan
+  const role   = roleMap[chartId];
+  const fields = fieldsMap[chartId];
   const KEC_COLORS = ['#3b82f6','#ef4444','#22c55e','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316','#6366f1'];
 
-  // Jika lebih dari 1 kecamatan dipilih → buat series per kecamatan per field
+  // ── Hitung nilai progres (SUM) langsung dari rawData per username ──
+  // Sama persis dengan logika pivot — SUM PROGRESS_CACAH_KEY / PROGRESS_RIKSA_KEY per username
+  const rawProgCacah = {}, rawProgRiksa = {};
+  if(rawData.length){
+    rawData.forEach(row => {
+      const uname = (row.Username||'').trim();
+      if(!uname) return;
+      if(PROGRESS_CACAH_KEY){
+        const v = parseFloat(String(row[PROGRESS_CACAH_KEY]||'').replace('%','').replace(',','.'));
+        if(!isNaN(v)) rawProgCacah[uname] = (rawProgCacah[uname]||0) + v;
+      }
+      if(PROGRESS_RIKSA_KEY){
+        const v = parseFloat(String(row[PROGRESS_RIKSA_KEY]||'').replace('%','').replace(',','.'));
+        if(!isNaN(v)) rawProgRiksa[uname] = (rawProgRiksa[uname]||0) + v;
+      }
+    });
+  }
+
+  // Fungsi ambil nilai per username — progres dari rawData, capaian dari historiUsernameData
+  function getVal(field, uname, tgl){
+    if(field === 'progresPencacahanKemarin')  return rawProgCacah[uname] ?? null;
+    if(field === 'progresPemeriksaanKemarin') return rawProgRiksa[uname] ?? null;
+    // capaianHarian & persenOpenTarget — dari historiUsernameData per tanggal
+    const row = historiUsernameData.find(r => r.username === uname && r.tanggal === tgl);
+    return row ? numOrNull(row[field]) : null;
+  }
+
+  // Daftar username per kecamatan (dari scatterKecMap)
+  // Filter sesuai kecamatan dan user yang dipilih
+  const allUsernames = [...new Set(historiUsernameData.map(r=>r.username).filter(Boolean))];
+  const filteredByUser = userSel.size > 0
+    ? allUsernames.filter(u => userSel.has(u))
+    : allUsernames;
+
+  // Helper: hitung series untuk daftar username tertentu
+  function buildSeries(userList, field, color, label){
+    const isSum = sumFields.has(field);
+    if(isSum){
+      // Progres = SUM nilai terbaru dari rawData (sama di semua tanggal)
+      const total = userList.reduce((acc, u) => {
+        const v = field === 'progresPencacahanKemarin' ? (rawProgCacah[u]??null) : (rawProgRiksa[u]??null);
+        return v !== null ? acc + v : acc;
+      }, 0);
+      // Flat di semua tanggal yang tersedia
+      return { label, color,
+        data: padN(tanggals.map(() => +total.toFixed(2))) };
+    } else {
+      // Capaian = rata-rata dari historiUsernameData per tanggal
+      const byTgl = {}, cntTgl = {};
+      userList.forEach(uname => {
+        tanggals.forEach(tgl => {
+          const row = historiUsernameData.find(r => r.username === uname && r.tanggal === tgl);
+          if(!row) return;
+          const v = numOrNull(row[field]);
+          if(v === null) return;
+          byTgl[tgl]  = (byTgl[tgl]  || 0) + v;
+          cntTgl[tgl] = (cntTgl[tgl] || 0) + 1;
+        });
+      });
+      return { label, color,
+        data: padN(tanggals.map(t => cntTgl[t] ? +(byTgl[t]/cntTgl[t]).toFixed(2) : null)) };
+    }
+  }
+
+  // ── Multi kecamatan ──
   if(kecSel.size > 1){
     const kecList = [...kecSel].sort();
     const series = [];
-    let colorIdx = 0;
-
-    fields.forEach((field) => {
-      const isSum = sumFields.has(field);
-      kecList.forEach((kec) => {
-        const kecRows = rows.filter(r => (scatterKecMap[r.username]||'(Kosong)') === kec);
-        const byTgl = {}, cntTgl = {};
-        kecRows.forEach(r => {
-          const v = numOrNull(r[field]);
-          if(v === null) return;
-          byTgl[r.tanggal]  = (byTgl[r.tanggal]  || 0) + v;
-          cntTgl[r.tanggal] = (cntTgl[r.tanggal] || 0) + 1;
-        });
-        const baseColor = KEC_COLORS[colorIdx % KEC_COLORS.length];
-        colorIdx++;
+    kecList.forEach((kec, ki) => {
+      const kecColor   = KEC_COLORS[ki % KEC_COLORS.length];
+      const kecUsers   = filteredByUser.filter(u => (scatterKecMap[u]||'(Kosong)') === kec);
+      fields.forEach(field => {
         series.push({
-          label: `${kec} — ${labelMap[field]}`,
-          data:  padN(tanggals.map(t => {
-            if(!cntTgl[t]) return null;
-            return isSum ? +byTgl[t].toFixed(2) : +(byTgl[t]/cntTgl[t]).toFixed(2);
-          })),
-          color: baseColor,
-          _field: field
+          ...buildSeries(kecUsers, field, kecColor, `${kec} — ${labelMap[field]}`),
+          _field: field, _isAvg: !sumFields.has(field)
         });
       });
     });
-    // Gunakan renderTrendChartMulti yang mendukung banyak series
     renderTrendChartMulti(canvasMap[chartId], chartVar[chartId], setterMap[chartId], labels, series, titleMap2[chartId]);
     return;
   }
 
-  // Mode 0 atau 1 kecamatan: tampilkan 1-2 series (sum/avg) seperti semula
-  if(kecSel.size === 1) rows = rows.filter(r => kecSel.has(scatterKecMap[r.username]||'(Kosong)'));
+  // ── 0 atau 1 kecamatan ──
+  const kecUsers = kecSel.size === 1
+    ? filteredByUser.filter(u => kecSel.has(scatterKecMap[u]||'(Kosong)'))
+    : filteredByUser;
 
-  const series = fields.map((field) => {
-    const isSum = sumFields.has(field);
-    const byTgl = {};
-    const cntTgl = {};
-    rows.forEach(r => {
-      const v = numOrNull(r[field]);
-      if(v === null) return;
-      byTgl[r.tanggal]  = (byTgl[r.tanggal]  || 0) + v;
-      cntTgl[r.tanggal] = (cntTgl[r.tanggal] || 0) + 1;
-    });
-    return {
-      label: labelMap[field],
-      data:  padN(tanggals.map(t => {
-        if(!cntTgl[t]) return null;
-        return isSum ? +byTgl[t].toFixed(2) : +(byTgl[t]/cntTgl[t]).toFixed(2);
-      })),
-      color: colorMapTren[field]
-    };
-  });
+  const series = fields.map(field =>
+    buildSeries(kecUsers, field, colorMapTren[field], labelMap[field])
+  );
 
   renderTrendChart(canvasMap[chartId], chartVar[chartId], setterMap[chartId], labels, series, titleMap2[chartId]);
 }
@@ -6045,14 +6138,16 @@ function initMap(){
       const p = feature.properties;
       const subslsName = (p.nmsls || '').toString().trim();
       const selSubSLS = MS_SELECTED.filterSubSLS;
-      const isSelected = selSubSLS.size > 0 && selSubSLS.has(subslsName);
+      const hasFilter = selSubSLS.size > 0;
+      const isSelected = hasFilter && selSubSLS.has(subslsName);
+      const isDimmed   = hasFilter && !isSelected;
       return {
-        color: isSelected ? '#0d6efd' : '#1e3a5f',
-        weight: isSelected ? 4.5 : 2.2,
-        opacity: isSelected ? 1 : 0.75,
-        fillColor: isSelected ? '#0d6efd' : 'transparent',
-        fillOpacity: isSelected ? 0.08 : 0,
-        dashArray: null
+        color      : isSelected ? '#0d6efd' : (isDimmed ? '#94a3b8' : '#1e3a5f'),
+        weight     : isSelected ? 5 : (isDimmed ? 0.8 : 2.2),
+        opacity    : isSelected ? 1 : (isDimmed ? 0.3 : 0.75),
+        fillColor  : isSelected ? '#0d6efd' : (isDimmed ? '#94a3b8' : 'transparent'),
+        fillOpacity: isSelected ? 0.12 : (isDimmed ? 0.08 : 0),
+        dashArray  : isDimmed ? '3,3' : null
       };
     },
     onEachFeature(feature, layer){
@@ -7289,6 +7384,148 @@ document.addEventListener('click', function(e){
 // Tutup popup kalau tekan Escape
 document.addEventListener('keydown', function(e){
   if(e.key === 'Escape') closePetugasPopup();
+});
+</script>
+
+<!-- ══ Modal Search Kolom ══ -->
+<div id="kolomModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.55);backdrop-filter:blur(2px);align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.25);width:min(820px,96vw);max-height:88vh;display:flex;flex-direction:column;overflow:hidden">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #e2e8f0;background:#f8fafc">
+      <span style="font-size:15px;font-weight:700;color:#1e293b;flex:1">🔍 Cari Data — Semua Kolom</span>
+      <span id="kolomResultCount" style="font-size:11px;color:#64748b"></span>
+      <button onclick="closeKolomModal()" style="background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;padding:0 4px;line-height:1">&times;</button>
+    </div>
+    <!-- Search bar -->
+    <div style="padding:12px 18px;border-bottom:1px solid #e2e8f0;display:flex;gap:8px;align-items:center">
+      <input id="kolomSearchInput" type="text" placeholder="Ketik kata kunci untuk mencari di semua kolom…"
+        style="flex:1;padding:8px 12px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:13px;outline:none"
+        oninput="onKolomSearch(this.value)" onkeydown="if(event.key==='Escape')closeKolomModal()">
+      <select id="kolomColFilter" onchange="onKolomSearch(document.getElementById('kolomSearchInput').value)"
+        style="padding:7px 10px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:12px;color:#334155;max-width:160px">
+        <option value="">Semua Kolom</option>
+      </select>
+    </div>
+    <!-- Kolom header list (mode default: list kolom) -->
+    <div id="kolomBody" style="overflow-y:auto;flex:1;padding:10px 0">
+      <div id="kolomColList" style="padding:6px 18px"></div>
+      <div id="kolomResultTable" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══ Modal Kolom Search ══ */
+let _kolomHeaders = [];
+
+function openKolomModal(){
+  if(!rawData.length){ alert('Data belum dimuat'); return; }
+  _kolomHeaders = Object.keys(rawData[0]);
+
+  // Isi dropdown filter kolom
+  const sel = document.getElementById('kolomColFilter');
+  sel.innerHTML = '<option value="">Semua Kolom</option>' +
+    _kolomHeaders.map((k,i)=>{
+      const alpha = i < 26 ? String.fromCharCode(65+i) : String.fromCharCode(65+Math.floor(i/26)-1)+String.fromCharCode(65+(i%26));
+      return `<option value="${k}">${alpha}. ${k}</option>`;
+    }).join('');
+
+  // Mode default: tampilkan daftar kolom + contoh nilai
+  renderKolomColList();
+  document.getElementById('kolomSearchInput').value = '';
+  document.getElementById('kolomResultCount').textContent = `${rawData.length.toLocaleString('id-ID')} baris · ${_kolomHeaders.length} kolom`;
+  document.getElementById('kolomModal').style.display = 'flex';
+  setTimeout(()=>document.getElementById('kolomSearchInput').focus(), 50);
+}
+
+function closeKolomModal(){
+  document.getElementById('kolomModal').style.display = 'none';
+}
+
+function renderKolomColList(){
+  const sample = rawData[0];
+  document.getElementById('kolomColList').innerHTML = _kolomHeaders.map((k,i)=>{
+    const alpha = i < 26 ? String.fromCharCode(65+i) : String.fromCharCode(65+Math.floor(i/26)-1)+String.fromCharCode(65+(i%26));
+    const ex = String(sample[k]??'').slice(0,60);
+    return `<div style="display:flex;gap:8px;align-items:baseline;padding:4px 0;border-bottom:1px solid #f1f5f9;font-size:12px">
+      <span style="min-width:26px;color:#94a3b8;font-family:monospace">${alpha}</span>
+      <span style="min-width:180px;font-weight:600;color:#1e3a5f;cursor:pointer" onclick="document.getElementById('kolomColFilter').value='${k}';onKolomSearch('')">${k}</span>
+      <span style="color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ex}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('kolomColList').style.display = '';
+  document.getElementById('kolomResultTable').style.display = 'none';
+}
+
+function onKolomSearch(q){
+  q = (q||'').trim();
+  const colFilter = document.getElementById('kolomColFilter').value;
+
+  if(!q && !colFilter){
+    renderKolomColList();
+    document.getElementById('kolomResultCount').textContent = `${rawData.length.toLocaleString('id-ID')} baris · ${_kolomHeaders.length} kolom`;
+    return;
+  }
+
+  // Tentukan kolom yang dicari
+  const searchCols = colFilter ? [colFilter] : _kolomHeaders;
+  const ql = q.toLowerCase();
+
+  // Filter baris yang cocok
+  const matched = rawData.filter(row =>
+    searchCols.some(k => String(row[k]??'').toLowerCase().includes(ql))
+  );
+
+  // Kolom yang ditampilkan: jika ada colFilter tampilkan kolom geo + colFilter, else semua (max 8)
+  const GEO = ['Kecamatan','Desa','SLS','SubSLS','Username'];
+  let dispCols;
+  if(colFilter){
+    dispCols = [...new Set([...GEO.filter(g=>_kolomHeaders.includes(g)), colFilter])];
+  } else {
+    // Tampilkan kolom yang punya nilai cocok
+    const hitCols = _kolomHeaders.filter(k => matched.some(row => String(row[k]??'').toLowerCase().includes(ql)));
+    dispCols = [...new Set([...GEO.filter(g=>hitCols.includes(g)), ...hitCols])].slice(0, 9);
+  }
+
+  // Render tabel hasil
+  const MAX_ROWS = 200;
+  const shown = matched.slice(0, MAX_ROWS);
+  const alphaOf = k => { const i = _kolomHeaders.indexOf(k); return i < 26 ? String.fromCharCode(65+i) : '?'; };
+
+  const thead = `<tr style="position:sticky;top:0;background:#1e3a5f;color:#fff">`
+    + dispCols.map(k=>`<th style="padding:5px 8px;font-size:11px;white-space:nowrap;font-weight:600">${alphaOf(k)}. ${k}</th>`).join('')
+    + `</tr>`;
+
+  const highlight = (txt, q) => {
+    if(!q) return txt;
+    const idx = txt.toLowerCase().indexOf(q.toLowerCase());
+    if(idx < 0) return txt;
+    return txt.slice(0,idx)+'<mark style="background:#fef08a;border-radius:2px">'+txt.slice(idx,idx+q.length)+'</mark>'+txt.slice(idx+q.length);
+  };
+
+  const tbody = shown.map(row =>
+    `<tr style="border-bottom:1px solid #f1f5f9">`
+    + dispCols.map(k=>{
+        const val = String(row[k]??'');
+        const isHit = val.toLowerCase().includes(ql);
+        return `<td style="padding:4px 8px;font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${isHit?'background:#fefce8':''}" title="${val}">${highlight(val,q)}</td>`;
+      }).join('')
+    + `</tr>`
+  ).join('');
+
+  document.getElementById('kolomResultTable').innerHTML =
+    `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`
+    + (matched.length > MAX_ROWS ? `<div style="padding:8px 18px;font-size:11px;color:#94a3b8">Menampilkan ${MAX_ROWS} dari ${matched.length.toLocaleString('id-ID')} baris cocok</div>` : '');
+
+  document.getElementById('kolomColList').style.display = 'none';
+  document.getElementById('kolomResultTable').style.display = '';
+  document.getElementById('kolomResultCount').textContent =
+    `${matched.length.toLocaleString('id-ID')} baris cocok` + (q ? ` untuk "${q}"` : '');
+}
+
+// Tutup modal klik di luar
+document.getElementById('kolomModal').addEventListener('click', function(e){
+  if(e.target === this) closeKolomModal();
 });
 </script>
 
