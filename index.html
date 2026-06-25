@@ -1625,6 +1625,24 @@ body {
           </div>
         </div>
       </div>
+      <!-- Baris filter kedua: Tidak Ditemukan -->
+      <div class="col-md-auto" style="min-width:150px">
+        <label class="filter-label" style="color:#dc2626">Tidak Ditemukan</label>
+        <div class="ms-wrap" id="ms-wrap-filterTidakDitemukan">
+          <div class="ms-trigger" id="ms-trigger-filterTidakDitemukan" onclick="toggleMsDropdown('filterTidakDitemukan')">
+            <span class="ms-trigger-text placeholder" id="ms-text-filterTidakDitemukan">Semua</span>
+            <span class="ms-arrow">▼</span>
+          </div>
+          <div class="ms-dropdown" id="ms-dropdown-filterTidakDitemukan">
+            <div class="ms-actions">
+              <button onclick="msSelectAll('filterTidakDitemukan')">Pilih Semua</button>
+              <button onclick="msClearAll('filterTidakDitemukan')">Hapus</button>
+            </div>
+            <div class="ms-list" id="ms-list-filterTidakDitemukan"></div>
+            <div class="ms-footer"><button onclick="applyMsFilter('filterTidakDitemukan')">Terapkan</button></div>
+          </div>
+        </div>
+      </div>
       <!-- Reset button -->
       <div class="col-md-auto d-flex align-items-end">
         <button class="btn btn-outline-secondary btn-sm" onclick="resetMainFilters()" style="font-size:11px; padding:5px 12px; border-radius:8px;">↺ Reset</button>
@@ -1664,7 +1682,7 @@ body {
             <th>Assignment</th><th>Nama</th><th>Alamat</th><th>SBR</th>
             <th>Username</th><th>User</th><th>Provinsi</th>
             <th>Kabupaten</th><th>Kecamatan</th><th>Desa</th><th>SLS</th><th>SubSLS</th>
-            <th>Pencacah Awal</th><th>Pengawas Awal</th>
+            <th>Pencacah Awal</th><th>Pengawas Awal</th><th>Tidak Ditemukan</th>
           </tr>
         </thead>
         <tbody>
@@ -2053,7 +2071,8 @@ const MS_SELECTED = {
   filterSLS: new Set(),
   filterSubSLS: new Set(),
   filterPencacahAwal: new Set(),
-  filterPengawasAwal: new Set()
+  filterPengawasAwal: new Set(),
+  filterTidakDitemukan: new Set()
 };
 
 // field mapped to each ms id
@@ -2061,7 +2080,8 @@ const MAIN_FIELD = {
   filterUsername:"Username", filterUser:"User", filterAssignment:"Assignment",
   filterKabupaten:"Kabupaten", filterKecamatan:"Kecamatan",
   filterDesa:"Desa", filterSLS:"SLS", filterSubSLS:"SubSLS",
-  filterPencacahAwal:"Pencacah Awal", filterPengawasAwal:"Pengawas Awal"
+  filterPencacahAwal:"Pencacah Awal", filterPengawasAwal:"Pengawas Awal",
+  filterTidakDitemukan:"__tidakDitemukan__"
 };
 
 const MAIN_IDS = Object.keys(MAIN_FIELD);
@@ -2071,7 +2091,13 @@ function getMainFiltered(excludeId){
   return rawData.filter(r => MAIN_IDS.every(id => {
     if(id === excludeId) return true;
     const sel = MS_SELECTED[id];
-    return sel.size === 0 || sel.has(r[MAIN_FIELD[id]]);
+    if(sel.size === 0) return true;
+    const field = MAIN_FIELD[id];
+    if(field === '__tidakDitemukan__'){
+      const v = TIDAK_DITEMUKAN_KEY ? String(r[TIDAK_DITEMUKAN_KEY]||'0') : '0';
+      return sel.has(v);
+    }
+    return sel.has(r[field]);
   }));
 }
 
@@ -2081,8 +2107,16 @@ function buildMsList(id){
   const listEl = document.getElementById('ms-list-' + id);
   const field   = MAIN_FIELD[id];
   const subset  = getMainFiltered(id);
-  const vals    = [...new Set(subset.map(r => r[field]).filter(Boolean))].sort();
   const sel     = MS_SELECTED[id];
+
+  // Khusus filterTidakDitemukan: pakai TIDAK_DITEMUKAN_KEY, tampilkan label deskriptif
+  let vals;
+  if(id === 'filterTidakDitemukan'){
+    if(!TIDAK_DITEMUKAN_KEY){ listEl.innerHTML='<div class="ms-empty">Kolom tidak ditemukan</div>'; return; }
+    vals = [...new Set(subset.map(r => String(r[TIDAK_DITEMUKAN_KEY]||'0')).filter(v=>v!==''))].sort();
+  } else {
+    vals = [...new Set(subset.map(r => r[field]).filter(Boolean))].sort();
+  }
 
   listEl.innerHTML = '';
   if(!vals.length){
@@ -2091,9 +2125,13 @@ function buildMsList(id){
   }
   vals.forEach(v => {
     const checked = sel.has(v);
+    // Label deskriptif untuk filterTidakDitemukan
+    const label = id === 'filterTidakDitemukan'
+      ? (v === '0' || v === '' ? '0 — Ditemukan' : v + ' — Tidak Ditemukan')
+      : v;
     const item = document.createElement('label');
     item.className = 'ms-item' + (checked ? ' checked' : '');
-    item.innerHTML = `<input type="checkbox" value="${v}" ${checked?'checked':''}><span title="${v}">${v}</span>`;
+    item.innerHTML = `<input type="checkbox" value="${v}" ${checked?'checked':''}><span title="${label}">${label}</span>`;
     item.querySelector('input').addEventListener('change', function(){
       if(this.checked){ sel.add(v); item.classList.add('checked'); }
       else { sel.delete(v); item.classList.remove('checked'); }
@@ -2275,12 +2313,17 @@ $.fn.dataTable.ext.search.push(function(s, data){
     filterAssignment: 0, filterUsername: 4, filterUser: 5,
     filterKabupaten: 7, filterKecamatan: 8, filterDesa: 9, filterSLS: 10,
     filterSubSLS: 11,
-    filterPencacahAwal: 12, filterPengawasAwal: 13
+    filterPencacahAwal: 12, filterPengawasAwal: 13,
+    filterTidakDitemukan: 14
   };
   return MAIN_IDS.every(id => {
     const sel = MS_SELECTED[id];
     if(sel.size === 0) return true;
-    return sel.has(data[colMap[id]]);
+    // filterTidakDitemukan: nilai di kolom 14 bisa berupa angka, konversi ke string
+    const cellVal = id === 'filterTidakDitemukan'
+      ? String(data[colMap[id]]||'0')
+      : data[colMap[id]];
+    return sel.has(cellVal);
   });
 });
 
@@ -2670,6 +2713,7 @@ function computeSnapshotUsernameRows(tanggal){
   Object.keys(sumVbyPencacah).forEach(nama=>{
     const target = targetByPencacah[nama]||0;
     const openV  = openByPencacah[nama]||0;
+    const persenOpen = target > 0 ? Math.round((openV / target) * 10000) / 100 : 0;
     rows.push({
       tanggal,
       username  : namaCacahToUsername[nama] || nama,
@@ -2679,7 +2723,8 @@ function computeSnapshotUsernameRows(tanggal){
       progresPencacahanKemarin : Math.round((sumVbyPencacah[nama]||0) * 10) / 10,
       capaianHarianPencacahan  : target > 0 ? Math.round(((target - openV) / hariKerja) * 10) / 10 : 0,
       progresPemeriksaanKemarin: null,
-      capaianHarianPengawasan  : null
+      capaianHarianPengawasan  : null,
+      persenOpenTarget         : persenOpen
     });
   });
 
@@ -2695,7 +2740,8 @@ function computeSnapshotUsernameRows(tanggal){
       progresPencacahanKemarin : null,
       capaianHarianPencacahan  : null,
       progresPemeriksaanKemarin: Math.round((sumWbyPengawas[nama]||0) * 10) / 10,
-      capaianHarianPengawasan  : Math.round((totalReview / hariKerja) * 10) / 10
+      capaianHarianPengawasan  : Math.round((totalReview / hariKerja) * 10) / 10,
+      persenOpenTarget         : null
     });
   });
 
@@ -2833,6 +2879,7 @@ function computeUsernameMetricsAsHistori(){
 
   // Pencacah rows
   Object.entries(byNamaCacah).forEach(([nama, d]) => {
+    const persenOpen = d.target > 0 ? Math.round((d.open / d.target) * 10000) / 100 : 0;
     result.push({
       tanggal,
       username    : d.username || nama,
@@ -2842,7 +2889,8 @@ function computeUsernameMetricsAsHistori(){
       progresPencacahanKemarin  : Math.round(d.sumV * 10) / 10,
       capaianHarianPencacahan   : d.target > 0 ? Math.round(((d.target - d.open) / hariKerja) * 10) / 10 : 0,
       progresPemeriksaanKemarin : null,
-      capaianHarianPengawasan   : null
+      capaianHarianPengawasan   : null,
+      persenOpenTarget          : persenOpen
     });
   });
 
@@ -2857,7 +2905,8 @@ function computeUsernameMetricsAsHistori(){
       progresPencacahanKemarin  : null,
       capaianHarianPencacahan   : null,
       progresPemeriksaanKemarin : Math.round(d.sumW * 10) / 10,
-      capaianHarianPengawasan   : Math.round((d.review / hariKerja) * 10) / 10
+      capaianHarianPengawasan   : Math.round((d.review / hariKerja) * 10) / 10,
+      persenOpenTarget          : null
     });
   });
 
@@ -4464,7 +4513,8 @@ function buildTable(){
       {data:'Kabupaten'},{data:'Kecamatan'},{data:'Desa'},{data:'SLS'},
       {data:'SubSLS', defaultContent:''},
       {data:'Pencacah Awal', defaultContent:''},
-      {data:'Pengawas Awal', defaultContent:''}
+      {data:'Pengawas Awal', defaultContent:''},
+      {data: function(row){ return TIDAK_DITEMUKAN_KEY ? (row[TIDAK_DITEMUKAN_KEY]||'') : ''; }, defaultContent:''}
     ]
   });
   table.on('draw',function(){
@@ -4592,6 +4642,7 @@ let PENGAWAS_KEY  = null;
 let PROGRESS_CACAH_KEY = null;
 let PROGRESS_RIKSA_KEY = null;
 let CEK_BANGUNAN_KEY   = null;
+let TIDAK_DITEMUKAN_KEY = null;
 
 function resolveSpecialKeys(){
   if(!rawData.length) return;
@@ -4610,6 +4661,8 @@ function resolveSpecialKeys(){
                     || keys[22] || null;
   CEK_BANGUNAN_KEY   = keys.find(k=>/cek.{0,5}bangunan/i.test(k))
                     || keys[23] || null;
+  TIDAK_DITEMUKAN_KEY = keys.find(k=>/tidak.{0,5}ditemukan/i.test(k))
+                     || keys[46] || null;
   if(PENCACAH_KEY) PV_FIELD['pvFilterPencacah'] = PENCACAH_KEY;
   if(PENGAWAS_KEY) PV_FIELD['pvFilterPengawas'] = PENGAWAS_KEY;
   const elP = document.getElementById('pvFilterPencacah');
@@ -4807,7 +4860,7 @@ function renderPivot(){
   }
 
   const cekBangunanMap = {};
-  const childCekBangunanMap = {}; // {"parent||child": sum}
+  const childCekBangunanMap = {};
   if(CEK_BANGUNAN_KEY){
     const childFieldCB = {Kabupaten:'Kecamatan', Kecamatan:'Desa', Desa:'SLS'}[rowField] || null;
     rawData.forEach(row=>{
@@ -4823,6 +4876,26 @@ function renderPivot(){
       }
     });
   }
+
+  // Tidak Ditemukan (kolom AU)
+  const tidakDitemukanMap = {};
+  const childTidakDitemukanMap = {};
+  if(TIDAK_DITEMUKAN_KEY){
+    const childFieldTD = {Kabupaten:'Kecamatan', Kecamatan:'Desa', Desa:'SLS'}[rowField] || null;
+    rawData.forEach(row=>{
+      const key = row[rowField]||'';
+      if(!key) return;
+      const v = parseFloat(String(row[TIDAK_DITEMUKAN_KEY]||'').replace(',','.'));
+      if(!isNaN(v) && v > 0){
+        tidakDitemukanMap[key] = (tidakDitemukanMap[key]||0) + v;
+        if(childFieldTD){
+          const childKey = `${key}||${row[childFieldTD]||'(Kosong)'}`;
+          childTidakDitemukanMap[childKey] = (childTidakDitemukanMap[childKey]||0) + v;
+        }
+      }
+    });
+  }
+  const showTD = !!TIDAK_DITEMUKAN_KEY;
 
   // ── Capaian Harian per geo (Kabupaten/Kecamatan/Desa/SLS) ──
   // Dihitung dengan: untuk setiap Username, hitung capaian harian (sama seperti mode Username),
@@ -5012,7 +5085,8 @@ function renderPivot(){
     const vOff  = showColV         ? 1 : 0;
     const wOff  = showColW         ? vOff+1 : vOff;
     const cbOff = CEK_BANGUNAN_KEY ? wOff+1 : wOff;
-    const ccOff = showGeoCapaianCacah ? cbOff+1 : cbOff;
+    const tdOff = showTD           ? cbOff+1 : cbOff;
+    const ccOff = showGeoCapaianCacah ? tdOff+1 : tdOff;
     const crOff = showGeoCapaianRiksa ? ccOff+1 : ccOff;
     return {
       parent : hasParent  ? N+1          : null,
@@ -5024,22 +5098,25 @@ function renderPivot(){
       progv  : showColV         ? base+vOff  : null,
       progw  : showColW         ? base+wOff  : null,
       cekb   : CEK_BANGUNAN_KEY ? base+cbOff : null,
+      tdkey  : showTD           ? base+tdOff : null,
       capcacah : showGeoCapaianCacah ? base+ccOff : null,
       capriksa : showGeoCapaianRiksa ? base+crOff : null,
     }[key];
   }
 
   const N = colKeys.length;
-  const _geoProgVIdx = showGeoCap ? geoIdx('progv', N) : null;
-  const _geoProgWIdx = showGeoCap ? geoIdx('progw', N) : null;
-  const _geoCekBIdx  = showGeoCap ? geoIdx('cekb',  N) : null;
+  const _geoProgVIdx    = showGeoCap ? geoIdx('progv',    N) : null;
+  const _geoProgWIdx    = showGeoCap ? geoIdx('progw',    N) : null;
+  const _geoCekBIdx     = showGeoCap ? geoIdx('cekb',     N) : null;
+  const _geoTDIdx       = showGeoCap ? geoIdx('tdkey',    N) : null;
   const _geoCapCacahIdx = showGeoCap ? geoIdx('capcacah', N) : null;
   const _geoCapRiksaIdx = showGeoCap ? geoIdx('capriksa', N) : null;
 
   const _uProgVIdx   = showPencacah && showColV         ? N+1 : null;
   const _uProgWIdx   = showPencacah && showColW         ? N+(showColV?1:0)+1 : null;
   const _uCekBIdx    = showPencacah && CEK_BANGUNAN_KEY ? N+(showColV?1:0)+(showColW?1:0)+1 : null;
-  const _uExtraOff   = (showColV?1:0)+(showColW?1:0)+(CEK_BANGUNAN_KEY?1:0);
+  const _uTDIdx      = showPencacah && showTD           ? N+(showColV?1:0)+(showColW?1:0)+(CEK_BANGUNAN_KEY?1:0)+1 : null;
+  const _uExtraOff   = (showColV?1:0)+(showColW?1:0)+(CEK_BANGUNAN_KEY?1:0)+(showTD?1:0);
   const _uTargetIdx  = showPencacah ? N+_uExtraOff+1 : null;
   const _uPctOpenIdx = showPencacah ? N+_uExtraOff+2 : null;
   const _uCapaianIdx = showPencacah && (isPencacahMode||isPengawasMode) ? N+_uExtraOff+3 : null;
@@ -5093,6 +5170,10 @@ function renderPivot(){
           const va=cekBangunanMap[a]||0, vb=cekBangunanMap[b]||0;
           return pvSort.dir==='asc'?va-vb:vb-va;
         }
+        if(typeof _geoTDIdx!=='undefined' && _geoTDIdx!==null && pvSort.col===_geoTDIdx){
+          const va=tidakDitemukanMap[a]||0, vb=tidakDitemukanMap[b]||0;
+          return pvSort.dir==='asc'?va-vb:vb-va;
+        }
         if(typeof _geoCapCacahIdx!=='undefined' && _geoCapCacahIdx!==null && pvSort.col===_geoCapCacahIdx){
           const ga=geoCapaianCacahMap[a], gb=geoCapaianCacahMap[b];
           const va=ga&&ga.count>0?ga.sum/ga.count:-1, vb=gb&&gb.count>0?gb.sum/gb.count:-1;
@@ -5116,6 +5197,10 @@ function renderPivot(){
         }
         if(typeof _uCekBIdx!=='undefined' && _uCekBIdx!==null && pvSort.col===_uCekBIdx){
           const va=cekBangunanMap[a]||0, vb=cekBangunanMap[b]||0;
+          return pvSort.dir==='asc'?va-vb:vb-va;
+        }
+        if(typeof _uTDIdx!=='undefined' && _uTDIdx!==null && pvSort.col===_uTDIdx){
+          const va=tidakDitemukanMap[a]||0, vb=tidakDitemukanMap[b]||0;
           return pvSort.dir==='asc'?va-vb:vb-va;
         }
         if(typeof _uTargetIdx!=='undefined' && _uTargetIdx!==null && pvSort.col===_uTargetIdx){
@@ -5203,16 +5288,18 @@ function renderPivot(){
     html+=`<th class="geo-cap-col sortable${sortClass(gC1)}" data-colidx="${gC1}" title="(Total−OPEN) ÷ Total, progress pendataan">Capaian<br>Pendataan<i class="sort-icon"></i></th>`;
     html+=`<th class="geo-cap-col sortable${sortClass(gT2)}" data-colidx="${gT2}" title="Total record ${geoLabel} ini (seluruh data)">Target<br>Pemeriksaan<i class="sort-icon"></i></th>`;
     html+=`<th class="geo-cap-col sortable${sortClass(gC2)}" data-colidx="${gC2}" title="(Approved+Rejected+Revoked by Pengawas) ÷ Total">Capaian<br>Pemeriksaan<i class="sort-icon"></i></th>`;
-    if(showColV) html+=`<th class="capaian-col sortable${sortClass(_geoProgVIdx)}" data-colidx="${_geoProgVIdx}" style="background:#1e3a5f!important;color:#93c5fd!important" title="Jumlah (SUM) nilai kolom '${PROGRESS_CACAH_KEY}' untuk ${rowField} ini">Progres Pencacahan<br>Kemarin<i class="sort-icon"></i></th>`;
-    if(showColW) html+=`<th class="capaian-col sortable${sortClass(_geoProgWIdx)}" data-colidx="${_geoProgWIdx}" style="background:#14532d!important;color:#86efac!important" title="Jumlah (SUM) nilai kolom '${PROGRESS_RIKSA_KEY}' untuk ${rowField} ini">Progres Pemeriksaan<br>Kemarin<i class="sort-icon"></i></th>`;
-    if(CEK_BANGUNAN_KEY) html+=`<th class="capaian-col sortable${sortClass(_geoCekBIdx)}" data-colidx="${_geoCekBIdx}" style="background:#78350f!important;color:#fde68a!important" title="Jumlah (SUM) nilai kolom '${CEK_BANGUNAN_KEY}' untuk ${rowField} ini">Σ Cek<br>Bangunan<i class="sort-icon"></i></th>`;
-    if(showGeoCapaianCacah) html+=`<th class="capaian-col sortable${sortClass(_geoCapCacahIdx)}" data-colidx="${_geoCapCacahIdx}" style="background:#78350f!important;color:#fde68a!important" title="Rata-rata Capaian Harian Pencacahan (per Username) di ${rowField} ini">Capaian Harian<br><span style="font-weight:400;font-size:10px;opacity:.8">Pencacahan</span><i class="sort-icon"></i></th>`;
-    if(showGeoCapaianRiksa) html+=`<th class="capaian-col sortable${sortClass(_geoCapRiksaIdx)}" data-colidx="${_geoCapRiksaIdx}" style="background:#581c87!important;color:#e9d5ff!important" title="Rata-rata Capaian Harian Pengawasan (per Username) di ${rowField} ini">Capaian Harian<br><span style="font-weight:400;font-size:10px;opacity:.8">Pengawasan</span><i class="sort-icon"></i></th>`;
+    if(showColV) html+=`<th class="capaian-col sortable${sortClass(_geoProgVIdx)}" data-colidx="${_geoProgVIdx}" style="background:#1e3a5f!important;color:#93c5fd!important" title="SUM kolom '${PROGRESS_CACAH_KEY}'">Progres Pencacahan<br>Kemarin<i class="sort-icon"></i></th>`;
+    if(showColW) html+=`<th class="capaian-col sortable${sortClass(_geoProgWIdx)}" data-colidx="${_geoProgWIdx}" style="background:#14532d!important;color:#86efac!important" title="SUM kolom '${PROGRESS_RIKSA_KEY}'">Progres Pemeriksaan<br>Kemarin<i class="sort-icon"></i></th>`;
+    if(CEK_BANGUNAN_KEY) html+=`<th class="capaian-col sortable${sortClass(_geoCekBIdx)}" data-colidx="${_geoCekBIdx}" style="background:#78350f!important;color:#fde68a!important" title="SUM kolom '${CEK_BANGUNAN_KEY}'">Σ Cek<br>Bangunan<i class="sort-icon"></i></th>`;
+    if(showTD) html+=`<th class="capaian-col sortable${sortClass(_geoTDIdx)}" data-colidx="${_geoTDIdx}" style="background:#450a0a!important;color:#fca5a5!important" title="SUM kolom '${TIDAK_DITEMUKAN_KEY}'">Tidak<br>Ditemukan<i class="sort-icon"></i></th>`;
+    if(showGeoCapaianCacah) html+=`<th class="capaian-col sortable${sortClass(_geoCapCacahIdx)}" data-colidx="${_geoCapCacahIdx}" style="background:#78350f!important;color:#fde68a!important" title="Rata-rata Capaian Harian Pencacahan di ${rowField} ini">Capaian Harian<br><span style="font-weight:400;font-size:10px;opacity:.8">Pencacahan</span><i class="sort-icon"></i></th>`;
+    if(showGeoCapaianRiksa) html+=`<th class="capaian-col sortable${sortClass(_geoCapRiksaIdx)}" data-colidx="${_geoCapRiksaIdx}" style="background:#581c87!important;color:#e9d5ff!important" title="Rata-rata Capaian Harian Pengawasan di ${rowField} ini">Capaian Harian<br><span style="font-weight:400;font-size:10px;opacity:.8">Pengawasan</span><i class="sort-icon"></i></th>`;
   }
   if(showPencacah){
-    if(showColV) html+=`<th class="capaian-col sortable${sortClass(_uProgVIdx)}" data-colidx="${_uProgVIdx}" style="background:#1e3a5f!important;color:#93c5fd!important" title="Jumlah (SUM) nilai kolom '${PROGRESS_CACAH_KEY}' per username">Progres Pencacahan<br>Kemarin<i class="sort-icon"></i></th>`;
-    if(showColW) html+=`<th class="capaian-col sortable${sortClass(_uProgWIdx)}" data-colidx="${_uProgWIdx}" style="background:#14532d!important;color:#86efac!important" title="Jumlah (SUM) nilai kolom '${PROGRESS_RIKSA_KEY}' per username">Progres Pemeriksaan<br>Kemarin<i class="sort-icon"></i></th>`;
-    if(CEK_BANGUNAN_KEY) html+=`<th class="capaian-col sortable${sortClass(_uCekBIdx)}" data-colidx="${_uCekBIdx}" style="background:#78350f!important;color:#fde68a!important" title="Jumlah (SUM) nilai kolom '${CEK_BANGUNAN_KEY}' per username">Σ Cek<br>Bangunan<i class="sort-icon"></i></th>`;
+    if(showColV) html+=`<th class="capaian-col sortable${sortClass(_uProgVIdx)}" data-colidx="${_uProgVIdx}" style="background:#1e3a5f!important;color:#93c5fd!important" title="SUM kolom '${PROGRESS_CACAH_KEY}' per username">Progres Pencacahan<br>Kemarin<i class="sort-icon"></i></th>`;
+    if(showColW) html+=`<th class="capaian-col sortable${sortClass(_uProgWIdx)}" data-colidx="${_uProgWIdx}" style="background:#14532d!important;color:#86efac!important" title="SUM kolom '${PROGRESS_RIKSA_KEY}' per username">Progres Pemeriksaan<br>Kemarin<i class="sort-icon"></i></th>`;
+    if(CEK_BANGUNAN_KEY) html+=`<th class="capaian-col sortable${sortClass(_uCekBIdx)}" data-colidx="${_uCekBIdx}" style="background:#78350f!important;color:#fde68a!important" title="SUM kolom '${CEK_BANGUNAN_KEY}' per username">Σ Cek<br>Bangunan<i class="sort-icon"></i></th>`;
+    if(showTD) html+=`<th class="capaian-col sortable${sortClass(_uTDIdx)}" data-colidx="${_uTDIdx}" style="background:#450a0a!important;color:#fca5a5!important" title="SUM kolom '${TIDAK_DITEMUKAN_KEY}' per petugas">Tidak<br>Ditemukan<i class="sort-icon"></i></th>`;
     // Kolom Kecamatan untuk Username (diletakkan setelah kolom Cek Bangunan, sebelum Target)
     if(rowField === 'Username'){
       html+=`<th class="geo-parent-col" style="background:#2d3a4e!important;color:#cbd5e1!important;" title="Kecamatan tempat username ini bertugas">Kecamatan</th>`;
@@ -5254,9 +5341,9 @@ function renderPivot(){
 
   const totalCols = colKeys.length + 1 +
     (showGeoCap ? (hasParent?1:0) + (hasSubSLS?1:0) + (hasSubSLS&&PENCACAH_KEY?1:0) + 4 : 0) +
-    (showGeoCap ? (showColV?1:0) + (showColW?1:0) + (CEK_BANGUNAN_KEY?1:0) : 0) +
+    (showGeoCap ? (showColV?1:0) + (showColW?1:0) + (CEK_BANGUNAN_KEY?1:0) + (showTD?1:0) : 0) +
     (showGeoCap ? (showGeoCapaianCacah?1:0) + (showGeoCapaianRiksa?1:0) : 0) +
-    (showPencacah ? (showColV?1:0) + (showColW?1:0) + (CEK_BANGUNAN_KEY?1:0) : 0) +
+    (showPencacah ? (showColV?1:0) + (showColW?1:0) + (CEK_BANGUNAN_KEY?1:0) + (showTD?1:0) : 0) +
     (showPencacah ? 1 + 2 + (isPencacahMode?1+(PENGAWAS_KEY?1:0):0) + (isPengawasMode?1:0) : 0) +
     (rowField === 'Pencacah Awal' ? 1 : 0);
 
@@ -5298,6 +5385,7 @@ function renderPivot(){
       if(showColV){ const sv=progressCacahMap[r]||0; html+=`<td class="capaian-col" style="background:#eff6ff!important"><div class="pivot-cell"><div class="pv-val" style="color:#3b82f6">${sv.toLocaleString(undefined,{maximumFractionDigits:1})}</div></div></td>`; }
       if(showColW){ const sw=progressRiksaMap[r]||0; html+=`<td class="capaian-col" style="background:#f0fdf4!important"><div class="pivot-cell"><div class="pv-val" style="color:#22c55e">${sw.toLocaleString(undefined,{maximumFractionDigits:1})}</div></div></td>`; }
       if(CEK_BANGUNAN_KEY){ const cb=cekBangunanMap[r]||0; html+=`<td class="capaian-col" style="background:#fef3c7!important"><div class="pivot-cell"><div class="pv-val" style="color:#b45309">${cb.toLocaleString(undefined,{maximumFractionDigits:0})}</div></div></td>`; }
+      if(showTD){ const td=tidakDitemukanMap[r]||0; html+=`<td class="capaian-col" style="background:#fff1f2!important"><div class="pivot-cell"><div class="pv-val" style="color:#dc2626">${td>0?td.toLocaleString(undefined,{maximumFractionDigits:0}):'–'}</div></div></td>`; }
       if(showGeoCapaianCacah){
         const gc = geoCapaianCacahMap[r];
         const avg = gc && gc.count>0 ? (gc.sum/gc.count) : null;
@@ -5316,6 +5404,7 @@ function renderPivot(){
       if(showColV){ const sv=progressCacahMap[r]||0; html+=`<td class="capaian-col" style="background:#eff6ff!important"><div class="pivot-cell"><div class="pv-val" style="color:#3b82f6">${sv.toLocaleString(undefined,{maximumFractionDigits:1})}</div></div></td>`; }
       if(showColW){ const sw=progressRiksaMap[r]||0; html+=`<td class="capaian-col" style="background:#f0fdf4!important"><div class="pivot-cell"><div class="pv-val" style="color:#22c55e">${sw.toLocaleString(undefined,{maximumFractionDigits:1})}</div></div></td>`; }
       if(CEK_BANGUNAN_KEY){ const cb=cekBangunanMap[r]||0; html+=`<td class="capaian-col" style="background:#fef3c7!important"><div class="pivot-cell"><div class="pv-val" style="color:#b45309">${cb.toLocaleString(undefined,{maximumFractionDigits:0})}</div></div></td>`; }
+      if(showTD){ const td=tidakDitemukanMap[r]||0; html+=`<td class="capaian-col" style="background:#fff1f2!important"><div class="pivot-cell"><div class="pv-val" style="color:#dc2626">${td>0?td.toLocaleString(undefined,{maximumFractionDigits:0}):'–'}</div></div></td>`; }
       // Tampilkan Kecamatan untuk Username (diletakkan setelah kolom Cek Bangunan, sebelum Target)
       if(rowField === 'Username'){
         html+=`<td class="geo-parent-col" style="background:#f8fafc!important;font-weight:500!important;color:#334155!important">${usernameToKecamatan[r] || '—'}</td>`;
@@ -5428,6 +5517,11 @@ function renderPivot(){
             const cb = childCekBangunanMap[childKey] || 0;
             html+=`<td class="capaian-col" style="background:#fef3c7!important"><div class="pivot-cell"><div class="pv-val" style="color:#b45309">${cb.toLocaleString(undefined,{maximumFractionDigits:0})}</div></div></td>`;
           }
+          if(showTD){
+            const childKey = `${r}||${child}`;
+            const td = childTidakDitemukanMap[childKey] || 0;
+            html+=`<td class="capaian-col" style="background:#fff1f2!important"><div class="pivot-cell"><div class="pv-val" style="color:#dc2626">${td>0?td.toLocaleString(undefined,{maximumFractionDigits:0}):'–'}</div></div></td>`;
+          }
           if(showGeoCapaianCacah){
             const childKey = `${r}||${child}`;
             const gc = childCapaianCacahMap[childKey];
@@ -5512,6 +5606,11 @@ if (showGeoCap) {
         const tot = rowKeys.reduce((s, r) => s + (cekBangunanMap[r] || 0), 0);
         html += `<td class="capaian-col"><div class="pivot-cell"><div class="pv-val" style="color:#b45309">${tot.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div></div></td>`;
     }
+    // Tidak Ditemukan
+    if (showTD) {
+        const tot = rowKeys.reduce((s, r) => s + (tidakDitemukanMap[r] || 0), 0);
+        html += `<td class="capaian-col" style="background:#fff1f2!important"><div class="pivot-cell"><div class="pv-val" style="color:#dc2626">${tot>0?tot.toLocaleString(undefined,{maximumFractionDigits:0}):'–'}</div></div></td>`;
+    }
     // Capaian Harian Pencacahan (rata-rata seluruh username)
     if (showGeoCapaianCacah) {
         let sum = 0, cnt = 0;
@@ -5544,6 +5643,11 @@ if (showPencacah) {
     if (CEK_BANGUNAN_KEY) {
         const tot = rowKeys.reduce((s, r) => s + (cekBangunanMap[r] || 0), 0);
         html += `<td class="capaian-col"><div class="pivot-cell"><div class="pv-val" style="color:#b45309">${tot.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div></div></td>`;
+    }
+    // Tidak Ditemukan
+    if (showTD) {
+        const tot = rowKeys.reduce((s, r) => s + (tidakDitemukanMap[r] || 0), 0);
+        html += `<td class="capaian-col" style="background:#fff1f2!important"><div class="pivot-cell"><div class="pv-val" style="color:#dc2626">${tot>0?tot.toLocaleString(undefined,{maximumFractionDigits:0}):'–'}</div></div></td>`;
     }
     // Kolom Kecamatan (untuk Username)
     if (rowField === 'Username') {
