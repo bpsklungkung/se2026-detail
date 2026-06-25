@@ -1944,7 +1944,16 @@ function initDashboard(data, fromCache, fetchedAt) {
   resolveSpecialKeys();
   fillFilters(); buildTable(); fillPivotFilters(); renderPivot(); initScatterPlots(); populateSbFilters(); populateSb2Filters();
   sendDailySnapshotIfNeeded();
-  loadHistoriHarian();
+  loadHistoriHarian(function(){
+    // Callback dipanggil setelah fetch selesai dan _historiSheetRows terisi
+    refreshHistoriUsernameWithLive();
+    populateScatterTanggal();
+    renderScatterCacah();
+    renderScatterRiksa();
+    initTrenFilters();
+    renderTrenHarian();
+    if(rawData.length) updateProgresCards(getMainFiltered ? getMainFiltered(null) : rawData);
+  });
   const btn = document.getElementById('btnRefreshData');
   if(btn) btn.disabled = false;
 }
@@ -2581,6 +2590,118 @@ function todayDateStr(){
 // Kirim snapshot hari ini (sekali per hari otomatis, ditandai via sessionStorage).
 // Jika forceManual=true (tombol "Simpan Snapshot"), selalu kirim & overwrite,
 // terlepas dari status flag.
+// ── Hitung progres per-username untuk dikirim ke Apps Script ──
+// Logika: untuk setiap baris di rawData,
+//   - kolom S (PENCACAH_KEY)  = nama Pencacah Awal → SUM kolom V (PROGRESS_CACAH_KEY) per nama
+//   - kolom T (PENGAWAS_KEY)  = nama Pengawas Awal → SUM kolom W (PROGRESS_RIKSA_KEY) per nama
+// Kemudian petakan nama → username via rawData (baris pertama yang cocok),
+// karena Apps Script menyimpan per username.
+function computeSnapshotUsernameRows(tanggal){
+  if(!rawData.length) return [];
+
+  const START_DATE = new Date('2026-06-08T00:00:00');
+  const today      = new Date(); today.setHours(0,0,0,0);
+  const hariKerja  = Math.max(1, Math.floor((today - START_DATE) / 86400000));
+
+  // ── 1. SUM kolom V per Pencacah Awal (kolom S) ──
+  const sumVbyPencacah = {};   // namaPencacah → totalProgCacah
+  const sumWbyPengawas = {};   // namaPengawas → totalProgRiksa
+  const targetByPencacah = {}; // namaPencacah → jumlah baris (target)
+  const openByPencacah  = {};  // namaPencacah → jumlah OPEN
+  const reviewByPengawas = {}; // namaPengawas → jumlah APPROVED+REJECTED+REVOKED
+
+  const allAsgnKeys = new Set(rawData.map(r=>r.Assignment).filter(Boolean));
+  const findAsgn = pat => [...allAsgnKeys].find(k=>pat.test(k))||null;
+  const openKey   = findAsgn(/^open$/i)||findAsgn(/open/i);
+  const apvPgwKey = findAsgn(/approved.+pengawas/i);
+  const rejPgwKey = findAsgn(/rejected.+pengawas/i);
+  const revPgwKey = findAsgn(/revoked.+pengawas/i);
+
+  rawData.forEach(row=>{
+    // Pencacah Awal → SUM kolom V
+    if(PENCACAH_KEY){
+      const namaCacah = String(row[PENCACAH_KEY]||'').trim();
+      if(namaCacah){
+        targetByPencacah[namaCacah] = (targetByPencacah[namaCacah]||0) + 1;
+        if(openKey && row.Assignment === openKey)
+          openByPencacah[namaCacah] = (openByPencacah[namaCacah]||0) + 1;
+        if(PROGRESS_CACAH_KEY){
+          const v = parseFloat(String(row[PROGRESS_CACAH_KEY]||'').replace('%','').replace(',','.'));
+          if(!isNaN(v)) sumVbyPencacah[namaCacah] = (sumVbyPencacah[namaCacah]||0) + v;
+        }
+      }
+    }
+    // Pengawas Awal → SUM kolom W
+    if(PENGAWAS_KEY){
+      const namaPgw = String(row[PENGAWAS_KEY]||'').trim();
+      if(namaPgw){
+        const apvV = apvPgwKey && row.Assignment === apvPgwKey ? 1 : 0;
+        const rejV = rejPgwKey && row.Assignment === rejPgwKey ? 1 : 0;
+        const revV = revPgwKey && row.Assignment === revPgwKey ? 1 : 0;
+        reviewByPengawas[namaPgw] = (reviewByPengawas[namaPgw]||0) + apvV + rejV + revV;
+        if(PROGRESS_RIKSA_KEY){
+          const v = parseFloat(String(row[PROGRESS_RIKSA_KEY]||'').replace('%','').replace(',','.'));
+          if(!isNaN(v)) sumWbyPengawas[namaPgw] = (sumWbyPengawas[namaPgw]||0) + v;
+        }
+      }
+    }
+  });
+
+  // ── 2. Bangun peta nama → username & kecamatan (ambil baris pertama yang cocok) ──
+  const namaCacahToUsername = {};  // namaCacah → username
+  const namaCacahToKec      = {};  // namaCacah → kecamatan
+  const namaPgwToUsername   = {};  // namaPgw   → username
+  const namaPgwToKec        = {};  // namaPgw   → kecamatan
+  rawData.forEach(row=>{
+    const u = String(row.Username||'').trim();
+    const kec = String(row.Kecamatan||'').trim();
+    if(PENCACAH_KEY){
+      const nama = String(row[PENCACAH_KEY]||'').trim();
+      if(nama && !namaCacahToUsername[nama]){ namaCacahToUsername[nama]=u; namaCacahToKec[nama]=kec; }
+    }
+    if(PENGAWAS_KEY){
+      const nama = String(row[PENGAWAS_KEY]||'').trim();
+      if(nama && !namaPgwToUsername[nama]){ namaPgwToUsername[nama]=u; namaPgwToKec[nama]=kec; }
+    }
+  });
+
+  // ── 3. Susun rows per Pencacah ──
+  const rows = [];
+  Object.keys(sumVbyPencacah).forEach(nama=>{
+    const target = targetByPencacah[nama]||0;
+    const openV  = openByPencacah[nama]||0;
+    rows.push({
+      tanggal,
+      username  : namaCacahToUsername[nama] || nama,
+      namaLengkap: nama,
+      user      : 'Pencacah',
+      kecamatan : namaCacahToKec[nama] || '',
+      progresPencacahanKemarin : Math.round((sumVbyPencacah[nama]||0) * 10) / 10,
+      capaianHarianPencacahan  : target > 0 ? Math.round(((target - openV) / hariKerja) * 10) / 10 : 0,
+      progresPemeriksaanKemarin: null,
+      capaianHarianPengawasan  : null
+    });
+  });
+
+  // ── 4. Susun rows per Pengawas ──
+  Object.keys(sumWbyPengawas).forEach(nama=>{
+    const totalReview = reviewByPengawas[nama]||0;
+    rows.push({
+      tanggal,
+      username  : namaPgwToUsername[nama] || nama,
+      namaLengkap: nama,
+      user      : 'Pengawas',
+      kecamatan : namaPgwToKec[nama] || '',
+      progresPencacahanKemarin : null,
+      capaianHarianPencacahan  : null,
+      progresPemeriksaanKemarin: Math.round((sumWbyPengawas[nama]||0) * 10) / 10,
+      capaianHarianPengawasan  : Math.round((totalReview / hariKerja) * 10) / 10
+    });
+  });
+
+  return rows;
+}
+
 function sendDailySnapshotIfNeeded(forceManual){
   if(!rawData.length) return;
   const today = todayDateStr();
@@ -2593,13 +2714,19 @@ function sendDailySnapshotIfNeeded(forceManual){
   }
 
   const m = computeOverallMetrics();
+
+  // ── Hitung data per-username menggunakan kolom S (Pencacah Awal), T (Pengawas Awal),
+  //    V (Progres Pencacahan), W (Progres Pemeriksaan) ──
+  const usernameRows = computeSnapshotUsernameRows(today);
+
   const payload = {
     tanggal: today,
     progresPencacahanKemarin: m.progresPencacahanKemarin,
     progresPemeriksaanKemarin: m.progresPemeriksaanKemarin,
     rataCapaianPencacahan: m.rataCapaianPencacahan,
     rataCapaianPemeriksaan: m.rataCapaianPemeriksaan,
-    totalPersenOpen: m.totalPersenOpen
+    totalPersenOpen: m.totalPersenOpen,
+    usernameRows  // array per-username untuk sheet "Histori Username"
   };
 
   if(btn && forceManual){
@@ -2643,39 +2770,11 @@ let historiUsernameData = [];   // array of { tanggal, username, user, progresPe
 function computeUsernameMetricsAsHistori(){
   if(!rawData.length) return [];
 
-  // Gunakan tanggal terbaru dari rawData jika ada kolom tanggal snapshot,
-  // supaya dropdown TGL AWAL/AKHIR tidak selalu menampilkan tanggal hari ini
-  const tanggal = (()=>{
-    // Coba cari kolom tanggal di rawData (Tgl_Snapshot, Tgl, tanggal, dll)
-    const TGL_KEYS = ['Tgl_Snapshot','tgl_snapshot','TglSnapshot','Tanggal','tanggal','Tgl','tgl','Date','date'];
-    let found = null;
-    for(const k of TGL_KEYS){
-      const vals = rawData.map(r=>r[k]).filter(Boolean);
-      if(vals.length){
-        // Ambil nilai terbaru (sort desc)
-        vals.sort((a,b)=>String(b).localeCompare(String(a)));
-        found = String(vals[0]).trim().slice(0,10); // ambil YYYY-MM-DD
-        break;
-      }
-    }
-    if(found && /^\d{4}-\d{2}-\d{2}$/.test(found)) return found;
-    // Fallback: tanggal hari ini
-    const d = new Date();
-    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  })();
+  const tanggal = todayDateStr();
 
   const START_DATE = new Date('2026-06-08T00:00:00');
   const today      = new Date(); today.setHours(0,0,0,0);
   const hariKerja  = Math.max(1, Math.floor((today - START_DATE) / 86400000));
-
-  // Target per Pencacah (col AG = PENCACAH_KEY)
-  const pencacahCount = {};
-  if(PENCACAH_KEY){
-    rawData.forEach(row=>{
-      const p = row[PENCACAH_KEY]||'';
-      if(p) pencacahCount[p] = (pencacahCount[p]||0) + 1;
-    });
-  }
 
   const allAsgnKeys = new Set(rawData.map(r=>r.Assignment).filter(Boolean));
   const findAsgn = pat => [...allAsgnKeys].find(k=>pat.test(k))||null;
@@ -2684,44 +2783,85 @@ function computeUsernameMetricsAsHistori(){
   const rejPgwKey = findAsgn(/rejected.+pengawas/i);
   const revPgwKey = findAsgn(/revoked.+pengawas/i);
 
-  const byUser = {};
-  rawData.forEach(row=>{
-    const uname = row.Username||''; if(!uname) return;
-    if(!byUser[uname]) byUser[uname] = {
-      user: row.User||'',
-      countAsgn: {},
-      progCacah: 0,
-      progRiksa: 0
-    };
-    const asgn = row.Assignment||'';
-    if(asgn) byUser[uname].countAsgn[asgn] = (byUser[uname].countAsgn[asgn]||0) + 1;
-    if(PROGRESS_CACAH_KEY){
-      const v = parseFloat(String(row[PROGRESS_CACAH_KEY]||'').replace('%','').replace(',','.'));
-      if(!isNaN(v)) byUser[uname].progCacah += v;
+  // ── Group by Pencacah Awal (kolom S) — sama dengan pivot ──
+  const byNamaCacah = {}; // namaCacah → {sumV, target, open, username, kecamatan}
+  // ── Group by Pengawas Awal (kolom T) — sama dengan pivot ──
+  const byNamaPgw   = {}; // namaPgw   → {sumW, review, username, kecamatan}
+
+  rawData.forEach(row => {
+    const asgn    = row.Assignment || '';
+    const uname   = String(row.Username   || '').trim();
+    const kec     = String(row.Kecamatan  || '').trim();
+
+    // Pencacah Awal → SUM kolom V
+    if(PENCACAH_KEY){
+      const nama = String(row[PENCACAH_KEY]||'').trim();
+      if(nama){
+        if(!byNamaCacah[nama]) byNamaCacah[nama] = {sumV:0, target:0, open:0, username:uname, kecamatan:kec};
+        byNamaCacah[nama].target++;
+        if(openKey && asgn === openKey) byNamaCacah[nama].open++;
+        if(PROGRESS_CACAH_KEY){
+          const v = parseFloat(String(row[PROGRESS_CACAH_KEY]||'').replace('%','').replace(',','.'));
+          if(!isNaN(v)) byNamaCacah[nama].sumV += v;
+        }
+        // Simpan username & kecamatan dari baris pertama yang punya nilai
+        if(!byNamaCacah[nama].username && uname) byNamaCacah[nama].username = uname;
+        if(!byNamaCacah[nama].kecamatan && kec)  byNamaCacah[nama].kecamatan = kec;
+      }
     }
-    if(PROGRESS_RIKSA_KEY){
-      const v = parseFloat(String(row[PROGRESS_RIKSA_KEY]||'').replace('%','').replace(',','.'));
-      if(!isNaN(v)) byUser[uname].progRiksa += v;
+
+    // Pengawas Awal → SUM kolom W
+    if(PENGAWAS_KEY){
+      const nama = String(row[PENGAWAS_KEY]||'').trim();
+      if(nama){
+        if(!byNamaPgw[nama]) byNamaPgw[nama] = {sumW:0, review:0, username:uname, kecamatan:kec};
+        const apv = apvPgwKey && asgn === apvPgwKey ? 1 : 0;
+        const rej = rejPgwKey && asgn === rejPgwKey ? 1 : 0;
+        const rev = revPgwKey && asgn === revPgwKey ? 1 : 0;
+        byNamaPgw[nama].review += apv + rej + rev;
+        if(PROGRESS_RIKSA_KEY){
+          const v = parseFloat(String(row[PROGRESS_RIKSA_KEY]||'').replace('%','').replace(',','.'));
+          if(!isNaN(v)) byNamaPgw[nama].sumW += v;
+        }
+        if(!byNamaPgw[nama].username && uname) byNamaPgw[nama].username = uname;
+        if(!byNamaPgw[nama].kecamatan && kec)  byNamaPgw[nama].kecamatan = kec;
+      }
     }
   });
 
-  return Object.entries(byUser).map(([uname, d])=>{
-    const counts = d.countAsgn;
-    const target = pencacahCount[uname]||0;
-    const openV  = openKey   ? (counts[openKey]  ||0) : 0;
-    const apvV   = apvPgwKey ? (counts[apvPgwKey]||0) : 0;
-    const rejV   = rejPgwKey ? (counts[rejPgwKey]||0) : 0;
-    const revV   = revPgwKey ? (counts[revPgwKey]||0) : 0;
-    return {
+  const result = [];
+
+  // Pencacah rows
+  Object.entries(byNamaCacah).forEach(([nama, d]) => {
+    result.push({
       tanggal,
-      username: uname,
-      user: d.user,
-      progresPencacahanKemarin:  Math.round(d.progCacah * 10) / 10,
-      capaianHarianPencacahan:   target > 0 ? Math.round(((target - openV) / hariKerja) * 10) / 10 : 0,
-      progresPemeriksaanKemarin: Math.round(d.progRiksa * 10) / 10,
-      capaianHarianPengawasan:   Math.round(((apvV + rejV + revV) / hariKerja) * 10) / 10
-    };
+      username    : d.username || nama,
+      namaLengkap : nama,
+      user        : 'Pencacah',
+      kecamatan   : d.kecamatan || '',
+      progresPencacahanKemarin  : Math.round(d.sumV * 10) / 10,
+      capaianHarianPencacahan   : d.target > 0 ? Math.round(((d.target - d.open) / hariKerja) * 10) / 10 : 0,
+      progresPemeriksaanKemarin : null,
+      capaianHarianPengawasan   : null
+    });
   });
+
+  // Pengawas rows
+  Object.entries(byNamaPgw).forEach(([nama, d]) => {
+    result.push({
+      tanggal,
+      username    : d.username || nama,
+      namaLengkap : nama,
+      user        : 'Pengawas',
+      kecamatan   : d.kecamatan || '',
+      progresPencacahanKemarin  : null,
+      capaianHarianPencacahan   : null,
+      progresPemeriksaanKemarin : Math.round(d.sumW * 10) / 10,
+      capaianHarianPengawasan   : Math.round((d.review / hariKerja) * 10) / 10
+    });
+  });
+
+  return result;
 }
 
 const SCATTER_COLORS = [
@@ -2857,10 +2997,13 @@ function getScatFilters(suffix){
 function getScatMetrics(userRole, filters){
   let rows = historiUsernameData.filter(r=>String(r.user||'').trim()===userRole);
   if(filters.tglList && filters.tglList.size > 0) rows = rows.filter(r=>filters.tglList.has(r.tanggal));
-  if(filters.kecList && filters.kecList.size > 0)
-    rows = rows.filter(r=>filters.kecList.has(scatterKecMap[r.username]||'(Kosong)'));
+  if(filters.kecList && filters.kecList.size > 0){
+    rows = rows.filter(r=>{
+      const kec = (r.kecamatan && r.kecamatan.trim()) ? r.kecamatan.trim() : (scatterKecMap[r.username]||'(Kosong)');
+      return filters.kecList.has(kec);
+    });
+  }
   if(filters.pgwList && filters.pgwList.size > 0 && PENGAWAS_KEY){
-    // Build map username → pengawas sekali saja
     const userToPgw = {};
     rawData.forEach(r=>{
       const u = String(r.Username||'').trim();
@@ -2870,14 +3013,14 @@ function getScatMetrics(userRole, filters){
     rows = rows.filter(r=>filters.pgwList.has(userToPgw[r.username]||''));
   }
   if(filters.userList && filters.userList.size > 0)
-    rows = rows.filter(r=>filters.userList.has(r.username));
+    rows = rows.filter(r=>filters.userList.has(r.namaLengkap || r.username));
 
-  // Kembalikan SETIAP baris per-tanggal (tidak dirata-rata)
-  // Sehingga multi-tanggal = multi titik per username
   return rows.map(r=>({
     username              : r.username,
+    namaLengkap           : r.namaLengkap || r.username,
     user                  : r.user,
     tanggal               : r.tanggal || '',
+    kecamatan             : (r.kecamatan && r.kecamatan.trim()) ? r.kecamatan.trim() : (scatterKecMap[r.username]||'(Kosong)'),
     progresPencacahanKemarin  : r.progresPencacahanKemarin  != null ? +r.progresPencacahanKemarin  : null,
     capaianHarianPencacahan   : r.capaianHarianPencacahan   != null ? +r.capaianHarianPencacahan   : null,
     progresPemeriksaanKemarin : r.progresPemeriksaanKemarin != null ? +r.progresPemeriksaanKemarin : null,
@@ -3020,7 +3163,7 @@ function buildScatterDatasets(metrics, xKey, yKey, colorMode, avgMode){
       if(isNaN(+xv) || isNaN(+yv)) return;
       const pgw = userToPgw[m.username] || '(Kosong)';
       if(!grouped[pgw]) grouped[pgw] = [];
-      grouped[pgw].push({ x:+xv, y:+yv, username:m.username, tanggal:m.tanggal||'' });
+      grouped[pgw].push({ x:+xv, y:+yv, username:m.namaLengkap||m.username, tanggal:m.tanggal||'', kecamatan:m.kecamatan||'' });
     });
     return Object.keys(grouped).sort().map((pgw, i) => {
       const baseColor = USER_COLORS[i % USER_COLORS.length];
@@ -3043,14 +3186,15 @@ function buildScatterDatasets(metrics, xKey, yKey, colorMode, avgMode){
       const xv = m[xKey], yv = m[yKey];
       if(xv === null || xv === undefined || yv === null || yv === undefined) return;
       if(isNaN(+xv) || isNaN(+yv)) return;
-      if(!grouped[m.username]) grouped[m.username] = [];
-      grouped[m.username].push({ x:+xv, y:+yv, username:m.username, tanggal:m.tanggal||'' });
+      const nama = m.namaLengkap || m.username;
+      if(!grouped[nama]) grouped[nama] = [];
+      grouped[nama].push({ x:+xv, y:+yv, username:nama, tanggal:m.tanggal||'', kecamatan:m.kecamatan||'' });
     });
-    return Object.keys(grouped).sort().map(uname => {
-      const baseColor = getUserColor(uname);
-      const pts = grouped[uname];
+    return Object.keys(grouped).sort().map(nama => {
+      const baseColor = getUserColor(nama);
+      const pts = grouped[nama];
       return {
-        label: uname,
+        label: nama,
         data: pts,
         backgroundColor: pts.map(p => hexToRgba(baseColor, getDateOpacity(p.tanggal))),
         borderColor:     pts.map(p => hexToRgba(baseColor, Math.min(1, getDateOpacity(p.tanggal) + 0.15))),
@@ -3067,9 +3211,9 @@ function buildScatterDatasets(metrics, xKey, yKey, colorMode, avgMode){
     const xv = m[xKey], yv = m[yKey];
     if(xv === null || xv === undefined || yv === null || yv === undefined) return;
     if(isNaN(+xv) || isNaN(+yv)) return;
-    const kec = scatterKecMap[m.username] || '(Kosong)';
+    const kec = m.kecamatan || scatterKecMap[m.username] || '(Kosong)';
     if(!grouped[kec]) grouped[kec] = [];
-    grouped[kec].push({ x:+xv, y:+yv, username:m.username, tanggal:m.tanggal||'' });
+    grouped[kec].push({ x:+xv, y:+yv, username:m.namaLengkap||m.username, tanggal:m.tanggal||'', kecamatan:kec });
   });
   return Object.keys(grouped).sort().map(kec => {
     const baseColor = getKecamatanColor(kec);
@@ -3101,6 +3245,13 @@ function updateScatterLegend(datasets, legendId) {
   
   // Tampilkan semua kecamatan yang ada
   activeDatasets.forEach(ds => {
+    // backgroundColor bisa berupa array (per-titik) atau string
+    const bgRaw = Array.isArray(ds.backgroundColor) ? ds.backgroundColor[0] : ds.backgroundColor;
+    // Konversi rgba(...) ke rgb(...) untuk warna solid legend
+    const solidColor = String(bgRaw||'#64748b').replace(/rgba?\(([^)]+)\)/, (_, p) => {
+      const parts = p.split(',').map(s=>s.trim());
+      return `rgb(${parts[0]},${parts[1]},${parts[2]})`;
+    });
     const dot = document.createElement('span');
     dot.style.cssText = `
       display:inline-flex;
@@ -3108,11 +3259,11 @@ function updateScatterLegend(datasets, legendId) {
       gap:4px;
       padding:2px 8px;
       border-radius:12px;
-      background:${ds.backgroundColor}22;
-      border:1px solid ${ds.backgroundColor}44;
+      background:${solidColor}22;
+      border:1px solid ${solidColor}66;
     `;
     dot.innerHTML = `
-      <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${ds.backgroundColor};border:1px solid #ffffff;box-shadow:0 0 0 1px ${ds.backgroundColor};"></span>
+      <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${solidColor};border:1px solid #ffffff;box-shadow:0 0 0 1px ${solidColor};"></span>
       <span style="font-weight:600;color:#1e293b;">${ds.label}</span>
       <span style="color:#64748b;font-size:9px;">(${ds.data.length})</span>
     `;
@@ -3164,16 +3315,12 @@ function scatterChartOptions(xLabel, yLabel){
       tooltip: {
         callbacks: {
           label: function(ctx) {
-            const raw  = ctx.raw;
-            const uname = raw.username || raw.label || 'Unknown';
-            const kec  = scatterKecMap[uname] || '(Kosong)';
-            const chart   = ctx.chart;
-            const xLabel  = chart.options.scales.x.title.text || 'X';
-            const yLabel  = chart.options.scales.y.title.text || 'Y';
-            const lines = [
-              '👤 ' + uname,
-              '📍 ' + kec
-            ];
+            const raw   = ctx.raw;
+            const uname = raw.username || 'Unknown';
+            const kec   = raw.kecamatan || '(Kosong)';
+            const xLabel = ctx.chart.options.scales.x.title.text || 'X';
+            const yLabel = ctx.chart.options.scales.y.title.text || 'Y';
+            const lines = ['👤 ' + uname, '📍 ' + kec];
             if(raw.tanggal) lines.push('📅 ' + raw.tanggal);
             lines.push(xLabel + ': ' + (+raw.x).toLocaleString('id-ID',{maximumFractionDigits:1}));
             lines.push(yLabel + ': ' + (+raw.y).toLocaleString('id-ID',{maximumFractionDigits:1}));
@@ -3348,33 +3495,30 @@ function buildScatterMsList(id) {
         .map(r => r.kecamatan)
     )].sort();
   } else if (id === 'trenProgresUser' || id === 'trenOpenUser') {
-    // Pencacah, filter kecamatan dari sheet field kecamatan
     const kecId = id.replace('User','Kec');
     const selKec = SCATTER_MS_SELECTED[kecId];
     let users = historiUsernameData.filter(r=>String(r.user||'').trim()==='Pencacah');
     if(selKec.size > 0) users = users.filter(r=>selKec.has(r.kecamatan||''));
-    options = [...new Set(users.map(r=>r.username))].sort();
+    options = [...new Set(users.map(r=>r.namaLengkap||r.username))].sort();
   } else if (id === 'trenCapaianUser') {
-    // Pengawas, filter kecamatan dari sheet field kecamatan
     const selKec = SCATTER_MS_SELECTED.trenCapaianKec;
     let users = historiUsernameData.filter(r=>String(r.user||'').trim()==='Pengawas');
     if(selKec.size > 0) users = users.filter(r=>selKec.has(r.kecamatan||''));
-    options = [...new Set(users.map(r=>r.username))].sort();
+    options = [...new Set(users.map(r=>r.namaLengkap||r.username))].sort();
   // ── Tanggal: ambil dari historiUsernameData ──
   } else if (id === 'scatterCacahTgl' || id === 'scatterRiksaTgl') {
     options = [...new Set(historiUsernameData.map(r => r.tanggal).filter(Boolean))].sort();
-    // Default: semua terpilih jika Set masih kosong
     if(sel.size === 0) options.forEach(t => sel.add(t));
   } else if (id === 'scatterCacahKec' || id === 'scatterRiksaKec') {
-    // Ambil kecamatan dari scatterKecMap
     const userRole = id === 'scatterCacahKec' ? 'Pencacah' : 'Pengawas';
-    const usersInRole = new Set(
-      historiUsernameData.filter(r => String(r.user || '').trim() === userRole).map(r => r.username)
-    );
-    const kecSet = new Set([...usersInRole].map(u => scatterKecMap[u] || '(Kosong)').filter(Boolean));
+    const relevantRows = historiUsernameData.filter(r => String(r.user||'').trim() === userRole);
+    const kecSet = new Set();
+    relevantRows.forEach(r => {
+      const kec = (r.kecamatan && r.kecamatan.trim()) ? r.kecamatan.trim() : (scatterKecMap[r.username]||'(Kosong)');
+      if(kec) kecSet.add(kec);
+    });
     options = [...kecSet].sort();
   } else if (id === 'scatterCacahPgw') {
-    // Pengawas: filter by kecamatan yang dipilih
     const selKec = SCATTER_MS_SELECTED.scatterCacahKec;
     const pgwSet = new Set();
     if(PENGAWAS_KEY){
@@ -3388,15 +3532,16 @@ function buildScatterMsList(id) {
     options = [...pgwSet].sort();
   } else if (id === 'scatterCacahUser' || id === 'scatterRiksaUser') {
     const userRole = id === 'scatterCacahUser' ? 'Pencacah' : 'Pengawas';
-    let usersInRole = new Set(
-      historiUsernameData.filter(r => String(r.user || '').trim() === userRole).map(r => r.username)
-    );
+    // Gunakan namaLengkap sebagai identifier tampilan
+    let rowsInRole = historiUsernameData.filter(r => String(r.user||'').trim() === userRole);
     const kecId = id === 'scatterCacahUser' ? 'scatterCacahKec' : 'scatterRiksaKec';
     const selectedKec = SCATTER_MS_SELECTED[kecId];
-    if (selectedKec && selectedKec.size > 0) {
-      usersInRole = new Set([...usersInRole].filter(u => selectedKec.has(scatterKecMap[u]||'(Kosong)')));
+    if(selectedKec && selectedKec.size > 0){
+      rowsInRole = rowsInRole.filter(r => {
+        const kec = (r.kecamatan && r.kecamatan.trim()) ? r.kecamatan.trim() : (scatterKecMap[r.username]||'(Kosong)');
+        return selectedKec.has(kec);
+      });
     }
-    // scatterCacahUser: filter juga berdasarkan Pengawas yang dipilih
     if(id === 'scatterCacahUser'){
       const selPgw = SCATTER_MS_SELECTED.scatterCacahPgw;
       if(selPgw.size > 0 && PENGAWAS_KEY){
@@ -3406,10 +3551,10 @@ function buildScatterMsList(id) {
           const p = String(r[PENGAWAS_KEY]||'').trim();
           if(u && p && !userToPgw[u]) userToPgw[u] = p;
         });
-        usersInRole = new Set([...usersInRole].filter(u => selPgw.has(userToPgw[u]||'')));
+        rowsInRole = rowsInRole.filter(r => selPgw.has(userToPgw[r.username]||''));
       }
     }
-    options = [...usersInRole].sort();
+    options = [...new Set(rowsInRole.map(r => r.namaLengkap||r.username))].sort();
   }
   
   listEl.innerHTML = '';
@@ -3818,9 +3963,33 @@ function renderTrenChart(chartId){
   };
 
   if(!hasFilter){
-    // Mode kabupaten — pakai historiHarianData
-    if(!historiHarianData.length) return;
-    const data   = historiHarianData;
+    // Mode kabupaten — pakai historiHarianData + titik live hari ini dari rawData
+    if(!historiHarianData.length && !rawData.length) return;
+
+    // Hitung metrik live hari ini dari rawData
+    const todayStr = todayDateStr();
+    let liveData = null;
+    if(rawData.length){
+      const m = computeOverallMetrics();
+      liveData = {
+        tanggal                  : todayStr,
+        progresPencacahanKemarin : m.progresPencacahanKemarin,
+        progresPemeriksaanKemarin: m.progresPemeriksaanKemarin,
+        rataCapaianPencacahan    : m.rataCapaianPencacahan,
+        rataCapaianPemeriksaan   : m.rataCapaianPemeriksaan,
+        totalPersenOpen          : m.totalPersenOpen
+      };
+    }
+
+    // Gabungkan: histori + titik hari ini (overwrite jika sudah ada tanggal hari ini di histori)
+    let data = [...(historiHarianData||[])];
+    if(liveData){
+      const idx = data.findIndex(d=>d.tanggal === todayStr);
+      if(idx >= 0) data[idx] = liveData; // overwrite dengan nilai live
+      else data.push(liveData);
+    }
+    data = data.filter(d=>d.tanggal).sort((a,b)=>a.tanggal.localeCompare(b.tanggal));
+
     const labels = makeTrenLabels(data.map(d=>d.tanggal));
 
     const seriesMap = {
@@ -3842,7 +4011,6 @@ function renderTrenChart(chartId){
   }
 
   // Mode filter: gunakan nilai LANGSUNG dari sheet historiUsernameData per tanggal
-  // Filter kecamatan dari field kecamatan di sheet (bukan scatterKecMap)
   if(!historiUsernameData.length) return;
 
   const role   = { Progres:'Pencacah', Capaian:'Pengawas', Open:'Pencacah' }[chartId];
@@ -3868,11 +4036,14 @@ function renderTrenChart(chartId){
   const titleMap2 = { Progres:'Pencacahan (Filter)', Capaian:'Pemeriksaan (Filter)', Open:'% OPEN/Target (Filter)' };
   const KEC_COLORS = ['#3b82f6','#ef4444','#22c55e','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316','#6366f1'];
 
-  // Semua rows dari sheet sesuai role, filter username jika ada
+  // Filter rows berdasarkan role — historiUsernameData sudah berisi live hari ini
   let baseRows = historiUsernameData.filter(r => String(r.user||'').trim() === role);
-  if(userSel.size > 0) baseRows = baseRows.filter(r => userSel.has(r.username));
 
-  // Fallback: jika kolom kecamatan di sheet kosong, pakai scatterKecMap dari rawData
+  // Filter user: cocokkan dengan namaLengkap
+  if(userSel.size > 0)
+    baseRows = baseRows.filter(r => userSel.has(r.namaLengkap || r.username));
+
+  // Fallback kecamatan dari scatterKecMap jika kolom kecamatan sheet kosong
   const hasKecInSheet = baseRows.some(r => r.kecamatan && r.kecamatan.trim());
   if(!hasKecInSheet){
     baseRows.forEach(r => {
@@ -3880,37 +4051,13 @@ function renderTrenChart(chartId){
     });
   }
 
-  // Tanggal unik dari rows yang relevan
   const tanggals = [...new Set(baseRows.map(r=>r.tanggal).filter(Boolean))].sort();
   const labels   = makeTrenLabels(tanggals);
   if(!tanggals.length) return;
 
-  // Helper: hitung series dari subset rows
-  // ── Hitung progres per username dari rawData — pakai fungsi yang sama dengan pivot ──
-  const _liveMetrics = computeUsernameMetricsAsHistori();
-  const rawProgCacah = {}, rawProgRiksa = {};
-  _liveMetrics.forEach(m => {
-    if(m.progresPencacahanKemarin  != null) rawProgCacah[m.username] = m.progresPencacahanKemarin;
-    if(m.progresPemeriksaanKemarin != null) rawProgRiksa[m.username] = m.progresPemeriksaanKemarin;
-  });
-  console.log('[TrenChart] liveMetrics sample:', _liveMetrics.slice(0,3).map(m=>({u:m.username,c:m.progresPencacahanKemarin})));
-
   function buildSeriesFromRows(rows, field, color, label){
     const isSum = sumFields.has(field);
-    if(isSum){
-      // Progres = SUM dari rawData per username (sama dengan pivot)
-      const usernamesInRows = [...new Set(rows.map(r => r.username).filter(Boolean))];
-      const progMap = field === 'progresPencacahanKemarin' ? rawProgCacah : rawProgRiksa;
-      const hasRawData = usernamesInRows.some(u => progMap[u] > 0);
-      if(hasRawData){
-        const total = usernamesInRows.reduce((acc, u) => acc + (progMap[u]||0), 0);
-        console.log('[TrenChart] isSum field:', field, 'usernames:', usernamesInRows.length, 'total:', total);
-        return { label, color, data: padN(tanggals.map(() => +total.toFixed(2))) };
-      }
-      // Fallback: rawData belum dimuat atau PROGRESS_KEY tidak ditemukan → SUM dari sheet per tanggal
-      console.warn('[TrenChart] rawProg kosong untuk', field, '— fallback ke sheet values');
-    }
-    // Capaian/rata-rata atau fallback sumFields: baca per tanggal dari sheet
+    // Selalu SUM/avg langsung dari nilai tersimpan di sheet per tanggal
     const byTgl = {}, cntTgl = {};
     rows.forEach(r => {
       const v = numOrNull(r[field]);
@@ -3918,12 +4065,12 @@ function renderTrenChart(chartId){
       byTgl[r.tanggal]  = (byTgl[r.tanggal]  || 0) + v;
       cntTgl[r.tanggal] = (cntTgl[r.tanggal] || 0) + 1;
     });
-    const isActualSum = sumFields.has(field);
     return {
       label, color,
       data: padN(tanggals.map(t => {
         if(!cntTgl[t]) return null;
-        return isActualSum ? +byTgl[t].toFixed(2) : +(byTgl[t]/cntTgl[t]).toFixed(2);
+        // Field progres = SUM, field capaian = rata-rata
+        return isSum ? +byTgl[t].toFixed(2) : +(byTgl[t]/cntTgl[t]).toFixed(2);
       }))
     };
   }
@@ -3974,7 +4121,19 @@ function resetTrenFilter(){
 function _renderTrenKabupaten(){ renderTrenHarian(); }
 
 
-function loadHistoriHarian(){
+// Data dari sheet "Histori Username" (tanpa tanggal hari ini)
+// Di-merge dengan liveRows setiap kali rawData berubah
+let _historiSheetRows = [];
+
+// Merge sheet histori + nilai live hari ini dari rawData
+// Dipanggil: (1) setelah loadHistoriHarian, (2) setelah rawData selesai dimuat
+function refreshHistoriUsernameWithLive(){
+  const liveRows = rawData.length ? computeUsernameMetricsAsHistori() : [];
+  // _historiSheetRows sudah tidak punya tanggal hari ini (difilter saat load)
+  historiUsernameData = _historiSheetRows.concat(liveRows);
+}
+
+function loadHistoriHarian(onDone){
   if(typeof Chart === 'undefined') return;
   fetch(HISTORI_API_URL)
     .then(r => r.json())
@@ -3982,14 +4141,10 @@ function loadHistoriHarian(){
       // Simpan data username ke variabel global untuk scatter plot
       // Coba pakai data dari Apps Script dulu (res.username)
       if(res.ok && Array.isArray(res.username) && res.username.length > 0){
-        historiUsernameData = res.username;
-        populateScatterTanggal();
-        renderScatterCacah();
-        renderScatterRiksa();
-        initTrenFilters();
+        const todayStr   = todayDateStr();
+        _historiSheetRows = res.username.filter(r => r.tanggal !== todayStr);
       } else {
-        // Fallback: fetch langsung dari CSV Google Sheets
-        loadHistoriUsernameCSV();
+        _historiSheetRows = [];
       }
 
       const harian = res.harian || res.data || [];
@@ -3997,6 +4152,7 @@ function loadHistoriHarian(){
         document.getElementById('historiEmptyMsg').style.display = 'block';
         document.getElementById('historiChartsWrap').style.display = 'none';
         document.getElementById('cntHistori').textContent = '';
+        if(typeof onDone === 'function') onDone();
         return;
       }
       const data = harian
@@ -4007,25 +4163,9 @@ function loadHistoriHarian(){
       document.getElementById('historiChartsWrap').style.display = 'block';
       document.getElementById('cntHistori').textContent = `${data.length} hari`;
 
-      const labels = data.map(d => {
-        const dt = new Date(d.tanggal + 'T00:00:00');
-        return dt.toLocaleDateString('id-ID', {day:'2-digit', month:'short'});
-      });
-
-      // Tambahkan 7 hari ke depan dari tanggal terakhir (tanpa data, sebagai ruang kosong di sumbu X)
-      const lastDate = new Date(data[data.length-1].tanggal + 'T00:00:00');
-      const FUTURE_DAYS = 7;
-      for(let i = 1; i <= FUTURE_DAYS; i++){
-        const futureDate = new Date(lastDate);
-        futureDate.setDate(futureDate.getDate() + i);
-        labels.push(futureDate.toLocaleDateString('id-ID', {day:'2-digit', month:'short'}));
-      }
-      const padNulls = arr => arr.concat(Array(FUTURE_DAYS).fill(null));
-
       historiHarianData = data;
-      renderTrenHarian();
-      // Update cards agar badge perbandingan kemarin muncul setelah data histori tersedia
-      if(rawData.length) updateProgresCards(getMainFiltered ? getMainFiltered(null) : rawData);
+      // Panggil callback setelah semua data siap
+      if(typeof onDone === 'function') onDone();
     })
     .catch(err=>{
       console.warn('Gagal memuat histori harian:', err);
