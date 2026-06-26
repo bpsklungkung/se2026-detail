@@ -1961,7 +1961,8 @@ function initDashboard(data, fromCache, fetchedAt) {
   document.getElementById('topbarTotal').textContent = `${rawData.length.toLocaleString()} record`;
   resolveSpecialKeys();
   fillFilters(); buildTable(); fillPivotFilters(); renderPivot(); initScatterPlots(); populateSbFilters(); populateSb2Filters();
-  sendDailySnapshotIfNeeded();
+  // Auto-snapshot dimatikan — gunakan tombol 💾 atau TEST_simpanHarian di Apps Script
+  // sendDailySnapshotIfNeeded();
   loadHistoriHarian(function(){
     // Callback dipanggil setelah fetch selesai dan _historiSheetRows terisi
     refreshHistoriUsernameWithLive();
@@ -2619,7 +2620,7 @@ function computeOverallMetrics(){
   };
 }
 
-const HISTORI_API_URL = 'https://script.google.com/macros/s/AKfycbz_ShExxa_IMpf4EDFFQ2Z51iTAThidTR_HxqEqnlm2TTnBuLln7BQOBB64XZsuQMWq/exec';
+const HISTORI_API_URL = 'https://script.google.com/macros/s/AKfycbxFEV-TN381J7S0EJVEYjXhtYOr-JABDWpNLdRa-mqJcslJBeHZnKgyfo6CwJcVhun9/exec';
 const HISTORI_FLAG_KEY = 'se2026_histori_sent_date';
 
 function todayDateStr(){
@@ -4184,14 +4185,34 @@ function refreshHistoriUsernameWithLive(){
 
 function loadHistoriHarian(onDone){
   if(typeof Chart === 'undefined') return;
+  // Helper konversi tanggal apapun ke YYYY-MM-DD
+  function toYMD(v){
+    if(!v) return '';
+    const s = String(v).trim();
+    // Sudah YYYY-MM-DD
+    if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    // ISO string: 2026-06-14T00:00:00.000Z
+    if(/^\d{4}-\d{2}-\d{2}T/.test(s)) return s.slice(0,10);
+    // Date string: Wed Jun 24 2026 ...
+    const d = new Date(s);
+    if(!isNaN(d)){
+      // Gunakan waktu lokal (bukan UTC) agar tidak geser hari
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,'0');
+      const dd = String(d.getDate()).padStart(2,'0');
+      return `${y}-${m}-${dd}`;
+    }
+    return s;
+  }
+
   fetch(HISTORI_API_URL)
     .then(r => r.json())
     .then(res => {
-      // Simpan data username ke variabel global untuk scatter plot
-      // Coba pakai data dari Apps Script dulu (res.username)
       if(res.ok && Array.isArray(res.username) && res.username.length > 0){
-        const todayStr   = todayDateStr();
-        _historiSheetRows = res.username.filter(r => r.tanggal !== todayStr);
+        const todayStr = todayDateStr();
+        _historiSheetRows = res.username
+          .map(r => ({...r, tanggal: toYMD(r.tanggal)}))
+          .filter(r => r.tanggal && r.tanggal !== todayStr);
       } else {
         _historiSheetRows = [];
       }
@@ -4205,6 +4226,16 @@ function loadHistoriHarian(onDone){
         return;
       }
       const data = harian
+        .map(d => ({...d, tanggal: toYMD(d.tanggal)}))
+        .map(d => ({
+          ...d,
+          // toCamel("Rata-rata Capaian Pencacahan") → rataRataCapaianPencacahan
+          // toCamel("Rata Capaian Pencacahan")      → rataCapaianPencacahan
+          // Normalkan ke field yang dipakai dashboard
+          rataCapaianPencacahan  : d.rataCapaianPencacahan  ?? d.rataRataCapaianPencacahan  ?? null,
+          rataCapaianPemeriksaan : d.rataCapaianPemeriksaan ?? d.rataRataCapaianPemeriksaan ?? null,
+          totalPersenOpen        : d.totalPersenOpen        ?? d.totalOpenTarget             ?? null,
+        }))
         .filter(d => d.tanggal)
         .sort((a,b) => a.tanggal.localeCompare(b.tanggal));
 
@@ -4213,14 +4244,13 @@ function loadHistoriHarian(onDone){
       document.getElementById('cntHistori').textContent = `${data.length} hari`;
 
       historiHarianData = data;
-      // Panggil callback setelah semua data siap
       if(typeof onDone === 'function') onDone();
     })
     .catch(err=>{
-      console.warn('Gagal memuat histori harian:', err);
+      console.warn('Gagal memuat histori:', err);
       document.getElementById('historiEmptyMsg').style.display = 'block';
-      document.getElementById('historiEmptyMsg').textContent = 'Gagal memuat data histori. Coba refresh halaman.';
       document.getElementById('historiChartsWrap').style.display = 'none';
+      if(typeof onDone === 'function') onDone();
     });
 }
 
