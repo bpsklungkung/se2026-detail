@@ -2403,29 +2403,76 @@ function updateProgresCards(data){
   let totalOpen = 0, totalTarget = 0;
   let totalSubmit = 0, totalRejected = 0, totalApproved = 0;
 
-  usernames.forEach(uname=>{
-    const counts = usernameCount[uname] || {};
-    const target  = pencacahCount[uname] || 0;
-    const openV   = openColKey  ? (counts[openColKey]  || 0) : 0;
-    const subV    = submitPcKey ? (counts[submitPcKey] || 0) : 0;
-    const apvV    = apvPgwKey   ? (counts[apvPgwKey]   || 0) : 0;
-    const rejV    = rejPgwKey   ? (counts[rejPgwKey]   || 0) : 0;
-    const revV    = revPgwKey   ? (counts[revPgwKey]   || 0) : 0;
-    if(target > 0){
-      totalTarget += target;
-      totalOpen   += openV;
-      const capaian = (target - openV) / hariKerja;
-      if(!isNaN(capaian) && isFinite(capaian)){ totalCapaianCacah += capaian; nCacah++; }
-    }
-    const total3 = apvV + rejV + revV;
-    if(total3 > 0){
-      const capaian = total3 / hariKerja;
-      if(!isNaN(capaian) && isFinite(capaian)){ totalCapaianRiksa += capaian; nRiksa++; }
-    }
-    totalSubmit   += subV;
-    totalRejected += rejV;
-    totalApproved += apvV;
-  });
+  // Capaian Pencacahan: group by Pencacah Awal (kolom S)
+  if(PENCACAH_KEY){
+    const byNamaCacah = {};
+    data.forEach(row=>{
+      const nama  = String(row[PENCACAH_KEY]||'').trim();
+      const asgn  = row.Assignment||'';
+      if(!nama) return;
+      if(!byNamaCacah[nama]) byNamaCacah[nama] = {target:0, open:0, sub:0};
+      byNamaCacah[nama].target++;
+      if(openColKey  && asgn===openColKey)  byNamaCacah[nama].open++;
+      if(submitPcKey && asgn===submitPcKey) byNamaCacah[nama].sub++;
+    });
+    Object.values(byNamaCacah).forEach(d=>{
+      totalTarget += d.target;
+      totalOpen   += d.open;
+      totalSubmit += d.sub;
+      if(d.target > 0){
+        const capaian = (d.target - d.open) / hariKerja;
+        if(!isNaN(capaian) && isFinite(capaian)){ totalCapaianCacah += capaian; nCacah++; }
+      }
+    });
+  } else {
+    usernames.forEach(uname=>{
+      const counts = usernameCount[uname]||{};
+      const target = pencacahCount[uname]||0;
+      const openV  = openColKey  ? (counts[openColKey] ||0) : 0;
+      const subV   = submitPcKey ? (counts[submitPcKey]||0) : 0;
+      if(target > 0){
+        totalTarget += target; totalOpen += openV; totalSubmit += subV;
+        const capaian = (target - openV) / hariKerja;
+        if(!isNaN(capaian) && isFinite(capaian)){ totalCapaianCacah += capaian; nCacah++; }
+      }
+    });
+  }
+
+  // Capaian Pemeriksaan: group by Pengawas Awal (kolom T)
+  if(PENGAWAS_KEY){
+    const byNamaPgw = {};
+    data.forEach(row=>{
+      const nama = String(row[PENGAWAS_KEY]||'').trim();
+      const asgn = row.Assignment||'';
+      if(!nama) return;
+      if(!byNamaPgw[nama]) byNamaPgw[nama] = {apv:0, rej:0, rev:0};
+      if(apvPgwKey && asgn===apvPgwKey) byNamaPgw[nama].apv++;
+      if(rejPgwKey && asgn===rejPgwKey) byNamaPgw[nama].rej++;
+      if(revPgwKey && asgn===revPgwKey) byNamaPgw[nama].rev++;
+    });
+    Object.values(byNamaPgw).forEach(d=>{
+      totalRejected += d.rej;
+      totalApproved += d.apv;
+      const total3 = d.apv + d.rej + d.rev;
+      if(total3 > 0){
+        const capaian = total3 / hariKerja;
+        if(!isNaN(capaian) && isFinite(capaian)){ totalCapaianRiksa += capaian; nRiksa++; }
+      }
+    });
+  } else {
+    usernames.forEach(uname=>{
+      const counts = usernameCount[uname]||{};
+      const apvV = apvPgwKey ? (counts[apvPgwKey]||0) : 0;
+      const rejV = rejPgwKey ? (counts[rejPgwKey]||0) : 0;
+      const revV = revPgwKey ? (counts[revPgwKey]||0) : 0;
+      totalRejected += rejV; totalApproved += apvV;
+      const total3 = apvV + rejV + revV;
+      if(total3 > 0){
+        const capaian = total3 / hariKerja;
+        if(!isNaN(capaian) && isFinite(capaian)){ totalCapaianRiksa += capaian; nRiksa++; }
+      }
+    });
+  }
 
   const avgCacah    = nCacah > 0 ? totalCapaianCacah / nCacah : 0;
   const avgRiksa    = nRiksa > 0 ? totalCapaianRiksa / nRiksa : 0;
@@ -2583,29 +2630,73 @@ function computeOverallMetrics(){
   const revPgwKey  = [...allAsgnKeys].find(k=>/revoked.+pengawas/i.test(k));
 
   let totalCapaianCacah = 0, nCacah = 0;
-  let totalCapaianRiksa = 0, nRiksa = 0;
   let totalOpen = 0, pencacahGrand = 0;
-  usernames.forEach(uname=>{
-    const counts = usernameCount[uname] || {};
-    const target = pencacahCount[uname] || 0;
-    const openV  = openColKey ? (counts[openColKey] || 0) : 0;
 
-    if(target > 0){
-      pencacahGrand += target;
-      totalOpen += openV;
-      const capaian = (target - openV) / hariKerja;
-      if(!isNaN(capaian) && isFinite(capaian)){ totalCapaianCacah += capaian; nCacah++; }
-    }
+  // Capaian Pencacahan: per Pencacah Awal (kolom S) — sama dengan pivot
+  if(PENCACAH_KEY){
+    const byNamaCacah = {};
+    rawData.forEach(row=>{
+      const nama = String(row[PENCACAH_KEY]||'').trim();
+      if(!nama) return;
+      if(!byNamaCacah[nama]) byNamaCacah[nama] = { target:0, open:0 };
+      byNamaCacah[nama].target++;
+      if(openColKey && row.Assignment === openColKey) byNamaCacah[nama].open++;
+    });
+    Object.values(byNamaCacah).forEach(d=>{
+      if(d.target > 0){
+        pencacahGrand += d.target;
+        totalOpen     += d.open;
+        const capaian = (d.target - d.open) / hariKerja;
+        if(!isNaN(capaian) && isFinite(capaian)){ totalCapaianCacah += capaian; nCacah++; }
+      }
+    });
+  } else {
+    // Fallback: per Username
+    usernames.forEach(uname=>{
+      const counts = usernameCount[uname] || {};
+      const target = pencacahCount[uname] || 0;
+      const openV  = openColKey ? (counts[openColKey]||0) : 0;
+      if(target > 0){
+        pencacahGrand += target; totalOpen += openV;
+        const capaian = (target - openV) / hariKerja;
+        if(!isNaN(capaian) && isFinite(capaian)){ totalCapaianCacah += capaian; nCacah++; }
+      }
+    });
+  }
 
-    const apvV = apvPgwKey ? (counts[apvPgwKey] || 0) : 0;
-    const rejV = rejPgwKey ? (counts[rejPgwKey] || 0) : 0;
-    const revV = revPgwKey ? (counts[revPgwKey] || 0) : 0;
-    const total3 = apvV + rejV + revV;
-    if(total3 > 0){
-      const capaian = total3 / hariKerja;
-      if(!isNaN(capaian) && isFinite(capaian)){ totalCapaianRiksa += capaian; nRiksa++; }
-    }
-  });
+  // Capaian Pemeriksaan: per Pengawas Awal (kolom T) — sama dengan pivot
+  let totalCapaianRiksa = 0, nRiksa = 0;
+  if(PENGAWAS_KEY){
+    const byNamaPgw = {};
+    rawData.forEach(row=>{
+      const nama = String(row[PENGAWAS_KEY]||'').trim();
+      if(!nama) return;
+      if(!byNamaPgw[nama]) byNamaPgw[nama] = { apv:0, rej:0, rev:0 };
+      if(apvPgwKey && row.Assignment === apvPgwKey) byNamaPgw[nama].apv++;
+      if(rejPgwKey && row.Assignment === rejPgwKey) byNamaPgw[nama].rej++;
+      if(revPgwKey && row.Assignment === revPgwKey) byNamaPgw[nama].rev++;
+    });
+    Object.values(byNamaPgw).forEach(d=>{
+      const total3 = d.apv + d.rej + d.rev;
+      if(total3 > 0){
+        const capaian = total3 / hariKerja;
+        if(!isNaN(capaian) && isFinite(capaian)){ totalCapaianRiksa += capaian; nRiksa++; }
+      }
+    });
+  } else {
+    // Fallback: per Username
+    usernames.forEach(uname=>{
+      const counts = usernameCount[uname] || {};
+      const apvV = apvPgwKey ? (counts[apvPgwKey]||0) : 0;
+      const rejV = rejPgwKey ? (counts[rejPgwKey]||0) : 0;
+      const revV = revPgwKey ? (counts[revPgwKey]||0) : 0;
+      const total3 = apvV + rejV + revV;
+      if(total3 > 0){
+        const capaian = total3 / hariKerja;
+        if(!isNaN(capaian) && isFinite(capaian)){ totalCapaianRiksa += capaian; nRiksa++; }
+      }
+    });
+  }
 
   const avgCacah = nCacah > 0 ? totalCapaianCacah / nCacah : 0;
   const avgRiksa = nRiksa > 0 ? totalCapaianRiksa / nRiksa : 0;
@@ -2616,7 +2707,8 @@ function computeOverallMetrics(){
     progresPemeriksaanKemarin: sumRiksa,
     rataCapaianPencacahan: avgCacah,
     rataCapaianPemeriksaan: avgRiksa,
-    totalPersenOpen: pctOpen
+    totalPersenOpen: pctOpen,
+    nCacah, nRiksa
   };
 }
 
@@ -7701,12 +7793,20 @@ function openKolomModal(){
   sel.innerHTML = '<option value="">Cari di semua kolom</option>'
     + opts.map(k=>`<option value="${k}">${k}</option>`).join('');
 
-  document.getElementById('kolomSearchInput').value = '';
-  document.getElementById('kolomResultCount').textContent = '';
-  document.getElementById('kolomBody').innerHTML =
-    '<div style="padding:32px;text-align:center;color:#94a3b8;font-size:13px">Ketik kata kunci untuk mencari…</div>';
+  // Jangan reset input jika sudah ada nilai (misal dari klik nama di pivot)
+  const inputEl = document.getElementById('kolomSearchInput');
+  const existingVal = inputEl.value;
+  if(!existingVal){
+    document.getElementById('kolomResultCount').textContent = '';
+    document.getElementById('kolomBody').innerHTML =
+      '<div style="padding:32px;text-align:center;color:#94a3b8;font-size:13px">Ketik kata kunci untuk mencari…</div>';
+  }
   document.getElementById('kolomModal').style.display = 'flex';
-  setTimeout(()=>document.getElementById('kolomSearchInput').focus(), 50);
+  setTimeout(()=>{
+    inputEl.focus();
+    // Trigger search jika sudah ada nilai
+    if(inputEl.value) onKolomSearch(inputEl.value);
+  }, 50);
 }
 
 function closeKolomModal(){
@@ -7744,9 +7844,11 @@ function onKolomSearch(q){
   countEl.textContent = matched.length.toLocaleString('id-ID') + ' baris';
 
   // Render tabel pivot dari matched data
-  // Ambil setting pivot aktif
-  const rowField = document.getElementById('pvRowField')?.value || 'Username';
-  const colField = document.getElementById('pvColField')?.value || 'Assignment';
+  // Jika filter kolom dipilih dan itu field geo/orang, pakai sebagai rowField
+  const PERSON_GEO = ['Kecamatan','Desa','SLS','SubSLS','Username','Pencacah Awal','Pengawas Awal'];
+  const pvRowField = document.getElementById('pvRowField')?.value || 'Username';
+  const rowField   = (colFilter && PERSON_GEO.includes(colFilter)) ? colFilter : pvRowField;
+  const colField   = document.getElementById('pvColField')?.value || 'Assignment';
 
   const START_DATE = new Date('2026-06-08T00:00:00');
   const today      = new Date(); today.setHours(0,0,0,0);
@@ -7795,7 +7897,7 @@ function onKolomSearch(q){
   const isGeoRow = ['Kabupaten','Kecamatan','Desa','SLS'].includes(rowField);
   const showV = PROGRESS_CACAH_KEY && (isPencacahMode||isGeoRow);
   const showW = PROGRESS_RIKSA_KEY && (isPengawasMode||isGeoRow);
-  const showPencacah = showPencacah || isPencacahMode || isPengawasMode;
+  const showPencacah = isPencacahMode || isPengawasMode;
 
   // Warna per assignment status (sama dengan pivot utama)
   const ASGN_COLOR = {
