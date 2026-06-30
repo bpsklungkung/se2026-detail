@@ -4954,6 +4954,19 @@ function renderPivot(){
     });
   }
 
+  // Mapping generik nilai-baris (Username / Pencacah Awal / Pengawas Awal) → Kecamatan,
+  // dipakai untuk pesan WA kustom di popup profil petugas
+  if(showPencacah){
+    window.petugasRowKecMap = window.petugasRowKecMap || {};
+    rawData.forEach(row=>{
+      const key = row[rowField];
+      const kec = row.Kecamatan;
+      if(key && kec && !window.petugasRowKecMap[key]){
+        window.petugasRowKecMap[key] = kec;
+      }
+    });
+  }
+
   const progressCacahMap = {};
   const progressRiksaMap = {};
   const childProgressCacahMap = {}; // {"parent||child": sum}
@@ -5554,6 +5567,8 @@ function renderPivot(){
           <div class="pv-val" style="color:${capColor}">${capaianStr}</div>
           <div class="pv-pct">${selesai} selesai ÷ ${hariKerja}h</div>
         </div></td>`;
+        window.petugasCapaianMap = window.petugasCapaianMap || {};
+        window.petugasCapaianMap[r] = { value: capaianStr, jenis: 'Pencacahan' };
         if(PENGAWAS_KEY){
           html+=`<td class="pencacah-col" style="text-align:left;font-weight:500;color:#334155">${pengawasName[r]||'–'}</td>`;
         }
@@ -5571,6 +5586,8 @@ function renderPivot(){
           <div class="pv-val" style="color:${capColor}">${capaianStr}</div>
           <div class="pv-pct">${total3} aksi ÷ ${hariKerja}h</div>
         </div></td>`;
+        window.petugasCapaianMap = window.petugasCapaianMap || {};
+        window.petugasCapaianMap[r] = { value: capaianStr, jenis: 'Pengawasan' };
       }
     }
     if(rowField === 'Pencacah Awal'){
@@ -7701,18 +7718,40 @@ function showPetugasPopup(evt, username, rowField){
     const val     = profile[col] || '';
     if(!val) return;
     if(col === 'AQ'){
-      // No HP → link WA
+      // No HP → link WA dengan pesan kustom
       const cleaned = val.replace(/[^0-9]/g,'');
       const waNum   = cleaned.startsWith('0') ? '62' + cleaned.slice(1) : cleaned;
+
+      const capInfo   = (window.petugasCapaianMap && window.petugasCapaianMap[username]) || null;
+      const kecRaw    = (window.petugasRowKecMap && window.petugasRowKecMap[username]) || profile.kecamatan || '';
+      const kecVal    = kecRaw ? kecRaw.toLowerCase().split(/\s+/).map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ') : '';
+      const isPengawas = capInfo ? capInfo.jenis === 'Pengawasan' : (rowField === 'Pengawas Awal');
+      const sebutan    = isPengawas ? 'PML' : 'PPL';
+      const jenisLabel = isPengawas ? 'pemeriksaan' : 'pendataan';
+      const ambang     = isPengawas ? 60 : 10;
+      const penutup    = isPengawas ? 'mengganggu capaian kecamatan Bapak/Ibu' : 'mengganggu capaian tim dan kecamatan Bapak/Ibu';
+      const capValue   = capInfo ? capInfo.value : null;
+
+      const aksiText = isPengawas
+        ? 'yang telah Anda selesaikan berkisar'
+        : 'yang Anda selesaikan berkisar';
+      const kinerjaLabel = isPengawas ? 'pemeriksaan' : 'pendataan';
+
+      let waText = `Hallo bapak/ibu ${sebutan} atas nama ${nama} dari Kecamatan ${kecVal || '-'}, izin kami sampaikan bahwa hingga pada hari ini rata-rata capaian harian ${jenisLabel} ${aksiText} ${capValue !== null ? capValue : '-'} assignment per hari atau masih di bawah capaian harian ${ambang} assignment per hari. Dengan capaian ini, sangat mungkin beban target Bapak/Ibu akan semakin berat di depan. Demikian untuk dapat ditindaklanjuti dengan meningkatkan kinerja ${kinerjaLabel} sehingga tidak ${penutup}`;
+      const waHref = 'https://wa.me/' + waNum + (capValue !== null ? ('?text=' + encodeURIComponent(waText)) : '');
+
       bodyHtml += '<div class="pp-row">'
         + '<span class="pp-key">' + colName + '</span>'
         + '<span class="pp-val">'
         +   val
-        +   ' <a class="pp-wa" href="https://wa.me/' + waNum + '" target="_blank" rel="noopener">'
+        +   ' <a class="pp-wa" href="' + waHref + '" target="_blank" rel="noopener">'
         +     '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.95-1.418A9.956 9.956 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18a7.946 7.946 0 01-4.066-1.115l-.29-.174-3.018.865.864-3.018-.174-.29A7.956 7.956 0 014 12c0-4.418 3.582-8 8-8s8 3.582 8 8-3.582 8-8 8z"/></svg>'
-        +     ' Chat WA'
+        +     (capValue !== null ? ' Chat WA (teguran)' : ' Chat WA')
         +   '</a>'
         + '</span></div>';
+      if(capValue === null){
+        bodyHtml += '<div class="pp-row"><span class="pp-val" style="color:#94a3b8;font-style:italic;font-size:11px">Catatan: capaian harian belum tersedia untuk baris ini, pesan WA tidak otomatis terisi.</span></div>';
+      }
     } else {
       bodyHtml += '<div class="pp-row">'
         + '<span class="pp-key">' + colName + '</span>'
@@ -7935,7 +7974,7 @@ function onKolomSearch(q){
   let tb = '<tbody>';
   rowKeys.slice(0, MAX).forEach((r, ri)=>{
     const bg = ri%2===0 ? '#fff' : '#f8fafc';
-    tb += `<tr style="background:${bg}"><td style="padding:5px 10px;font-size:12px;font-weight:500;color:#1e3a5f;border-bottom:1px solid #f1f5f9">${hl(r)}</td>`;
+    tb += `<tr style="background:${bg}"><td style="padding:5px 10px;font-size:12px;font-weight:500;color:#1e3a5f;border-bottom:1px solid #f1f5f9;cursor:pointer" onclick="jumpToPivotRow('${rowField.replace(/'/g,"\\'")}','${String(r).replace(/'/g,"\\'")}')" title="Klik untuk lompat ke baris ini di pivot utama">${hl(r)}</td>`;
     colKeys.forEach(c=>{
       const v = count[r][c]||0;
       tb += `<td style="padding:5px 8px;text-align:center;font-size:12px;color:${v?aColor(c):'#cbd5e1'};font-weight:${v?'600':'400'};border-bottom:1px solid #f1f5f9">${v||'—'}</td>`;
@@ -7983,6 +8022,59 @@ document.getElementById('kolomModal').addEventListener('click', function(e){
 document.addEventListener('keydown', function(e){
   if(e.key==='Escape' && document.getElementById('kolomModal').style.display!=='none') closeKolomModal();
 });
+
+// Lompat ke baris tertentu di pivot utama dari hasil pencarian
+function jumpToPivotRow(rowField, value){
+  closeKolomModal();
+
+  const VALID_ROWFIELDS = ['Kabupaten','Kecamatan','Desa','SLS','Username','Pencacah Awal','Pengawas Awal'];
+  const elRowField = document.getElementById('pvRowField');
+
+  // Set rowField pivot utama jika cocok dengan opsi yang tersedia
+  if(elRowField && VALID_ROWFIELDS.includes(rowField)){
+    const hasOption = [...elRowField.options].some(o=>o.value===rowField);
+    if(hasOption && elRowField.value !== rowField){
+      elRowField.value = rowField;
+      onPvRowFieldChange();
+    }
+  }
+
+  // Reset filter cascading supaya baris yang dicari tidak ikut tersaring
+  PV_IDS.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el && el.value){ el.value = ''; }
+  });
+  const elPetugasKec = document.getElementById('pvFilterPetugasKec');
+  if(elPetugasKec && elPetugasKec.value) elPetugasKec.value = '';
+
+  pvSort = {col:null, dir:'desc'};
+  renderPivot();
+
+  // Tunggu render selesai, lalu cari & scroll ke baris yang cocok
+  setTimeout(()=>{
+    const table = document.getElementById('pvTable');
+    if(!table) return;
+    const rows = table.querySelectorAll('tbody tr');
+    let target = null;
+    rows.forEach(tr=>{
+      if(target) return;
+      const labelCell = tr.querySelector('td.row-label');
+      if(!labelCell) return;
+      const txt = labelCell.textContent.trim();
+      if(txt.includes(String(value).trim())){
+        target = tr;
+      }
+    });
+    if(target){
+      target.scrollIntoView({behavior:'smooth', block:'center'});
+      const origBg = target.style.background;
+      target.style.transition = 'background-color .3s';
+      target.style.background = '#fef08a';
+      setTimeout(()=>{ target.style.background = origBg || ''; }, 1800);
+    }
+  }, 150);
+}
+
 </script>
 </body>
 </html>
