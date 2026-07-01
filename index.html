@@ -1015,7 +1015,21 @@ body {
       </div>
       <div class="col-md-auto" style="min-width:130px" id="pvWrapFilterUsername">
         <label class="filter-label">Filter Petugas</label>
-        <select id="pvFilterUsername" class="form-select"><option value="">Semua</option></select>
+        <div class="ms-wrap" id="ms-wrap-pvFilterUsername">
+          <div class="ms-trigger" id="ms-trigger-pvFilterUsername" onclick="togglePvMsDropdown('pvFilterUsername')">
+            <span class="ms-trigger-text placeholder" id="ms-text-pvFilterUsername">Semua</span>
+            <span class="ms-arrow">▼</span>
+          </div>
+          <div class="ms-dropdown" id="ms-dropdown-pvFilterUsername">
+            <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterPvMsItems('pvFilterUsername',this.value)"></div>
+            <div class="ms-actions">
+              <button onclick="pvMsSelectAll('pvFilterUsername')">Pilih Semua</button>
+              <button onclick="pvMsClearAll('pvFilterUsername')">Hapus</button>
+            </div>
+            <div class="ms-list" id="ms-list-pvFilterUsername"></div>
+            <div class="ms-footer"><button onclick="applyPvMsFilter('pvFilterUsername')">Terapkan</button></div>
+          </div>
+        </div>
       </div>
       <div class="col-md-auto" style="min-width:130px" id="pvWrapFilterUser">
         <label class="filter-label">Filter User</label>
@@ -1023,28 +1037,112 @@ body {
       </div>
       <div class="col-md-auto" style="min-width:150px" id="pvWrapFilterPencacah">
         <label class="filter-label">Filter Pencacah Awal</label>
-        <select id="pvFilterPencacah" class="form-select"><option value="">Semua</option></select>
+        <div class="ms-wrap" id="ms-wrap-pvFilterPencacah">
+          <div class="ms-trigger" id="ms-trigger-pvFilterPencacah" onclick="togglePvMsDropdown('pvFilterPencacah')">
+            <span class="ms-trigger-text placeholder" id="ms-text-pvFilterPencacah">Semua</span>
+            <span class="ms-arrow">▼</span>
+          </div>
+          <div class="ms-dropdown" id="ms-dropdown-pvFilterPencacah">
+            <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterPvMsItems('pvFilterPencacah',this.value)"></div>
+            <div class="ms-actions">
+              <button onclick="pvMsSelectAll('pvFilterPencacah')">Pilih Semua</button>
+              <button onclick="pvMsClearAll('pvFilterPencacah')">Hapus</button>
+            </div>
+            <div class="ms-list" id="ms-list-pvFilterPencacah"></div>
+            <div class="ms-footer"><button onclick="applyPvMsFilter('pvFilterPencacah')">Terapkan</button></div>
+          </div>
+        </div>
       </div>
       <div class="col-md-auto" style="min-width:150px" id="pvWrapFilterPengawas">
         <label class="filter-label">Filter Pengawas Awal</label>
-        <select id="pvFilterPengawas" class="form-select"><option value="">Semua</option></select>
+        <div class="ms-wrap" id="ms-wrap-pvFilterPengawas">
+          <div class="ms-trigger" id="ms-trigger-pvFilterPengawas" onclick="togglePvMsDropdown('pvFilterPengawas')">
+            <span class="ms-trigger-text placeholder" id="ms-text-pvFilterPengawas">Semua</span>
+            <span class="ms-arrow">▼</span>
+          </div>
+          <div class="ms-dropdown" id="ms-dropdown-pvFilterPengawas">
+            <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterPvMsItems('pvFilterPengawas',this.value)"></div>
+            <div class="ms-actions">
+              <button onclick="pvMsSelectAll('pvFilterPengawas')">Pilih Semua</button>
+              <button onclick="pvMsClearAll('pvFilterPengawas')">Hapus</button>
+            </div>
+            <div class="ms-list" id="ms-list-pvFilterPengawas"></div>
+            <div class="ms-footer"><button onclick="applyPvMsFilter('pvFilterPengawas')">Terapkan</button></div>
+          </div>
+        </div>
       </div>
       <!-- Filter Kecamatan khusus mode Pencacah/Pengawas -->
       <div class="col-md-auto" style="min-width:140px;display:none" id="pvWrapFilterPetugasKec">
         <label class="filter-label">Filter Kecamatan</label>
-        <select id="pvFilterPetugasKec" class="form-select"><option value="">Semua</option></select>
+        <div class="ms-wrap" id="ms-wrap-pvFilterPetugasKec">
+          <div class="ms-trigger" id="ms-trigger-pvFilterPetugasKec" onclick="togglePvMsDropdown('pvFilterPetugasKec')">
+            <span class="ms-trigger-text placeholder" id="ms-text-pvFilterPetugasKec">Semua</span>
+            <span class="ms-arrow">▼</span>
+          </div>
+          <div class="ms-dropdown" id="ms-dropdown-pvFilterPetugasKec">
+            <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterPvMsItems('pvFilterPetugasKec',this.value)"></div>
+            <div class="ms-actions">
+              <button onclick="pvMsSelectAll('pvFilterPetugasKec')">Pilih Semua</button>
+              <button onclick="pvMsClearAll('pvFilterPetugasKec')">Hapus</button>
+            </div>
+            <div class="ms-list" id="ms-list-pvFilterPetugasKec"></div>
+            <div class="ms-footer"><button onclick="applyPvMsFilter('pvFilterPetugasKec')">Terapkan</button></div>
+          </div>
+        </div>
       </div>
       <div class="col-md-auto" style="min-width:130px">
         <label class="filter-label">Filter Kabupaten</label>
-        <select id="pvFilterKabupaten" class="form-select"><option value="">Semua</option></select>
+        <div class="ms-wrap" id="ms-wrap-pvFilterKabupaten">
+          <div class="ms-trigger" id="ms-trigger-pvFilterKabupaten" onclick="togglePvMsDropdown('pvFilterKabupaten')">
+            <span class="ms-trigger-text placeholder" id="ms-text-pvFilterKabupaten">Semua</span>
+            <span class="ms-arrow">▼</span>
+          </div>
+          <div class="ms-dropdown" id="ms-dropdown-pvFilterKabupaten">
+            <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterPvMsItems('pvFilterKabupaten',this.value)"></div>
+            <div class="ms-actions">
+              <button onclick="pvMsSelectAll('pvFilterKabupaten')">Pilih Semua</button>
+              <button onclick="pvMsClearAll('pvFilterKabupaten')">Hapus</button>
+            </div>
+            <div class="ms-list" id="ms-list-pvFilterKabupaten"></div>
+            <div class="ms-footer"><button onclick="applyPvMsFilter('pvFilterKabupaten')">Terapkan</button></div>
+          </div>
+        </div>
       </div>
       <div class="col-md-auto" style="min-width:130px">
         <label class="filter-label">Filter Desa</label>
-        <select id="pvFilterDesa" class="form-select"><option value="">Semua</option></select>
+        <div class="ms-wrap" id="ms-wrap-pvFilterDesa">
+          <div class="ms-trigger" id="ms-trigger-pvFilterDesa" onclick="togglePvMsDropdown('pvFilterDesa')">
+            <span class="ms-trigger-text placeholder" id="ms-text-pvFilterDesa">Semua</span>
+            <span class="ms-arrow">▼</span>
+          </div>
+          <div class="ms-dropdown" id="ms-dropdown-pvFilterDesa">
+            <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterPvMsItems('pvFilterDesa',this.value)"></div>
+            <div class="ms-actions">
+              <button onclick="pvMsSelectAll('pvFilterDesa')">Pilih Semua</button>
+              <button onclick="pvMsClearAll('pvFilterDesa')">Hapus</button>
+            </div>
+            <div class="ms-list" id="ms-list-pvFilterDesa"></div>
+            <div class="ms-footer"><button onclick="applyPvMsFilter('pvFilterDesa')">Terapkan</button></div>
+          </div>
+        </div>
       </div>
       <div class="col-md-auto" style="min-width:110px">
         <label class="filter-label">Filter SLS</label>
-        <select id="pvFilterSLS" class="form-select"><option value="">Semua</option></select>
+        <div class="ms-wrap" id="ms-wrap-pvFilterSLS">
+          <div class="ms-trigger" id="ms-trigger-pvFilterSLS" onclick="togglePvMsDropdown('pvFilterSLS')">
+            <span class="ms-trigger-text placeholder" id="ms-text-pvFilterSLS">Semua</span>
+            <span class="ms-arrow">▼</span>
+          </div>
+          <div class="ms-dropdown" id="ms-dropdown-pvFilterSLS">
+            <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterPvMsItems('pvFilterSLS',this.value)"></div>
+            <div class="ms-actions">
+              <button onclick="pvMsSelectAll('pvFilterSLS')">Pilih Semua</button>
+              <button onclick="pvMsClearAll('pvFilterSLS')">Hapus</button>
+            </div>
+            <div class="ms-list" id="ms-list-pvFilterSLS"></div>
+            <div class="ms-footer"><button onclick="applyPvMsFilter('pvFilterSLS')">Terapkan</button></div>
+          </div>
+        </div>
       </div>
 
       <div class="col-md-auto d-flex align-items-end gap-2 flex-wrap">
@@ -4672,29 +4770,137 @@ function buildTable(){
 }
 
 /* ══════════════════════════════════════
-   PIVOT — CASCADE FILTERS
+   PIVOT — CASCADE FILTERS (MULTI-SELECT)
 ══════════════════════════════════════ */
-const PV_IDS = ["pvFilterUser","pvFilterUsername","pvFilterPencacah","pvFilterPengawas","pvFilterKabupaten",
-                "pvFilterDesa","pvFilterSLS"];
+// pvFilterUser TIDAK termasuk di sini — tetap single-select karena dipakai
+// sbg deteksi mode ("pencacah"/"pengawas") via regex di banyak tempat lain.
+const PV_IDS = ["pvFilterUsername","pvFilterPencacah","pvFilterPengawas","pvFilterPetugasKec",
+                "pvFilterKabupaten","pvFilterDesa","pvFilterSLS"];
 const PV_FIELD = {
-  pvFilterUser:"User", pvFilterUsername:"Username",
+  pvFilterUsername:"Username",
   pvFilterPencacah:"__pencacah__", pvFilterPengawas:"__pengawas__",
+  pvFilterPetugasKec:"Kecamatan",
   pvFilterKabupaten:"Kabupaten",
   pvFilterDesa:"Desa", pvFilterSLS:"SLS"
 };
+const PV_MS_SELECTED = {};
+PV_IDS.forEach(id => { PV_MS_SELECTED[id] = new Set(); });
 
+// Rows lolos semua filter pivot KECUALI excludeId (dan filter User tunggal)
 function getPvFiltered(excludeId){
+  const filterUserVal = (document.getElementById('pvFilterUser')||{}).value || '';
   return rawData.filter(r=>{
+    if(filterUserVal && (r['User']||'') !== filterUserVal) return false;
     return PV_IDS.every(id=>{
       if(id===excludeId) return true;
-      const v=document.getElementById(id).value;
-      return !v || r[PV_FIELD[id]]===v;
+      const sel = PV_MS_SELECTED[id];
+      if(sel.size===0) return true;
+      return sel.has(r[PV_FIELD[id]]);
     });
   });
 }
 
-function rebuildPvSelect(id){
-  rebuildSelect(document.getElementById(id), PV_FIELD[id], getPvFiltered(id));
+// Bangun daftar checkbox utk satu dropdown pivot
+function buildPvMsList(id){
+  const listEl = document.getElementById('ms-list-' + id);
+  if(!listEl) return;
+  const field  = PV_FIELD[id];
+  const subset = getPvFiltered(id);
+  const sel    = PV_MS_SELECTED[id];
+  const vals = [...new Set(subset.map(r=>r[field]).filter(Boolean))].sort();
+  listEl.innerHTML = '';
+  if(!vals.length){ listEl.innerHTML = '<div class="ms-empty">Tidak ada opsi</div>'; return; }
+  vals.forEach(v=>{
+    const checked = sel.has(v);
+    const item = document.createElement('label');
+    item.className = 'ms-item' + (checked ? ' checked' : '');
+    item.innerHTML = `<input type="checkbox" value="${v}" ${checked?'checked':''}><span title="${v}">${v}</span>`;
+    item.querySelector('input').addEventListener('change', function(){
+      if(this.checked){ sel.add(v); item.classList.add('checked'); }
+      else { sel.delete(v); item.classList.remove('checked'); }
+    });
+    listEl.appendChild(item);
+  });
+}
+
+function filterPvMsItems(id, query){
+  const q = query.toLowerCase();
+  document.querySelectorAll('#ms-list-' + id + ' .ms-item').forEach(item=>{
+    const txt = item.querySelector('span').textContent.toLowerCase();
+    item.style.display = txt.includes(q) ? '' : 'none';
+  });
+}
+
+function pvMsSelectAll(id){
+  const sel = PV_MS_SELECTED[id];
+  document.querySelectorAll(`#ms-list-${id} .ms-item`).forEach(item=>{
+    if(item.style.display === 'none') return;
+    const cb = item.querySelector('input');
+    cb.checked = true; sel.add(cb.value); item.classList.add('checked');
+  });
+}
+function pvMsClearAll(id){
+  const sel = PV_MS_SELECTED[id];
+  document.querySelectorAll(`#ms-list-${id} .ms-item`).forEach(item=>{
+    const cb = item.querySelector('input');
+    cb.checked = false; sel.delete(cb.value); item.classList.remove('checked');
+  });
+}
+
+function updatePvMsTrigger(id){
+  const sel = PV_MS_SELECTED[id];
+  const text = document.getElementById('ms-text-' + id);
+  const trigger = document.getElementById('ms-trigger-' + id);
+  if(!text || !trigger) return;
+  const oldBadge = trigger.querySelector('.ms-badge');
+  if(oldBadge) oldBadge.remove();
+  if(sel.size === 0){
+    text.textContent = 'Semua';
+    text.classList.add('placeholder');
+  } else if(sel.size === 1){
+    text.textContent = [...sel][0];
+    text.classList.remove('placeholder');
+    const badge = document.createElement('span');
+    badge.className = 'ms-badge'; badge.textContent = '1';
+    trigger.insertBefore(badge, trigger.querySelector('.ms-arrow'));
+  } else {
+    text.textContent = `${sel.size} dipilih`;
+    text.classList.remove('placeholder');
+    const badge = document.createElement('span');
+    badge.className = 'ms-badge'; badge.textContent = sel.size;
+    trigger.insertBefore(badge, trigger.querySelector('.ms-arrow'));
+  }
+}
+
+function togglePvMsDropdown(id){
+  const dropdown = document.getElementById('ms-dropdown-' + id);
+  const trigger  = document.getElementById('ms-trigger-' + id);
+  if(!dropdown || !trigger) return;
+  const isOpen = dropdown.classList.contains('open');
+  PV_IDS.forEach(i => closePvMsDropdown(i));
+  if(!isOpen){
+    buildPvMsList(id);
+    dropdown.classList.add('open');
+    trigger.classList.add('active');
+    const search = dropdown.querySelector('.ms-search');
+    if(search){ search.value=''; filterPvMsItems(id,''); }
+  }
+}
+function closePvMsDropdown(id){
+  document.getElementById('ms-dropdown-' + id)?.classList.remove('open');
+  document.getElementById('ms-trigger-' + id)?.classList.remove('active');
+}
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.ms-wrap')) PV_IDS.forEach(id => closePvMsDropdown(id));
+});
+
+// Terapkan filter: tutup dropdown, cascade rebuild opsi lain, render ulang pivot
+function applyPvMsFilter(id){
+  closePvMsDropdown(id);
+  updatePvMsTrigger(id);
+  PV_IDS.forEach(otherId => { if(otherId !== id) buildPvMsList(otherId); });
+  pvSort = { col:null, dir:'desc' };
+  renderPivot();
 }
 
 function onPvRowFieldChange(){
@@ -4710,48 +4916,29 @@ function onPvRowFieldChange(){
   if(isPetugasMode){
     const elUser = document.getElementById('pvFilterUser');
     if(elUser) elUser.value = '';
-    // Isi filter Kecamatan petugas
-    fillPetugasKecFilter();
-    // Set pvFilterUser otomatis sesuai row field
-    if(rowField === 'Pencacah Awal'){
-      const elU = document.getElementById('pvFilterUser');
-      // jangan set otomatis — biarkan user memilih
-    }
+    buildPvMsList('pvFilterPetugasKec');
   }
   pvSort = {col:null, dir:'desc'};
   renderPivot();
 }
 
-function fillPetugasKecFilter(){
-  const el = document.getElementById('pvFilterPetugasKec');
-  if(!el || !rawData.length) return;
-  const kecs = [...new Set(rawData.map(r=>r.Kecamatan||'').filter(Boolean))].sort();
-  el.innerHTML = '<option value="">Semua Kecamatan</option>' + kecs.map(k=>`<option value="${k}">${k}</option>`).join('');
-  el.onchange = () => { pvSort={col:null,dir:'desc'}; renderPivot(); };
-}
-
-function onPvFilterChange(){
-  PV_IDS.forEach(id=>rebuildPvSelect(id));
-}
-
 function fillPivotFilters(){
   PV_IDS.forEach(id=>{
-    const el=document.getElementById(id);
-    el.innerHTML=`<option value="">Semua</option>`;
-    fillSelectEl(el, unique(PV_FIELD[id]));
-    el.addEventListener("change", onPvFilterChange);
+    buildPvMsList(id);
+    updatePvMsTrigger(id);
   });
   // Inisialisasi visibilitas filter sesuai row field awal
   onPvRowFieldChange();
 }
 
 function getPivotData(){
-  const petugasKecVal = (document.getElementById('pvFilterPetugasKec')||{}).value || '';
+  const filterUserVal = (document.getElementById('pvFilterUser')||{}).value || '';
   return rawData.filter(r=>{
-    if(petugasKecVal && (r.Kecamatan||'') !== petugasKecVal) return false;
+    if(filterUserVal && (r['User']||'') !== filterUserVal) return false;
     return PV_IDS.every(id=>{
-      const v=document.getElementById(id).value;
-      return !v || r[PV_FIELD[id]]===v;
+      const sel = PV_MS_SELECTED[id];
+      if(sel.size===0) return true;
+      return sel.has(r[PV_FIELD[id]]);
     });
   });
 }
@@ -4787,16 +4974,6 @@ function resolveSpecialKeys(){
                      || keys[46] || null;
   if(PENCACAH_KEY) PV_FIELD['pvFilterPencacah'] = PENCACAH_KEY;
   if(PENGAWAS_KEY) PV_FIELD['pvFilterPengawas'] = PENGAWAS_KEY;
-  const elP = document.getElementById('pvFilterPencacah');
-  if(elP && PENCACAH_KEY){
-    elP.innerHTML = '<option value="">Semua</option>';
-    fillSelectEl(elP, unique(PENCACAH_KEY));
-  }
-  const elW = document.getElementById('pvFilterPengawas');
-  if(elW && PENGAWAS_KEY){
-    elW.innerHTML = '<option value="">Semua</option>';
-    fillSelectEl(elW, unique(PENGAWAS_KEY));
-  }
 
   // Normalisasi: pastikan setiap row punya field "Pencacah Awal" & "Pengawas Awal"
   rawData.forEach(r=>{
@@ -4804,7 +4981,7 @@ function resolveSpecialKeys(){
     r['Pengawas Awal'] = PENGAWAS_KEY ? (r[PENGAWAS_KEY] || '') : '';
   });
 
-  fillPetugasKecFilter();
+  if(document.getElementById('ms-list-pvFilterPetugasKec')) buildPvMsList('pvFilterPetugasKec');
 
   // Ekstrak kolom AL-AT (index 37-45) → simpan ke petugasProfileMap
   // Kolom AL (index 37) = Nama, AQ (index 42) = No HP
@@ -4834,14 +5011,20 @@ function buildPetugasProfileMap(keys){
     AQ: colAQ, AR: colAR, AS: colAS, AT: colAT
   };
 
-  // Build map: value kolom AL → profil (pakai username juga sebagai fallback key)
+  // STRATEGI FINAL: cocokkan LANGSUNG berdasarkan teks nama di kolom AL, tanpa
+  // perantara Username. Terbukti dari data Made bahwa baris dgn AL="Andri Susanto"
+  // memang ada dan datanya benar — masalah sebelumnya adalah kita malah menebak
+  // lewat Username (voting), yang ternyata salah nebak karena "Pencacah Awal"
+  // (assignment) tidak selalu match dgn Username submitter yang sebenarnya.
+  //
+  // Untuk tiap teks nama unik di kolom AL, ambil baris PALING LENGKAP datanya
+  // (bukan sekadar baris pertama) sebagai profil resmi nama tsb.
+  const profileByName = {};
+  const nameFillCount = {};
   rawData.forEach(r=>{
-    const nama    = colAL ? String(r[colAL]||'').trim() : '';
-    const uname   = String(r.Username||'').trim();
-    const key     = nama || uname;
-    if(!key) return;
-    if(petugasProfileMap[key]) return; // sudah ada, skip
-    petugasProfileMap[key] = {
+    const nama = colAL ? String(r[colAL]||'').trim() : '';
+    if(!nama) return;
+    const candidate = {
       nama  : nama,
       AL    : nama,
       AM    : colAM ? String(r[colAM]||'').trim() : '',
@@ -4853,8 +5036,61 @@ function buildPetugasProfileMap(keys){
       AS    : colAS ? String(r[colAS]||'').trim() : '',
       AT    : colAT ? String(r[colAT]||'').trim() : '',
     };
-    // Juga index by username supaya bisa lookup dari username
-    if(uname && uname !== key) petugasProfileMap[uname] = petugasProfileMap[key];
+    const filled = ['AM','AN','AO','AP','AQ','AR','AS','AT'].filter(k=>candidate[k]).length;
+    if(!profileByName[nama] || filled > nameFillCount[nama]){
+      profileByName[nama] = candidate;
+      nameFillCount[nama] = filled;
+    }
+  });
+  Object.keys(profileByName).forEach(nm=>{ petugasProfileMap[nm] = profileByName[nm]; });
+
+  // Fallback: kalau nilai "Pencacah Awal"/"Pengawas Awal" TIDAK PERNAH muncul
+  // sebagai teks di kolom AL manapun (artinya benar² tidak ada data AL utk nama
+  // itu), baru coba tebak lewat Username yg paling sering dipasangkan dgn nama
+  // tsb — lebih baik daripada kosong sama sekali, walau tidak 100% pasti.
+  const profileByUsername = {};
+  const unameFillCount = {};
+  rawData.forEach(r=>{
+    const uname = String(r.Username||'').trim();
+    if(!uname) return;
+    const nama = colAL ? String(r[colAL]||'').trim() : '';
+    const candidate = {
+      nama  : nama, AL: nama,
+      AM: colAM ? String(r[colAM]||'').trim() : '',
+      AN: colAN ? String(r[colAN]||'').trim() : '',
+      AO: colAO ? String(r[colAO]||'').trim() : '',
+      AP: colAP ? String(r[colAP]||'').trim() : '',
+      AQ: colAQ ? String(r[colAQ]||'').trim() : '',
+      AR: colAR ? String(r[colAR]||'').trim() : '',
+      AS: colAS ? String(r[colAS]||'').trim() : '',
+      AT: colAT ? String(r[colAT]||'').trim() : '',
+    };
+    const filled = ['AL','AM','AN','AO','AP','AQ','AR','AS','AT'].filter(k=>candidate[k]).length;
+    if(!profileByUsername[uname] || filled > unameFillCount[uname]){
+      profileByUsername[uname] = candidate;
+      unameFillCount[uname] = filled;
+    }
+    if(!petugasProfileMap[uname]) petugasProfileMap[uname] = candidate;
+  });
+
+  const nameUserCount = {};
+  rawData.forEach(r=>{
+    const uname = String(r.Username||'').trim();
+    if(!uname) return;
+    ['Pencacah Awal','Pengawas Awal'].forEach(fld=>{
+      const nm = String(r[fld]||'').trim();
+      if(!nm || profileByName[nm]) return; // sudah ada match langsung dr AL, skip
+      nameUserCount[nm] = nameUserCount[nm] || {};
+      nameUserCount[nm][uname] = (nameUserCount[nm][uname]||0) + 1;
+    });
+  });
+  Object.keys(nameUserCount).forEach(nm=>{
+    const counts = nameUserCount[nm];
+    let bestUname = null, bestCount = -1;
+    Object.keys(counts).forEach(u=>{ if(counts[u] > bestCount){ bestCount = counts[u]; bestUname = u; } });
+    if(bestUname && profileByUsername[bestUname] && !petugasProfileMap[nm]){
+      petugasProfileMap[nm] = profileByUsername[bestUname];
+    }
   });
 }
 
@@ -5894,14 +6130,13 @@ function resetPivot(){
   pvSort = { col: null, dir: 'desc' };
   const sm = document.getElementById('pvSortMode');
   if(sm) sm.value='count_desc';
-  PV_IDS.forEach(id=>{ document.getElementById(id).value=""; });
   PV_IDS.forEach(id=>{
-    const el=document.getElementById(id);
-    el.innerHTML=`<option value="">Semua</option>`;
-    fillSelectEl(el, unique(PV_FIELD[id]));
+    PV_MS_SELECTED[id].clear();
+    updatePvMsTrigger(id);
+    buildPvMsList(id);
   });
-  const elKec = document.getElementById('pvFilterPetugasKec');
-  if(elKec) elKec.value = '';
+  const elUser = document.getElementById('pvFilterUser');
+  if(elUser) elUser.value = '';
   onPvRowFieldChange();
 }
 
@@ -8041,11 +8276,13 @@ function jumpToPivotRow(rowField, value){
 
   // Reset filter cascading supaya baris yang dicari tidak ikut tersaring
   PV_IDS.forEach(id=>{
-    const el = document.getElementById(id);
-    if(el && el.value){ el.value = ''; }
+    if(PV_MS_SELECTED[id].size){
+      PV_MS_SELECTED[id].clear();
+      updatePvMsTrigger(id);
+    }
   });
-  const elPetugasKec = document.getElementById('pvFilterPetugasKec');
-  if(elPetugasKec && elPetugasKec.value) elPetugasKec.value = '';
+  const elUserJump = document.getElementById('pvFilterUser');
+  if(elUserJump && elUserJump.value) elUserJump.value = '';
 
   pvSort = {col:null, dir:'desc'};
   renderPivot();
