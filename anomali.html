@@ -118,13 +118,13 @@ body{
 }
 .btn-reset-filters:hover{background:#6e3c17;color:#fff;}
 
-table.dataTable{font-size:.8rem;}
+table.dataTable{font-size:.74rem;table-layout:fixed;width:100% !important;}
 table.dataTable thead th{
-  background:var(--se-brown);color:#fff;font-size:.72rem;text-transform:uppercase;
-  white-space:nowrap;
+  background:var(--se-brown);color:#fff;font-size:.68rem;text-transform:uppercase;
+  white-space:normal;padding:6px 6px;line-height:1.2;
 }
-table.dataTable tbody td{vertical-align:middle;}
-.badge-status{padding:3px 8px;border-radius:5px;font-size:.7rem;font-weight:600;}
+table.dataTable tbody td{vertical-align:middle;padding:5px 6px;overflow:hidden;}
+.badge-status{padding:2px 6px;border-radius:5px;font-size:.66rem;font-weight:600;white-space:nowrap;}
 .badge-approved{background:#d9f0dc;color:#1e6b2e;}
 .badge-other{background:#f0e3d0;color:#8a5a2a;}
 .link-btn{
@@ -132,50 +132,72 @@ table.dataTable tbody td{vertical-align:middle;}
   font-size:.72rem;padding:3px 9px;text-decoration:none;display:inline-block;
 }
 .link-btn:hover{background:var(--se-brown);color:#fff;}
-.no-link{color:#bbb;font-size:.72rem;}
+.no-link{color:#bbb;font-size:.7rem;}
 .chip{
-  display:inline-block;padding:2px 9px;border-radius:12px;
-  font-size:.72rem;font-weight:600;white-space:nowrap;
+  display:inline-block;padding:2px 7px;border-radius:10px;
+  font-size:.68rem;font-weight:600;
+  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;
 }
 .link-chip{
-  display:inline-flex;align-items:center;gap:5px;
+  display:inline-flex;align-items:center;justify-content:center;
   background:#eaf3ff;color:#1a5aa8;border:1px solid #cfe3fb;
-  border-radius:12px;padding:2px 9px;font-size:.75rem;font-weight:700;
+  border-radius:50%;width:26px;height:26px;font-size:.85rem;
   text-decoration:none;
 }
 .link-chip:hover{background:#1a5aa8;color:#fff;border-color:#1a5aa8;}
 table.dataTable tbody tr:hover{background:#fff6ea !important;}
+
+/* Kolom teks tunggal yang perlu dipotong + tooltip (title attr) saat kepanjangan */
+.ellip-cell{
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  display:block;max-width:100%;
+}
+code.ellip-cell{font-size:.7rem;}
+
+/* Kolom gabungan (Petugas / Wilayah): beberapa baris kecil ditumpuk */
+.stack-cell{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.stack-cell .chip{width:fit-content;}
+
 .rindian-cell{
   white-space:normal;
-  line-height:1.5;
-  min-width:220px;
-  max-width:340px;
+  line-height:1.4;
   padding:2px 0;
+  font-size:.72rem;
 }
-table.dataTable{table-layout:auto;}
+.rindian-cell .rindian-text{
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.rindian-cell.expanded .rindian-text{
+  -webkit-line-clamp:unset;overflow:visible;
+}
+.rindian-cell .rindian-toggle{
+  display:inline-block;margin-top:2px;font-size:.68rem;color:var(--se-orange);
+  cursor:pointer;font-weight:700;border:none;background:none;padding:0;
+}
 
-.tl-pending{display:flex;flex-direction:column;gap:4px;min-width:170px;}
+.tl-pending{display:flex;flex-direction:column;gap:4px;min-width:0;}
 .tl-pending select.tl-select{
-  font-size:.72rem;padding:4px 6px;border-radius:6px;border:1px solid #d8dde3;
-  max-width:190px;background:#fff;color:#333;
+  font-size:.68rem;padding:3px 4px;border-radius:6px;border:1px solid #d8dde3;
+  width:100%;background:#fff;color:#333;
 }
 .tl-pending .tl-save{
   background:#fff;border:1px solid var(--se-orange);color:var(--se-orange);
-  border-radius:6px;font-size:.72rem;font-weight:700;padding:4px 10px;
+  border-radius:6px;font-size:.68rem;font-weight:700;padding:3px 8px;
   cursor:pointer;white-space:nowrap;align-self:flex-start;
 }
 .tl-pending .tl-save:hover:not(:disabled){background:var(--se-orange);color:#fff;}
 .tl-pending .tl-save:disabled{opacity:.4;cursor:not-allowed;}
 .tl-done{
-  display:inline-flex;flex-direction:column;gap:1px;
+  display:flex;flex-direction:column;gap:1px;
   border:1px solid;border-radius:7px;
-  padding:4px 9px;font-size:.7rem;min-width:150px;
+  padding:4px 7px;font-size:.66rem;min-width:0;
 }
-.tl-done .tl-who{font-weight:700;}
+.tl-done .tl-who{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .tl-done .tl-note{font-style:italic;white-space:normal;}
 .tl-done .tl-undo{
   align-self:flex-start;margin-top:2px;background:none;border:none;
-  color:inherit;font-size:.68rem;text-decoration:underline;cursor:pointer;padding:0;opacity:.85;
+  color:inherit;font-size:.64rem;text-decoration:underline;cursor:pointer;padding:0;opacity:.85;
 }
 
 #loadingOverlay{
@@ -250,11 +272,8 @@ table.dataTable{table-layout:auto;}
             <th>KELOMPOK</th>
             <th>RINCIAN</th>
             <th>LINK</th>
-            <th>PPL</th>
-            <th>PML</th>
-            <th>KECAMATAN</th>
-            <th>DESA</th>
-            <th>SLS</th>
+            <th>PETUGAS</th>
+            <th>WILAYAH</th>
             <th>KRT/USAHA</th>
             <th>EKSEKUTOR</th>
             <th>TINDAK LANJUT</th>
@@ -267,16 +286,26 @@ table.dataTable{table-layout:auto;}
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.11/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.11/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.11/js/jquery.dataTables.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.11/js/dataTables.bootstrap5.min.js" defer></script>
 <script>
-  if(typeof jQuery === 'undefined'){
-    document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"><\/script>');
-  }
+  // defer di atas bikin 3 file itu diunduh paralel & baru dijalankan berurutan
+  // setelah HTML selesai di-parse. Fallback CDN ini juga ditunda ke saat yang sama.
+  window.addEventListener('DOMContentLoaded', function(){
+    if(typeof jQuery === 'undefined'){
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js';
+      s.onload = initAnomaliDashboard;
+      document.head.appendChild(s);
+    } else {
+      initAnomaliDashboard();
+    }
+  });
 </script>
 
 <script>
+function initAnomaliDashboard(){
 const API_URL = "https://script.google.com/macros/s/AKfycbzLyq-rnyc7xj-AuOX1vLdlYs_46zNykNiv62tjnoLcU_i2uVNTNbeDWp7slFEOe0-87A/exec";
 
 // Column index mapping based on the spreadsheet's actual column letters (0-based)
@@ -337,20 +366,40 @@ function getNamaUser(){
   return nama;
 }
 
-function loadLogData(){
-  return fetch(API_URL + '?action=log')
-    .then(res => res.ok ? res.json() : { rows: [] })
-    .then(data => {
-      LOG_MAP = {};
-      const rows = data.rows || [];
-      // rows[0] header, sisanya: [assignmentId, status, opsi, catatan, oleh, waktu]
-      rows.slice(1).forEach(r => {
-        const id = norm(r[0]);
-        if(id === '') return;
-        LOG_MAP[id] = { status: norm(r[1]), opsi: norm(r[2]), catatan: norm(r[3]), oleh: norm(r[4]), waktu: norm(r[5]) };
-      });
-    })
-    .catch(err => { console.warn('Gagal memuat log tindak lanjut:', err); LOG_MAP = {}; });
+function buildLogMap(logData){
+  const map = {};
+  const rows = (logData && logData.rows) || [];
+  // rows[0] header, sisanya: [assignmentId, status, opsi, catatan, oleh, waktu]
+  rows.slice(1).forEach(r => {
+    const id = norm(r[0]);
+    if(id === '') return;
+    map[id] = { status: norm(r[1]), opsi: norm(r[2]), catatan: norm(r[3]), oleh: norm(r[4]), waktu: norm(r[5]) };
+  });
+  return map;
+}
+
+function fetchCombined(){
+  return fetch(API_URL + '?action=all').then(res => {
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  });
+}
+
+// ── Cache sessionStorage (biar buka-tutup tab dalam sesi yang sama terasa instan) ──
+const CACHE_TTL_MS = 2 * 60 * 1000; // 2 menit
+const CACHE_KEY_DATA = 'anomali_cache_all_v2';
+
+function getCache(key){
+  try{
+    const raw = sessionStorage.getItem(key);
+    if(!raw) return null;
+    const obj = JSON.parse(raw);
+    if(Date.now() - obj.ts > CACHE_TTL_MS) return null;
+    return obj.data;
+  }catch(e){ return null; }
+}
+function setCache(key, data){
+  try{ sessionStorage.setItem(key, JSON.stringify({ ts: Date.now(), data })); }catch(e){ /* penuh/private mode, abaikan */ }
 }
 
 function kirimTindakLanjut(assignmentId, status, opsi, catatan, oleh){
@@ -370,6 +419,7 @@ function simpanTindakLanjut(assignmentId, opsi){
     LOG_MAP[assignmentId] = { status:'selesai', opsi, catatan, oleh: nama, waktu: new Date().toLocaleString('id-ID') };
     EDITING.delete(assignmentId);
     renderTable();
+    try{ sessionStorage.removeItem(CACHE_KEY_DATA); }catch(e){} // biar reload berikutnya ambil data terbaru (termasuk log)
   }).catch(() => alert('Gagal menyimpan status. Coba lagi.'));
 }
 
@@ -414,43 +464,68 @@ function escapeHtml(s){
 function multilineCell(v){
   const val = norm(v);
   if(val === '') return '';
-  return `<div class="rindian-cell">${escapeHtml(val).replace(/\r\n|\r|\n/g,'<br>')}</div>`;
+  const html = escapeHtml(val).replace(/\r\n|\r|\n/g,'<br>');
+  const lineBreaks = (val.match(/\r\n|\r|\n/g) || []).length;
+  const needsToggle = val.length > 130 || lineBreaks >= 3;
+  const toggleBtn = needsToggle ? '<button type="button" class="rindian-toggle">Selengkapnya ▾</button>' : '';
+  return `<div class="rindian-cell"><div class="rindian-text">${html}</div>${toggleBtn}</div>`;
 }
 
-function loadData(){
-  Promise.all([
-    fetch(API_URL).then(res => {
-      if(!res.ok) throw new Error('HTTP ' + res.status);
-      return res.json();
-    }),
-    loadLogData()
-  ])
-    .then(([data]) => {
-      if(data.error){
-        alert('Gagal memuat data: ' + data.error);
-        document.getElementById('loadingOverlay').style.display='none';
-        return;
-      }
-      const rows = data.rows;
-      if(!rows || rows.length < 2){
-        alert('Gagal memuat data atau data kosong.');
-        document.getElementById('loadingOverlay').style.display='none';
-        return;
-      }
-      // rows[0] is header row; skip it
-      ALL_ROWS = rows.slice(1).filter(r => norm(r[COL.ASSIGNMENT]) !== '');
-      LINK_ROWS = ALL_ROWS.filter(r => norm(r[COL.LINK]) !== '');
+function applyData(payload, rebuildFilters){
+  LOG_MAP = buildLogMap({ rows: payload.log || [] });
+  const rows = payload.rows;
+  if(!rows || rows.length < 2) return false;
+  // rows[0] is header row; skip it
+  ALL_ROWS = rows.slice(1).filter(r => norm(r[COL.ASSIGNMENT]) !== '');
+  LINK_ROWS = ALL_ROWS.filter(r => norm(r[COL.LINK]) !== '');
 
-      buildFilters();
-      renderTable();
-      updateSummary();
+  if(rebuildFilters){
+    buildFilters();
+  } else {
+    refreshAllFilterLists();
+  }
+  renderTable();
+  updateSummary();
+  return true;
+}
+
+function fetchFresh(isInitialLoad){
+  fetchCombined()
+    .then(payload => {
+      if(payload.error){
+        if(isInitialLoad) alert('Gagal memuat data: ' + payload.error);
+        document.getElementById('loadingOverlay').style.display='none';
+        return;
+      }
+      const ok = applyData(payload, isInitialLoad);
+      if(!ok && isInitialLoad){
+        alert('Gagal memuat data atau data kosong.');
+      }
+      if(ok){
+        setCache(CACHE_KEY_DATA, payload);
+      }
       document.getElementById('loadingOverlay').style.display='none';
     })
     .catch(err => {
       console.error(err);
-      alert('Gagal memuat data dari Apps Script. Periksa koneksi atau URL Web App.');
+      if(isInitialLoad){
+        alert('Gagal memuat data dari Apps Script. Periksa koneksi atau URL Web App.');
+      }
       document.getElementById('loadingOverlay').style.display='none';
     });
+}
+
+function loadData(){
+  const cachedPayload = getCache(CACHE_KEY_DATA);
+
+  if(cachedPayload){
+    // Render instan dari cache (tanpa nunggu network), lalu refresh diam-diam di background.
+    const ok = applyData(cachedPayload, true);
+    document.getElementById('loadingOverlay').style.display='none';
+    fetchFresh(!ok); // kalau cache ternyata rusak/kosong, treat sebagai initial load
+  } else {
+    fetchFresh(true);
+  }
 }
 
 // Return rows from LINK_ROWS matching all active selections except excludeKey
@@ -600,11 +675,31 @@ function hashStr(s){
   for(let i=0;i<s.length;i++){ h = (h*31 + s.charCodeAt(i)) >>> 0; }
   return h;
 }
+function attr(v){ return String(v).replace(/"/g,'&quot;'); }
 function colorChip(v){
   const val = norm(v);
   if(val === '') return '<span class="no-link">-</span>';
   const [bg, fg] = PALETTE[hashStr(val) % PALETTE.length];
-  return `<span class="chip" style="background:${bg};color:${fg};">${val}</span>`;
+  return `<span class="chip" style="background:${bg};color:${fg};" title="${attr(val)}">${escapeHtml(val)}</span>`;
+}
+function ellipCell(v){
+  const val = norm(v);
+  if(val === '') return '<span class="no-link">-</span>';
+  return `<span class="ellip-cell" title="${attr(val)}">${escapeHtml(val)}</span>`;
+}
+function stackChipRow(prefix, val){
+  if(norm(val) === '') return '';
+  return `<div style="display:flex;align-items:center;gap:4px;min-width:0;">`
+       + `<span style="font-size:.58rem;color:#aaa;font-weight:700;flex-shrink:0;">${prefix}</span>`
+       + colorChip(val) + `</div>`;
+}
+function petugasCell(ppl, pml){
+  const rows = [stackChipRow('PPL', ppl), stackChipRow('PML', pml)].filter(Boolean).join('');
+  return rows ? `<div class="stack-cell">${rows}</div>` : '<span class="no-link">-</span>';
+}
+function wilayahCell(kec, desa, sls){
+  const rows = [stackChipRow('Kec', kec), stackChipRow('Desa', desa), stackChipRow('SLS', sls)].filter(Boolean).join('');
+  return rows ? `<div class="stack-cell">${rows}</div>` : '<span class="no-link">-</span>';
 }
 
 function statusBadge(v){
@@ -619,26 +714,23 @@ function linkCell(displayVal, urlVal){
   const url = norm(urlVal);
   if(disp === '' && url === '') return '<span class="no-link">-</span>';
   if(/^https?:\/\//i.test(url)){
-    return `<a class="link-chip" href="${url}" target="_blank" rel="noopener">🔗 ${disp || 'Buka'}</a>`;
+    return `<a class="link-chip" href="${url}" target="_blank" rel="noopener" title="${attr(disp || 'Buka link')}">🔗</a>`;
   }
   // URL column not filled (older rows) - fall back to plain text, not clickable.
-  return `<span class="no-link">${disp || '-'}</span>`;
+  return `<span class="no-link" title="${attr(disp)}">${disp ? '···' : '-'}</span>`;
 }
 
 function buildRowData(rows){
   return rows.map(r => [
     norm(r[COL.NO]),
-    `<code>${norm(r[COL.ASSIGNMENT])}</code>`,
+    `<code class="ellip-cell" title="${attr(norm(r[COL.ASSIGNMENT]))}">${escapeHtml(norm(r[COL.ASSIGNMENT]))}</code>`,
     statusBadge(r[COL.STATUS]),
     colorChip(r[COL.KELOMPOK]),
     norm(r[COL.RINDIAN]) ? multilineCell(r[COL.RINDIAN]) : '',
     linkCell(r[COL.LINK], r[COL.ASLI]),
-    colorChip(r[COL.PPL]),
-    colorChip(r[COL.PML]),
-    colorChip(r[COL.KECAMATAN]),
-    colorChip(r[COL.DESA]),
-    colorChip(r[COL.SLS]),
-    norm(r[COL.KRTUSAHA]),
+    petugasCell(r[COL.PPL], r[COL.PML]),
+    wilayahCell(r[COL.KECAMATAN], r[COL.DESA], r[COL.SLS]),
+    ellipCell(r[COL.KRTUSAHA]),
     colorChip(r[COL.EKSEKUTOR]),
     tindakLanjutCell(r[COL.ASSIGNMENT])
   ]);
@@ -655,8 +747,19 @@ function renderTable(){
       pageLength: 25,
       lengthMenu: [10,25,50,100,250],
       deferRender: true,
+      autoWidth: false,
       columnDefs: [
-        { targets: 4, width: '260px' }
+        { targets: 0, width: '3%' },  // NO
+        { targets: 1, width: '8%' },  // ASSIGNMENT ID
+        { targets: 2, width: '7%' },  // STATUS
+        { targets: 3, width: '8%' },  // KELOMPOK
+        { targets: 4, width: '20%' }, // RINCIAN
+        { targets: 5, width: '4%' },  // LINK
+        { targets: 6, width: '11%' }, // PETUGAS
+        { targets: 7, width: '14%' }, // WILAYAH
+        { targets: 8, width: '8%' },  // KRT/USAHA
+        { targets: 9, width: '8%' },  // EKSEKUTOR
+        { targets: 10, width: '9%' }  // TINDAK LANJUT
       ],
       language: {
         search: "Cari:",
@@ -709,7 +812,15 @@ $(document).on('click', '.tl-undo', function(){
   editTindakLanjut($(this).data('id'));
 });
 
+// Expand/collapse teks RINCIAN yang panjang
+$(document).on('click', '.rindian-toggle', function(){
+  const cell = $(this).closest('.rindian-cell');
+  const expanded = cell.toggleClass('expanded').hasClass('expanded');
+  $(this).text(expanded ? 'Sembunyikan ▴' : 'Selengkapnya ▾');
+});
+
 loadData();
+}
 </script>
 </body>
 </html>
