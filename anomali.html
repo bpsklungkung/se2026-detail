@@ -153,6 +153,30 @@ table.dataTable tbody tr:hover{background:#fff6ea !important;}
   display:block;max-width:100%;
 }
 code.ellip-cell{font-size:.7rem;}
+.assign-info-trigger{cursor:pointer;border-bottom:1px dashed var(--se-orange);}
+.assign-info-trigger:hover{color:var(--se-orange);}
+
+/* Popup detail kolom AH-AQ saat ASSIGNMENT ID diklik */
+.info-popover{
+  position:fixed;z-index:3000;background:#fff;
+  border:1px solid #e0c8a8;border-radius:8px;
+  box-shadow:0 8px 24px rgba(0,0,0,.18);
+  padding:10px 12px;font-size:.72rem;
+  width:260px;max-width:90vw;
+}
+.info-popover .ip-title{
+  font-weight:700;color:var(--se-brown);font-size:.74rem;
+  margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--se-card-border);
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+}
+.info-popover .ip-close{
+  cursor:pointer;border:none;background:none;color:#aaa;font-size:.9rem;line-height:1;padding:0;
+}
+.info-popover .ip-close:hover{color:var(--se-brown);}
+.info-popover table{width:100%;border-collapse:collapse;}
+.info-popover td{padding:2px 0;vertical-align:top;}
+.info-popover td.ip-lbl{color:#8a6a4a;font-weight:600;white-space:nowrap;padding-right:8px;width:1%;}
+.info-popover td.ip-val{color:#3a2a1a;word-break:break-word;}
 
 /* Kolom gabungan (Petugas / Wilayah): beberapa baris kecil ditumpuk */
 .stack-cell{display:flex;flex-direction:column;gap:2px;min-width:0;}
@@ -325,6 +349,21 @@ const COL = {
   EKSEKUTOR: 19,  // T
   ASLI: 20        // U - pure URL column (added for real hyperlinks)
 };
+
+// Kolom tambahan (AH-AQ) yang ditampilkan sebagai tooltip/popup detail
+// saat ASSIGNMENT ID di klik. Urutan mengikuti urutan kolom di sheet.
+const EXTRA_INFO_COLS = [
+  { label: 'KRT',                       col: 33 }, // AH
+  { label: 'DESIL',                     col: 34 }, // AI
+  { label: 'RASIO',                     col: 35 }, // AJ
+  { label: 'LUAS LANTAI',               col: 36 }, // AK
+  { label: 'LUAS LANTAI PER KAPITA',    col: 37 }, // AL
+  { label: 'JUMLAH KK',                 col: 38 }, // AM
+  { label: 'AC',                        col: 39 }, // AN
+  { label: 'PBI NAS',                   col: 40 }, // AO
+  { label: 'PBI PEMDA',                 col: 41 }, // AP
+  { label: 'KULKAS',                    col: 42 }  // AQ
+];
 
 // Filters: key -> column index, in desired dependent/cascade order
 const FILTERS = [
@@ -720,10 +759,13 @@ function linkCell(displayVal, urlVal){
   return `<span class="no-link" title="${attr(disp)}">${disp ? '···' : '-'}</span>`;
 }
 
+let CURRENT_ROWS = []; // baris mentah yang lagi ditampilkan di tabel, sejajar index dengan rowData
+
 function buildRowData(rows){
-  return rows.map(r => [
+  CURRENT_ROWS = rows;
+  return rows.map((r, idx) => [
     norm(r[COL.NO]),
-    `<code class="ellip-cell" title="${attr(norm(r[COL.ASSIGNMENT]))}">${escapeHtml(norm(r[COL.ASSIGNMENT]))}</code>`,
+    `<code class="ellip-cell assign-info-trigger" data-ridx="${idx}" title="Klik untuk lihat detail &middot; ${attr(norm(r[COL.ASSIGNMENT]))}">${escapeHtml(norm(r[COL.ASSIGNMENT]))}</code>`,
     statusBadge(r[COL.STATUS]),
     colorChip(r[COL.KELOMPOK]),
     norm(r[COL.RINDIAN]) ? multilineCell(r[COL.RINDIAN]) : '',
@@ -817,6 +859,77 @@ $(document).on('click', '.rindian-toggle', function(){
   const cell = $(this).closest('.rindian-cell');
   const expanded = cell.toggleClass('expanded').hasClass('expanded');
   $(this).text(expanded ? 'Sembunyikan ▴' : 'Selengkapnya ▾');
+});
+
+// Tampilkan popup detail (kolom AH-AQ) saat ASSIGNMENT ID diklik
+function closeInfoPopover(){
+  const existing = document.querySelector('.info-popover');
+  if(existing) existing.remove();
+}
+
+$(document).on('click', '.assign-info-trigger', function(e){
+  e.stopPropagation();
+  const idx = Number($(this).data('ridx'));
+  const row = CURRENT_ROWS[idx];
+  const alreadyOpenForThis = $(this).hasClass('ip-active');
+
+  closeInfoPopover();
+  $('.assign-info-trigger').removeClass('ip-active');
+  if(!row || alreadyOpenForThis) return; // klik ulang pada trigger yang sama -> cuma tutup
+
+  $(this).addClass('ip-active');
+
+  const assignId = norm(row[COL.ASSIGNMENT]);
+  const rowsHtml = EXTRA_INFO_COLS.map(c => {
+    const v = norm(row[c.col]);
+    return `<tr><td class="ip-lbl">${escapeHtml(c.label)}</td><td class="ip-val">${v === '' ? '-' : escapeHtml(v)}</td></tr>`;
+  }).join('');
+
+  const pop = document.createElement('div');
+  pop.className = 'info-popover';
+  pop.innerHTML = `
+    <div class="ip-title">
+      <span>${escapeHtml(assignId || 'Detail')}</span>
+      <button type="button" class="ip-close">&times;</button>
+    </div>
+    <table>${rowsHtml}</table>`;
+  document.body.appendChild(pop);
+
+  // Posisikan di dekat elemen yang diklik, jaga supaya tidak keluar layar
+  const rect = this.getBoundingClientRect();
+  const popRect = pop.getBoundingClientRect();
+  let top = rect.bottom + 6;
+  let left = rect.left;
+  if(left + popRect.width > window.innerWidth - 8) left = window.innerWidth - popRect.width - 8;
+  if(top + popRect.height > window.innerHeight - 8) top = rect.top - popRect.height - 6;
+  if(top < 8) top = 8;
+  if(left < 8) left = 8;
+  pop.style.top = top + 'px';
+  pop.style.left = left + 'px';
+
+  pop.querySelector('.ip-close').addEventListener('click', function(ev){
+    ev.stopPropagation();
+    $('.assign-info-trigger').removeClass('ip-active');
+    closeInfoPopover();
+  });
+});
+
+$(document).on('click', function(e){
+  if(!$(e.target).closest('.info-popover').length){
+    $('.assign-info-trigger').removeClass('ip-active');
+    closeInfoPopover();
+  }
+});
+$(document).on('keydown', function(e){
+  if(e.key === 'Escape'){
+    $('.assign-info-trigger').removeClass('ip-active');
+    closeInfoPopover();
+  }
+});
+// Reposisi/tutup popup saat tabel di-scroll atau di-redraw supaya tidak "nyangkut"
+$('#anomaliTable').on('draw.dt', function(){
+  $('.assign-info-trigger').removeClass('ip-active');
+  closeInfoPopover();
 });
 
 loadData();
