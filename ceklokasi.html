@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Monitoring Beda Wilayah Tugas – SE2026 Klungkung</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        /* ===== ROOT ===== */
+        :root {
+            --se-cream: #FBF3E8;
+            --se-cream-2: #F4E8D8;
+            --se-orange: #C1622D;
+            --se-orange-dark: #8F4A21;
+            --se-brown: #4A2E1A;
+            --se-accent: #E8935A;
+            --se-line: #E4D2BC;
+            --se-good: #4C8C4A;
+            --se-good-bg: #E7F3E6;
+            --se-bad: #C0392B;
+            --se-bad-bg: #FBEAE8;
+            --se-shadow: 0 2px 10px rgba(74, 46, 26, 0.08);
+            --se-highlight: #FFF3CD;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--se-cream);
+            color: var(--se-brown);
+            font-family: 'Inter', sans-serif;
+            padding-bottom: 60px;
+        }
+
+        h1,
+        h2,
+        h3,
+        .brand-font {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* ===== HEADER ===== */
+        .se-header {
+            background: linear-gradient(120deg, var(--se-orange) 0%, var(--se-orange-dark) 100%);
+            color: #fff;
+            padding: 18px 24px;
+            box-shadow: var(--se-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+        }
+        .se-header .title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .se-header .icon-badge {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+        .se-header h1 {
+            font-size: 1.15rem;
+            margin: 0;
+            font-weight: 700;
+        }
+        .se-header small {
+            opacity: 0.85;
+            font-size: 0.75rem;
+        }
+        .sync-pill {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 999px;
+            padding: 6px 14px;
+            font-size: 0.78rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        .btn-reload {
+            background: #fff;
+            color: var(--se-orange-dark);
+            border: none;
+            font-weight: 600;
+            border-radius: 999px;
+            padding: 7px 16px;
+            font-size: 0.82rem;
+            transition: background 0.15s;
+        }
+        .btn-reload:hover {
+            background: var(--se-cream-2);
+            color: var(--se-orange-dark);
+        }
+
+        /* ===== SUMMARY CARDS ===== */
+        .summary-card {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid var(--se-line);
+            padding: 14px 16px;
+            box-shadow: var(--se-shadow);
+            height: 100%;
+        }
+        .summary-card .num {
+            font-family: 'Poppins';
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--se-orange-dark);
+        }
+        .summary-card .lbl {
+            font-size: 0.78rem;
+            color: #8a715c;
+            font-weight: 500;
+        }
+        .summary-card.good .num {
+            color: var(--se-good);
+        }
+        .summary-card.bad .num {
+            color: var(--se-bad);
+        }
+
+        /* ===== FILTER PANEL ===== */
+        .filter-card {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid var(--se-line);
+            box-shadow: var(--se-shadow);
+            padding: 16px;
+        }
+        .filter-card .filter-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .filter-card .filter-head h2 {
+            font-size: 0.95rem;
+            margin: 0;
+            font-weight: 600;
+            color: var(--se-orange-dark);
+        }
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+        }
+        details.filter-details {
+            border: 1px solid var(--se-line);
+            border-radius: 10px;
+            background: var(--se-cream);
+            overflow: visible;
+            position: relative;
+        }
+        details.filter-details>summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 9px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--se-brown);
+        }
+        details.filter-details>summary::-webkit-details-marker {
+            display: none;
+        }
+        details.filter-details>summary::after {
+            content: "\F282";
+            font-family: "bootstrap-icons";
+            font-weight: 400;
+            font-size: 0.7rem;
+            color: #a08a72;
+            transition: transform 0.15s;
+        }
+        details.filter-details[open]>summary::after {
+            transform: rotate(180deg);
+        }
+        .filter-count-badge {
+            background: var(--se-orange);
+            color: #fff;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            padding: 1px 7px;
+            margin-left: 6px;
+            font-weight: 600;
+        }
+        .filter-count-badge.zero {
+            background: #d8c6b2;
+            color: #7a6650;
+        }
+        .filter-body {
+            position: absolute;
+            left: 0;
+            top: 100%;
+            z-index: 9999;
+            width: 260px;
+            max-width: 80vw;
+            background: #fff;
+            border: 1px solid var(--se-line);
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(74, 46, 26, 0.18);
+            padding: 10px;
+            margin-top: 4px;
+        }
+        .filter-search {
+            width: 100%;
+            border: 1px solid var(--se-line);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 0.78rem;
+            margin-bottom: 8px;
+            background: var(--se-cream);
+        }
+        .filter-options {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .filter-opt-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 4px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+        }
+        .filter-opt-row:hover {
+            background: var(--se-cream-2);
+        }
+        .filter-opt-row label {
+            margin: 0;
+            cursor: pointer;
+            flex: 1;
+            word-break: break-word;
+        }
+        .filter-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            gap: 6px;
+        }
+        .filter-actions button {
+            flex: 1;
+            font-size: 0.72rem;
+            border: none;
+            border-radius: 6px;
+            padding: 5px 0;
+            font-weight: 600;
+            transition: background 0.15s;
+        }
+        .btn-filter-clear {
+            background: var(--se-cream-2);
+            color: var(--se-brown);
+        }
+        .btn-filter-clear:hover {
+            background: #dccfc0;
+        }
+        .btn-filter-all {
+            background: var(--se-orange);
+            color: #fff;
+        }
+        .btn-filter-all:hover {
+            background: var(--se-orange-dark);
+        }
+        .btn-filter-apply {
+            background: var(--se-good);
+            color: #fff;
+        }
+        .btn-filter-apply:hover {
+            background: #3d7a3b;
+        }
+        .empty-opt {
+            font-size: 0.75rem;
+            color: #a08a72;
+            padding: 6px 4px;
+        }
+        .btn-reset-all {
+            background: var(--se-brown);
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 8px 18px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            transition: background 0.15s;
+        }
+        .btn-reset-all:hover {
+            background: #3a2313;
+            color: #fff;
+        }
+
+        /* ===== TABLE ===== */
+        .table-card {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid var(--se-line);
+            box-shadow: var(--se-shadow);
+            padding: 14px;
+        }
+
+        .table-card .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table.dataTable {
+            font-size: 0.72rem;
+            width: 100% !important;
+            border-collapse: collapse;
+        }
+
+        table.dataTable thead th {
+            background: var(--se-cream-2);
+            color: var(--se-orange-dark);
+            font-weight: 700;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+            padding: 6px 3px !important;
+            border-bottom: 2px solid var(--se-line);
+        }
+
+        table.dataTable tbody td {
+            padding: 5px 3px !important;
+            vertical-align: middle;
+            border-bottom: 1px solid #f0e8de;
+            word-break: break-word;
+            white-space: normal;
+            transition: background 0.2s;
+        }
+
+        /* Highlight baris yang dipilih dari peta */
+        table.dataTable tbody tr.row-highlight {
+            background: var(--se-highlight) !important;
+            border-left: 4px solid var(--se-orange);
+        }
+        table.dataTable tbody tr.row-highlight td {
+            background: var(--se-highlight) !important;
+        }
+
+        /* Nama bisa diklik untuk tooltip */
+        .name-cell {
+            cursor: pointer;
+            color: var(--se-orange-dark);
+            font-weight: 500;
+            transition: color 0.15s;
+        }
+        .name-cell:hover {
+            color: var(--se-orange);
+            text-decoration: underline;
+        }
+
+        /* Lebar kolom */
+        table.dataTable tbody td:nth-child(1) { min-width: 100px; max-width: 160px; }
+        table.dataTable tbody td:nth-child(2) { min-width: 90px; max-width: 140px; }
+        table.dataTable tbody td:nth-child(3) { min-width: 70px; max-width: 110px; }
+        table.dataTable tbody td:nth-child(4),
+        table.dataTable tbody td:nth-child(5) { min-width: 60px; max-width: 90px; }
+        table.dataTable tbody td:nth-child(6),
+        table.dataTable tbody td:nth-child(7) { min-width: 70px; max-width: 110px; }
+        table.dataTable tbody td:nth-child(8) { min-width: 60px; max-width: 90px; }
+        table.dataTable tbody td:nth-child(9),
+        table.dataTable tbody td:nth-child(10) {
+            min-width: 150px;
+            max-width: 200px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.2px;
+        }
+        table.dataTable tbody td:nth-child(11),
+        table.dataTable tbody td:nth-child(12),
+        table.dataTable tbody td:nth-child(13),
+        table.dataTable tbody td:nth-child(14),
+        table.dataTable tbody td:nth-child(15) { min-width: 60px; max-width: 90px; }
+        table.dataTable tbody td:nth-child(16),
+        table.dataTable tbody td:nth-child(17),
+        table.dataTable tbody td:nth-child(18),
+        table.dataTable tbody td:nth-child(19) { min-width: 50px; max-width: 70px; text-align: center; }
+        table.dataTable tbody td:nth-child(20) { min-width: 70px; max-width: 110px; }
+        table.dataTable tbody td:nth-child(21) { min-width: 70px; max-width: 110px; }
+        table.dataTable tbody td:nth-child(22) { min-width: 40px; max-width: 60px; text-align: center; }
+
+        .id-cell {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .id-cell:hover .name-cell {
+            color: var(--se-orange);
+            text-decoration: underline;
+        }
+        .info-icon {
+            color: var(--se-orange);
+            cursor: pointer;
+            font-size: 1rem;
+            flex-shrink: 0;
+            transition: color 0.15s;
+        }
+        .info-icon:hover {
+            color: var(--se-orange-dark);
+        }
+
+        .link-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: var(--se-cream-2);
+            color: var(--se-orange-dark);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: background 0.15s, color 0.15s, transform 0.1s;
+            border: 1px solid transparent;
+        }
+        .link-btn:hover {
+            background: var(--se-orange);
+            color: #fff;
+            transform: scale(1.05);
+        }
+        .link-btn:active {
+            transform: scale(0.95);
+        }
+        .link-btn i {
+            font-size: 1rem;
+        }
+
+        .badge-beda {
+            display: inline-block;
+            min-width: 22px;
+            text-align: center;
+            border-radius: 6px;
+            padding: 2px 5px;
+            font-weight: 700;
+            font-size: 0.7rem;
+            white-space: nowrap;
+        }
+        .badge-beda-yes {
+            background: var(--se-bad-bg);
+            color: var(--se-bad);
+        }
+        .badge-beda-no {
+            background: var(--se-good-bg);
+            color: var(--se-good);
+        }
+
+        /* ===== TOOLTIP POPOVER ===== */
+        .tt-popover {
+            position: absolute;
+            z-index: 2000;
+            width: 300px;
+            background: #fff;
+            border: 1px solid var(--se-line);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(74, 46, 26, 0.25);
+            padding: 12px 14px;
+            font-size: 0.8rem;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .tt-popover .tt-title {
+            font-family: 'Poppins';
+            font-weight: 700;
+            color: var(--se-orange-dark);
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            border-bottom: 1px dashed var(--se-line);
+            padding-bottom: 6px;
+        }
+        .tt-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 3px 0;
+        }
+        .tt-label {
+            color: #8a715c;
+            font-weight: 600;
+        }
+        .tt-value {
+            text-align: right;
+            font-weight: 600;
+            color: var(--se-brown);
+            word-break: break-word;
+            max-width: 160px;
+        }
+        .tt-popover .popup-beda {
+            margin-top: 6px;
+            padding-top: 4px;
+            border-top: 2px solid var(--se-line);
+            font-weight: 600;
+        }
+        .tt-popover .popup-beda.yes { color: var(--se-bad); }
+        .tt-popover .popup-beda.no { color: var(--se-good); }
+
+        /* ===== LOADING ===== */
+        #loadingOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(251, 243, 232, 0.92);
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .spinner-border.se-spin {
+            color: var(--se-orange);
+            width: 2.6rem;
+            height: 2.6rem;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .se-header h1 { font-size: 1rem; }
+            .filter-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+            .filter-body { width: 220px; }
+            .summary-card .num { font-size: 1.3rem; }
+            table.dataTable tbody td { font-size: 0.62rem; padding: 3px 2px !important; }
+            table.dataTable thead th { font-size: 0.55rem; padding: 4px 2px !important; }
+            table.dataTable tbody td:nth-child(9),
+            table.dataTable tbody td:nth-child(10) {
+                min-width: 120px;
+                font-size: 0.6rem;
+            }
+            .link-btn { width: 22px; height: 22px; font-size: 0.75rem; }
+            .link-btn i { font-size: 0.8rem; }
+            .tt-popover { width: 260px; font-size: 0.72rem; }
+        }
+
+        @media (max-width: 480px) {
+            .se-header .title-wrap { gap: 8px; }
+            .se-header h1 { font-size: 0.85rem; }
+            .sync-pill { font-size: 0.65rem; padding: 4px 10px; }
+            .btn-reload { font-size: 0.7rem; padding: 5px 12px; }
+            .filter-grid { grid-template-columns: 1fr 1fr; }
+            .filter-body { width: 180px; max-width: 70vw; }
+            .summary-card .num { font-size: 1.1rem; }
+            .summary-card .lbl { font-size: 0.65rem; }
+            table.dataTable tbody td:nth-child(9),
+            table.dataTable tbody td:nth-child(10) {
+                min-width: 100px;
+                font-size: 0.55rem;
+            }
+        }
+
+        /* ===== MAP ===== */
+        #mapView {
+            height: 500px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--se-line);
+            z-index: 1;
+            background: #e8ddd0;
+        }
+
+        .leaflet-popup-content {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.78rem;
+            min-width: 200px;
+            max-width: 280px;
+        }
+        .leaflet-popup-content .popup-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 2px 0;
+            border-bottom: 1px dashed #f0e8de;
+        }
+        .leaflet-popup-content .popup-row:last-child {
+            border-bottom: none;
+        }
+        .leaflet-popup-content .popup-label {
+            color: #8a715c;
+            font-weight: 600;
+        }
+        .leaflet-popup-content .popup-value {
+            font-weight: 600;
+            color: var(--se-brown);
+            text-align: right;
+            word-break: break-word;
+            max-width: 140px;
+        }
+        .leaflet-popup-content .popup-title {
+            font-family: 'Poppins';
+            font-weight: 700;
+            color: var(--se-orange-dark);
+            font-size: 0.8rem;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 2px solid var(--se-line);
+        }
+        .leaflet-popup-content .popup-beda {
+            margin-top: 6px;
+            padding-top: 4px;
+            border-top: 2px solid var(--se-line);
+            font-weight: 600;
+        }
+        .leaflet-popup-content .popup-beda.yes { color: var(--se-bad); }
+        .leaflet-popup-content .popup-beda.no { color: var(--se-good); }
+
+        #loadStatus { margin-bottom: 12px; }
+        #loadStatus>div {
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 0.82rem;
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            border: 1px solid var(--se-line);
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 0.78rem;
+            background: var(--se-cream);
+        }
+        .dataTables_wrapper .dataTables_length select {
+            border: 1px solid var(--se-line);
+            border-radius: 8px;
+            padding: 3px 6px;
+            font-size: 0.78rem;
+            background: var(--se-cream);
+        }
+        .dataTables_wrapper .dataTables_info { font-size: 0.72rem; color: #8a715c; }
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            font-size: 0.72rem;
+            padding: 4px 10px !important;
+            border-radius: 6px !important;
+            border: 1px solid var(--se-line) !important;
+            background: #fff !important;
+            color: var(--se-brown) !important;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: var(--se-orange) !important;
+            color: #fff !important;
+            border-color: var(--se-orange) !important;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: var(--se-cream-2) !important;
+            border-color: var(--se-orange) !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== LOADING ===== -->
+    <div id="loadingOverlay">
+        <div class="spinner-border se-spin" role="status"></div>
+        <div class="brand-font fw-semibold" style="color:var(--se-orange-dark)">Memuat data SE2026…</div>
+    </div>
+
+    <!-- ===== HEADER ===== -->
+    <header class="se-header">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="title-wrap">
+                <div class="icon-badge"><i class="bi bi-geo-alt-fill"></i></div>
+                <div>
+                    <h1>Monitoring Beda Wilayah Tugas</h1>
+                    <small>SE2026 · BPS Kabupaten Klungkung</small>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="sync-pill"><i class="bi bi-clock-history"></i> <span id="lastSync">-</span></span>
+                <button class="btn-reload" id="btnReload"><i class="bi bi-arrow-clockwise"></i> Muat Ulang</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== MAIN ===== -->
+    <main class="container-fluid px-3 px-md-4 mt-3">
+
+        <!-- SUMMARY -->
+        <section class="row g-3 mb-3" id="summaryRow">
+            <div class="col-6 col-md-3">
+                <div class="summary-card">
+                    <div class="lbl">Total Data</div>
+                    <div class="num" id="sumTotal">0</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="summary-card">
+                    <div class="lbl">Ditampilkan (Filter)</div>
+                    <div class="num" id="sumShown">0</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="summary-card bad">
+                    <div class="lbl">Ada Perbedaan Wilayah</div>
+                    <div class="num" id="sumBeda">0</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="summary-card good">
+                    <div class="lbl">Tanpa Perbedaan</div>
+                    <div class="num" id="sumOk">0</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SUMMARY: RINCIAN BEDA PER JENIS -->
+        <section class="row g-3 mb-3" id="summaryBedaRow">
+            <div class="col-6 col-md-3">
+                <div class="summary-card bad">
+                    <div class="lbl">Beda Kecamatan</div>
+                    <div class="num" id="sumBedaKec">0</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="summary-card bad">
+                    <div class="lbl">Beda Desa</div>
+                    <div class="num" id="sumBedaDesa">0</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="summary-card bad">
+                    <div class="lbl">Beda SLS</div>
+                    <div class="num" id="sumBedaSls">0</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="summary-card bad">
+                    <div class="lbl">Beda SubSLS</div>
+                    <div class="num" id="sumBedaSubsls">0</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FILTER -->
+        <section class="filter-card mb-3">
+            <div class="filter-head">
+                <h2><i class="bi bi-funnel-fill"></i> Filter Data</h2>
+                <button class="btn-reset-all" id="btnResetFilters"><i class="bi bi-x-circle"></i> Reset Semua Filter</button>
+            </div>
+            <div class="filter-grid" id="filterGrid"></div>
+        </section>
+
+        <div id="loadStatus" class="mb-3"></div>
+
+        <!-- MAP -->
+        <section class="table-card mb-3">
+            <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+                <h2 style="font-size:0.95rem;font-weight:600;color:var(--se-orange-dark);margin:0;">
+                    <i class="bi bi-map-fill"></i> Peta Sebaran Titik
+                </h2>
+                <span style="font-size:0.75rem;color:#a08a72;" id="mapCount">0 titik ditampilkan</span>
+            </div>
+            <div id="mapView"></div>
+        </section>
+
+        <!-- TABLE -->
+        <section class="table-card">
+            <div class="table-responsive">
+                <table id="dataTable" class="table table-hover align-middle w-100">
+                    <thead>
+                        <tr>
+                            <th title="Nama Lengkap">Nama</th>
+                            <th title="Alamat">Alamat</th>
+                            <th title="User">User</th>
+                            <th title="Provinsi Tugas">Prov</th>
+                            <th title="Kabupaten Tugas">Kab</th>
+                            <th title="Kecamatan Tugas">Kec</th>
+                            <th title="Desa Tugas">Desa</th>
+                            <th title="SLS Tugas">SLS</th>
+                            <th title="Kode SubSLS Tugas (V)">Kode SubSLS Tugas</th>
+                            <th title="SubSLS Tagging (AA)">SubSLS Tagging</th>
+                            <th title="Provinsi Tag (AB)">Prov Tag</th>
+                            <th title="Kabupaten Tag (AC)">Kab Tag</th>
+                            <th title="Kecamatan Tag (AD)">Kec Tag</th>
+                            <th title="Desa Tag (AE)">Desa Tag</th>
+                            <th title="SLS Tag (AF)">SLS Tag</th>
+                            <th title="Beda Kecamatan">Beda Kec</th>
+                            <th title="Beda Desa">Beda Desa</th>
+                            <th title="Beda SLS">Beda SLS</th>
+                            <th title="Beda Sub SLS">Beda Sub</th>
+                            <th title="Pencacah Awal">PCL</th>
+                            <th title="Pengawas Awal">PML</th>
+                            <th title="Link">Link</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <p class="text-center mt-3" style="font-size:0.75rem;color:#a08a72;">
+            Klik kolom Nama untuk detail, klik titik di peta untuk menyorot baris.
+        </p>
+    </main>
+
+    <!-- ===== TOOLTIP POPOVER ===== -->
+    <div id="tooltipPopover" class="tt-popover d-none"></div>
+
+    <!-- ===== SCRIPTS ===== -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js">
+    </script>
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js">
+    </script>
+    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js">
+    </script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
+
+    <script>
+        /* =========================================================
+           KONFIGURASI
+        ========================================================= */
+        const APPS_SCRIPT_URL = ""; // dikosongkan: baca langsung dari CSV Google Sheets (Sheet1), tanpa Apps Script
+        const CSV_URL =
+            "https://docs.google.com/spreadsheets/d/e/2PACX-1vS-pc1Z0vpxKcsatRXTlj_rtSGxEuOHgGmRvtNLFWsd7FSq3E0dJjP04TBnsP5xC270TI1rpgF1af41/pub?output=csv";
+
+        const CACHE_KEY = 'se2026_bedawilayah_cache_v1';
+
+        const COL = {
+            ID: 0,
+            NAMA: 1,
+            ALAMAT: 2,
+            USER: 3,
+            PROVINSI: 4,
+            KABUPATEN: 5,
+            KECAMATAN: 6,
+            DESA: 7,
+            SLS: 8,
+            BEDA_KEC: 9,
+            BEDA_DESA: 10,
+            BEDA_SLS: 11,
+            BEDA_SUBSLS: 12,
+            PENCACAH_AWAL: 13,
+            PENGAWAS_AWAL: 14,
+            LINK: 15,
+            LONG: 16,
+            LAT: 17,
+            SUB_SLS_TUGAS: -1,
+            SUB_SLS_TAGGING: -1,
+            PROV_TAG: 27,
+            KAB_TAG: 28,
+            KEC_TAG: 29,
+            DESA_TAG: 30,
+            SLS_TAG: 31
+        };
+
+        const BEDA_COLS = [COL.BEDA_KEC, COL.BEDA_DESA, COL.BEDA_SLS, COL.BEDA_SUBSLS];
+        const FILTER_COLS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+        let TOOLTIP_COLS = [];
+
+        /* =========================================================
+           STATE
+        ========================================================= */
+        let headers = [];
+        let rawData = [];
+        let filters = [];
+        let filteredRows = [];
+        let dt = null;
+        let map = null;
+        let markerLayer = null;
+
+        /* =========================================================
+           UTIL
+        ========================================================= */
+        function esc(v) {
+            return String(v ?? '').replace(/[&<>"']/g, function(c) {
+                return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+            });
+        }
+
+        function colLetter(idx) {
+            let s = '',
+                n = idx + 1;
+            while (n > 0) { const m = (n - 1) % 26;
+                s = String.fromCharCode(65 + m) + s;
+                n = Math.floor((n - 1) / 26); }
+            return s;
+        }
+
+        function headerLabel(idx) {
+            return (headers[idx] && String(headers[idx]).trim()) ? headers[idx] : ('Kolom ' + colLetter(idx));
+        }
+
+        function fmtTime() {
+            const d = new Date();
+            return d.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+        }
+
+        function isBaris(rowVal) {
+            const v = String(rowVal ?? '').trim().toLowerCase();
+            return v === '1' || v === 'ya' || v === 'true';
+        }
+
+        /* =========================================================
+           CARI INDEKS KOLOM V & AA
+        ========================================================= */
+        function findColumnIndices() {
+            let idxV = -1,
+                idxAA = -1;
+            for (let i = 0; i < headers.length; i++) {
+                const h = String(headers[i] || '').trim().toLowerCase();
+                if (h.includes('kode subsls tugas') || h === 'v') idxV = i;
+                if (h.includes('subsls tagging') || h === 'aa') idxAA = i;
+            }
+            if (idxV === -1) idxV = 18;
+            if (idxAA === -1) idxAA = 26;
+            COL.SUB_SLS_TUGAS = idxV;
+            COL.SUB_SLS_TAGGING = idxAA;
+            TOOLTIP_COLS = [0, 6, 7, 8, 13, 14, idxV, idxAA, 27, 28, 29, 30, 31];
+        }
+
+        /* =========================================================
+           BUILD POPUP CONTENT (untuk peta & tooltip nama)
+        ========================================================= */
+        function buildPopupContent(row) {
+            var labelAB = (headers[27] && String(headers[27]).trim()) ? headers[27] : 'Prov Tag';
+            var labelAC = (headers[28] && String(headers[28]).trim()) ? headers[28] : 'Kab Tag';
+            var labelAD = (headers[29] && String(headers[29]).trim()) ? headers[29] : 'Kec Tag';
+            var labelAE = (headers[30] && String(headers[30]).trim()) ? headers[30] : 'Desa Tag';
+            var labelAF = (headers[31] && String(headers[31]).trim()) ? headers[31] : 'SLS Tag';
+            var anyBeda = BEDA_COLS.some(function(ci) { return isBaris(row[ci]); });
+
+            var html = '<div class="popup-title">📍 Detail Titik</div>' +
+                '<div class="popup-row"><span class="popup-label">ID</span><span class="popup-value">' + esc(row[COL
+                    .ID]) + '</span></div>' +
+                '<div class="popup-row"><span class="popup-label">Kecamatan</span><span class="popup-value">' + esc(row[
+                    COL.KECAMATAN]) + '</span></div>' +
+                '<div class="popup-row"><span class="popup-label">Desa</span><span class="popup-value">' + esc(row[COL
+                    .DESA]) + '</span></div>' +
+                '<div class="popup-row"><span class="popup-label">SLS</span><span class="popup-value">' + esc(row[COL
+                    .SLS]) + '</span></div>' +
+                '<div class="popup-row"><span class="popup-label">Kode SubSLS Tugas (V)</span><span class="popup-value">' +
+                esc(row[COL.SUB_SLS_TUGAS] ?? '-') + '</span></div>' +
+                '<div class="popup-row"><span class="popup-label">SubSLS Tagging (AA)</span><span class="popup-value">' +
+                esc(row[COL.SUB_SLS_TAGGING] ?? '-') + '</span></div>' +
+                '<div class="popup-row"><span class="popup-label">Pencacah Awal</span><span class="popup-value">' + esc(
+                    row[COL.PENCACAH_AWAL]) + '</span></div>' +
+                '<div class="popup-row"><span class="popup-label">Pengawas Awal</span><span class="popup-value">' + esc(
+                    row[COL.PENGAWAS_AWAL]) + '</span></div>';
+
+            if (row.length > 27) {
+                html += '<div class="popup-row"><span class="popup-label">' + esc(labelAB) +
+                    '</span><span class="popup-value">' + esc(row[27] ?? '-') + '</span></div>';
+            }
+            if (row.length > 28) {
+                html += '<div class="popup-row"><span class="popup-label">' + esc(labelAC) +
+                    '</span><span class="popup-value">' + esc(row[28] ?? '-') + '</span></div>';
+            }
+            if (row.length > 29) {
+                html += '<div class="popup-row"><span class="popup-label">' + esc(labelAD) +
+                    '</span><span class="popup-value">' + esc(row[29] ?? '-') + '</span></div>';
+            }
+            if (row.length > 30) {
+                html += '<div class="popup-row"><span class="popup-label">' + esc(labelAE) +
+                    '</span><span class="popup-value">' + esc(row[30] ?? '-') + '</span></div>';
+            }
+            if (row.length > 31) {
+                html += '<div class="popup-row"><span class="popup-label">' + esc(labelAF) +
+                    '</span><span class="popup-value">' + esc(row[31] ?? '-') + '</span></div>';
+            }
+            html += '<div class="popup-beda ' + (anyBeda ? 'yes' : 'no') + '">' +
+                (anyBeda ? '⚠️ Ada perbedaan wilayah' : '✅ Tidak ada perbedaan') +
+                '</div>';
+            return html;
+        }
+
+        /* =========================================================
+           HIGHLIGHT ROW di tabel
+        ========================================================= */
+        function applyRowHighlight(id) {
+            $('#dataTable tbody tr').removeClass('row-highlight');
+            var $row = $('#dataTable tbody tr').filter(function() {
+                return $(this).find('.id-cell[data-id="' + id + '"]').length > 0;
+            });
+            if ($row.length) {
+                $row.addClass('row-highlight');
+                var offset = $row.offset();
+                if (offset) {
+                    $('html, body').animate({
+                        scrollTop: offset.top - 120
+                    }, 300);
+                }
+            }
+        }
+
+        function highlightRow(id) {
+            $('#dataTable tbody tr').removeClass('row-highlight');
+            if (!id || !dt) return;
+
+            // Cari index baris (dalam data DataTables) yang cocok dengan id
+            var targetIndex = -1;
+            dt.rows().every(function(rowIdx) {
+                if (targetIndex !== -1) return;
+                var data = this.data();
+                if (data && typeof data[0] === 'string' && data[0].indexOf('data-id="' + id + '"') !== -1) {
+                    targetIndex = rowIdx;
+                }
+            });
+            if (targetIndex === -1) return;
+
+            // Cek apakah baris tersebut sedang lolos filter/pencarian tabel
+            var appliedIndexes = dt.rows({ search: 'applied' }).indexes().toArray();
+            var position = appliedIndexes.indexOf(targetIndex);
+            if (position === -1) {
+                // Baris tersembunyi karena filter pencarian tabel aktif
+                return;
+            }
+
+            var rowsPerPage = dt.page.len();
+            if (rowsPerPage === -1) rowsPerPage = appliedIndexes.length || 1;
+            var targetPage = Math.floor(position / rowsPerPage);
+
+            if (dt.page() === targetPage) {
+                applyRowHighlight(id);
+            } else {
+                dt.one('draw', function() {
+                    applyRowHighlight(id);
+                });
+                dt.page(targetPage).draw(false);
+            }
+        }
+
+        /* =========================================================
+           CACHE (biar loading awal super cepat)
+        ========================================================= */
+        function saveCache() {
+            try {
+                sessionStorage.setItem(CACHE_KEY, JSON.stringify({
+                    headers: headers,
+                    rawData: rawData,
+                    ts: Date.now()
+                }));
+            } catch (e) {
+                console.warn('Tidak bisa menyimpan cache:', e);
+            }
+        }
+
+        function loadFromCache() {
+            try {
+                var raw = sessionStorage.getItem(CACHE_KEY);
+                if (!raw) return false;
+                var parsed = JSON.parse(raw);
+                if (!parsed || !Array.isArray(parsed.headers) || !Array.isArray(parsed.rawData) || parsed.rawData
+                    .length === 0) return false;
+                headers = parsed.headers;
+                rawData = parsed.rawData;
+                findColumnIndices();
+                initFilters();
+                computeFilterState();
+                $('#lastSync').text(fmtTime() + ' (cache)');
+                $('#loadingOverlay').addClass('d-none');
+                return true;
+            } catch (e) {
+                console.warn('Cache rusak, abaikan:', e);
+                return false;
+            }
+        }
+
+        /* =========================================================
+           LOAD DATA
+        ========================================================= */
+        function setStatus(html, type) {
+            const colors = {
+                info: { bg: '#FDF3E7', border: '#E4D2BC', text: '#8F4A21' },
+                error: { bg: '#FBEAE8', border: '#EBC3BC', text: '#C0392B' },
+                ok: { bg: '#E7F3E6', border: '#C7E0C4', text: '#4C8C4A' }
+            } [type || 'info'];
+            $('#loadStatus').html(
+                `<div style="background:${colors.bg};border:1px solid ${colors.border};color:${colors.text};border-radius:10px;padding:10px 14px;font-size:0.82rem;">${html}</div>`
+            );
+        }
+
+        function clearStatus() { $('#loadStatus').empty(); }
+
+        function processCsvText(text) {
+            const results = Papa.parse(text, { header: false, skipEmptyLines: true });
+            const rows = results.data;
+            if (!rows || rows.length < 2 || !rows[0] || rows[0].length <= 1) {
+                throw new Error('Data CSV kosong / format tidak dikenali');
+            }
+            headers = rows[0];
+            rawData = rows.slice(1).filter(function(r) { return r.some(function(c) { return String(c).trim() !== ''; }); });
+            findColumnIndices();
+            initFilters();
+            computeFilterState();
+            $('#lastSync').text(fmtTime());
+            $('#loadingOverlay').addClass('d-none');
+            clearStatus();
+            saveCache();
+        }
+
+        const PROXIES = [
+            function(url) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url) + '&_=' + Date.now(); },
+            function(url) { return 'https://corsproxy.io/?url=' + encodeURIComponent(url) + '&_=' + Date.now(); },
+            function(url) { return 'https://thingproxy.freeboard.io/fetch/' + url; }
+        ];
+
+        function tryProxiesSequentially(i, isBackground) {
+            if (i >= PROXIES.length) {
+                if (!isBackground) {
+                    $('#loadingOverlay').addClass('d-none');
+                    setStatus('<b><i class="bi bi-exclamation-triangle-fill"></i> Gagal memuat data.</b>', 'error');
+                } else {
+                    console.warn('Refresh latar belakang gagal (semua proxy).');
+                }
+                return;
+            }
+            const proxied = PROXIES[i](CSV_URL);
+            if (!isBackground) {
+                setStatus('<i class="bi bi-arrow-repeat"></i> Mencoba metode pemuatan data ke-' + (i + 1) + ' dari ' +
+                    PROXIES.length + '…', 'info');
+            }
+            fetch(proxied)
+                .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+                .then(function(text) { processCsvText(text); })
+                .catch(function(err) {
+                    console.error('Proxy #' + (i + 1) + ' gagal:', err);
+                    tryProxiesSequentially(i + 1, isBackground);
+                });
+        }
+
+        function loadFromAppsScript(isBackground) {
+            if (!isBackground) {
+                setStatus('<i class="bi bi-arrow-repeat"></i> Memuat data dari Apps Script…', 'info');
+            }
+            fetch(APPS_SCRIPT_URL + (APPS_SCRIPT_URL.includes('?') ? '&' : '?') + '_=' + Date.now())
+                .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+                .then(function(json) {
+                    if (!json || !json.ok || !Array.isArray(json.rows) || json.rows.length < 2) {
+                        throw new Error('Format respons Apps Script tidak sesuai');
+                    }
+                    headers = json.rows[0];
+                    rawData = json.rows.slice(1).filter(function(r) { return r.some(function(c) { return String(c)
+                            .trim() !== ''; }); });
+                    findColumnIndices();
+                    initFilters();
+                    computeFilterState();
+                    $('#lastSync').text(fmtTime());
+                    $('#loadingOverlay').addClass('d-none');
+                    clearStatus();
+                    saveCache();
+                })
+                .catch(function(err) {
+                    console.error('Gagal memuat dari Apps Script:', err);
+                    if (!isBackground) {
+                        setStatus(
+                            '<b><i class="bi bi-exclamation-triangle-fill"></i> Gagal memuat dari Apps Script.</b>',
+                            'error');
+                        $('#loadingOverlay').addClass('d-none');
+                    }
+                });
+        }
+
+        // useCache=true  -> coba tampilkan data cache dulu (instan), lalu ambil data terbaru diam-diam di latar belakang
+        // useCache=false -> selalu fetch fresh dan tampilkan overlay loading (dipakai tombol "Muat Ulang")
+        function loadData(useCache) {
+            clearStatus();
+            var hadCache = useCache ? loadFromCache() : false;
+            if (!hadCache) {
+                $('#loadingOverlay').removeClass('d-none');
+            }
+            var isBackground = hadCache;
+
+            if (APPS_SCRIPT_URL && APPS_SCRIPT_URL.trim() !== '') {
+                loadFromAppsScript(isBackground);
+                return;
+            }
+            Papa.parse(CSV_URL, {
+                download: true,
+                header: false,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    const rows = results.data;
+                    if (!rows || rows.length < 2 || !rows[0] || rows[0].length <= 1) {
+                        tryProxiesSequentially(0, isBackground);
+                        return;
+                    }
+                    headers = rows[0];
+                    rawData = rows.slice(1).filter(function(r) { return r.some(function(c) { return String(c)
+                            .trim() !== ''; }); });
+                    findColumnIndices();
+                    initFilters();
+                    computeFilterState();
+                    $('#lastSync').text(fmtTime());
+                    $('#loadingOverlay').addClass('d-none');
+                    saveCache();
+                },
+                error: function() {
+                    tryProxiesSequentially(0, isBackground);
+                }
+            });
+        }
+
+        function initFilters() {
+            filters = FILTER_COLS.map(function(idx) {
+                return {
+                    colIndex: idx,
+                    label: headerLabel(idx),
+                    selected: new Set(),
+                    tempSelected: new Set(),
+                    availableOptions: [],
+                    searchText: '',
+                    open: false
+                };
+            });
+            filters.forEach(function(f) {
+                f.tempSelected = new Set(f.selected);
+            });
+        }
+
+        /* =========================================================
+           FILTER ENGINE
+        ========================================================= */
+        function rowMatchesFilters(row, list) {
+            return list.every(function(f) { return f.selected.has(String(row[f.colIndex] ?? '').trim()); });
+        }
+
+        function computeFilterState() {
+            var allActive = filters.filter(function(f) { return f.selected.size > 0; });
+            filteredRows = rawData.filter(function(r) { return rowMatchesFilters(r, allActive); });
+
+            filters.forEach(function(f, idx) {
+                var others = filters.filter(function(ff, i) { return i !== idx && ff.selected.size > 0; });
+                var scoped = rawData.filter(function(r) { return rowMatchesFilters(r, others); });
+                var optSet = new Set();
+                scoped.forEach(function(r) {
+                    var v = String(r[f.colIndex] ?? '').trim();
+                    if (v !== '') optSet.add(v);
+                });
+                Array.from(f.selected).forEach(function(v) { if (!optSet.has(v)) f.selected.delete(v); });
+                f.availableOptions = Array.from(optSet).sort(function(a, b) { return a.localeCompare(b, 'id', { numeric: true }); });
+                f.tempSelected = new Set(f.selected);
+            });
+
+            renderFilters();
+            renderSummary();
+            renderTable();
+        }
+
+        /* =========================================================
+           RENDER FILTERS
+        ========================================================= */
+        function renderFilters() {
+            var $grid = $('#filterGrid').empty();
+
+            filters.forEach(function(f) {
+                var count = f.selected.size;
+                var badgeCls = count > 0 ? '' : 'zero';
+                var $details = $(
+                    '<details class="filter-details" ' + (f.open ? 'open' : '') + '>' +
+                    '<summary><span>' + esc(f.label) + '</span><span class="filter-count-badge ' + badgeCls +
+                    '">' + (count > 0 ? count : f.availableOptions.length) + '</span></summary>' +
+                    '<div class="filter-body">' +
+                    '<input type="text" class="filter-search" placeholder="Cari ' + esc(f.label) + '…" value="' + esc(f
+                        .searchText) + '">' +
+                    '<div class="filter-options"></div>' +
+                    '<div class="filter-actions">' +
+                    '<button type="button" class="btn-filter-clear">Hapus</button>' +
+                    '<button type="button" class="btn-filter-all">Pilih Semua</button>' +
+                    '<button type="button" class="btn-filter-apply">Terapkan</button>' +
+                    '</div>' +
+                    '</div>' +
+                    '</details>'
+                );
+
+                $details.on('toggle', function() {
+                    f.open = this.open;
+                    if (this.open) {
+                        f.tempSelected = new Set(f.selected);
+                        renderOptions();
+                    }
+                });
+
+                var $optWrap = $details.find('.filter-options');
+
+                function renderOptions() {
+                    var q = f.searchText.toLowerCase();
+                    var opts = f.availableOptions.filter(function(o) { return o.toLowerCase().includes(q); });
+                    $optWrap.empty();
+                    if (opts.length === 0) {
+                        $optWrap.append('<div class="empty-opt">Tidak ada opsi</div>');
+                        return;
+                    }
+                    opts.forEach(function(opt) {
+                        var checked = f.tempSelected.has(opt) ? 'checked' : '';
+                        var cid = 'chk_' + f.colIndex + '_' + Math.random().toString(36).slice(2, 8);
+                        var $row = $(
+                            '<div class="filter-opt-row">' +
+                            '<input type="checkbox" id="' + cid + '" ' + checked + '>' +
+                            '<label for="' + cid + '">' + esc(opt) + '</label>' +
+                            '</div>'
+                        );
+                        $row.find('input').on('change', function() {
+                            if (this.checked) f.tempSelected.add(opt);
+                            else f.tempSelected.delete(opt);
+                            updateBadge();
+                        });
+                        $optWrap.append($row);
+                    });
+                }
+
+                function updateBadge() {
+                    var tempCount = f.tempSelected.size;
+                    var $badge = $details.find('.filter-count-badge');
+                    $badge.text(tempCount > 0 ? tempCount : f.availableOptions.length);
+                    $badge.toggleClass('zero', tempCount === 0);
+                }
+
+                $details.find('.filter-search').on('input', function() {
+                    f.searchText = this.value;
+                    renderOptions();
+                });
+
+                $details.find('.btn-filter-clear').on('click', function() {
+                    f.tempSelected.clear();
+                    f.selected.clear();
+                    f.open = false;
+                    computeFilterState();
+                });
+
+                $details.find('.btn-filter-all').on('click', function() {
+                    f.availableOptions.forEach(function(o) { f.tempSelected.add(o); });
+                    renderOptions();
+                    updateBadge();
+                });
+
+                $details.find('.btn-filter-apply').on('click', function() {
+                    f.selected = new Set(f.tempSelected);
+                    f.open = false;
+                    computeFilterState();
+                });
+
+                renderOptions();
+                $grid.append($details);
+            });
+        }
+
+        $('#btnResetFilters').on('click', function() {
+            filters.forEach(function(f) {
+                f.selected.clear();
+                f.tempSelected.clear();
+            });
+            computeFilterState();
+        });
+
+        /* =========================================================
+           RENDER SUMMARY
+        ========================================================= */
+        function renderSummary() {
+            $('#sumTotal').text(rawData.length.toLocaleString('id-ID'));
+            $('#sumShown').text(filteredRows.length.toLocaleString('id-ID'));
+            var bedaCount = 0;
+            var bedaKecCount = 0,
+                bedaDesaCount = 0,
+                bedaSlsCount = 0,
+                bedaSubslsCount = 0;
+            filteredRows.forEach(function(r) {
+                if (BEDA_COLS.some(function(ci) { return isBaris(r[ci]); })) bedaCount++;
+                if (isBaris(r[COL.BEDA_KEC])) bedaKecCount++;
+                if (isBaris(r[COL.BEDA_DESA])) bedaDesaCount++;
+                if (isBaris(r[COL.BEDA_SLS])) bedaSlsCount++;
+                if (isBaris(r[COL.BEDA_SUBSLS])) bedaSubslsCount++;
+            });
+            $('#sumBeda').text(bedaCount.toLocaleString('id-ID'));
+            $('#sumOk').text((filteredRows.length - bedaCount).toLocaleString('id-ID'));
+            $('#sumBedaKec').text(bedaKecCount.toLocaleString('id-ID'));
+            $('#sumBedaDesa').text(bedaDesaCount.toLocaleString('id-ID'));
+            $('#sumBedaSls').text(bedaSlsCount.toLocaleString('id-ID'));
+            $('#sumBedaSubsls').text(bedaSubslsCount.toLocaleString('id-ID'));
+        }
+
+        /* =========================================================
+           RENDER TABLE
+        ========================================================= */
+        function bedaBadge(val) {
+            var v = String(val ?? '').trim();
+            var isYes = isBaris(v);
+            var cls = isYes ? 'badge-beda-yes' : 'badge-beda-no';
+            var text = isYes ? 'Ya' : (v === '' ? '-' : 'Tidak');
+            if (v !== '' && !isYes && v !== 'Tidak' && v !== '0' && v.toLowerCase() !== 'false') text = v;
+            return '<span class="badge-beda ' + cls + '">' + esc(text) + '</span>';
+        }
+
+        function linkIcon(url) {
+            var u = String(url ?? '').trim();
+            if (!u) return '<span style="color:#c9b8a4;">-</span>';
+            return '<a href="' + esc(u) + '" target="_blank" rel="noopener" class="link-btn" title="Buka link"><i class="bi bi-box-arrow-up-right"></i></a>';
+        }
+
+        function rowToDT(row, idx) {
+            var id = row[COL.ID];
+            return [
+                '<span class="id-cell" data-id="' + id + '">' +
+                '<i class="bi bi-info-circle-fill info-icon" data-idx="' + idx + '" title="Detail tambahan"></i> ' +
+                '<span class="name-cell" data-id="' + id + '" data-idx="' + idx + '">' + esc(row[COL.NAMA]) + '</span>' +
+                '</span>',
+                esc(row[COL.ALAMAT]),
+                esc(row[COL.USER]),
+                esc(row[COL.PROVINSI]),
+                esc(row[COL.KABUPATEN]),
+                esc(row[COL.KECAMATAN]),
+                esc(row[COL.DESA]),
+                esc(row[COL.SLS]),
+                esc(row[COL.SUB_SLS_TUGAS] ?? ''),
+                esc(row[COL.SUB_SLS_TAGGING] ?? ''),
+                esc(row[COL.PROV_TAG] ?? ''),
+                esc(row[COL.KAB_TAG] ?? ''),
+                esc(row[COL.KEC_TAG] ?? ''),
+                esc(row[COL.DESA_TAG] ?? ''),
+                esc(row[COL.SLS_TAG] ?? ''),
+                bedaBadge(row[COL.BEDA_KEC]),
+                bedaBadge(row[COL.BEDA_DESA]),
+                bedaBadge(row[COL.BEDA_SLS]),
+                bedaBadge(row[COL.BEDA_SUBSLS]),
+                esc(row[COL.PENCACAH_AWAL]),
+                esc(row[COL.PENGAWAS_AWAL]),
+                linkIcon(row[COL.LINK])
+            ];
+        }
+
+        function renderTable() {
+            var data = filteredRows.map(function(r, i) { return rowToDT(r, i); });
+            if (dt === null) {
+                dt = $('#dataTable').DataTable({
+                    data: data,
+                    deferRender: true,
+                    scrollX: true,
+                    autoWidth: false,
+                    pageLength: 25,
+                    lengthMenu: [10, 25, 50, 100],
+                    language: {
+                        search: 'Cari:',
+                        lengthMenu: 'Tampilkan _MENU_ baris',
+                        info: 'Menampilkan _START_-_END_ dari _TOTAL_ baris',
+                        infoEmpty: 'Tidak ada data',
+                        infoFiltered: '(disaring dari _MAX_ total baris)',
+                        paginate: { previous: '‹', next: '›' },
+                        zeroRecords: 'Tidak ada data yang cocok'
+                    },
+                    columnDefs: [
+                        { targets: [21], orderable: false, searchable: false } // link
+                    ],
+                    drawCallback: function() {
+                        // Event listener untuk klik nama di setiap render ulang
+                        attachNameClickEvents();
+                    }
+                });
+            } else {
+                dt.clear();
+                dt.rows.add(data);
+                dt.draw();
+            }
+            renderMap();
+        }
+
+        /* =========================================================
+           EVENT: KLIK NAMA -> TAMPILKAN TOOLTIP
+        ========================================================= */
+        function positionTooltipBesideCell($cell) {
+            var $tt = $('#tooltipPopover');
+            var offset = $cell.offset();
+            if (!offset) return;
+            var ttWidth = 300;
+
+            // Tentukan sisi kanan/kiri berdasar ruang yang tersedia
+            var left = offset.left + $cell.outerWidth() + 10;
+            if (left + ttWidth > window.innerWidth - 10) {
+                left = offset.left - ttWidth - 10;
+            }
+            if (left < 10) left = 10;
+
+            // Render dulu (tersembunyi) untuk mengukur tinggi, lalu clamp vertikal ke viewport
+            $tt.css({ top: offset.top + window.scrollY, left: left, visibility: 'hidden' }).removeClass('d-none');
+            var ttHeight = $tt.outerHeight() || 0;
+            var top = offset.top + window.scrollY;
+            var viewportBottom = window.scrollY + window.innerHeight - 10;
+            if (top + ttHeight > viewportBottom) {
+                top = Math.max(window.scrollY + 10, viewportBottom - ttHeight);
+            }
+            $tt.css({ top: top, left: left, visibility: 'visible' });
+        }
+
+        function attachNameClickEvents() {
+            // Klik di mana saja pada kolom paling kiri (nama + ikon) -> tampilkan detail
+            // Gunakan event delegation di tbody agar tetap aktif meskipun row berubah
+            $('#dataTable tbody').off('click', '.id-cell').on('click', '.id-cell', function(e) {
+                e.stopPropagation();
+                var id = $(this).data('id');
+                var idx = $(this).find('.name-cell').data('idx');
+
+                var row = filteredRows[idx];
+                if (!row) {
+                    for (var i = 0; i < filteredRows.length; i++) {
+                        if (filteredRows[i][COL.ID] === id) {
+                            row = filteredRows[i];
+                            break;
+                        }
+                    }
+                }
+                if (!row) return;
+
+                var fields = TOOLTIP_COLS.map(function(ci) {
+                    return {
+                        label: headerLabel(ci),
+                        value: (row[ci] !== undefined && String(row[ci]).trim() !== '') ? row[ci] : '-'
+                    };
+                });
+                var rowsHtml = fields.map(function(f) {
+                    return '<div class="tt-row"><span class="tt-label">' + esc(f.label) +
+                        '</span><span class="tt-value">' + esc(f.value) + '</span></div>';
+                }).join('');
+                var anyBeda = BEDA_COLS.some(function(ci) { return isBaris(row[ci]); });
+                var html = '<div class="tt-title"><i class="bi bi-card-list"></i> Detail · ' + esc(row[COL.NAMA]) +
+                    '</div>' + rowsHtml +
+                    '<div class="popup-beda ' + (anyBeda ? 'yes' : 'no') + '">' +
+                    (anyBeda ? '⚠️ Ada perbedaan wilayah' : '✅ Tidak ada perbedaan') + '</div>';
+
+                $('#tooltipPopover').html(html);
+                positionTooltipBesideCell($(this));
+            });
+        }
+
+        // Tutup tooltip saat klik di luar (global)
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('#tooltipPopover, .name-cell, .info-icon').length) {
+                $('#tooltipPopover').addClass('d-none');
+            }
+        });
+
+        /* =========================================================
+           PETA
+        ========================================================= */
+        function initMap() {
+            if (map) return;
+            map = L.map('mapView').setView([-8.5385, 115.4034], 11);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+            markerLayer = L.layerGroup().addTo(map);
+        }
+
+        function renderMap() {
+            initMap();
+            markerLayer.clearLayers();
+            var bounds = [];
+
+            filteredRows.forEach(function(row) {
+                var lat = parseFloat(String(row[COL.LAT]).replace(',', '.'));
+                var lng = parseFloat(String(row[COL.LONG]).replace(',', '.'));
+                if (isNaN(lat) || isNaN(lng)) return;
+                var anyBeda = BEDA_COLS.some(function(ci) { return isBaris(row[ci]); });
+                var marker = L.circleMarker([lat, lng], {
+                    radius: 7,
+                    color: anyBeda ? '#C0392B' : '#4C8C4A',
+                    fillColor: anyBeda ? '#C0392B' : '#4C8C4A',
+                    fillOpacity: 0.75,
+                    weight: 1.5
+                });
+
+                // Simpan ID di marker
+                marker.id = row[COL.ID];
+
+                // Popup
+                marker.bindPopup(buildPopupContent(row));
+
+                // Event klik untuk highlight baris
+                marker.on('click', function() {
+                    highlightRow(this.id);
+                });
+
+                marker.addTo(markerLayer);
+                bounds.push([lat, lng]);
+            });
+
+            $('#mapCount').text(bounds.length.toLocaleString('id-ID') + ' titik ditampilkan');
+            if (bounds.length > 0) {
+                map.fitBounds(bounds, { padding: [24, 24], maxZoom: 16 });
+            }
+            setTimeout(function() { if (map) map.invalidateSize(); }, 200);
+        }
+
+        // Tutup dropdown filter lain saat satu dibuka
+        document.addEventListener('toggle', function(e) {
+            if (e.target.matches && e.target.matches('details.filter-details') && e.target.open) {
+                document.querySelectorAll('details.filter-details[open]').forEach(function(d) {
+                    if (d !== e.target) d.open = false;
+                });
+            }
+        }, true);
+
+        /* =========================================================
+           INIT
+        ========================================================= */
+        $('#btnReload').on('click', function() { loadData(false); });
+        $(document).ready(function() { loadData(true); });
+    </script>
+</body>
+</html>
