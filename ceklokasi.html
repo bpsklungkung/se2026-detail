@@ -398,6 +398,7 @@
         table.dataTable tbody td:nth-child(20) { min-width: 70px; max-width: 110px; }
         table.dataTable tbody td:nth-child(21) { min-width: 70px; max-width: 110px; }
         table.dataTable tbody td:nth-child(22) { min-width: 40px; max-width: 60px; text-align: center; }
+        table.dataTable tbody td:nth-child(23) { min-width: 150px; max-width: 190px; }
 
         .id-cell {
             display: flex;
@@ -464,6 +465,101 @@
             background: var(--se-good-bg);
             color: var(--se-good);
         }
+
+        /* ===== KONFIRMASI KOLOM ===== */
+        .konfirmasi-select {
+            width: 100%;
+            border: 1px solid var(--se-line);
+            border-radius: 8px;
+            padding: 5px 6px;
+            font-size: 0.72rem;
+            background: var(--se-cream);
+            color: var(--se-brown);
+            cursor: pointer;
+        }
+        .konfirmasi-select:focus {
+            outline: none;
+            border-color: var(--se-orange);
+        }
+        .badge-konfirmasi {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border-radius: 8px;
+            padding: 5px 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            line-height: 1.25;
+            transition: filter 0.15s;
+        }
+        .badge-konfirmasi:hover {
+            filter: brightness(0.96);
+        }
+        .badge-konfirmasi.sesuai {
+            background: var(--se-good-bg);
+            color: var(--se-good);
+        }
+        .badge-konfirmasi.perbaikan {
+            background: var(--se-bad-bg);
+            color: var(--se-bad);
+        }
+        .badge-konfirmasi .bk-sub {
+            display: block;
+            font-weight: 500;
+            font-size: 0.63rem;
+            opacity: 0.85;
+            margin-top: 1px;
+        }
+
+        /* ===== MODAL KONFIRMASI ===== */
+        #konfirmasiModal .modal-content {
+            border-radius: 14px;
+            border: none;
+        }
+        #konfirmasiModal .modal-header {
+            background: linear-gradient(120deg, var(--se-orange) 0%, var(--se-orange-dark) 100%);
+            color: #fff;
+            border-radius: 14px 14px 0 0;
+        }
+        #konfirmasiModal .modal-title {
+            font-family: 'Poppins';
+            font-size: 1rem;
+            font-weight: 700;
+        }
+        #konfirmasiModal .btn-close {
+            filter: invert(1) grayscale(1) brightness(2);
+        }
+        #konfirmasiModal label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--se-brown);
+            margin-bottom: 4px;
+        }
+        #konfirmasiModal .form-control,
+        #konfirmasiModal .form-select {
+            border-radius: 8px;
+            border: 1px solid var(--se-line);
+            font-size: 0.85rem;
+        }
+        #konfirmasiModal .info-readonly {
+            background: var(--se-cream);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            color: #8a715c;
+            margin-bottom: 12px;
+        }
+        #konfirmasiModal .info-readonly b { color: var(--se-brown); }
+        .btn-se-primary {
+            background: var(--se-orange);
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            border-radius: 8px;
+        }
+        .btn-se-primary:hover { background: var(--se-orange-dark); color: #fff; }
 
         /* ===== TOOLTIP POPOVER ===== */
         .tt-popover {
@@ -796,6 +892,7 @@
                             <th title="Pencacah Awal">PCL</th>
                             <th title="Pengawas Awal">PML</th>
                             <th title="Link">Link</th>
+                            <th title="Konfirmasi hasil tagging">Konfirmasi</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -810,6 +907,39 @@
 
     <!-- ===== TOOLTIP POPOVER ===== -->
     <div id="tooltipPopover" class="tt-popover d-none"></div>
+
+    <!-- ===== MODAL KONFIRMASI ===== -->
+    <div class="modal fade" id="konfirmasiModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-patch-check-fill"></i> Konfirmasi Hasil Tagging</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="info-readonly">
+                        <div><b>Nama:</b> <span id="kfNama">-</span></div>
+                        <div><b>Pilihan:</b> <span id="kfPilihanText">-</span></div>
+                    </div>
+                    <input type="hidden" id="kfId">
+                    <input type="hidden" id="kfPilihan">
+                    <div class="mb-3">
+                        <label for="kfUsername" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="kfUsername" placeholder="Masukkan username">
+                    </div>
+                    <div class="mb-2">
+                        <label for="kfKeterangan" class="form-label">Keterangan</label>
+                        <textarea class="form-control" id="kfKeterangan" rows="3" placeholder="Catatan tambahan (opsional)"></textarea>
+                    </div>
+                    <div id="kfError" class="text-danger" style="font-size:0.78rem;display:none;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="kfBatal">Batal</button>
+                    <button type="button" class="btn btn-se-primary" id="kfSimpan"><i class="bi bi-save2"></i> Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- ===== SCRIPTS ===== -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js">
@@ -834,6 +964,17 @@
             "https://docs.google.com/spreadsheets/d/e/2PACX-1vS-pc1Z0vpxKcsatRXTlj_rtSGxEuOHgGmRvtNLFWsd7FSq3E0dJjP04TBnsP5xC270TI1rpgF1af41/pub?output=csv";
 
         const CACHE_KEY = 'se2026_bedawilayah_cache_v1';
+
+        // URL Web App Apps Script untuk simpan/baca Konfirmasi (lihat file KonfirmasiAPI.gs).
+        // Kalau dikosongkan, hasil Konfirmasi hanya tersimpan sementara di browser (sessionStorage),
+        // TIDAK permanen ke Google Sheets.
+        const KONFIRMASI_URL = "https://script.google.com/macros/s/AKfycbzaMaB2fDAlAl8NoFh99w4LAO6bFlhP2YVl9jc-1ptu6SGYO49lgtQa_UBziG7fnXMPHA/exec";
+        const KONFIRMASI_CACHE_KEY = 'se2026_bedawilayah_konfirmasi_v1';
+
+        const KONFIRMASI_OPTIONS = [
+            { value: '1', label: '1. Sesuai hasil tagging', cls: 'sesuai' },
+            { value: '2', label: '2. Perbaikan pada tagging', cls: 'perbaikan' }
+        ];
 
         const COL = {
             ID: 0,
@@ -877,6 +1018,7 @@
         let dt = null;
         let map = null;
         let markerLayer = null;
+        let confirmMap = {}; // { [id]: { pilihan, username, keterangan, waktu } }
 
         /* =========================================================
            UTIL
@@ -1406,6 +1548,153 @@
             return '<a href="' + esc(u) + '" target="_blank" rel="noopener" class="link-btn" title="Buka link"><i class="bi bi-box-arrow-up-right"></i></a>';
         }
 
+        /* =========================================================
+           KONFIRMASI HASIL TAGGING
+        ========================================================= */
+        function confirmCellHtml(id) {
+            var rec = confirmMap[id];
+            if (rec) {
+                var opt = KONFIRMASI_OPTIONS.find(function(o) { return o.value === String(rec.pilihan); }) ||
+                    { label: rec.pilihan, cls: 'sesuai' };
+                var icon = opt.cls === 'sesuai' ? 'bi-check-circle-fill' : 'bi-tools';
+                return '<div class="badge-konfirmasi ' + opt.cls + '" data-id="' + id + '" title="Klik untuk ubah">' +
+                    '<i class="bi ' + icon + '"></i> <span>' + esc(opt.label) +
+                    (rec.username ? '<span class="bk-sub">' + esc(rec.username) + '</span>' : '') +
+                    '</span></div>';
+            }
+            var opts = '<option value="">-- Pilih --</option>' + KONFIRMASI_OPTIONS.map(function(o) {
+                return '<option value="' + o.value + '">' + esc(o.label) + '</option>';
+            }).join('');
+            return '<select class="konfirmasi-select" data-id="' + id + '">' + opts + '</select>';
+        }
+
+        function saveConfirmMapCache() {
+            try {
+                sessionStorage.setItem(KONFIRMASI_CACHE_KEY, JSON.stringify(confirmMap));
+            } catch (e) {
+                console.warn('Tidak bisa menyimpan cache konfirmasi:', e);
+            }
+        }
+
+        function loadConfirmMap() {
+            if (KONFIRMASI_URL && KONFIRMASI_URL.trim() !== '') {
+                fetch(KONFIRMASI_URL + (KONFIRMASI_URL.includes('?') ? '&' : '?') + 'action=list&_=' + Date.now())
+                    .then(function(r) { return r.json(); })
+                    .then(function(json) {
+                        if (!json || !json.ok || !Array.isArray(json.data)) return;
+                        confirmMap = {};
+                        json.data.forEach(function(rec) {
+                            confirmMap[String(rec.id)] = rec;
+                        });
+                        saveConfirmMapCache();
+                        renderTable();
+                    })
+                    .catch(function(err) { console.warn('Gagal memuat konfirmasi dari Apps Script:', err); });
+                return;
+            }
+            try {
+                var raw = sessionStorage.getItem(KONFIRMASI_CACHE_KEY);
+                if (raw) confirmMap = JSON.parse(raw) || {};
+            } catch (e) { confirmMap = {}; }
+            if (dt) renderTable();
+        }
+
+        function submitKonfirmasi(payload, onDone) {
+            if (KONFIRMASI_URL && KONFIRMASI_URL.trim() !== '') {
+                fetch(KONFIRMASI_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify(Object.assign({ action: 'simpan' }, payload))
+                    })
+                    .then(function(r) { return r.json(); })
+                    .then(function(json) {
+                        if (!json || !json.ok) throw new Error(json && json.error || 'Gagal menyimpan');
+                        onDone(null);
+                    })
+                    .catch(function(err) { onDone(err); });
+                return;
+            }
+            // Tanpa Apps Script: simpan lokal saja (sessionStorage), tidak permanen ke Sheets
+            onDone(null);
+        }
+
+        function openKonfirmasiModal(id, pilihanValue) {
+            var opt = KONFIRMASI_OPTIONS.find(function(o) { return o.value === pilihanValue; });
+            var row = rawData.find(function(r) { return String(r[COL.ID]) === String(id); });
+            $('#kfId').val(id);
+            $('#kfPilihan').val(pilihanValue);
+            $('#kfNama').text(row ? row[COL.NAMA] : id);
+            $('#kfPilihanText').text(opt ? opt.label : '-');
+            var rec = confirmMap[id];
+            $('#kfUsername').val(rec ? (rec.username || '') : '');
+            $('#kfKeterangan').val(rec ? (rec.keterangan || '') : '');
+            $('#kfError').hide().text('');
+            var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('konfirmasiModal'));
+            modal.show();
+        }
+
+        $(document).on('change', '.konfirmasi-select', function() {
+            var id = $(this).data('id');
+            var val = $(this).val();
+            if (!val) return;
+            openKonfirmasiModal(id, val);
+        });
+
+        $(document).on('click', '.badge-konfirmasi', function() {
+            var id = $(this).data('id');
+            var rec = confirmMap[id];
+            openKonfirmasiModal(id, rec ? String(rec.pilihan) : '');
+        });
+
+        // Kalau modal ditutup tanpa disimpan, kembalikan dropdown ke "-- Pilih --"
+        document.getElementById('konfirmasiModal').addEventListener('hidden.bs.modal', function() {
+            var id = $('#kfId').val();
+            if (id && !confirmMap[id]) {
+                $('.konfirmasi-select[data-id="' + id + '"]').val('');
+            }
+        });
+
+        $('#kfSimpan').on('click', function() {
+            var id = $('#kfId').val();
+            var pilihan = $('#kfPilihan').val();
+            var username = $('#kfUsername').val().trim();
+            var keterangan = $('#kfKeterangan').val().trim();
+            if (!username) {
+                $('#kfError').text('Username wajib diisi.').show();
+                return;
+            }
+            var row = rawData.find(function(r) { return String(r[COL.ID]) === String(id); });
+            var opt = KONFIRMASI_OPTIONS.find(function(o) { return o.value === pilihan; });
+            var payload = {
+                id: id,
+                nama: row ? row[COL.NAMA] : '',
+                pilihan: pilihan,
+                pilihanLabel: opt ? opt.label : '',
+                username: username,
+                keterangan: keterangan
+            };
+            var $btn = $(this).prop('disabled', true).text('Menyimpan…');
+            submitKonfirmasi(payload, function(err) {
+                $btn.prop('disabled', false).html('<i class="bi bi-save2"></i> Simpan');
+                if (err) {
+                    $('#kfError').text('Gagal menyimpan: ' + err.message).show();
+                    return;
+                }
+                confirmMap[id] = {
+                    id: id,
+                    pilihan: pilihan,
+                    username: username,
+                    keterangan: keterangan,
+                    waktu: fmtTime()
+                };
+                saveConfirmMapCache();
+                var $cell = $('.konfirmasi-select[data-id="' + id + '"], .badge-konfirmasi[data-id="' + id + '"]')
+                    .closest('td');
+                $cell.html(confirmCellHtml(id));
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('konfirmasiModal')).hide();
+            });
+        });
+
         function rowToDT(row, idx) {
             var id = row[COL.ID];
             return [
@@ -1433,7 +1722,8 @@
                 bedaBadge(row[COL.BEDA_SUBSLS]),
                 esc(row[COL.PENCACAH_AWAL]),
                 esc(row[COL.PENGAWAS_AWAL]),
-                linkIcon(row[COL.LINK])
+                linkIcon(row[COL.LINK]),
+                confirmCellHtml(id)
             ];
         }
 
@@ -1457,7 +1747,8 @@
                         zeroRecords: 'Tidak ada data yang cocok'
                     },
                     columnDefs: [
-                        { targets: [21], orderable: false, searchable: false } // link
+                        { targets: [21], orderable: false, searchable: false }, // link
+                        { targets: [22], orderable: false, searchable: false } // konfirmasi
                     ],
                     drawCallback: function() {
                         // Event listener untuk klik nama di setiap render ulang
@@ -1611,8 +1902,8 @@
         /* =========================================================
            INIT
         ========================================================= */
-        $('#btnReload').on('click', function() { loadData(false); });
-        $(document).ready(function() { loadData(true); });
+        $('#btnReload').on('click', function() { loadConfirmMap(); loadData(false); });
+        $(document).ready(function() { loadConfirmMap(); loadData(true); });
     </script>
 </body>
 </html>
