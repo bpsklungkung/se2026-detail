@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard Anomali SE2026 - Klungkung</title>
 
+<script>
+  // Mulai ambil data secepat mungkin, paralel sama proses download jQuery/DataTables di bawah,
+  // bukan nunggu library itu selesai dulu baru mulai fetch. Hasilnya dipakai nanti oleh
+  // fetchCombined() saat dashboard sudah siap render.
+  window.ANOMALI_API_URL = "https://script.google.com/macros/s/AKfycbzLyq-rnyc7xj-AuOX1vLdlYs_46zNykNiv62tjnoLcU_i2uVNTNbeDWp7slFEOe0-87A/exec";
+  window.__anomaliPrefetch = fetch(window.ANOMALI_API_URL + '?action=all')
+    .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .catch(function(err){ return { __prefetchError: err }; });
+</script>
+
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://script.google.com">
@@ -330,7 +340,7 @@ code.ellip-cell{font-size:.7rem;}
 
 <script>
 function initAnomaliDashboard(){
-const API_URL = "https://script.google.com/macros/s/AKfycbzLyq-rnyc7xj-AuOX1vLdlYs_46zNykNiv62tjnoLcU_i2uVNTNbeDWp7slFEOe0-87A/exec";
+const API_URL = window.ANOMALI_API_URL;
 
 // Column index mapping based on the spreadsheet's actual column letters (0-based)
 const COL = {
@@ -418,6 +428,15 @@ function buildLogMap(logData){
 }
 
 function fetchCombined(){
+  if(window.__anomaliPrefetch){
+    // Pakai hasil fetch yang sudah mulai jalan sejak awal halaman diparse (lihat <script> di <head>).
+    const p = window.__anomaliPrefetch;
+    window.__anomaliPrefetch = null; // cuma dipakai sekali, untuk load pertama saja
+    return p.then(payload => {
+      if(payload && payload.__prefetchError) throw payload.__prefetchError;
+      return payload;
+    });
+  }
   return fetch(API_URL + '?action=all').then(res => {
     if(!res.ok) throw new Error('HTTP ' + res.status);
     return res.json();
@@ -454,12 +473,23 @@ function simpanTindakLanjut(assignmentId, opsi){
   const nama = getNamaUser();
   if(nama === null) return;
   const catatan = prompt('Catatan (opsional):', '') || '';
-  kirimTindakLanjut(assignmentId, 'selesai', opsi, catatan, nama).then(() => {
-    LOG_MAP[assignmentId] = { status:'selesai', opsi, catatan, oleh: nama, waktu: new Date().toLocaleString('id-ID') };
-    EDITING.delete(assignmentId);
+
+  // Simpan log lama supaya bisa di-revert kalau request ke server gagal
+  const logSebelumnya = LOG_MAP[assignmentId];
+
+  // Optimistic update: langsung tampilkan sebagai selesai tanpa nunggu server,
+  // biar terasa instan. Request ke server jalan di belakang layar.
+  LOG_MAP[assignmentId] = { status:'selesai', opsi, catatan, oleh: nama, waktu: new Date().toLocaleString('id-ID') };
+  EDITING.delete(assignmentId);
+  renderTable();
+  try{ sessionStorage.removeItem(CACHE_KEY_DATA); }catch(e){} // biar reload berikutnya ambil data terbaru (termasuk log)
+
+  kirimTindakLanjut(assignmentId, 'selesai', opsi, catatan, nama).catch(() => {
+    // Gagal terkirim ke server -> kembalikan tampilan ke kondisi sebelumnya
+    if(logSebelumnya){ LOG_MAP[assignmentId] = logSebelumnya; } else { delete LOG_MAP[assignmentId]; }
     renderTable();
-    try{ sessionStorage.removeItem(CACHE_KEY_DATA); }catch(e){} // biar reload berikutnya ambil data terbaru (termasuk log)
-  }).catch(() => alert('Gagal menyimpan status. Coba lagi.'));
+    alert('Gagal menyimpan status ke server. Silakan coba lagi.');
+  });
 }
 
 function editTindakLanjut(assignmentId){
@@ -759,50 +789,46 @@ function linkCell(displayVal, urlVal){
   return `<span class="no-link" title="${attr(disp)}">${disp ? '···' : '-'}</span>`;
 }
 
-let CURRENT_ROWS = []; // baris mentah yang lagi ditampilkan di tabel, sejajar index dengan rowData
+let CURRENT_ROWS = []; // baris mentah yang lagi ditampilkan di tabel, sejajar index dengan data DataTables
 
-function buildRowData(rows){
-  CURRENT_ROWS = rows;
-  return rows.map((r, idx) => [
-    norm(r[COL.NO]),
-    `<code class="ellip-cell assign-info-trigger" data-ridx="${idx}" title="Klik untuk lihat detail &middot; ${attr(norm(r[COL.ASSIGNMENT]))}">${escapeHtml(norm(r[COL.ASSIGNMENT]))}</code>`,
-    statusBadge(r[COL.STATUS]),
-    colorChip(r[COL.KELOMPOK]),
-    norm(r[COL.RINDIAN]) ? multilineCell(r[COL.RINDIAN]) : '',
-    linkCell(r[COL.LINK], r[COL.ASLI]),
-    petugasCell(r[COL.PPL], r[COL.PML]),
-    wilayahCell(r[COL.KECAMATAN], r[COL.DESA], r[COL.SLS]),
-    ellipCell(r[COL.KRTUSAHA]),
-    colorChip(r[COL.EKSEKUTOR]),
-    tindakLanjutCell(r[COL.ASSIGNMENT])
-  ]);
-}
+// Definisi kolom tabel. Trik performa: render(data, type, row, meta) dipanggil DataTables
+// dengan type berbeda-beda (filter/sort/type/display). Kita cuma bangun HTML berat (chip,
+// badge, dst) saat type === 'display'; untuk keperluan lain (search & sort) cukup teks polos
+// yang murah dibuat. Digabung dengan deferRender:true, HTML berat itu cuma dibangun untuk
+// baris yang benar-benar digambar di halaman aktif -- bukan seluruh dataset sekaligus.
+// Ini yang bikin loading awal jauh lebih cepat kalau datanya banyak.
+const TABLE_COLUMNS = [
+  { width:'3%',  render:(d,type,row)=> norm(row[COL.NO]) },
+  { width:'8%',  render:(d,type,row,meta)=>{
+      const val = norm(row[COL.ASSIGNMENT]);
+      if(type !== 'display') return val;
+      return `<code class="ellip-cell assign-info-trigger" data-ridx="${meta.row}" title="Klik untuk lihat detail &middot; ${attr(val)}">${escapeHtml(val)}</code>`;
+    }},
+  { width:'7%',  render:(d,type,row)=> type==='display' ? statusBadge(row[COL.STATUS]) : norm(row[COL.STATUS]) },
+  { width:'8%',  render:(d,type,row)=> type==='display' ? colorChip(row[COL.KELOMPOK]) : norm(row[COL.KELOMPOK]) },
+  { width:'20%', render:(d,type,row)=> type==='display' ? (norm(row[COL.RINDIAN]) ? multilineCell(row[COL.RINDIAN]) : '') : norm(row[COL.RINDIAN]) },
+  { width:'4%',  render:(d,type,row)=> type==='display' ? linkCell(row[COL.LINK], row[COL.ASLI]) : norm(row[COL.LINK]) },
+  { width:'11%', render:(d,type,row)=> type==='display' ? petugasCell(row[COL.PPL], row[COL.PML]) : (norm(row[COL.PPL])+' '+norm(row[COL.PML])) },
+  { width:'14%', render:(d,type,row)=> type==='display' ? wilayahCell(row[COL.KECAMATAN], row[COL.DESA], row[COL.SLS]) : (norm(row[COL.KECAMATAN])+' '+norm(row[COL.DESA])+' '+norm(row[COL.SLS])) },
+  { width:'8%',  render:(d,type,row)=> type==='display' ? ellipCell(row[COL.KRTUSAHA]) : norm(row[COL.KRTUSAHA]) },
+  { width:'8%',  render:(d,type,row)=> type==='display' ? colorChip(row[COL.EKSEKUTOR]) : norm(row[COL.EKSEKUTOR]) },
+  { width:'9%',  render:(d,type,row)=> type==='display' ? tindakLanjutCell(row[COL.ASSIGNMENT]) : norm(row[COL.ASSIGNMENT]) }
+];
 
 function renderTable(){
   const rows = getFullyFilteredRows();
-  const rowData = buildRowData(rows);
+  CURRENT_ROWS = rows;
 
   if(!dt){
     dt = $('#anomaliTable').DataTable({
-      data: rowData,
+      data: rows, // baris mentah langsung -- tidak ada lagi pre-build HTML untuk seluruh dataset
+      columns: TABLE_COLUMNS.map(c => ({ data: null, defaultContent:'', render: c.render })),
+      columnDefs: TABLE_COLUMNS.map((c, i) => ({ targets: i, width: c.width })),
       order: [],
       pageLength: 25,
       lengthMenu: [10,25,50,100,250],
-      deferRender: true,
+      deferRender: true, // baris HTML berat cuma dibangun untuk halaman yang benar-benar digambar
       autoWidth: false,
-      columnDefs: [
-        { targets: 0, width: '3%' },  // NO
-        { targets: 1, width: '8%' },  // ASSIGNMENT ID
-        { targets: 2, width: '7%' },  // STATUS
-        { targets: 3, width: '8%' },  // KELOMPOK
-        { targets: 4, width: '20%' }, // RINCIAN
-        { targets: 5, width: '4%' },  // LINK
-        { targets: 6, width: '11%' }, // PETUGAS
-        { targets: 7, width: '14%' }, // WILAYAH
-        { targets: 8, width: '8%' },  // KRT/USAHA
-        { targets: 9, width: '8%' },  // EKSEKUTOR
-        { targets: 10, width: '9%' }  // TINDAK LANJUT
-      ],
       language: {
         search: "Cari:",
         lengthMenu: "Tampilkan _MENU_ baris",
@@ -813,8 +839,8 @@ function renderTable(){
     });
   } else {
     dt.clear();
-    dt.rows.add(rowData);
-    dt.draw();
+    dt.rows.add(rows);
+    dt.draw(false); // false = jangan reset ke halaman 1, tetap di halaman yang lagi dibuka
   }
 }
 
