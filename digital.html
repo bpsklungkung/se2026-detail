@@ -379,19 +379,56 @@
 
     #pivotTable {
       width: 100%;
-      border-collapse: collapse;
-      font-size: 11px;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 11.5px;
     }
 
     #pivotTable th {
       background: linear-gradient(120deg, #C9500E 0%, var(--se-orange) 100%);
       color: white;
+      font-family:'Poppins',sans-serif;
+      font-weight:700;
+      font-size:10.5px;
+      text-transform:uppercase;
+      letter-spacing:.4px;
       position: sticky;
       top: 0;
+      padding:8px 10px;
+      text-align:center;
+      white-space:nowrap;
+      box-shadow:inset 0 -2px 0 rgba(11,46,107,0.25);
     }
 
-    #pivotTable td { text-align: center; }
-    #pivotTable tr:nth-child(even) { background: #FFF6EE; }
+    #pivotTable th:first-child{ text-align:left; border-top-left-radius:8px; }
+    #pivotTable th:last-child{ border-top-right-radius:8px; background:linear-gradient(120deg, var(--se-navy), var(--se-blue)); }
+
+    #pivotTable td {
+      text-align: center;
+      padding:6px 10px;
+      border-bottom:1px solid var(--se-border);
+      color:var(--se-text);
+    }
+
+    #pivotTable td:first-child{
+      text-align:left;
+      font-weight:700;
+      color:var(--se-navy);
+      max-width:220px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    #pivotTable td:last-child{
+      font-weight:800;
+      color:var(--se-blue);
+      background:#EEF4FF;
+    }
+
+    #pivotTable tbody tr:nth-child(even) { background: #FFF6EE; }
+    #pivotTable tbody tr:hover{ background:#FFE8D2; }
+    #pivotTable tbody tr:hover td:last-child{ background:#DCE9FF; }
 
     .table-toolbar{
       display:flex;
@@ -609,7 +646,7 @@
     </div>
   </div>
 
-  <div style="overflow:auto; margin-top:10px;">
+  <div style="overflow:auto; margin-top:10px; border-radius:10px; box-shadow:0 4px 16px rgba(16,38,73,0.08);">
     <table id="pivotTable"></table>
   </div>
 </div>
@@ -852,7 +889,7 @@ function tampilkanPivot(data){
     tbody += "<td><b>"+totalRow+"</b></td></tr>";
   });
 
-  table.innerHTML = thead + tbody;
+  table.innerHTML = "<thead>" + thead + "</thead><tbody>" + tbody + "</tbody>";
 }
 function hitungDistribusi(data, field){
   let count = {};
