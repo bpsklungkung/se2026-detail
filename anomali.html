@@ -284,6 +284,11 @@ code.ellip-cell{font-size:.7rem;}
       <div class="val" id="statKec">-</div>
       <div class="sub">Cakupan wilayah</div>
     </div>
+    <div class="card-sum">
+      <div class="lbl">Jumlah Tindak Lanjut</div>
+      <div class="val" id="statTindakLanjut">-</div>
+      <div class="sub">Sudah ada isian tindak lanjut</div>
+    </div>
   </div>
 
   <div class="panel">
@@ -443,13 +448,14 @@ function fetchCombined(){
   });
 }
 
-// ── Cache sessionStorage (biar buka-tutup tab dalam sesi yang sama terasa instan) ──
+// ── Cache localStorage (biar buka tab baru / restart browser pun tetap terasa instan,
+// bukan cuma dalam sesi tab yang sama seperti sessionStorage sebelumnya) ──
 const CACHE_TTL_MS = 2 * 60 * 1000; // 2 menit
 const CACHE_KEY_DATA = 'anomali_cache_all_v2';
 
 function getCache(key){
   try{
-    const raw = sessionStorage.getItem(key);
+    const raw = localStorage.getItem(key);
     if(!raw) return null;
     const obj = JSON.parse(raw);
     if(Date.now() - obj.ts > CACHE_TTL_MS) return null;
@@ -457,7 +463,7 @@ function getCache(key){
   }catch(e){ return null; }
 }
 function setCache(key, data){
-  try{ sessionStorage.setItem(key, JSON.stringify({ ts: Date.now(), data })); }catch(e){ /* penuh/private mode, abaikan */ }
+  try{ localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data })); }catch(e){ /* penuh/private mode, abaikan */ }
 }
 
 function kirimTindakLanjut(assignmentId, status, opsi, catatan, oleh){
@@ -482,7 +488,7 @@ function simpanTindakLanjut(assignmentId, opsi){
   LOG_MAP[assignmentId] = { status:'selesai', opsi, catatan, oleh: nama, waktu: new Date().toLocaleString('id-ID') };
   EDITING.delete(assignmentId);
   renderTable();
-  try{ sessionStorage.removeItem(CACHE_KEY_DATA); }catch(e){} // biar reload berikutnya ambil data terbaru (termasuk log)
+  try{ localStorage.removeItem(CACHE_KEY_DATA); }catch(e){} // biar reload berikutnya ambil data terbaru (termasuk log)
 
   kirimTindakLanjut(assignmentId, 'selesai', opsi, catatan, nama).catch(() => {
     // Gagal terkirim ke server -> kembalikan tampilan ke kondisi sebelumnya
@@ -854,6 +860,12 @@ function updateSummary(){
 
   const kecSet = new Set(LINK_ROWS.map(r => norm(r[COL.KECAMATAN])).filter(v=>v!==''));
   document.getElementById('statKec').textContent = kecSet.size.toLocaleString('id-ID');
+
+  const tlCount = LINK_ROWS.filter(r => {
+    const log = LOG_MAP[norm(r[COL.ASSIGNMENT])];
+    return log && log.status === 'selesai';
+  }).length;
+  document.getElementById('statTindakLanjut').textContent = tlCount.toLocaleString('id-ID');
 }
 
 // Aktifkan/nonaktifkan tombol Simpan sesuai ada-tidaknya opsi terpilih
