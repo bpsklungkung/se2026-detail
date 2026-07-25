@@ -852,7 +852,7 @@ function renderTable(){
       columns: TABLE_COLUMNS.map(c => ({ data: null, defaultContent:'', render: c.render })),
       columnDefs: TABLE_COLUMNS.map((c, i) => ({ targets: i, width: c.width })),
       order: [],
-      pageLength: 25,
+      pageLength: 10,
       lengthMenu: [10,25,50,100,250],
       deferRender: true, // baris HTML berat cuma dibangun untuk halaman yang benar-benar digambar
       autoWidth: false,
