@@ -7275,8 +7275,7 @@ function computeStreaksFromEntries(personEntries, todayStr, progressField){
   }
   const ymd = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   const startDate = new Date(HISTORI_ABSEN_START + 'T00:00:00');
-  const cursor = new Date(todayStr + 'T00:00:00');
-  cursor.setDate(cursor.getDate() - 1); // mulai dari kemarin
+  const cursor = new Date(todayStr + 'T00:00:00'); // mulai dari HARI INI
   let streakProgres = 0, streakTanpaProgres = 0;
   if(cursor >= startDate && tanggalAda.has(ymd(cursor))){
     while(cursor >= startDate && tanggalAda.has(ymd(cursor))){
@@ -7466,13 +7465,8 @@ function renderHeatmapAllPeople(){
   const lowCut  = tierAt(1/3);
   const highCut = tierAt(2/3);
 
-  const tanggalKemarin = (() => {
-    const t = new Date(todayStr + 'T00:00:00');
-    t.setDate(t.getDate() - 1);
-    return t.toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'});
-  })();
   const kecTxt = HEATMAP_KECAMATAN ? ` · Kec. ${HEATMAP_KECAMATAN}` : '';
-  subEl.innerHTML = `Data ${HEATMAP_ROLE === 'Pencacah' ? 'progres pencacahan' : 'progres pemeriksaan'} kemarin (${tanggalKemarin}) · ${names.length} ${HEATMAP_ROLE}${kecTxt} · <span style="color:#94a3b8">klik dropdown "Semua Petugas" utk lihat riwayat harian 1 orang</span>`;
+  subEl.innerHTML = `Data ${HEATMAP_ROLE === 'Pencacah' ? 'progres pencacahan' : 'progres pemeriksaan'} terbaru (s/d hari ini) · ${names.length} ${HEATMAP_ROLE}${kecTxt} · <span style="color:#94a3b8">klik dropdown "Semua Petugas" utk lihat riwayat harian 1 orang</span>`;
 
   let noProgresCount = 0;
   const html = entries.map(({nama, val, streakProgres, streakTanpaProgres}) => {
@@ -7504,7 +7498,7 @@ function renderHeatmapAllPeople(){
   }).join('');
 
   wrapEl.innerHTML = html;
-  if(cntEl) cntEl.textContent = `${names.length} ${HEATMAP_ROLE} · ${noProgresCount} tanpa progres kemarin`;
+  if(cntEl) cntEl.textContent = `${names.length} ${HEATMAP_ROLE} · ${noProgresCount} tanpa progres terbaru`;
 }
 
 // Klik langsung pada 1 kotak petugas (mode "semua orang") → masuk mode drill-down per hari
@@ -7538,8 +7532,7 @@ function renderHeatmapPersonDetail(nama){
 
   const todayStr  = todayDateStr();
   const startDate = new Date(HISTORI_ABSEN_START + 'T00:00:00');
-  const endDate   = new Date(todayStr + 'T00:00:00');
-  endDate.setDate(endDate.getDate() - 1); // sampai kemarin
+  const endDate   = new Date(todayStr + 'T00:00:00'); // sampai HARI INI (inklusif)
 
   const dates = [];
   for(let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)){
