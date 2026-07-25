@@ -380,16 +380,18 @@ const EXTRA_INFO_COLS = [
   { label: 'KULKAS',                    col: 42 }  // AQ
 ];
 
-// Filters: key -> column index, in desired dependent/cascade order
+// Filters: key -> column index (atau value:fn untuk kolom hasil olahan/turunan), in desired dependent/cascade order
 const FILTERS = [
   {key:'STATUS',   label:'Status',      col:COL.STATUS},
   {key:'KELOMPOK', label:'Kelompok',    col:COL.KELOMPOK},
+  {key:'RINCIAN',  label:'Rincian',     col:COL.RINDIAN},
   {key:'PPL',      label:'PPL',         col:COL.PPL},
   {key:'PML',      label:'PML',         col:COL.PML},
   {key:'KECAMATAN',label:'Kecamatan',   col:COL.KECAMATAN},
   {key:'DESA',     label:'Desa',        col:COL.DESA},
   {key:'SLS',      label:'SLS',         col:COL.SLS},
-  {key:'EKSEKUTOR',label:'Eksekutor',   col:COL.EKSEKUTOR}
+  {key:'EKSEKUTOR',label:'Eksekutor',   col:COL.EKSEKUTOR},
+  {key:'TINDAK_LANJUT', label:'Tindak Lanjut', value: r => tindakLanjutFilterValue(r[COL.ASSIGNMENT])}
 ];
 
 let ALL_ROWS = [];      // all data rows (raw arrays), unfiltered by link presence
@@ -409,6 +411,16 @@ const TL_OPTIONS = {
   '3': { label: 'Reject Fasih',                        bg:'#fde2e2', fg:'#a33a3a', icon:'❌' },
   '4': { label: 'Anomali tidak muncul',                bg:'#e6e6e6', fg:'#555',    icon:'🚫' }
 };
+
+// Nilai kolom "Tindak Lanjut" untuk keperluan filter (bukan kolom asli sheet, tapi turunan dari LOG_MAP)
+function tindakLanjutFilterValue(assignmentId){
+  const log = LOG_MAP[norm(assignmentId)];
+  if(log && log.status === 'selesai'){
+    const opt = TL_OPTIONS[log.opsi];
+    return opt ? opt.label : (log.opsi || 'Selesai (lainnya)');
+  }
+  return 'Belum Ditindaklanjuti';
+}
 
 function getNamaUser(){
   let nama = localStorage.getItem('se2026_nama_user') || '';
@@ -488,12 +500,14 @@ function simpanTindakLanjut(assignmentId, opsi){
   LOG_MAP[assignmentId] = { status:'selesai', opsi, catatan, oleh: nama, waktu: new Date().toLocaleString('id-ID') };
   EDITING.delete(assignmentId);
   renderTable();
+  refreshAllFilterLists(); // update opsi & jumlah di filter "Tindak Lanjut" biar sinkron
   try{ localStorage.removeItem(CACHE_KEY_DATA); }catch(e){} // biar reload berikutnya ambil data terbaru (termasuk log)
 
   kirimTindakLanjut(assignmentId, 'selesai', opsi, catatan, nama).catch(() => {
     // Gagal terkirim ke server -> kembalikan tampilan ke kondisi sebelumnya
     if(logSebelumnya){ LOG_MAP[assignmentId] = logSebelumnya; } else { delete LOG_MAP[assignmentId]; }
     renderTable();
+    refreshAllFilterLists();
     alert('Gagal menyimpan status ke server. Silakan coba lagi.');
   });
 }
@@ -603,6 +617,13 @@ function loadData(){
   }
 }
 
+// Ambil nilai untuk keperluan filter: kolom mentah (f.col) atau hasil olahan (f.value(row))
+// -- dipakai supaya filter "Tindak Lanjut" (bukan kolom asli di sheet, tapi turunan dari LOG_MAP) bisa
+// diperlakukan sama seperti filter kolom biasa.
+function filterValue(f, row){
+  return norm(typeof f.value === 'function' ? f.value(row) : row[f.col]);
+}
+
 // Return rows from LINK_ROWS matching all active selections except excludeKey
 function getFilteredRows(excludeKey){
   return LINK_ROWS.filter(r => {
@@ -610,7 +631,7 @@ function getFilteredRows(excludeKey){
       if(f.key === excludeKey) continue;
       const sel = selections[f.key];
       if(sel.size === 0) continue;
-      if(!sel.has(norm(r[f.col]))) return false;
+      if(!sel.has(filterValue(f, r))) return false;
     }
     return true;
   });
@@ -621,7 +642,7 @@ function getFullyFilteredRows(){
     for(const f of FILTERS){
       const sel = selections[f.key];
       if(sel.size === 0) continue;
-      if(!sel.has(norm(r[f.col]))) return false;
+      if(!sel.has(filterValue(f, r))) return false;
     }
     return true;
   });
@@ -694,7 +715,7 @@ function refreshAllFilterLists(){
     const available = getFilteredRows(f.key);
     const counts = {};
     available.forEach(r => {
-      const v = norm(r[f.col]);
+      const v = filterValue(f, r);
       if(v === '') return;
       counts[v] = (counts[v]||0) + 1;
     });
