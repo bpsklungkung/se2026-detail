@@ -1456,7 +1456,10 @@ body {
           <button onclick="resetTrenChartFilter('Progres')" style="padding:4px 10px;font-size:10px;font-weight:600;border:1px solid #d1d5db;border-radius:7px;background:#fff;color:#374151;cursor:pointer;align-self:flex-end">↺ Reset</button>
         </div>
           <div style="position:relative;height:350px">
-            <button onclick="_downloadCanvasJpg(document.getElementById('trendProgres'),'Tren_Pencacahan_SE2026')" title="Unduh JPG" style="position:absolute;top:4px;right:4px;z-index:10;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+            <div style="position:absolute;top:4px;right:4px;z-index:10;display:flex;gap:4px">
+              <button onclick="_downloadChartExcel(trendProgresChart,'Tren_Pencacahan_SE2026','Pencacahan')" title="Unduh Excel" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">📊 Excel</button>
+              <button onclick="_downloadCanvasJpg(document.getElementById('trendProgres'),'Tren_Pencacahan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+            </div>
             <canvas id="trendProgres"></canvas>
           </div>
         </div>
@@ -1501,7 +1504,10 @@ body {
           <button onclick="resetTrenChartFilter('Capaian')" style="padding:4px 10px;font-size:10px;font-weight:600;border:1px solid #d1d5db;border-radius:7px;background:#fff;color:#374151;cursor:pointer;align-self:flex-end">↺ Reset</button>
         </div>
           <div style="position:relative;height:350px">
-            <button onclick="_downloadCanvasJpg(document.getElementById('trendCapaian'),'Tren_Pemeriksaan_SE2026')" title="Unduh JPG" style="position:absolute;top:4px;right:4px;z-index:10;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+            <div style="position:absolute;top:4px;right:4px;z-index:10;display:flex;gap:4px">
+              <button onclick="_downloadChartExcel(trendCapaianChart,'Tren_Pemeriksaan_SE2026','Pemeriksaan')" title="Unduh Excel" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">📊 Excel</button>
+              <button onclick="_downloadCanvasJpg(document.getElementById('trendCapaian'),'Tren_Pemeriksaan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+            </div>
             <canvas id="trendCapaian"></canvas>
           </div>
         </div>
@@ -1546,7 +1552,10 @@ body {
           <button onclick="resetTrenChartFilter('Open')" style="padding:4px 10px;font-size:10px;font-weight:600;border:1px solid #d1d5db;border-radius:7px;background:#fff;color:#374151;cursor:pointer;align-self:flex-end">↺ Reset</button>
         </div>
           <div style="position:relative;height:350px">
-            <button onclick="_downloadCanvasJpg(document.getElementById('trendOpen'),'Tren_Capaian_Gabungan_SE2026')" title="Unduh JPG" style="position:absolute;top:4px;right:4px;z-index:10;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+            <div style="position:absolute;top:4px;right:4px;z-index:10;display:flex;gap:4px">
+              <button onclick="_downloadChartExcel(trendOpenChart,'Tren_Capaian_Gabungan_SE2026','Capaian Gabungan')" title="Unduh Excel" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">📊 Excel</button>
+              <button onclick="_downloadCanvasJpg(document.getElementById('trendOpen'),'Tren_Capaian_Gabungan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+            </div>
             <canvas id="trendOpen"></canvas>
           </div>
         </div>
@@ -1598,7 +1607,10 @@ body {
         <button onclick="resetAssignBreakdownFilter()" style="padding:4px 10px;font-size:10px;font-weight:600;border:1px solid #d1d5db;border-radius:7px;background:#fff;color:#374151;cursor:pointer;align-self:flex-end">↺ Reset</button>
       </div>
           <div style="position:relative;height:350px">
-            <button onclick="_downloadCanvasJpg(document.getElementById('trendAssignBreakdown'),'Tren_Breakdown_Assignment_SE2026')" title="Unduh JPG" style="position:absolute;top:4px;right:4px;z-index:10;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+            <div style="position:absolute;top:4px;right:4px;z-index:10;display:flex;gap:4px">
+              <button onclick="_downloadChartExcel(trendAssignChart,'Tren_Breakdown_Assignment_SE2026','Breakdown Assignment')" title="Unduh Excel" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">📊 Excel</button>
+              <button onclick="_downloadCanvasJpg(document.getElementById('trendAssignBreakdown'),'Tren_Breakdown_Assignment_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+            </div>
             <canvas id="trendAssignBreakdown"></canvas>
           </div>
         </div>
@@ -2247,7 +2259,8 @@ body {
     </div>
     <div style="display:flex;align-items:center;margin:8px 0 4px">
       <div class="sh-title" style="font-size:12px;color:#f97316">📊 Pencacahan — per Username</div>
-      <button onclick="_downloadCanvasJpg(document.getElementById('scatterCacah'),'ScatterPlot_Pencacahan_SE2026')" title="Unduh JPG" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+      <button onclick="_downloadScatterExcel(scatterCacahChart,'ScatterPlot_Pencacahan_SE2026','Pencacahan')" title="Unduh Excel" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">📊 Excel</button>
+      <button onclick="_downloadCanvasJpg(document.getElementById('scatterCacah'),'ScatterPlot_Pencacahan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
     </div>
     <div style="position:relative;height:370px">
       <canvas id="scatterCacah"></canvas>
@@ -2349,7 +2362,8 @@ body {
     </div>
     <div style="display:flex;align-items:center;margin:8px 0 4px">
       <div class="sh-title" style="font-size:12px;color:#f97316">🔎 Pengawasan — per Username</div>
-      <button onclick="_downloadCanvasJpg(document.getElementById('scatterRiksa'),'ScatterPlot_Pengawasan_SE2026')" title="Unduh JPG" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+      <button onclick="_downloadScatterExcel(scatterRiksaChart,'ScatterPlot_Pengawasan_SE2026','Pengawasan')" title="Unduh Excel" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">📊 Excel</button>
+      <button onclick="_downloadCanvasJpg(document.getElementById('scatterRiksa'),'ScatterPlot_Pengawasan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
     </div>
     <div style="position:relative;height:370px">
       <canvas id="scatterRiksa"></canvas>
@@ -9043,8 +9057,6 @@ function downloadBlob(blob, filename){
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
-  a.target = '_blank';
-  a.rel = 'noopener noreferrer';
   a.style.display = 'none';
   document.body.appendChild(a);
   a.dispatchEvent(new MouseEvent('click', {bubbles:false, cancelable:false, view:window}));
@@ -10417,6 +10429,105 @@ function downloadChartJpg(which){
  * @param {string}            filename   nama file tanpa ekstensi
  * @param {Array}             legendItems opsional [{color,name,cnt,pct}]
  */
+// Unduh data yang sedang tertampil di sebuah Chart.js instance sebagai file Excel (.xlsx).
+// Membaca langsung dari chart.data.labels + chart.data.datasets, jadi otomatis mengikuti
+// filter (kecamatan/username/tipe assignment) yang sedang aktif di grafik tsb.
+async function _downloadChartExcel(chartInstance, filename, sheetTitle){
+  if(!chartInstance || !chartInstance.data){
+    alert('Grafik belum tersedia / belum ada data.');
+    return;
+  }
+  const labels   = chartInstance.data.labels || [];
+  const datasets = chartInstance.data.datasets || [];
+  if(!labels.length || !datasets.length){
+    alert('Belum ada data pada grafik ini untuk diunduh.');
+    return;
+  }
+
+  const workbook = new ExcelJS.Workbook();
+  const ws = workbook.addWorksheet((sheetTitle||'Data').substring(0,31));
+
+  const header = ['Tanggal', ...datasets.map(d => d.label || '')];
+  ws.addRow(header);
+  ws.getRow(1).font = { bold:true, color:{argb:'FFFFFFFF'} };
+  ws.getRow(1).fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFF97316'} };
+  ws.getRow(1).alignment = { vertical:'middle', horizontal:'center' };
+
+  labels.forEach((lbl, i) => {
+    const row = [lbl];
+    datasets.forEach(d => {
+      const v = (d.data && d.data[i] !== undefined) ? d.data[i] : null;
+      row.push(v === null || v === undefined ? '' : v);
+    });
+    ws.addRow(row);
+  });
+
+  ws.columns.forEach((col, i) => { col.width = i === 0 ? 14 : 26; });
+  ws.eachRow((row) => { row.alignment = { vertical:'middle', horizontal:'center' }; });
+  ws.getColumn(1).alignment = { vertical:'middle', horizontal:'left' };
+
+  const buf = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  downloadBlob(blob, filename.replace(/\.xlsx$/i,'') + '.xlsx');
+}
+
+// Unduh data yang sedang tertampil di sebuah scatter Chart.js instance sebagai Excel (.xlsx).
+// Setiap titik scatter menyimpan {x, y, username, tanggal, kecamatan} — semua di-flatten
+// jadi satu baris per titik, mengikuti filter (sumbu X/Y, tanggal, kecamatan, username) yang aktif.
+async function _downloadScatterExcel(chartInstance, filename, sheetTitle){
+  if(!chartInstance || !chartInstance.data){
+    alert('Grafik belum tersedia / belum ada data.');
+    return;
+  }
+  const datasets = chartInstance.data.datasets || [];
+  const rows = [];
+  datasets.forEach(ds => {
+    (ds.data||[]).forEach(p => {
+      rows.push({
+        grup: ds.label || '',
+        username: p.username || '',
+        kecamatan: p.kecamatan || '',
+        tanggal: p.tanggal || '',
+        x: p.x, y: p.y
+      });
+    });
+  });
+  if(!rows.length){
+    alert('Belum ada data pada grafik ini untuk diunduh.');
+    return;
+  }
+
+  let xLabel = 'X', yLabel = 'Y';
+  try{
+    xLabel = chartInstance.options.scales.x.title.text || 'X';
+    yLabel = chartInstance.options.scales.y.title.text || 'Y';
+  }catch(e){}
+
+  rows.sort((a,b) => (a.tanggal||'').localeCompare(b.tanggal||'') || a.grup.localeCompare(b.grup) || a.username.localeCompare(b.username));
+
+  const workbook = new ExcelJS.Workbook();
+  const ws = workbook.addWorksheet((sheetTitle||'Data').substring(0,31));
+
+  const header = ['Kecamatan/Kelompok','Username','Tanggal', xLabel, yLabel];
+  ws.addRow(header);
+  ws.getRow(1).font = { bold:true, color:{argb:'FFFFFFFF'} };
+  ws.getRow(1).fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFF97316'} };
+  ws.getRow(1).alignment = { vertical:'middle', horizontal:'center' };
+
+  rows.forEach(r => {
+    ws.addRow([r.grup, r.username, r.tanggal, r.x, r.y]);
+  });
+
+  ws.columns.forEach((col, i) => { col.width = [18,22,14,22,22][i] || 20; });
+  ws.eachRow((row) => { row.alignment = { vertical:'middle', horizontal:'center' }; });
+  ws.getColumn(1).alignment = { vertical:'middle', horizontal:'left' };
+  ws.getColumn(2).alignment = { vertical:'middle', horizontal:'left' };
+
+  const buf = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  downloadBlob(blob, filename.replace(/\.xlsx$/i,'') + '.xlsx');
+}
+
 function _downloadCanvasJpg(srcCanvas, filename, legendItems){
   legendItems = legendItems || [];
 
