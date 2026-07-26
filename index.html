@@ -451,6 +451,27 @@ body {
 .pivot-table thead th.sort-desc .sort-icon::after { content: " ▼"; }
 .pivot-table thead th:not(.sort-asc):not(.sort-desc) .sort-icon::after { content: " ⇅"; }
 
+/* sort indicators on modal Progres table (klik header utk sort per kolom) */
+#progresDetailTable thead th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background .15s;
+}
+#progresDetailTable thead th.sortable:hover { background: #eef2f7 !important; }
+#progresDetailTable thead th .sort-icon {
+  display: inline-block;
+  margin-left: 4px;
+  opacity: .3;
+  font-style: normal;
+  font-size: 9px;
+  vertical-align: middle;
+}
+#progresDetailTable thead th.sort-asc  .sort-icon,
+#progresDetailTable thead th.sort-desc .sort-icon { opacity: 1; color: #0891b2; }
+#progresDetailTable thead th.sort-asc  .sort-icon::after { content: " ▲"; }
+#progresDetailTable thead th.sort-desc .sort-icon::after { content: " ▼"; }
+#progresDetailTable thead th.sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after { content: " ⇅"; }
+
 /* ── DataTable overrides ── */
 #tblData_wrapper { font-size: 12px; }
 #tblData thead th {
@@ -6127,21 +6148,30 @@ function openProgresDetailModal(level, filterType, label){
     return 0;
   });
 
-  _progresDetailCurrent = { level, filterType, label, rows, cfg };
+  // ── Definisi kolom (dipakai bareng utk render header, isi tabel, & sort) ──
+  const showPencacah = level === 'subsls' || level === 'sls';
+  const columns = [
+    ...cfg.nameFields.map(f=>({key:'name:'+f, label:f, type:'string', get:s=>s.names[f]||''})),
+    {key:'target',  label:'Target',  type:'number', get:s=>s.target},
+    {key:'selesai', label:'Selesai', type:'number', get:s=>s.selesai},
+    {key:'open',    label:'OPEN',    type:'number', get:s=>s.open},
+    {key:'draft',   label:'DRAFT',   type:'number', get:s=>s.draft},
+    {key:'progres', label:'Progres', type:'number', get:s=>s.progres},
+    ...(showPencacah ? [{key:'pencacah', label:'Pencacah', type:'string', get:s=>formatNameSet(s.pencacah)}] : []),
+    {key:'pengawas', label:'Pengawas', type:'string', get:s=>formatNameSet(s.pengawas)}
+  ];
+
+  _progresDetailCurrent = { level, filterType, label, rows, cfg, columns, sortKey:null, sortDir:null };
 
   const searchInput = document.getElementById('progresDetailSearchInput');
   if(searchInput) searchInput.value = ''; // reset pencarian tiap kali card baru dibuka
 
-  // ── Header tabel ──
-  const nameHeaders = cfg.nameFields.map(f=>`<th>${f}</th>`).join('');
-  const showPencacah = level === 'subsls' || level === 'sls';
+  // ── Header tabel: tiap kolom bisa diklik utk sort (lihat sortProgresDetail) ──
+  const theadCells = columns.map(c =>
+    `<th class="sortable${c.type==='number' ? ' text-end' : ''}" data-key="${c.key}" onclick="sortProgresDetail('${c.key}')" title="Klik utk urutkan">${c.label}<span class="sort-icon"></span></th>`
+  ).join('');
   const thead = `<tr style="font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:#64748b">
-      <th style="width:36px">#</th>${nameHeaders}
-      <th class="text-end">Target</th><th class="text-end">Selesai</th>
-      <th class="text-end">OPEN</th><th class="text-end">DRAFT</th>
-      <th class="text-end">Progres</th>
-      ${showPencacah ? '<th>Pencacah</th>' : ''}
-      <th>Pengawas</th>
+      <th style="width:36px">#</th>${theadCells}
     </tr>`;
   document.querySelector('#progresDetailTable thead').innerHTML = thead;
 
@@ -6177,29 +6207,31 @@ function filterProgresDetailRows(rows, cfg, showPencacah, searchText){
 }
 
 function renderProgresDetailBody(searchText){
-  const { rows, cfg, level } = _progresDetailCurrent;
+  const { rows, cfg, level, columns } = _progresDetailCurrent;
   if(!rows) return;
   const showPencacah = level === 'subsls' || level === 'sls';
   const q = (searchText||'').trim().toLowerCase();
   const filtered = filterProgresDetailRows(rows, cfg, showPencacah, searchText);
-  _progresDetailCurrent.filteredRows = filtered; // dipakai saat export, ikut hasil pencarian
+  _progresDetailCurrent.filteredRows = filtered; // dipakai saat export, ikut hasil pencarian & sort saat ini
 
   const tbody = filtered.map((s,i)=>{
-    const nameCells = cfg.nameFields.map(f=>`<td>${s.names[f]||'-'}</td>`).join('');
-    const pctColor = s.progres >= 100 ? '#16a34a' : (s.progres === 0 ? '#dc2626' : '#f59e0b');
-    return `<tr>
-      <td class="text-muted">${i+1}</td>${nameCells}
-      <td class="text-end">${s.target}</td>
-      <td class="text-end">${s.selesai}</td>
-      <td class="text-end">${s.open}</td>
-      <td class="text-end">${s.draft}</td>
-      <td class="text-end" style="font-weight:600;color:${pctColor}">${s.progres.toFixed(1)}%</td>
-      ${showPencacah ? `<td style="font-size:11.5px">${formatNameSet(s.pencacah)}</td>` : ''}
-      <td style="font-size:11.5px">${formatNameSet(s.pengawas)}</td>
-    </tr>`;
+    const cells = columns.map(c=>{
+      if(c.key === 'progres'){
+        const pctColor = s.progres >= 100 ? '#16a34a' : (s.progres === 0 ? '#dc2626' : '#f59e0b');
+        return `<td class="text-end" style="font-weight:600;color:${pctColor}">${s.progres.toFixed(1)}%</td>`;
+      }
+      if(c.type === 'number'){
+        return `<td class="text-end">${c.get(s)}</td>`;
+      }
+      if(c.key === 'pencacah' || c.key === 'pengawas'){
+        return `<td style="font-size:11.5px">${c.get(s) || '-'}</td>`;
+      }
+      return `<td>${c.get(s) || '-'}</td>`;
+    }).join('');
+    return `<tr><td class="text-muted">${i+1}</td>${cells}</tr>`;
   }).join('');
   document.querySelector('#progresDetailTable tbody').innerHTML = tbody ||
-    `<tr><td colspan="${2+cfg.nameFields.length+(showPencacah?1:0)}" class="text-center text-muted py-4">Tidak ada data yang cocok</td></tr>`;
+    `<tr><td colspan="${1+columns.length}" class="text-center text-muted py-4">Tidak ada data yang cocok</td></tr>`;
 
   const levelLabel = level === 'desa' ? 'Desa' : (level === 'sls' ? 'SLS' : 'SubSLS');
   document.getElementById('progresDetailCount').textContent = q
@@ -6210,6 +6242,37 @@ function renderProgresDetailBody(searchText){
 // Kotak pencarian custom di atas tabel modal Progres.
 function onProgresDetailSearch(value){
   renderProgresDetailBody(value);
+}
+
+// Sort tabel modal Progres berdasarkan kolom yang diklik. Klik lagi pada kolom
+// yang sama = balik arah (asc/desc). Kolom angka default besar→kecil dulu,
+// kolom teks default A→Z dulu.
+function sortProgresDetail(key){
+  const cur = _progresDetailCurrent;
+  if(!cur || !cur.columns) return;
+  const col = cur.columns.find(c=>c.key===key);
+  if(!col) return;
+
+  if(cur.sortKey === key){
+    cur.sortDir = cur.sortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    cur.sortKey = key;
+    cur.sortDir = col.type === 'number' ? 'desc' : 'asc';
+  }
+  const dir = cur.sortDir === 'asc' ? 1 : -1;
+  cur.rows.sort((a,b)=>{
+    const va = col.get(a), vb = col.get(b);
+    if(col.type === 'number') return (va - vb) * dir;
+    return String(va).localeCompare(String(vb), 'id') * dir;
+  });
+
+  document.querySelectorAll('#progresDetailTable thead th.sortable').forEach(th=>{
+    th.classList.remove('sort-asc','sort-desc');
+    if(th.dataset.key === key) th.classList.add(cur.sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+  });
+
+  const searchInput = document.getElementById('progresDetailSearchInput');
+  renderProgresDetailBody(searchInput ? searchInput.value : '');
 }
 
 async function exportProgresDetailExcel(){
