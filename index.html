@@ -2014,6 +2014,25 @@ body {
           </div>
         </div>
       </div>
+      <!-- Kode SubSLS (kolom R) — saling dependen (cascade) dengan filter lain & multichoice -->
+      <div class="col-md-auto">
+        <label class="filter-label">Kode SubSLS</label>
+        <div class="ms-wrap" id="ms-wrap-filterKodeSubSLS">
+          <div class="ms-trigger" id="ms-trigger-filterKodeSubSLS" onclick="toggleMsDropdown('filterKodeSubSLS')">
+            <span class="ms-trigger-text placeholder" id="ms-text-filterKodeSubSLS">Semua</span>
+            <span class="ms-arrow">▼</span>
+          </div>
+          <div class="ms-dropdown" id="ms-dropdown-filterKodeSubSLS">
+            <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterMsItems('filterKodeSubSLS',this.value)"></div>
+            <div class="ms-actions">
+              <button onclick="msSelectAll('filterKodeSubSLS')">Pilih Semua</button>
+              <button onclick="msClearAll('filterKodeSubSLS')">Hapus</button>
+            </div>
+            <div class="ms-list" id="ms-list-filterKodeSubSLS"></div>
+            <div class="ms-footer"><button onclick="applyMsFilter('filterKodeSubSLS')">Terapkan</button></div>
+          </div>
+        </div>
+      </div>
       <!-- Pencacah Awal -->
       <div class="col-md-auto">
         <label class="filter-label">Pencacah Awal</label>
@@ -2166,6 +2185,7 @@ body {
             <th>Username</th><th>User</th><th>Provinsi</th>
             <th>Kabupaten</th><th>Kecamatan</th><th>Desa</th><th>SLS</th><th>SubSLS</th>
             <th>Pencacah Awal</th><th>Pengawas Awal</th><th>Cek Bangunan</th><th>Tidak Ditemukan</th><th>Usaha</th>
+            <th>Kode SubSLS</th><th>Link</th>
           </tr>
         </thead>
         <tbody>
@@ -2527,28 +2547,35 @@ function loadData(forceRefresh) {
     complete(results) {
       const fetchedAt = Date.now();
 
-      // Debug: cek baris yang field utamanya kosong (kemungkinan "sampah")
-      const junkRows = [];
+      // Kolom A ("Kode") dipakai sebagai penanda baris valid. Baris yang kolom A-nya
+      // kosong (baris "sampah"/kosong di sheet sumber) dibuang di sini, lalu sisanya
+      // diurutkan dari nilai kolom A terkecil ke terbesar — supaya baris kosong di
+      // tengah/ujung sheet tidak lagi memicu masalah data di dashboard.
       const firstColKey = results.data.length ? Object.keys(results.data[0])[0] : null;
-      results.data.forEach((row, i) => {
-        const firstColVal = (row[firstColKey] || '').toString().trim();
-        if(firstColVal === ''){
-          junkRows.push({ csvRowNumber: i+2, row }); // +2: +1 utk header, +1 utk 1-based
-        }
+      const rawCount = results.data.length;
+      const cleanData = results.data.filter(row => {
+        const v = (row[firstColKey] || '').toString().trim();
+        return v !== '';
       });
-      if(junkRows.length){
-        console.warn(`[DEBUG] Ditemukan ${junkRows.length} baris dengan kolom pertama ("${firstColKey}") kosong (total parsed: ${results.data.length}):`);
-        console.table(junkRows.slice(0, 60).map(j => ({rowNumber: j.csvRowNumber, ...j.row})));
-        if(junkRows.length > 60) console.warn(`...dan ${junkRows.length - 60} baris lainnya.`);
+      cleanData.sort((a, b) => {
+        const av = (a[firstColKey] || '').toString().trim();
+        const bv = (b[firstColKey] || '').toString().trim();
+        const an = Number(av), bn = Number(bv);
+        if(!isNaN(an) && !isNaN(bn)) return an - bn;
+        return av.localeCompare(bv, undefined, {numeric:true});
+      });
+      const removedCount = rawCount - cleanData.length;
+      if(removedCount > 0){
+        console.log(`[DEBUG] ${removedCount} baris dengan kolom pertama ("${firstColKey}") kosong dibuang otomatis. Total dipakai: ${cleanData.length} (dari ${rawCount} baris ter-parse).`);
       } else {
-        console.log(`[DEBUG] Tidak ada baris "sampah" ditemukan. Total parsed: ${results.data.length}`);
+        console.log(`[DEBUG] Tidak ada baris "sampah" ditemukan. Total parsed: ${rawCount}`);
       }
 
       try {
-        sessionStorage.setItem(CACHE_KEY, JSON.stringify(results.data));
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify(cleanData));
         sessionStorage.setItem(CACHE_TS_KEY, String(fetchedAt));
       } catch(e){ /* sessionStorage penuh — skip cache */ }
-      initDashboard(results.data, false, fetchedAt);
+      initDashboard(cleanData, false, fetchedAt);
       if(btn) btn.textContent = '↺ Refresh Data';
     },
     error() {
@@ -2588,6 +2615,7 @@ const MS_SELECTED = {
   filterDesa: new Set(),
   filterSLS: new Set(),
   filterSubSLS: new Set(),
+  filterKodeSubSLS: new Set(),
   filterPencacahAwal: new Set(),
   filterPengawasAwal: new Set(),
   filterCekBangunan: new Set(),
@@ -2600,6 +2628,7 @@ const MAIN_FIELD = {
   filterUsername:"Username", filterUser:"User", filterAssignment:"Assignment",
   filterKabupaten:"Kabupaten", filterKecamatan:"Kecamatan",
   filterDesa:"Desa", filterSLS:"SLS", filterSubSLS:"SubSLS",
+  filterKodeSubSLS:"Kode SubSLS",
   filterPencacahAwal:"Pencacah Awal", filterPengawasAwal:"Pengawas Awal",
   filterCekBangunan:"__cekBangunan__",
   filterTidakDitemukan:"__tidakDitemukan__",
@@ -2882,7 +2911,8 @@ $.fn.dataTable.ext.search.push(function(s, data){
     filterPencacahAwal: 12, filterPengawasAwal: 13,
     filterCekBangunan: 14,
     filterTidakDitemukan: 15,
-    filterUsaha: 16
+    filterUsaha: 16,
+    filterKodeSubSLS: 17
   };
   return MAIN_IDS.every(id => {
     const sel = MS_SELECTED[id];
@@ -6622,7 +6652,19 @@ function buildTable(){
       {data:'Pengawas Awal', defaultContent:''},
       {data: function(row){ return CEK_BANGUNAN_KEY ? (row[CEK_BANGUNAN_KEY]||'') : ''; }, defaultContent:''},
       {data: function(row){ return TIDAK_DITEMUKAN_KEY ? (row[TIDAK_DITEMUKAN_KEY]||'') : ''; }, defaultContent:''},
-      {data: function(row){ return USAHA_KEY ? (row[USAHA_KEY]||'') : ''; }, defaultContent:''}
+      {data: function(row){ return USAHA_KEY ? (row[USAHA_KEY]||'') : ''; }, defaultContent:''},
+      {data:'Kode SubSLS', defaultContent:'', visible:false, searchable:true},
+      {data: function(row){ return BE_KEY ? (row[BE_KEY]||'') : ''; }, defaultContent:'',
+        className:'text-center',
+        render: function(data, type){
+          if(type !== 'display') return data || '';
+          if(!data) return '';
+          const url = String(data).trim();
+          if(!url) return '';
+          const safe = url.replace(/"/g,'&quot;');
+          return `<a href="${safe}" target="_blank" rel="noopener" title="Buka link" style="font-size:16px;text-decoration:none">🔗</a>`;
+        }
+      }
     ]
   });
   table.on('draw',function(){
@@ -7009,6 +7051,7 @@ let CEK_BANGUNAN_LAT_KEY = null;
 let CEK_BANGUNAN_LON_KEY = null;
 let TIDAK_DITEMUKAN_KEY = null;
 let USAHA_KEY = null;
+let BE_KEY = null;
 
 function resolveSpecialKeys(){
   if(!rawData.length) return;
@@ -7032,6 +7075,9 @@ function resolveSpecialKeys(){
   USAHA_KEY = keys.find(k=>/^usaha$/i.test(k))
            || keys.find(k=>/usaha/i.test(k))
            || keys[51] || null; // kolom AZ pada Google Sheets (index 51, 0-based)
+  BE_KEY = keys.find(k=>/^link$/i.test(String(k).trim()))
+        || keys.find(k=>/^be$/i.test(String(k).trim()))
+        || keys[56] || null; // kolom BE pada Google Sheets (index 56, 0-based)
   // Latitude/Longitude Cek Bangunan — pakai koordinat titik survei utama (kolom P/Q),
   // sesuai konfirmasi Made: Cek Bangunan tidak punya koordinat GPS terpisah sendiri.
   CEK_BANGUNAN_LON_KEY = keys.find(k=>/^(lon|longitude|long|bujur)$/i.test(k)) || keys[15] || null;
@@ -9668,7 +9714,9 @@ async function exportDetailExcel(){
       {key:'Pengawas Awal', label:'Pengawas Awal'},
       {label:'Cek Bangunan',    get: row => CEK_BANGUNAN_KEY ? (row[CEK_BANGUNAN_KEY]||'') : ''},
       {label:'Tidak Ditemukan', get: row => TIDAK_DITEMUKAN_KEY ? (row[TIDAK_DITEMUKAN_KEY]||'') : ''},
-      {label:'Usaha',           get: row => USAHA_KEY ? (row[USAHA_KEY]||'') : ''}
+      {label:'Usaha',           get: row => USAHA_KEY ? (row[USAHA_KEY]||'') : ''},
+      {key:'Kode SubSLS', label:'Kode SubSLS'},
+      {label:'Link',       get: row => BE_KEY ? (row[BE_KEY]||'') : ''}
     ];
 
     const workbook = new ExcelJS.Workbook();
