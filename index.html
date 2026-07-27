@@ -1049,6 +1049,15 @@ body {
   background: rgba(255,255,255,.18);
   display: inline-block;
 }
+.hm-cell .hm-worst {
+  font-size: 9px;
+  font-weight: 700;
+  margin-top: 3px;
+  padding: 1px 4px;
+  border-radius: 5px;
+  background: rgba(0,0,0,.22);
+  display: inline-block;
+}
 
 /* ── Search bar & freeze header utk modal detail card (Progres/Assignment/Kondisi) ── */
 .modal-search-bar {
@@ -7355,6 +7364,36 @@ function computeStreaksFromEntries(personEntries, todayStr, progressField){
   return {streakProgres, streakTanpaProgres};
 }
 
+// ── Streak TERPANJANG SEPANJANG SEJARAH (bukan hanya yg sedang berjalan sampai kemarin) untuk 1 petugas ──
+// Berbeda dari computeStreaksFromEntries: itu cuma menghitung streak yg SEDANG berjalan (berhenti begitu
+// ada progres). Fungsi ini men-scan SELURUH periode HISTORI_ABSEN_START s/d hari ini utk mencari rekor
+// terpanjang jeda tanpa progres, walau jeda itu sudah lama berlalu (mis. pernah absen 10 hari bulan lalu,
+// meski sekarang lagi rajin).
+function computeMaxNoProgressStreak(personEntries, todayStr, progressField){
+  const tanggalAda = new Set();
+  if(personEntries){
+    for(const d of personEntries){
+      if(d.tanggal < HISTORI_ABSEN_START) continue;
+      const v = d[progressField];
+      if(v !== null && v !== undefined && v !== '' && +v > 0) tanggalAda.add(d.tanggal);
+    }
+  }
+  const startDate = new Date(HISTORI_ABSEN_START + 'T00:00:00');
+  const endDate   = new Date(todayStr + 'T00:00:00'); // sampai HARI INI (inklusif)
+  let maxStreak = 0, current = 0;
+  for(let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)){
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0');
+    const ymd = `${y}-${m}-${dd}`;
+    if(tanggalAda.has(ymd)){
+      current = 0;
+    } else {
+      current++;
+      if(current > maxStreak) maxStreak = current;
+    }
+  }
+  return maxStreak;
+}
+
 // Ambil nilai TERAKHIR (tanggal termuda < hari ini) yang valid utk 1 field, dari array milik 1 orang
 // yang sudah terurut naik berdasarkan tanggal.
 function getLastValFromEntries(personEntries, progressField){
@@ -7520,7 +7559,8 @@ function renderHeatmapAllPeople(){
     const personEntries = histIdx.get(normNama(nama));
     const val = getLastValFromEntries(personEntries, progressField);
     const { streakProgres, streakTanpaProgres } = computeStreaksFromEntries(personEntries, todayStr, progressField);
-    return { nama, val, streakProgres, streakTanpaProgres };
+    const maxNoProgress = computeMaxNoProgressStreak(personEntries, todayStr, progressField);
+    return { nama, val, streakProgres, streakTanpaProgres, maxNoProgress };
   });
 
   // Tier merah/kuning/hijau RELATIF (tertile) dari sebaran nilai > 0 hari itu.
@@ -7530,10 +7570,11 @@ function renderHeatmapAllPeople(){
   const highCut = tierAt(2/3);
 
   const kecTxt = HEATMAP_KECAMATAN ? ` · Kec. ${HEATMAP_KECAMATAN}` : '';
-  subEl.innerHTML = `Data ${HEATMAP_ROLE === 'Pencacah' ? 'progres pencacahan' : 'progres pemeriksaan'} terbaru (s/d hari ini) · ${names.length} ${HEATMAP_ROLE}${kecTxt} · <span style="color:#94a3b8">klik dropdown "Semua Petugas" utk lihat riwayat harian 1 orang</span>`;
+  const histStartLabel = new Date(HISTORI_ABSEN_START + 'T00:00:00').toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
+  subEl.innerHTML = `Data ${HEATMAP_ROLE === 'Pencacah' ? 'progres pencacahan' : 'progres pemeriksaan'} terbaru (s/d hari ini, dihitung sejak ${histStartLabel}) · ${names.length} ${HEATMAP_ROLE}${kecTxt} · <span style="color:#94a3b8">klik dropdown "Semua Petugas" utk lihat riwayat harian 1 orang</span>`;
 
   let noProgresCount = 0;
-  const html = entries.map(({nama, val, streakProgres, streakTanpaProgres}) => {
+  const html = entries.map(({nama, val, streakProgres, streakTanpaProgres, maxNoProgress}) => {
     let bg, valTxt, subTxt;
     if(val === null || val === undefined || val <= 0){
       bg = '#1e293b'; // gelap = tidak ada data/progres kemarin
@@ -7550,14 +7591,17 @@ function renderHeatmapAllPeople(){
     const streakTxt = streakProgres > 0
       ? `🔥 ${streakProgres} hari beruntun`
       : (streakTanpaProgres > 0 ? `⚠️ ${streakTanpaProgres} hari absen` : '');
+    const worstTxt = maxNoProgress > 0 ? `🕳️ Terlama absen: ${maxNoProgress}h` : '';
     const title = `${nama}\n${HEATMAP_ROLE === 'Pencacah' ? 'Progres pencacahan' : 'Progres pemeriksaan'} kemarin: ${val === null || val === undefined ? 'tidak ada data' : val}\n` +
       (streakProgres > 0 ? `Streak progres: ${streakProgres} hari berturut-turut` : `Streak tanpa progres: ${streakTanpaProgres} hari berturut-turut`) +
+      `\nHari terlama tanpa progres (sepanjang periode): ${maxNoProgress} hari` +
       `\nKlik untuk lihat riwayat harian`;
     return `<div class="hm-cell" style="background:${bg}" title="${title.replace(/"/g,'&quot;')}" onclick="selectHeatmapPetugas('${nama.replace(/'/g,"\\'")}')">
         <div class="hm-name">${nama}</div>
         <div class="hm-val">${valTxt}</div>
         <div class="hm-sub">${subTxt}</div>
         ${streakTxt ? `<div class="hm-streak">${streakTxt}</div>` : ''}
+        ${worstTxt ? `<div class="hm-worst">${worstTxt}</div>` : ''}
       </div>`;
   }).join('');
 
@@ -7621,13 +7665,15 @@ function renderHeatmapPersonDetail(nama){
   const highCut = tierAt(2/3);
 
   const { streakProgres, streakTanpaProgres } = computeStreaksFromEntries(personEntries, todayStr, progressField);
+  const maxNoProgress = computeMaxNoProgressStreak(personEntries, todayStr, progressField);
   const streakSummary = streakProgres > 0
     ? `🔥 Saat ini ${streakProgres} hari beruntun ${HEATMAP_ROLE === 'Pencacah' ? 'mencacah' : 'memeriksa'}`
     : (streakTanpaProgres > 0 ? `⚠️ Saat ini ${streakTanpaProgres} hari tanpa progres` : '');
+  const worstSummary = maxNoProgress > 0 ? `🕳️ Terlama tanpa progres: ${maxNoProgress} hari` : '';
 
   const startLabel = new Date(HISTORI_ABSEN_START + 'T00:00:00').toLocaleDateString('id-ID', {day:'2-digit', month:'short'});
   subEl.innerHTML = `<button class="hm-back-btn" onclick="clearHeatmapPetugasSelection()">← Semua Petugas</button>
-    <b>${nama}</b> — progres ${HEATMAP_ROLE === 'Pencacah' ? 'pencacahan' : 'pemeriksaan'} harian sejak ${startLabel}${streakSummary ? ' · ' + streakSummary : ''}`;
+    <b>${nama}</b> — progres ${HEATMAP_ROLE === 'Pencacah' ? 'pencacahan' : 'pemeriksaan'} harian sejak ${startLabel}${streakSummary ? ' · ' + streakSummary : ''}${worstSummary ? ' · ' + worstSummary : ''}`;
   if(cntEl) cntEl.textContent = `${dates.length} hari`;
 
   const html = dates.map(dt=>{
@@ -7711,7 +7757,8 @@ async function exportHeatmapExcel(){
         return [dt, (v === undefined || v <= 0) ? 0 : v, kategori];
       });
       sheetTitle = 'Heatmap Harian';
-      infoLine = `${HEATMAP_PETUGAS} — Progres ${HEATMAP_ROLE === 'Pencacah' ? 'Pencacahan' : 'Pemeriksaan'} Harian · ${dates.length} hari`;
+      const maxNoProgress = computeMaxNoProgressStreak(personEntries, todayStr, progressField);
+      infoLine = `${HEATMAP_PETUGAS} — Progres ${HEATMAP_ROLE === 'Pencacah' ? 'Pencacahan' : 'Pemeriksaan'} Harian · ${dates.length} hari · Terlama tanpa progres: ${maxNoProgress} hari`;
     } else {
       const cache = buildHeatmapNameCache()[HEATMAP_ROLE];
       const names = getUniquePetugasNames(HEATMAP_ROLE, HEATMAP_KECAMATAN || null);
@@ -7721,21 +7768,22 @@ async function exportHeatmapExcel(){
         const personEntries = histIdx.get(normNama(nama));
         const val = getLastValFromEntries(personEntries, progressField);
         const { streakProgres, streakTanpaProgres } = computeStreaksFromEntries(personEntries, todayStr, progressField);
-        return { nama, kecamatan: cache.kecMap[nama] || '', val, streakProgres, streakTanpaProgres };
+        const maxNoProgress = computeMaxNoProgressStreak(personEntries, todayStr, progressField);
+        return { nama, kecamatan: cache.kecMap[nama] || '', val, streakProgres, streakTanpaProgres, maxNoProgress };
       });
       const positives = entries.map(e=>e.val).filter(v => v !== null && v > 0).sort((a,b)=>a-b);
       const tierAt = p => positives.length ? positives[Math.min(positives.length-1, Math.floor(p * (positives.length-1)))] : 0;
       const lowCut  = tierAt(1/3), highCut = tierAt(2/3);
 
-      headerCols = ['Nama', 'Kecamatan', HEATMAP_ROLE === 'Pencacah' ? 'Progres Pencacahan (Kemarin)' : 'Progres Pemeriksaan (Kemarin)', 'Kategori', 'Streak'];
-      rows = entries.map(({nama, kecamatan, val, streakProgres, streakTanpaProgres})=>{
+      headerCols = ['Nama', 'Kecamatan', HEATMAP_ROLE === 'Pencacah' ? 'Progres Pencacahan (Kemarin)' : 'Progres Pemeriksaan (Kemarin)', 'Kategori', 'Streak', 'Terlama Tanpa Progres (Hari)'];
+      rows = entries.map(({nama, kecamatan, val, streakProgres, streakTanpaProgres, maxNoProgress})=>{
         let kategori;
         if(val === null || val === undefined || val <= 0) kategori = 'tidak ada progres';
         else if(val <= lowCut) kategori = 'rendah';
         else if(val <= highCut) kategori = 'sedang';
         else kategori = 'tinggi';
         const streakTxt = streakProgres > 0 ? `${streakProgres} hari beruntun` : (streakTanpaProgres > 0 ? `${streakTanpaProgres} hari absen` : '');
-        return [nama, kecamatan, (val === null || val === undefined) ? 0 : val, kategori, streakTxt];
+        return [nama, kecamatan, (val === null || val === undefined) ? 0 : val, kategori, streakTxt, maxNoProgress];
       });
       sheetTitle = 'Heatmap ' + HEATMAP_ROLE;
       const kecTxt = HEATMAP_KECAMATAN ? ` · Kec. ${HEATMAP_KECAMATAN}` : '';
