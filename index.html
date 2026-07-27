@@ -1417,6 +1417,7 @@ body {
           <span class="hm-leg-item"><i class="hm-dot" style="background:#f59e0b"></i> Sedang</span>
           <span class="hm-leg-item"><i class="hm-dot" style="background:#16a34a"></i> Tinggi</span>
         </div>
+        <button type="button" id="exportHeatmapExcel" class="btn btn-outline-success btn-sm" onclick="exportHeatmapExcel()" style="background:#e8f5e9;border-color:#2e7d32;color:#1b5e20;margin-left:6px" title="Download data heatmap ini sebagai file Excel (.xlsx), sesuai filter yang sedang aktif">↓ Excel</button>
       </div>
       <div id="hmSubtitle" class="heatmap-subtitle"></div>
       <div id="heatmapRow" class="heatmap-row"></div>
@@ -7653,7 +7654,142 @@ function renderHeatmapPersonDetail(nama){
   wrapEl.innerHTML = html;
 }
 
+// ── Export Heatmap Progres Harian ke Excel — mengikuti filter aktif (Role/Kecamatan/Petugas) ──
+async function exportHeatmapExcel(){
+  if(!document.getElementById('heatmapRow')) return;
+  setBtnBusy('exportHeatmapExcel', true, '⏳ Membuat file…');
+  await new Promise(r => setTimeout(r, 30));
 
+  try{
+    const hex2argb = hex => 'FF' + hex.replace('#','').toUpperCase();
+    const catInfo = {
+      'tidak ada progres': { bg:'#1e293b', font:'#FFFFFF' },
+      'rendah':            { bg:'#dc2626', font:'#FFFFFF' },
+      'sedang':            { bg:'#f59e0b', font:'#FFFFFF' },
+      'tinggi':            { bg:'#16a34a', font:'#FFFFFF' }
+    };
+
+    const workbook = new ExcelJS.Workbook();
+    const progressField = HEATMAP_ROLE === 'Pencacah' ? 'progresPencacahanKemarin' : 'progresPemeriksaanKemarin';
+    const todayStr = todayDateStr();
+
+    let rows = [];
+    let headerCols = [];
+    let sheetTitle = '';
+    let infoLine = '';
+
+    if(HEATMAP_PETUGAS){
+      const histIdx = buildHeatmapHistoriIndex();
+      const personEntries = histIdx.get(normNama(HEATMAP_PETUGAS)) || [];
+      const valByDate = {};
+      for(const d of personEntries){
+        const v = d[progressField];
+        if(v === null || v === undefined || v === '') continue;
+        const num = +v;
+        if(isNaN(num)) continue;
+        valByDate[d.tanggal] = (valByDate[d.tanggal]||0) + num;
+      }
+      const startDate = new Date(HISTORI_ABSEN_START + 'T00:00:00');
+      const endDate   = new Date(todayStr + 'T00:00:00');
+      const dates = [];
+      for(let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)){
+        const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0');
+        dates.push(`${y}-${m}-${dd}`);
+      }
+      const positives = dates.map(dt=>valByDate[dt]).filter(v=>v!==undefined && v>0).sort((a,b)=>a-b);
+      const tierAt = p => positives.length ? positives[Math.min(positives.length-1, Math.floor(p*(positives.length-1)))] : 0;
+      const lowCut  = tierAt(1/3), highCut = tierAt(2/3);
+
+      headerCols = ['Tanggal', HEATMAP_ROLE === 'Pencacah' ? 'Progres Pencacahan' : 'Progres Pemeriksaan', 'Kategori'];
+      rows = dates.map(dt=>{
+        const v = valByDate[dt];
+        let kategori;
+        if(v === undefined || v <= 0) kategori = 'tidak ada progres';
+        else if(v <= lowCut) kategori = 'rendah';
+        else if(v <= highCut) kategori = 'sedang';
+        else kategori = 'tinggi';
+        return [dt, (v === undefined || v <= 0) ? 0 : v, kategori];
+      });
+      sheetTitle = 'Heatmap Harian';
+      infoLine = `${HEATMAP_PETUGAS} — Progres ${HEATMAP_ROLE === 'Pencacah' ? 'Pencacahan' : 'Pemeriksaan'} Harian · ${dates.length} hari`;
+    } else {
+      const cache = buildHeatmapNameCache()[HEATMAP_ROLE];
+      const names = getUniquePetugasNames(HEATMAP_ROLE, HEATMAP_KECAMATAN || null);
+      const histIdx = buildHeatmapHistoriIndex();
+
+      const entries = names.map(nama => {
+        const personEntries = histIdx.get(normNama(nama));
+        const val = getLastValFromEntries(personEntries, progressField);
+        const { streakProgres, streakTanpaProgres } = computeStreaksFromEntries(personEntries, todayStr, progressField);
+        return { nama, kecamatan: cache.kecMap[nama] || '', val, streakProgres, streakTanpaProgres };
+      });
+      const positives = entries.map(e=>e.val).filter(v => v !== null && v > 0).sort((a,b)=>a-b);
+      const tierAt = p => positives.length ? positives[Math.min(positives.length-1, Math.floor(p * (positives.length-1)))] : 0;
+      const lowCut  = tierAt(1/3), highCut = tierAt(2/3);
+
+      headerCols = ['Nama', 'Kecamatan', HEATMAP_ROLE === 'Pencacah' ? 'Progres Pencacahan (Kemarin)' : 'Progres Pemeriksaan (Kemarin)', 'Kategori', 'Streak'];
+      rows = entries.map(({nama, kecamatan, val, streakProgres, streakTanpaProgres})=>{
+        let kategori;
+        if(val === null || val === undefined || val <= 0) kategori = 'tidak ada progres';
+        else if(val <= lowCut) kategori = 'rendah';
+        else if(val <= highCut) kategori = 'sedang';
+        else kategori = 'tinggi';
+        const streakTxt = streakProgres > 0 ? `${streakProgres} hari beruntun` : (streakTanpaProgres > 0 ? `${streakTanpaProgres} hari absen` : '');
+        return [nama, kecamatan, (val === null || val === undefined) ? 0 : val, kategori, streakTxt];
+      });
+      sheetTitle = 'Heatmap ' + HEATMAP_ROLE;
+      const kecTxt = HEATMAP_KECAMATAN ? ` · Kec. ${HEATMAP_KECAMATAN}` : '';
+      infoLine = `Progres ${HEATMAP_ROLE === 'Pencacah' ? 'Pencacahan' : 'Pemeriksaan'} Terbaru (s/d hari ini) · ${names.length} ${HEATMAP_ROLE}${kecTxt}`;
+    }
+
+    if(!rows.length){
+      alert('Belum ada data pada heatmap ini untuk diunduh.');
+      return;
+    }
+
+    const ws = workbook.addWorksheet(sheetTitle.substring(0,31));
+
+    ws.addRow([infoLine]);
+    ws.mergeCells(1, 1, 1, headerCols.length);
+    ws.getRow(1).font = { italic:true, color:{argb:'FF64748B'} };
+    ws.addRow([]);
+
+    ws.addRow(headerCols);
+    const headerRowIdx = 3;
+    ws.getRow(headerRowIdx).font = { bold:true, color:{argb:'FFFFFFFF'} };
+    ws.getRow(headerRowIdx).fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFF97316'} };
+    ws.getRow(headerRowIdx).alignment = { vertical:'middle', horizontal:'center' };
+
+    const kategoriColIdx = headerCols.indexOf('Kategori') + 1;
+    rows.forEach(r => {
+      const rowIdx = ws.addRow(r).number;
+      const kategori = r[kategoriColIdx - 1];
+      const info = catInfo[kategori];
+      if(info){
+        const cell = ws.getRow(rowIdx).getCell(kategoriColIdx);
+        cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:hex2argb(info.bg)} };
+        cell.font = { color:{argb:hex2argb(info.font)}, bold:true };
+        cell.alignment = { vertical:'middle', horizontal:'center' };
+      }
+    });
+
+    ws.columns.forEach((col, i) => { col.width = i === 0 ? 26 : 20; });
+    ws.getColumn(1).alignment = { vertical:'middle', horizontal:'left' };
+    for(let c = 2; c <= headerCols.length; c++){
+      ws.getColumn(c).alignment = { vertical:'middle', horizontal:'center' };
+    }
+
+    const buf = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const fileSuffix = HEATMAP_PETUGAS ? HEATMAP_PETUGAS.replace(/[^a-z0-9]+/gi,'_') : (HEATMAP_KECAMATAN || 'Semua');
+    downloadBlob(blob, `Heatmap_${HEATMAP_ROLE}_${fileSuffix}.xlsx`);
+  } catch(e){
+    console.error(e);
+    alert('Gagal membuat file Excel: ' + e.message);
+  } finally {
+    setBtnBusy('exportHeatmapExcel', false);
+  }
+}
 
 // Badge khusus untuk "Prediksi Selesai" — beda dari pvCompareBadge() karena di sini
 // yang lebih KECIL (hari tersisa makin sedikit) itu yang BAGUS, bukan yang lebih besar.
