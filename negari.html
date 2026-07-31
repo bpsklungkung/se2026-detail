@@ -290,6 +290,13 @@ table.dataTable tbody td:nth-last-child(2){ text-align:center; }
       <label for="fIndustri">Jenis Industri</label>
       <select id="fIndustri"><option value="">Semua</option></select>
     </div>
+    <div class="field">
+      <label for="fColorBy">🎨 Warnai Marker</label>
+      <select id="fColorBy">
+        <option value="LAPANGAN_USAHA" selected>Lapangan Usaha</option>
+        <option value="JENIS_USAHA">Jenis Usaha</option>
+      </select>
+    </div>
     <div class="field" style="flex:1 1 220px;">
       <label for="fSearch">Cari nama / alamat / produk</label>
       <input type="text" id="fSearch" placeholder="Contoh: dupa, rempeyek, konveksi...">
@@ -401,6 +408,8 @@ function waLink(raw){
 
 const CATEGORY_PALETTE = ["#FF9644","#562F00","#2E86AB","#4C9A2A","#B8336A","#D4A017","#6A4C93","#008080","#C1440E","#4C5C7D","#8C6A00","#A13D63"];
 let CATEGORY_COLORS = {};
+let colorByField = "LAPANGAN_USAHA";
+const COLOR_FIELD_LABEL = { LAPANGAN_USAHA: "Lapangan Usaha", JENIS_USAHA: "Jenis Usaha" };
 
 function getCategoryColor(cat){
   const key = cat || "Lainnya";
@@ -408,8 +417,9 @@ function getCategoryColor(cat){
   return CATEGORY_COLORS[key];
 }
 
-function buildCategoryColors(data){
-  const counts = computeCounts(data, "LAPANGAN_USAHA");
+function buildCategoryColors(data, field){
+  field = field || colorByField;
+  const counts = computeCounts(data, field);
   const cats = Object.keys(counts)
     .filter(c => c && c !== "Tidak diketahui")
     .sort((a,b) => counts[b] - counts[a]); // besar ke kecil
@@ -439,7 +449,7 @@ function buildLegend(){
     onAdd: function(){
       const div = L.DomUtil.create('div','map-legend');
       div.id = "mapLegend";
-      let html = '<div class="legend-title">Lapangan Usaha</div>';
+      let html = `<div class="legend-title">${COLOR_FIELD_LABEL[colorByField] || "Kategori"}</div>`;
       Object.keys(CATEGORY_COLORS).forEach(cat=>{
         html += `<div class="legend-row"><span class="legend-dot" style="background:${CATEGORY_COLORS[cat]}"></span>${cat}</div>`;
       });
@@ -531,12 +541,12 @@ function renderMap(data){
   markersLayer.clearLayers();
   markerById = {};
   let withCoords = 0;
-  const catCounts = computeCounts(data, "LAPANGAN_USAHA");
-  const sorted = [...data].sort((a,b)=> (catCounts[b.LAPANGAN_USAHA]||0) - (catCounts[a.LAPANGAN_USAHA]||0)); // besar ke kecil
+  const catCounts = computeCounts(data, colorByField);
+  const sorted = [...data].sort((a,b)=> (catCounts[b[colorByField]]||0) - (catCounts[a[colorByField]]||0)); // besar ke kecil
   sorted.forEach(row=>{
     if(row.LAT===null || row.LNG===null) return;
     withCoords++;
-    const color = getCategoryColor(row.LAPANGAN_USAHA);
+    const color = getCategoryColor(row[colorByField]);
     const marker = L.marker([row.LAT, row.LNG], {icon: makeCircleIcon(color)});
     marker.bindPopup(buildPopupHTML(row));
     marker.on("click", ()=> highlightTableRow(row._id));
@@ -720,7 +730,7 @@ function boot(){
       document.getElementById("statTotal").textContent = RAW.length;
       document.getElementById("statJenis").textContent = new Set(RAW.map(r=>r.JENIS_USAHA).filter(Boolean)).size;
 
-      buildCategoryColors(RAW);
+      buildCategoryColors(RAW, colorByField);
       buildLegend();
       initFilterOptions();
       applyFilters();
@@ -743,6 +753,12 @@ function boot(){
     });
   });
   document.getElementById("fSearch").addEventListener("input", ()=>applyFilters());
+  document.getElementById("fColorBy").addEventListener("change", function(){
+    colorByField = this.value;
+    buildCategoryColors(RAW, colorByField);
+    buildLegend();
+    renderMap(getFilteredData());
+  });
   document.getElementById("chartVar").addEventListener("change", ()=> renderChart(getFilteredData()));
   document.getElementById("chartType").addEventListener("change", ()=> renderChart(getFilteredData()));
   document.getElementById("btnReset").addEventListener("click", ()=>{
