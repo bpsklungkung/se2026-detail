@@ -265,7 +265,7 @@ table.dataTable tbody td:nth-last-child(2){ text-align:center; }
     <div>
       <div class="hero-eyebrow">Direktori Usaha</div>
       <h1>UMKM Desa Negari</h1>
-      <p>Peta sebaran dan data pelaku usaha mikro, kecil, dan menengah — Kecamatan Banjarangkan, Kabupaten Klungkung.</p>
+      <p>Peta Sebaran UMKM Desa Negari, Kec. Banjarangkan, Kab. Klungkung</p>
     </div>
     <div class="hero-stats">
       <div class="stat-pill"><div class="num" id="statTotal">–</div><div class="lbl">TOTAL USAHA</div></div>
@@ -334,7 +334,7 @@ table.dataTable tbody td:nth-last-child(2){ text-align:center; }
 
   <div class="section-head">
     <h2>Tabel Data Usaha</h2>
-    <span class="tag">Kolom A–H</span>
+    <span class="tag">Tabel Usaha</span>
   </div>
   <div class="table-card">
     <table id="dataTable" class="display" style="width:100%">
@@ -356,7 +356,7 @@ table.dataTable tbody td:nth-last-child(2){ text-align:center; }
     </table>
   </div>
 
-  <div class="footer-note">Data bersumber dari Google Sheets · Diperbarui otomatis saat halaman dimuat</div>
+  <div class="footer-note">Badan Pusat Statistik Kabupaten Klungkung</div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -439,7 +439,7 @@ function buildLegend(){
     onAdd: function(){
       const div = L.DomUtil.create('div','map-legend');
       div.id = "mapLegend";
-      let html = '<div class="legend-title">Lapangan Usaha (Kolom C)</div>';
+      let html = '<div class="legend-title">Lapangan Usaha</div>';
       Object.keys(CATEGORY_COLORS).forEach(cat=>{
         html += `<div class="legend-row"><span class="legend-dot" style="background:${CATEGORY_COLORS[cat]}"></span>${cat}</div>`;
       });
