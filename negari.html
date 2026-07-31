@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Direktori UMKM — Desa Negari</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
+
+<style>
+:root{
+  --cream:#FFFDF1;
+  --peach:#FFCE99;
+  --orange:#FF9644;
+  --brown:#562F00;
+  --brown-deep:#3a1f00;
+  --peach-soft:#FFE7C9;
+  --white:#FFFFFF;
+  --shadow: 0 6px 20px rgba(86,47,0,0.10);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--cream);
+  color:var(--brown-deep);
+  font-family:'Inter',sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+
+h1,h2,h3,.display{
+  font-family:'Fraunces',serif;
+  color:var(--brown-deep);
+  margin:0;
+}
+
+/* ===== Header ===== */
+.hero{
+  background: linear-gradient(135deg, var(--brown) 0%, #7a4310 55%, var(--orange) 130%);
+  padding:38px 28px 46px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::after{
+  content:"";
+  position:absolute; right:-60px; top:-60px;
+  width:260px; height:260px; border-radius:50%;
+  background:radial-gradient(circle, rgba(255,150,68,0.35), transparent 70%);
+}
+.hero-inner{
+  max-width:1280px; margin:0 auto; position:relative; z-index:1;
+  display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap;
+}
+.hero-eyebrow{
+  color:var(--peach); font-weight:600; letter-spacing:.14em; text-transform:uppercase;
+  font-size:12px; margin-bottom:10px; font-family:'Inter',sans-serif;
+}
+.hero h1{ color:var(--cream); font-size:clamp(28px,4vw,42px); font-weight:600; line-height:1.1; }
+.hero p{ color:var(--peach-soft); margin-top:8px; font-size:15px; max-width:520px; }
+
+.hero-stats{ display:flex; gap:14px; flex-wrap:wrap; }
+.stat-pill{
+  background:rgba(255,253,241,0.12);
+  border:1px solid rgba(255,206,153,0.35);
+  border-radius:14px;
+  padding:12px 18px;
+  min-width:108px;
+  backdrop-filter:blur(4px);
+}
+.stat-pill .num{ color:var(--cream); font-family:'Fraunces',serif; font-size:26px; font-weight:600; line-height:1; }
+.stat-pill .lbl{ color:var(--peach-soft); font-size:11px; margin-top:4px; letter-spacing:.05em; }
+
+/* ===== Layout ===== */
+.wrap{ max-width:1280px; margin:0 auto; padding:0 28px 60px; }
+
+/* ===== Filter bar ===== */
+.filterbar{
+  background:var(--white);
+  border:1px solid var(--peach-soft);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+  padding:18px 20px;
+  margin-top:-26px;
+  position:relative; z-index:5;
+  display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end;
+}
+.field{ display:flex; flex-direction:column; gap:6px; flex:1 1 190px; min-width:170px; }
+.field label{ font-size:11.5px; font-weight:600; color:var(--brown); text-transform:uppercase; letter-spacing:.05em; }
+.field select, .field input{
+  border:1.5px solid var(--peach-soft);
+  background:var(--cream);
+  border-radius:10px;
+  padding:10px 12px;
+  font-family:'Inter',sans-serif;
+  font-size:13.5px;
+  color:var(--brown-deep);
+  outline:none;
+  transition:border-color .15s;
+}
+.field select:focus, .field input:focus{ border-color:var(--orange); }
+.btn-reset{
+  border:none; background:var(--peach-soft); color:var(--brown);
+  padding:10px 16px; border-radius:10px; font-weight:600; font-size:13px;
+  cursor:pointer; white-space:nowrap; transition:background .15s;
+}
+.btn-reset:hover{ background:var(--peach); }
+.result-count{ font-size:12.5px; color:var(--brown); font-weight:600; margin-left:auto; align-self:center; white-space:nowrap; }
+
+/* ===== Section headers ===== */
+.section-head{ display:flex; align-items:baseline; justify-content:space-between; margin:38px 0 14px; flex-wrap:wrap; gap:8px;}
+.section-head h2{ font-size:20px; font-weight:600; }
+.section-head .tag{ font-size:11px; color:var(--brown); background:var(--peach-soft); padding:4px 10px; border-radius:100px; font-weight:600; letter-spacing:.04em;}
+
+/* ===== Map + Chart row ===== */
+.map-chart-row{
+  display:flex;
+  gap:18px;
+  align-items:stretch;
+  width:100%;
+}
+.map-col{
+  flex:1 1 62%;
+  min-width:0;
+  height:520px;
+  border-radius:18px;
+  border:1px solid var(--peach-soft);
+  box-shadow:var(--shadow);
+}
+.chart-col{
+  flex:1 1 36%;
+  min-width:280px;
+  max-width:420px;
+  display:flex;
+  flex-direction:column;
+}
+.chart-card{
+  background:var(--white);
+  border:1px solid var(--peach-soft);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+  padding:16px 18px;
+}
+.chart-card-head{
+  font-family:'Fraunces',serif;
+  font-size:15px; font-weight:600; color:var(--brown-deep);
+  margin-bottom:12px;
+}
+.chart-controls{ display:flex; gap:10px; margin-bottom:14px; }
+.chart-controls .field{ flex:1; min-width:0; }
+.chart-controls .field label{ font-size:10.5px; }
+.chart-controls .field select{ padding:8px 10px; font-size:12.5px; }
+.chart-canvas-wrap{
+  position:relative;
+  flex:1;
+  min-height:340px;
+  overflow-x:auto;
+  overflow-y:hidden;
+}
+.chart-inner{
+  height:100%;
+  min-width:100%;
+}
+@media (max-width:900px){
+  .map-chart-row{ flex-direction:column; }
+  .map-col{ flex:1 1 auto; width:100%; }
+  .chart-col{ max-width:100%; }
+  .chart-canvas-wrap{ min-height:280px; }
+}
+.leaflet-popup-content-wrapper{ border-radius:14px; padding:2px; }
+.leaflet-popup-content{ margin:14px 16px; font-family:'Inter',sans-serif; width:240px !important; }
+.leaflet-popup-tip{ background:var(--white); }
+.popup-title{ font-family:'Fraunces',serif; font-size:15.5px; font-weight:600; color:var(--brown-deep); margin-bottom:4px; }
+.popup-badges{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+.popup-badge{ background:var(--peach-soft); color:var(--brown); font-size:10.5px; font-weight:600; padding:3px 8px; border-radius:100px; }
+.popup-row{ font-size:12.5px; color:#5a4230; margin-bottom:5px; line-height:1.4; }
+.popup-row b{ color:var(--brown-deep); }
+.popup-actions{ display:flex; gap:8px; margin-top:10px; }
+.popup-actions a{
+  flex:1; text-align:center; text-decoration:none; font-size:11.5px; font-weight:700;
+  padding:7px 6px; border-radius:8px;
+}
+.wa-btn{ background:#25D366; color:#fff; }
+.mail-btn{ background:var(--orange); color:#fff; }
+.gmaps-btn{ background:var(--brown); color:#fff; flex:1; }
+.no-contact{ font-size:11px; color:#a08a70; font-style:italic; }
+
+.pin-icon{ filter:drop-shadow(0 2px 3px rgba(58,31,0,0.35)); }
+
+.map-legend{
+  background:rgba(255,253,241,0.95);
+  border:1px solid var(--peach-soft);
+  border-radius:12px;
+  padding:10px 12px;
+  box-shadow:var(--shadow);
+  font-family:'Inter',sans-serif;
+  max-height:180px;
+  overflow-y:auto;
+  min-width:150px;
+}
+.legend-title{ font-size:10.5px; font-weight:700; color:var(--brown); text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; }
+.legend-row{ display:flex; align-items:center; gap:7px; font-size:12px; color:var(--brown-deep); padding:2px 0; }
+.legend-dot{ width:10px; height:10px; border-radius:50%; flex-shrink:0; border:1.5px solid #fff; box-shadow:0 0 0 1px rgba(86,47,0,0.2); }
+
+/* ===== Table ===== */
+.table-card{
+  background:var(--white); border:1px solid var(--peach-soft); border-radius:18px;
+  box-shadow:var(--shadow); padding:18px 20px 24px; overflow-x:auto;
+}
+table.dataTable{ width:100% !important; border-collapse:separate !important; border-spacing:0; font-size:12.8px; }
+table.dataTable thead th{
+  background:var(--brown); color:var(--cream) !important;
+  font-family:'Inter',sans-serif; font-weight:600; font-size:11.5px;
+  text-transform:uppercase; letter-spacing:.04em;
+  padding:11px 10px !important; border:none !important;
+}
+table.dataTable thead th:first-child{ border-radius:10px 0 0 10px; }
+table.dataTable thead th:last-child{ border-radius:0 10px 10px 0; }
+table.dataTable tbody td{ padding:10px !important; border-bottom:1px solid var(--peach-soft) !important; vertical-align:top; color:var(--brown-deep); }
+table.dataTable tbody tr:hover{ background:var(--cream); cursor:pointer; }
+table.dataTable tbody tr.row-selected{ background:var(--peach-soft) !important; }
+.dataTables_wrapper .dataTables_filter input,
+.dataTables_wrapper .dataTables_length select{
+  border:1.5px solid var(--peach-soft); border-radius:8px; padding:5px 8px; outline:none;
+}
+.dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter{ color:var(--brown); font-size:12.5px; }
+.dataTables_wrapper .dataTables_paginate .paginate_button{ border-radius:8px !important; padding:4px 10px !important; }
+.dataTables_wrapper .dataTables_paginate .paginate_button.current{
+  background:var(--orange) !important; color:#fff !important; border:none !important;
+}
+.tag-usaha{
+  display:inline-block; background:var(--peach-soft); color:var(--brown);
+  font-size:11px; font-weight:600; padding:3px 8px; border-radius:100px;
+}
+.wa-cell-btn{
+  display:inline-block; background:#25D366; color:#fff; text-decoration:none;
+  font-size:12px; font-weight:800; padding:8px 14px; border-radius:8px;
+  white-space:nowrap; text-align:center; min-width:44px;
+}
+.wa-cell-btn:hover{ opacity:.88; }
+.cell-btn{ display:inline-block; text-decoration:none; text-align:center; min-width:40px; padding:7px 12px; border-radius:8px; font-weight:800; font-size:13px; }
+.maps-cell-btn{ background:var(--orange); color:#fff; }
+.maps-cell-btn:hover{ opacity:.88; }
+.cell-btn-disabled{ color:#c9b79c; font-size:13px; }
+table.dataTable tbody td:nth-last-child(1),
+table.dataTable tbody td:nth-last-child(2){ text-align:center; }
+
+.footer-note{ text-align:center; color:#a08a70; font-size:11.5px; margin-top:28px; }
+
+@media (max-width:640px){
+  .hero{ padding:28px 18px 40px; }
+  .wrap{ padding:0 14px 40px; }
+  #map{ height:400px; }
+  .result-count{ margin-left:0; }
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-eyebrow">Direktori Usaha</div>
+      <h1>UMKM Desa Negari</h1>
+      <p>Peta sebaran dan data pelaku usaha mikro, kecil, dan menengah — Kecamatan Banjarangkan, Kabupaten Klungkung.</p>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-pill"><div class="num" id="statTotal">–</div><div class="lbl">TOTAL USAHA</div></div>
+      <div class="stat-pill"><div class="num" id="statJenis">–</div><div class="lbl">JENIS USAHA</div></div>
+      <div class="stat-pill"><div class="num" id="statPeta">–</div><div class="lbl">TITIK DI PETA</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="filterbar">
+    <div class="field">
+      <label for="fJenis">Jenis Usaha</label>
+      <select id="fJenis"><option value="">Semua</option></select>
+    </div>
+    <div class="field">
+      <label for="fLapangan">Lapangan Usaha</label>
+      <select id="fLapangan"><option value="">Semua</option></select>
+    </div>
+    <div class="field">
+      <label for="fIndustri">Jenis Industri</label>
+      <select id="fIndustri"><option value="">Semua</option></select>
+    </div>
+    <div class="field" style="flex:1 1 220px;">
+      <label for="fSearch">Cari nama / alamat / produk</label>
+      <input type="text" id="fSearch" placeholder="Contoh: dupa, rempeyek, konveksi...">
+    </div>
+    <button class="btn-reset" id="btnReset">Reset Filter</button>
+    <div class="result-count" id="resultCount"></div>
+  </div>
+
+  <div class="section-head">
+    <h2>Peta Sebaran Usaha</h2>
+    <span class="tag" id="mapTag">memuat data...</span>
+  </div>
+  <div class="map-chart-row">
+    <div id="map" class="map-col"></div>
+    <div class="chart-card chart-col">
+      <div class="chart-card-head">📊 Pilih Grafik</div>
+      <div class="chart-controls">
+        <div class="field">
+          <label for="chartVar">Variabel</label>
+          <select id="chartVar">
+            <option value="JENIS_USAHA">Jenis Usaha</option>
+            <option value="LAPANGAN_USAHA">Lapangan Usaha</option>
+            <option value="JENIS_INDUSTRI">Jenis Industri</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="chartType">Tipe</label>
+          <select id="chartType">
+            <option value="bar">Bar</option>
+            <option value="pie">Pie</option>
+            <option value="doughnut">Donat</option>
+          </select>
+        </div>
+      </div>
+      <div class="chart-canvas-wrap">
+        <div id="chartInner" class="chart-inner">
+          <canvas id="chartCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-head">
+    <h2>Tabel Data Usaha</h2>
+    <span class="tag">Kolom A–H</span>
+  </div>
+  <div class="table-card">
+    <table id="dataTable" class="display" style="width:100%">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Jenis Usaha</th>
+          <th>Lapangan Usaha</th>
+          <th>Jenis Industri</th>
+          <th>Nama Perusahaan</th>
+          <th>Nama Pemilik</th>
+          <th>Alamat</th>
+          <th>Jenis Produk</th>
+          <th>WA</th>
+          <th>Maps</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="footer-note">Data bersumber dari Google Sheets · Diperbarui otomatis saat halaman dimuat</div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+<script>
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnmIUIhrn1JXhysA0bpy5UG24PiQrdtofQKoWO2ityWi9l9fMmSq23cznLiGzMiA/pub?output=csv";
+
+let RAW = [];          // all parsed rows
+let markersLayer = null;
+let map = null;
+let dt = null;
+let markerById = {};   // id -> leaflet marker
+let chart = null;      // Chart.js instance
+
+const CHART_LABELS = { JENIS_USAHA:"Jenis Usaha", LAPANGAN_USAHA:"Lapangan Usaha", JENIS_INDUSTRI:"Jenis Industri" };
+
+function parseCoord(v){
+  if(v===undefined||v===null) return null;
+  let s = String(v).trim();
+  if(s==="" || s==="-") return null;
+  s = s.replace(",", ".");
+  const n = parseFloat(s);
+  return isNaN(n) ? null : n;
+}
+
+function cleanTxt(v){
+  return (v===undefined||v===null) ? "" : String(v).trim();
+}
+
+function waLink(raw){
+  if(!raw) return null;
+  let digits = String(raw).replace(/[^0-9]/g,"");
+  if(digits.length < 8) return null;
+  if(digits.startsWith("0")) digits = "62" + digits.slice(1);
+  else if(!digits.startsWith("62")) digits = "62" + digits;
+  return "https://wa.me/" + digits;
+}
+
+const CATEGORY_PALETTE = ["#FF9644","#562F00","#2E86AB","#4C9A2A","#B8336A","#D4A017","#6A4C93","#008080","#C1440E","#4C5C7D","#8C6A00","#A13D63"];
+let CATEGORY_COLORS = {};
+
+function getCategoryColor(cat){
+  const key = cat || "Lainnya";
+  if(!CATEGORY_COLORS[key]) return "#999999";
+  return CATEGORY_COLORS[key];
+}
+
+function buildCategoryColors(data){
+  const counts = computeCounts(data, "LAPANGAN_USAHA");
+  const cats = Object.keys(counts)
+    .filter(c => c && c !== "Tidak diketahui")
+    .sort((a,b) => counts[b] - counts[a]); // besar ke kecil
+  CATEGORY_COLORS = {};
+  cats.forEach((c,i)=>{ CATEGORY_COLORS[c] = CATEGORY_PALETTE[i % CATEGORY_PALETTE.length]; });
+}
+
+function makeCircleIcon(color){
+  const svg = `
+  <svg width="26" height="26" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg" class="pin-icon">
+    <circle cx="13" cy="13" r="10.5" fill="${color}" stroke="#FFFDF1" stroke-width="2.5"/>
+  </svg>`;
+  return L.divIcon({
+    html: svg,
+    className: "",
+    iconSize: [26,26],
+    iconAnchor: [13,13],
+    popupAnchor: [0,-13]
+  });
+}
+
+function buildLegend(){
+  const existing = document.getElementById("mapLegend");
+  if(existing) existing.remove();
+  const LegendControl = L.Control.extend({
+    options:{position:'bottomright'},
+    onAdd: function(){
+      const div = L.DomUtil.create('div','map-legend');
+      div.id = "mapLegend";
+      let html = '<div class="legend-title">Lapangan Usaha (Kolom C)</div>';
+      Object.keys(CATEGORY_COLORS).forEach(cat=>{
+        html += `<div class="legend-row"><span class="legend-dot" style="background:${CATEGORY_COLORS[cat]}"></span>${cat}</div>`;
+      });
+      div.innerHTML = html;
+      L.DomEvent.disableClickPropagation(div);
+      return div;
+    }
+  });
+  new LegendControl().addTo(map);
+}
+
+function buildPopupHTML(row){
+  const wa = waLink(row.KONTAK);
+  const email = row.EMAIL;
+  let actions = "";
+  if(wa || email){
+    actions = '<div class="popup-actions">';
+    if(wa) actions += `<a class="wa-btn" href="${wa}" target="_blank" rel="noopener">WhatsApp</a>`;
+    if(email) actions += `<a class="mail-btn" href="mailto:${email}" target="_blank" rel="noopener">Email</a>`;
+    actions += '</div>';
+  } else {
+    actions = '<div class="no-contact">Kontak tidak tersedia</div>';
+  }
+
+  return `
+    <div class="popup-title">${row.NAMA_PERUSAHAAN || "(tanpa nama)"}</div>
+    <div class="popup-badges">
+      <span class="popup-badge">${row.JENIS_USAHA||"-"}</span>
+      <span class="popup-badge">${row.LAPANGAN_USAHA||"-"}</span>
+    </div>
+    <div class="popup-row"><b>Industri:</b> ${row.JENIS_INDUSTRI||"-"}</div>
+    <div class="popup-row"><b>Pemilik:</b> ${row.NAMA_PEMILIK||"-"}</div>
+    <div class="popup-row"><b>Alamat:</b> ${row.ALAMAT||"-"}</div>
+    <div class="popup-row"><b>Produk:</b> ${row.JENIS_PRODUK||"-"}</div>
+    ${actions}
+    ${(row.LAT!==null && row.LNG!==null) ? `<div class="popup-actions" style="margin-top:6px;"><a class="gmaps-btn" href="https://www.google.com/maps?q=${row.LAT},${row.LNG}" target="_blank" rel="noopener">Lihat di Google Maps</a></div>` : ""}
+  `;
+}
+
+function populateSelect(sel, values){
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Semua</option>';
+  [...new Set(values)].filter(Boolean).sort((a,b)=>a.localeCompare(b,'id')).forEach(v=>{
+    const opt = document.createElement("option");
+    opt.value = v; opt.textContent = v;
+    sel.appendChild(opt);
+  });
+  if([...sel.options].some(o=>o.value===current)) sel.value = current;
+}
+
+function refreshCascadingFilters(){
+  const fJenis = document.getElementById("fJenis");
+  const fLapangan = document.getElementById("fLapangan");
+  const fIndustri = document.getElementById("fIndustri");
+
+  const jenisVal = fJenis.value;
+  const lapanganVal = fLapangan.value;
+
+  // Lapangan options depend on Jenis
+  let scoped = RAW;
+  if(jenisVal) scoped = scoped.filter(r=>r.JENIS_USAHA===jenisVal);
+  populateSelect(fLapangan, scoped.map(r=>r.LAPANGAN_USAHA));
+
+  // Industri options depend on Jenis + Lapangan
+  let scoped2 = scoped;
+  if(fLapangan.value) scoped2 = scoped2.filter(r=>r.LAPANGAN_USAHA===fLapangan.value);
+  populateSelect(fIndustri, scoped2.map(r=>r.JENIS_INDUSTRI));
+}
+
+function getFilteredData(){
+  const jenis = document.getElementById("fJenis").value;
+  const lapangan = document.getElementById("fLapangan").value;
+  const industri = document.getElementById("fIndustri").value;
+  const q = document.getElementById("fSearch").value.trim().toLowerCase();
+
+  return RAW.filter(r=>{
+    if(jenis && r.JENIS_USAHA!==jenis) return false;
+    if(lapangan && r.LAPANGAN_USAHA!==lapangan) return false;
+    if(industri && r.JENIS_INDUSTRI!==industri) return false;
+    if(q){
+      const hay = (r.NAMA_PERUSAHAAN+" "+r.ALAMAT+" "+r.JENIS_PRODUK+" "+r.NAMA_PEMILIK).toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function renderMap(data){
+  markersLayer.clearLayers();
+  markerById = {};
+  let withCoords = 0;
+  const catCounts = computeCounts(data, "LAPANGAN_USAHA");
+  const sorted = [...data].sort((a,b)=> (catCounts[b.LAPANGAN_USAHA]||0) - (catCounts[a.LAPANGAN_USAHA]||0)); // besar ke kecil
+  sorted.forEach(row=>{
+    if(row.LAT===null || row.LNG===null) return;
+    withCoords++;
+    const color = getCategoryColor(row.LAPANGAN_USAHA);
+    const marker = L.marker([row.LAT, row.LNG], {icon: makeCircleIcon(color)});
+    marker.bindPopup(buildPopupHTML(row));
+    marker.on("click", ()=> highlightTableRow(row._id));
+    markersLayer.addLayer(marker);
+    markerById[row._id] = marker;
+  });
+  document.getElementById("statPeta").textContent = withCoords;
+  document.getElementById("mapTag").textContent = withCoords + " titik ditampilkan";
+}
+
+function renderTable(data){
+  dt.clear();
+  dt.rows.add(data.map(r=>[
+    r.NO,
+    r.JENIS_USAHA ? `<span class="tag-usaha">${r.JENIS_USAHA}</span>` : "-",
+    r.LAPANGAN_USAHA || "-",
+    r.JENIS_INDUSTRI || "-",
+    r.NAMA_PERUSAHAAN || "-",
+    r.NAMA_PEMILIK || "-",
+    r.ALAMAT || "-",
+    r.JENIS_PRODUK || "-",
+    (()=>{ const wa = waLink(r.KONTAK); return wa ? `<a class="cell-btn wa-cell-btn" href="${wa}" target="_blank" rel="noopener" title="${r.KONTAK}">WA</a>` : `<span class="cell-btn-disabled">–</span>`; })(),
+    (r.LAT!==null && r.LNG!==null) ? `<a class="cell-btn maps-cell-btn" href="https://www.google.com/maps?q=${r.LAT},${r.LNG}" target="_blank" rel="noopener" title="Lihat di peta">📍</a>` : `<span class="cell-btn-disabled">–</span>`
+  ]));
+  dt.draw();
+  // attach ids to rows for click-to-pan
+  dt.rows().every(function(){
+    const idx = this.index();
+    const node = this.node();
+    node.dataset.rowid = data[idx]._id;
+  });
+}
+
+function highlightTableRow(id){
+  document.querySelectorAll("#dataTable tbody tr").forEach(tr=>tr.classList.remove("row-selected"));
+  const tr = document.querySelector(`#dataTable tbody tr[data-rowid="${id}"]`);
+  if(tr){
+    tr.classList.add("row-selected");
+    tr.scrollIntoView({behavior:"smooth", block:"center"});
+  }
+}
+
+function computeCounts(data, field){
+  const counts = {};
+  data.forEach(r=>{
+    const key = r[field] || "Tidak diketahui";
+    counts[key] = (counts[key]||0) + 1;
+  });
+  return counts;
+}
+
+function renderChart(data){
+  const field = document.getElementById("chartVar").value;
+  const type = document.getElementById("chartType").value;
+  const counts = computeCounts(data, field);
+  const entries = Object.entries(counts).sort((a,b)=> b[1]-a[1]); // besar ke kecil
+  const labels = entries.map(e=>e[0]);
+  const values = entries.map(e=>e[1]);
+  const colors = labels.map((l,i)=> CATEGORY_COLORS[l] || CATEGORY_PALETTE[i % CATEGORY_PALETTE.length]);
+
+  const isCircular = (type==="pie" || type==="doughnut");
+  const chartInner = document.getElementById("chartInner");
+  const wrapWidth = document.querySelector(".chart-canvas-wrap").clientWidth;
+
+  if(isCircular){
+    chartInner.style.width = "100%";
+  } else {
+    const neededWidth = labels.length * 52;
+    chartInner.style.width = Math.max(wrapWidth, neededWidth) + "px";
+  }
+
+  const ctx = document.getElementById("chartCanvas").getContext("2d");
+  if(chart) chart.destroy();
+
+  chart = new Chart(ctx, {
+    type: type,
+    data: {
+      labels: labels,
+      datasets: [{
+        label: CHART_LABELS[field] || field,
+        data: values,
+        backgroundColor: isCircular ? colors : "rgba(255,150,68,0.55)",
+        borderColor: isCircular ? "#FFFDF1" : "#FF9644",
+        borderWidth: isCircular ? 2 : 1,
+        borderRadius: isCircular ? 0 : 4,
+        maxBarThickness: 42
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: isCircular, position:"bottom", labels:{ boxWidth:11, font:{size:10.5}, color:"#562F00" } },
+        tooltip: { callbacks: { label: (c)=> ` ${c.label}: ${c.formattedValue}` } }
+      },
+      scales: isCircular ? {} : {
+        x: { ticks: { autoSkip:false, maxRotation:60, minRotation:45, font:{size:10.5}, color:"#7a5a3a" }, grid:{ display:false } },
+        y: { beginAtZero:true, ticks:{ precision:0, color:"#7a5a3a" }, grid:{ color:"#FFE7C9" } }
+      }
+    }
+  });
+}
+
+function applyFilters(){
+  refreshCascadingFilters();
+  const data = getFilteredData();
+  document.getElementById("resultCount").textContent = data.length + " usaha ditemukan";
+  renderMap(data);
+  renderTable(data);
+  renderChart(data);
+}
+
+function initFilterOptions(){
+  populateSelect(document.getElementById("fJenis"), RAW.map(r=>r.JENIS_USAHA));
+  refreshCascadingFilters();
+}
+
+document.addEventListener("DOMContentLoaded", boot);
+
+function boot(){
+  map = L.map("map", {scrollWheelZoom:false}).setView([-8.5625, 115.378], 15);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+  markersLayer = L.layerGroup().addTo(map);
+  setTimeout(()=> map.invalidateSize(), 200);
+  window.addEventListener("resize", ()=> map.invalidateSize());
+
+  dt = $("#dataTable").DataTable({
+    data: [],
+    columns: [
+      {title:"No"},{title:"Jenis Usaha"},{title:"Lapangan Usaha"},
+      {title:"Jenis Industri"},{title:"Nama Perusahaan"},{title:"Nama Pemilik"},
+      {title:"Alamat"},{title:"Jenis Produk"},{title:"WA", className:"text-center"},{title:"Maps", className:"text-center"}
+    ],
+    pageLength: 10,
+    lengthMenu: [10,25,50,100],
+    language: {
+      search: "Cari:",
+      lengthMenu: "Tampilkan _MENU_ data",
+      info: "Menampilkan _START_–_END_ dari _TOTAL_ data",
+      infoEmpty: "Tidak ada data",
+      infoFiltered: "(difilter dari _MAX_ total data)",
+      zeroRecords: "Data tidak ditemukan",
+      paginate: {previous:"‹", next:"›"}
+    }
+  });
+
+  $("#dataTable tbody").on("click", "tr", function(e){
+    if($(e.target).closest("a").length) return; // let WA/Maps links behave normally
+    const id = this.dataset.rowid;
+    const marker = markerById[id];
+    if(marker){
+      map.flyTo(marker.getLatLng(), 18, {duration:0.6});
+      marker.openPopup();
+    }
+  });
+
+  Papa.parse(CSV_URL, {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: function(results){
+      RAW = results.data.map((row, i)=>({
+        _id: "r"+i,
+        NO: cleanTxt(row["NO."]),
+        JENIS_USAHA: cleanTxt(row["Jenis Usaha"]),
+        LAPANGAN_USAHA: cleanTxt(row["LAPANGAN USAHA"]),
+        JENIS_INDUSTRI: cleanTxt(row["JENIS INDUSTRI"]),
+        NAMA_PERUSAHAAN: cleanTxt(row["NAMA PERUSAHAAN"]),
+        NAMA_PEMILIK: cleanTxt(row["NAMA PEMILIK"]),
+        ALAMAT: cleanTxt(row["ALAMAT"]),
+        JENIS_PRODUK: cleanTxt(row["JENIS PRODUK"]),
+        LAT: parseCoord(row["LATITUDE"]),
+        LNG: parseCoord(row["LONGITUDE"]),
+        KONTAK: cleanTxt(row["KONTAK PERSON"]),
+        EMAIL: cleanTxt(row["EMAIL"])
+      })).filter(r => r.NAMA_PERUSAHAAN !== "" || r.NO !== "");
+
+      document.getElementById("statTotal").textContent = RAW.length;
+      document.getElementById("statJenis").textContent = new Set(RAW.map(r=>r.JENIS_USAHA).filter(Boolean)).size;
+
+      buildCategoryColors(RAW);
+      buildLegend();
+      initFilterOptions();
+      applyFilters();
+
+      const bounds = markersLayer.getBounds();
+      if(bounds.isValid()) map.fitBounds(bounds.pad(0.15));
+    },
+    error: function(err){
+      document.getElementById("mapTag").textContent = "Gagal memuat data";
+      console.error(err);
+    }
+  });
+
+  ["fJenis","fLapangan","fIndustri"].forEach(id=>{
+    document.getElementById(id).addEventListener("change", ()=>{
+      // reset dependent filters when a parent changes
+      if(id==="fJenis"){ document.getElementById("fLapangan").value=""; document.getElementById("fIndustri").value=""; }
+      if(id==="fLapangan"){ document.getElementById("fIndustri").value=""; }
+      applyFilters();
+    });
+  });
+  document.getElementById("fSearch").addEventListener("input", ()=>applyFilters());
+  document.getElementById("chartVar").addEventListener("change", ()=> renderChart(getFilteredData()));
+  document.getElementById("chartType").addEventListener("change", ()=> renderChart(getFilteredData()));
+  document.getElementById("btnReset").addEventListener("click", ()=>{
+    document.getElementById("fJenis").value="";
+    document.getElementById("fLapangan").value="";
+    document.getElementById("fIndustri").value="";
+    document.getElementById("fSearch").value="";
+    applyFilters();
+    const bounds = markersLayer.getBounds();
+    if(bounds.isValid()) map.fitBounds(bounds.pad(0.15));
+  });
+}
+</script>
+</body>
+</html>
