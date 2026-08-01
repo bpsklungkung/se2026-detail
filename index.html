@@ -7341,19 +7341,29 @@ function isTanggalHistoriValid(t){
 // ekstra pivot: Progres Pencacahan/Pemeriksaan Kemarin & Capaian Harian.
 // rowField : 'Username' → cocokkan by username; 'Pencacah Awal'/'Pengawas Awal' → cocokkan by namaLengkap.
 // fieldName: nama field di historiUsernameData, mis. 'progresPencacahanKemarin', 'capaianHarianPencacahan', dst.
+function yesterdayDateStr(){
+  const d = new Date(); d.setDate(d.getDate()-1);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+// PENTING: sheet "Histori Username" hanya menyimpan baris kalau progres hari itu > 0
+// (progres 0 = tidak disimpan). Jadi kalau H-1 tidak ada record, artinya progres H-1
+// MEMANG 0 — bukan berarti harus ambil data terakhir yang tercatat (bisa beberapa
+// hari sebelumnya). Dulu fungsi ini salah ambil baris terakhir yang ada, jadi kalau
+// ada gap beberapa hari tanpa progres, badge "kemarin" jadi bandingin ke data basi
+// (mis. 4 hari lalu) dan tidak sinkron dengan heatmap yang benar per-tanggal kalender.
 function getYesterdayUsernameVal(rowField, rowValue, fieldName){
   if(!historiUsernameData || !historiUsernameData.length || !rowValue) return null;
-  const todayStr = todayDateStr();
+  const yStr = yesterdayDateStr();
   const matchKey = (rowField === 'Username') ? 'username' : 'namaLengkap';
   const target = normNama(rowValue);
-  const rows = historiUsernameData
-    .filter(d => d && isTanggalHistoriValid(d.tanggal) && d.tanggal < todayStr
-      && normNama(d[matchKey]) === target
-      && d[fieldName] !== null && d[fieldName] !== undefined && d[fieldName] !== '')
-    .sort((a,b)=>a.tanggal.localeCompare(b.tanggal));
-  if(!rows.length) return null;
-  const v = +rows[rows.length-1][fieldName];
-  return isNaN(v) ? null : v;
+  const row = historiUsernameData.find(d => d && isTanggalHistoriValid(d.tanggal)
+    && d.tanggal === yStr && normNama(d[matchKey]) === target);
+  if(!row) return 0; // tidak ada record di H-1 => progres kemarin 0 (konsisten dgn heatmap)
+  const v = +row[fieldName];
+  return isNaN(v) ? 0 : v;
 }
 
 // Sheet "Histori Username" mulai disimpan sejak 24 Juni 2026, dan HANYA menyimpan baris
@@ -7442,16 +7452,23 @@ function computeMaxNoProgressStreak(personEntries, todayStr, progressField){
 
 // Ambil nilai TERAKHIR (tanggal termuda < hari ini) yang valid utk 1 field, dari array milik 1 orang
 // yang sudah terurut naik berdasarkan tanggal.
-function getLastValFromEntries(personEntries, progressField){
+// PENTING (fix konsistensi dgn kolom Pivot "...Kemarin" & heatmap kalender):
+// Histori Username hanya menyimpan baris kalau progres hari itu > 0, jadi kalau
+// H-1 tidak ada baris, progres H-1 itu MEMANG 0 — bukan berarti harus mundur ke
+// hari terakhir yang tercatat (bisa beberapa hari lalu). Dulu fungsi ini ambil
+// entri terakhir yang ada nilainya, jadi kalau ada gap tanpa progres, kotak
+// "kemarin" di grid heatmap "Semua Petugas" ikut salah nunjukin angka basi —
+// sementara kalender heatmap per-hari (computeStreaksFromEntries dkk) sudah
+// benar treat hari kosong = 0. yStr = tanggal H-1 (todayStr - 1 hari).
+function getLastValFromEntries(personEntries, progressField, yStr){
   if(!personEntries) return null;
-  for(let i = personEntries.length - 1; i >= 0; i--){
-    const v = personEntries[i][progressField];
-    if(v !== null && v !== undefined && v !== ''){
-      const num = +v;
-      if(!isNaN(num)) return num;
-    }
-  }
-  return null;
+  if(!yStr) return null;
+  const row = personEntries.find(e => e.tanggal === yStr);
+  if(!row) return 0;
+  const v = row[progressField];
+  if(v === null || v === undefined || v === '') return 0;
+  const num = +v;
+  return isNaN(num) ? 0 : num;
 }
 
 // ══════════════════════════════════════
@@ -7598,12 +7615,13 @@ function renderHeatmapAllPeople(){
   emptyEl.style.display = 'none';
 
   const todayStr = todayDateStr();
+  const yStr = yesterdayDateStr();
   const histIdx = buildHeatmapHistoriIndex(); // dibangun SEKALI, dipakai utk semua orang di bawah
 
   // Ambil nilai "kemarin" + streak utk semua nama sekaligus dari index (bukan full-scan per orang lagi).
   const entries = names.map(nama => {
     const personEntries = histIdx.get(normNama(nama));
-    const val = getLastValFromEntries(personEntries, progressField);
+    const val = getLastValFromEntries(personEntries, progressField, yStr);
     const { streakProgres, streakTanpaProgres } = computeStreaksFromEntries(personEntries, todayStr, progressField);
     const maxNoProgress = computeMaxNoProgressStreak(personEntries, todayStr, progressField);
     return { nama, val, streakProgres, streakTanpaProgres, maxNoProgress };
@@ -7809,10 +7827,11 @@ async function exportHeatmapExcel(){
       const cache = buildHeatmapNameCache()[HEATMAP_ROLE];
       const names = getUniquePetugasNames(HEATMAP_ROLE, HEATMAP_KECAMATAN || null);
       const histIdx = buildHeatmapHistoriIndex();
+      const yStrExport = yesterdayDateStr();
 
       const entries = names.map(nama => {
         const personEntries = histIdx.get(normNama(nama));
-        const val = getLastValFromEntries(personEntries, progressField);
+        const val = getLastValFromEntries(personEntries, progressField, yStrExport);
         const { streakProgres, streakTanpaProgres } = computeStreaksFromEntries(personEntries, todayStr, progressField);
         const maxNoProgress = computeMaxNoProgressStreak(personEntries, todayStr, progressField);
         return { nama, kecamatan: cache.kecMap[nama] || '', val, streakProgres, streakTanpaProgres, maxNoProgress };
