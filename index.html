@@ -4821,6 +4821,20 @@ function makeTrenLabels(tanggals){
   return labels;
 }
 function padN(arr){ return arr.concat(Array(7).fill(null)); }
+// Bikin array tanggal YYYY-MM-DD yang KONTINU (tiap hari, tanpa lompat) dari startStr s/d endStr (inklusif).
+function dateRangeArr(startStr, endStr){
+  const out = [];
+  const d = new Date(startStr + 'T00:00:00');
+  const end = new Date(endStr + 'T00:00:00');
+  while(d <= end){
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    out.push(`${yyyy}-${mm}-${dd}`);
+    d.setDate(d.getDate()+1);
+  }
+  return out;
+}
 
 // Render satu chart tren (chartId: Progres/Capaian/Open)
 function renderTrenChart(chartId){
@@ -4926,9 +4940,14 @@ function renderTrenChart(chartId){
     });
   }
 
-  const tanggals = [...new Set(baseRows.map(r=>r.tanggal).filter(Boolean))].sort();
+  // Bangun rentang tanggal LENGKAP (kontinu, tanpa lompat) dari tanggal paling awal
+  // yang ada datanya sampai HARI INI — supaya hari-hari tanpa progres (yang memang
+  // tidak disimpan sbg baris di sheet Histori Username) tetap muncul di chart dgn
+  // nilai 0, bukan hilang/di-skip dari sumbu tanggal.
+  const rawTanggals = [...new Set(baseRows.map(r=>r.tanggal).filter(Boolean))].sort();
+  if(!rawTanggals.length) return;
+  const tanggals = dateRangeArr(rawTanggals[0], todayDateStr());
   const labels   = makeTrenLabels(tanggals);
-  if(!tanggals.length) return;
 
   function buildSeriesFromRows(rows, field, color, label){
     const isSum = sumFields.has(field);
@@ -4943,7 +4962,7 @@ function renderTrenChart(chartId){
     return {
       label, color,
       data: padN(tanggals.map(t => {
-        if(!cntTgl[t]) return null;
+        if(!cntTgl[t]) return 0; // tanggal tanpa baris histori = memang tidak ada progres hari itu
         // Field progres = SUM, field capaian = rata-rata
         return isSum ? +byTgl[t].toFixed(2) : +(byTgl[t]/cntTgl[t]).toFixed(2);
       }))
