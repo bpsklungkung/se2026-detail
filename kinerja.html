@@ -391,6 +391,48 @@ h1,h2,h3,.display{
   font-size:16px; font-weight:600; color:var(--brown-deep);
   margin-bottom:14px;
 }
+.card-head-row .card-head{ margin-bottom:0; }
+
+.card-head-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+}
+
+.card-head-row .card-head{
+  margin-bottom:0;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.dl-btns{
+  display:flex;
+  gap:6px;
+  flex-shrink:0;
+}
+
+.dl-btn{
+  border:1.5px solid var(--peach-soft);
+  background:var(--cream);
+  color:var(--brown);
+  font-size:11px;
+  font-weight:700;
+  padding:6px 10px;
+  border-radius:8px;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+  white-space:nowrap;
+  transition:background .15s, border-color .15s;
+}
+
+.dl-btn:hover{
+  background:var(--peach-soft);
+  border-color:var(--orange);
+}
 
 .chart-controls{
   display:flex;
@@ -1098,7 +1140,13 @@ td a:hover{
 
 <div class="chart-wrapper">
   <div class="card chart-box">
-    <div class="card-head">Grafik Dinamis</div>
+    <div class="card-head-row">
+      <div class="card-head">Grafik Dinamis</div>
+      <div class="dl-btns">
+        <button type="button" class="dl-btn" onclick="exportChartExcel()">📊 Excel</button>
+        <button type="button" class="dl-btn" onclick="exportChartJPG()">🖼 JPG</button>
+      </div>
+    </div>
 
     <div class="chart-controls">
       <div class="field">
@@ -1130,7 +1178,12 @@ td a:hover{
   </div>
 
   <div class="card pivot-box">
-    <div class="card-head" id="pivotHead">🔀 Pivot Silang</div>
+    <div class="card-head-row">
+      <div class="card-head" id="pivotHead">🔀 Pivot Silang</div>
+      <div class="dl-btns">
+        <button type="button" class="dl-btn" onclick="exportPivotExcel()">📊 Excel</button>
+      </div>
+    </div>
 
     <div class="chart-controls">
       <div class="field">
@@ -1237,6 +1290,8 @@ const URL =
 let all = [];
 let filtered = [];
 let chart;
+let lastChartData = null;
+let lastPivotData = null;
 
 let page = 1;
 let perPage = 15;
@@ -1572,6 +1627,8 @@ function renderChart(){
   let labels = Object.keys(count);
   let values = Object.values(count);
 
+  lastChartData = { field, type, labels, values };
+
   let palette = ["#ff9644","#562f00","#ffce99","#1b8a5a","#c8452f","#a9714a","#e0b878"];
 
   let ctx = document.getElementById("chart");
@@ -1615,10 +1672,11 @@ function renderPivot(){
   const rowLabel = PIVOT_LABELS[rowKey];
   const colLabel = PIVOT_LABELS[colKey];
 
-  document.getElementById("pivotHead").textContent = `🔀 Pivot Silang: ${rowLabel} × ${colLabel}`;
+  document.getElementById("pivotHead").textContent = `🔀 Pivot Silang: ${rowLabel} dan ${colLabel}`;
 
   if(filtered.length === 0){
     table.innerHTML = `<tbody><tr><td style="padding:16px;color:#b89a7f;">Tidak ada data.</td></tr></tbody>`;
+    lastPivotData = null;
     return;
   }
 
@@ -1669,6 +1727,8 @@ function renderPivot(){
   // ===== Footer =====
   let footCells = colList.map(c=> `<td>${colTotal[c]||0}</td>`).join("");
   let grandTotal = Object.values(rowTotal).reduce((a,b)=>a+b,0);
+
+  lastPivotData = { rowLabel, colLabel, rowList, colList, matrix, rowTotal, colTotal, grandTotal };
 
   table.innerHTML = `
     <thead>
@@ -1798,15 +1858,19 @@ function showScreenshotFallback(url, host){
 
   function tryProvider(){
     if(providerIdx >= providers.length){
+      console.warn("[SIVERA preview] semua provider screenshot gagal untuk:", url);
       showPreviewLocked(host);
       return;
     }
     refineAttempt = 0;
     statusEl.textContent = "";
-    img.src = providers[providerIdx]();
+    const shotUrl = providers[providerIdx]();
+    console.log("[SIVERA preview] mencoba provider #" + (providerIdx+1) + ":", shotUrl);
+    img.src = shotUrl;
   }
 
   img.onerror = function(){
+    console.warn("[SIVERA preview] provider #" + (providerIdx+1) + " gagal dimuat, coba berikutnya...");
     providerIdx++;
     tryProvider();
   };
@@ -1844,6 +1908,86 @@ function closePreview(){
 document.addEventListener("keydown", function(e){
   if(e.key === "Escape") closePreview();
 });
+
+/* ===== CHART EXPORT ===== */
+function exportChartExcel(){
+  if(!lastChartData || lastChartData.labels.length === 0){
+    alert("Tidak ada data grafik untuk diexport");
+    return;
+  }
+
+  let rows = lastChartData.labels.map((lbl,i)=>({
+    [lastChartData.field]: lbl,
+    "Jumlah": lastChartData.values[i]
+  }));
+
+  let ws = XLSX.utils.json_to_sheet(rows);
+  ws["!cols"] = [{wch:40},{wch:12}];
+
+  let wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Grafik");
+
+  let buf = XLSX.write(wb, { bookType:"xlsx", type:"array" });
+  saveAs(new Blob([buf], { type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8" }), "SIVERA_Grafik.xlsx");
+}
+
+function exportChartJPG(){
+  if(!chart){
+    alert("Grafik belum siap");
+    return;
+  }
+
+  // Chart.js canvas is transparent by default; fill white first so JPEG (no alpha) looks correct.
+  let src = chart.canvas;
+  let out = document.createElement("canvas");
+  out.width = src.width;
+  out.height = src.height;
+
+  let ctx = out.getContext("2d");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0,0,out.width,out.height);
+  ctx.drawImage(src, 0, 0);
+
+  out.toBlob(function(blob){
+    saveAs(blob, "SIVERA_Grafik.jpg");
+  }, "image/jpeg", 0.95);
+}
+
+/* ===== PIVOT EXPORT ===== */
+function exportPivotExcel(){
+  if(!lastPivotData){
+    alert("Tidak ada data pivot untuk diexport");
+    return;
+  }
+
+  const { rowLabel, colLabel, rowList, colList, matrix, rowTotal, colTotal, grandTotal } = lastPivotData;
+
+  // Build as array-of-arrays so the exported sheet mirrors the on-screen pivot table exactly.
+  let aoa = [];
+
+  aoa.push([rowLabel, ...colList, "Total Kinerja"]);
+
+  rowList.forEach(r=>{
+    let row = [r];
+    colList.forEach(c=> row.push(matrix[r][c] || 0));
+    row.push(rowTotal[r] || 0);
+    aoa.push(row);
+  });
+
+  let footRow = ["Total"];
+  colList.forEach(c=> footRow.push(colTotal[c] || 0));
+  footRow.push(grandTotal);
+  aoa.push(footRow);
+
+  let ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws["!cols"] = [{wch:26}, ...colList.map(()=>({wch:16})), {wch:14}];
+
+  let wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Pivot");
+
+  let buf = XLSX.write(wb, { bookType:"xlsx", type:"array" });
+  saveAs(new Blob([buf], { type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8" }), `SIVERA_Pivot_${rowLabel}_x_${colLabel}.xlsx`);
+}
 
 /* EXPORT */
 function exportExcel(){
