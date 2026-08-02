@@ -130,6 +130,148 @@ h1,h2,h3,.display{
 }
 .field select:focus, .field input:focus{ border-color:var(--orange); }
 
+/* ===== Multi-select dropdown ===== */
+.msfield{ position:relative; }
+
+.ms-toggle{
+  border:1.5px solid var(--peach-soft);
+  background:var(--cream);
+  border-radius:10px;
+  padding:10px 12px;
+  font-family:'Inter',sans-serif;
+  font-size:13.5px;
+  color:var(--brown-deep);
+  outline:none;
+  width:100%;
+  box-sizing:border-box;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:6px;
+  text-align:left;
+  transition:border-color .15s;
+}
+
+.ms-toggle:hover{ border-color:var(--orange); }
+
+.ms-toggle .ms-label{
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.ms-toggle .ms-caret{
+  color:var(--orange);
+  font-size:11px;
+  flex-shrink:0;
+  transition:transform .15s;
+}
+
+.msfield.ms-has-selection .ms-toggle{
+  border-color:var(--orange);
+  background:#fff3e2;
+}
+
+.msfield.ms-has-selection .ms-label{
+  color:var(--orange);
+  font-weight:700;
+}
+
+.ms-panel{
+  display:none;
+  position:absolute;
+  top:calc(100% + 6px);
+  left:0;
+  min-width:230px;
+  max-width:320px;
+  background:var(--white);
+  border:1.5px solid var(--peach-soft);
+  border-radius:12px;
+  box-shadow:0 10px 28px rgba(86,47,0,0.18);
+  padding:10px;
+  z-index:50;
+}
+
+.ms-panel.open{ display:block; }
+
+.ms-search input{
+  width:100%;
+  box-sizing:border-box;
+  border:1.5px solid var(--peach-soft);
+  border-radius:8px;
+  padding:7px 9px;
+  font-size:12.5px;
+  font-family:'Inter',sans-serif;
+  color:var(--brown-deep);
+  outline:none;
+  margin-bottom:8px;
+}
+
+.ms-search input:focus{ border-color:var(--orange); }
+
+.ms-panel-actions{
+  display:flex;
+  gap:8px;
+  margin-bottom:8px;
+}
+
+.ms-panel-actions button{
+  flex:1;
+  border:none;
+  background:var(--peach-soft);
+  color:var(--brown);
+  font-size:11px;
+  font-weight:700;
+  padding:6px 8px;
+  border-radius:8px;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+}
+
+.ms-panel-actions button:hover{ background:var(--peach); }
+
+.ms-options{
+  max-height:220px;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+
+.ms-opt{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 6px;
+  border-radius:7px;
+  font-size:12.5px;
+  color:var(--brown-deep);
+  cursor:pointer;
+}
+
+.ms-opt:hover{ background:var(--cream); }
+
+.ms-opt input{
+  width:auto;
+  accent-color:var(--orange);
+  flex-shrink:0;
+}
+
+.ms-opt span{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.ms-empty{
+  font-size:12px;
+  color:#b89a7f;
+  padding:8px 4px;
+  text-align:center;
+  font-style:italic;
+}
+
 .btn-reset{
   border:none; background:var(--peach-soft); color:var(--brown);
   padding:11px 16px; border-radius:10px; font-weight:600; font-size:13px;
@@ -165,6 +307,32 @@ h1,h2,h3,.display{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
   gap:14px;
+}
+
+.summary-row{
+  display:flex;
+  gap:14px;
+  align-items:stretch;
+  flex-wrap:wrap;
+}
+
+.summary-row .stats-row{
+  flex:2;
+  min-width:400px;
+}
+
+.summary-row .ranking-box{
+  flex:1.4;
+  min-width:340px;
+  max-height:none;
+  display:flex;
+  flex-direction:column;
+}
+
+.summary-row .ranking-box #ranking{
+  overflow-y:auto;
+  max-height:210px;
+  padding-right:4px;
 }
 
 .stat{
@@ -214,11 +382,11 @@ h1,h2,h3,.display{
 }
 
 .chart-box{
-  flex:2;
-  min-width:560px;
+  flex:1;
+  min-width:420px;
 }
 
-.chart-box .card-head, .ranking-box .card-head{
+.chart-box .card-head, .ranking-box .card-head, .pivot-box .card-head{
   font-family:'Fraunces',serif;
   font-size:16px; font-weight:600; color:var(--brown-deep);
   margin-bottom:14px;
@@ -248,7 +416,27 @@ h1,h2,h3,.display{
   font-size:13px;
   display:flex;
   justify-content:space-between;
-  align-items:center;
+  align-items:flex-start;
+  gap:8px;
+}
+
+.ranking-item .rk-name{
+  flex:1;
+  min-width:0;
+  display:flex;
+  gap:7px;
+  align-items:flex-start;
+}
+
+.ranking-item .rk-name b{
+  overflow-wrap:break-word;
+  word-break:break-word;
+}
+
+.ranking-item .rk-count{
+  flex-shrink:0;
+  font-weight:700;
+  color:var(--brown);
 }
 
 .ranking-item:last-child{ border-bottom:none; }
@@ -266,6 +454,93 @@ h1,h2,h3,.display{
   border-radius:20px;
   padding:2px 9px;
   margin-right:8px;
+}
+
+/* ===== Pivot table ===== */
+.pivot-box{
+  flex:1;
+  min-width:420px;
+  display:flex;
+  flex-direction:column;
+}
+
+.pivot-scroll{
+  height:320px;
+  overflow:auto;
+  border:1px solid var(--peach-soft);
+  border-radius:10px;
+}
+
+table.pivot-table{
+  border-collapse:separate;
+  border-spacing:0;
+  font-size:11px;
+  width:max-content;
+  min-width:100%;
+}
+
+table.pivot-table th, table.pivot-table td{
+  padding:6px 8px;
+  border-bottom:1px solid var(--peach-soft);
+  border-right:1px solid var(--peach-soft);
+  white-space:nowrap;
+  text-align:center;
+}
+
+table.pivot-table thead th{
+  background:var(--brown);
+  color:var(--cream);
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+  font-size:9.5px;
+  position:sticky;
+  top:0;
+  z-index:2;
+}
+
+table.pivot-table thead tr:first-child th{ top:0; z-index:3; }
+table.pivot-table thead tr:last-child th{ top:22px; }
+
+table.pivot-table td.pivot-name, table.pivot-table th.pivot-name-h{
+  position:sticky;
+  left:0;
+  z-index:1;
+  background:var(--white);
+  text-align:left;
+  font-weight:600;
+  color:var(--brown-deep);
+  max-width:150px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+table.pivot-table thead th.pivot-name-h{
+  z-index:4;
+  background:var(--brown);
+  color:var(--cream);
+}
+
+table.pivot-table td.pivot-total{
+  font-weight:800;
+  background:var(--peach-soft);
+  color:var(--brown);
+}
+
+table.pivot-table td.pivot-zero{
+  color:#dcd0bd;
+}
+
+table.pivot-table tbody tr:nth-child(even) td:not(.pivot-name):not(.pivot-total){
+  background:#FFFCF4;
+}
+
+table.pivot-table tfoot td{
+  font-weight:800;
+  background:var(--peach-soft);
+  color:var(--brown);
+  position:sticky;
+  bottom:0;
 }
 
 /* ===== Table ===== */
@@ -291,16 +566,16 @@ table{
 
 col.c-no{width:3%;}
 col.c-tw{width:3.5%;}
-col.c-nama{width:14%;}
-col.c-jabatan{width:11%;}
+col.c-nama{width:13.5%;}
+col.c-jabatan{width:10.5%;}
 col.c-ik{width:9%;}
-col.c-rk{width:10.5%;}
-col.c-peran{width:6%;}
-col.c-realisasi{width:14%;}
+col.c-rk{width:10%;}
+col.c-peran{width:5.5%;}
+col.c-realisasi{width:13%;}
 col.c-bukti{width:6%;}
 col.c-kesesuaian{width:6.5%;}
 col.c-validasi{width:8%;}
-col.c-link{width:8.5%;}
+col.c-link{width:11%;}
 
 th,td{
   padding:8px 8px;
@@ -380,6 +655,151 @@ td a:hover{
   text-decoration:underline;
 }
 
+.link-cell{
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  gap:8px;
+}
+
+.preview-btn{
+  border:none;
+  background:var(--peach-soft);
+  color:var(--brown);
+  font-size:10.5px;
+  font-weight:700;
+  padding:3px 8px;
+  border-radius:20px;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+  white-space:nowrap;
+}
+
+.preview-btn:hover{
+  background:var(--peach);
+}
+
+/* ===== Preview modal ===== */
+.preview-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(58,31,0,0.55);
+  z-index:100000;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+}
+
+.preview-overlay.open{ display:flex; }
+
+.preview-modal{
+  background:var(--white);
+  border-radius:16px;
+  width:100%;
+  max-width:900px;
+  height:82vh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  box-shadow:0 20px 60px rgba(0,0,0,0.35);
+}
+
+.preview-modal-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:12px 16px;
+  background:var(--brown);
+  color:var(--cream);
+}
+
+.preview-modal-head .pv-title{
+  font-size:12.5px;
+  font-weight:600;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.preview-modal-head a{
+  color:var(--peach);
+  font-size:12px;
+  font-weight:700;
+  text-decoration:none;
+  flex-shrink:0;
+}
+
+.preview-modal-head a:hover{ text-decoration:underline; }
+
+.preview-close{
+  border:none;
+  background:rgba(255,255,255,0.15);
+  color:#fff;
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  cursor:pointer;
+  font-size:14px;
+  flex-shrink:0;
+  line-height:1;
+}
+
+.preview-close:hover{ background:rgba(255,255,255,0.3); }
+
+.preview-body{
+  flex:1;
+  position:relative;
+  background:#fdf8ef;
+}
+
+.preview-body iframe{
+  width:100%;
+  height:100%;
+  border:none;
+}
+
+.preview-fallback{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:24px;
+  color:#8a6a52;
+  font-size:13px;
+}
+
+.preview-shot-wrap{
+  height:100%;
+  display:flex;
+  flex-direction:column;
+}
+
+.preview-shot-note{
+  padding:9px 14px;
+  background:#fff3e2;
+  color:var(--brown);
+  font-size:12px;
+  border-bottom:1px solid var(--peach-soft);
+  flex-shrink:0;
+}
+
+.preview-shot-img{
+  flex:1;
+  overflow:auto;
+  background:#efe6d6;
+}
+
+.preview-shot-img img{
+  width:100%;
+  display:block;
+}
+
 .pagination{
   display:flex;
   justify-content:space-between;
@@ -437,6 +857,8 @@ td a:hover{
 
 @media(max-width:900px){
   .chart-box{min-width:100%;}
+  .pivot-box{min-width:100%;}
+  .summary-row .stats-row, .summary-row .ranking-box{min-width:100%;}
   .filterbar{ margin-top:-18px; }
   .hero-inner{ align-items:flex-start; flex-direction:column; }
 }
@@ -483,71 +905,137 @@ td a:hover{
   <input id="search" placeholder="🔍 Cari semua data...">
 </div>
 
-<div class="field">
+<div class="field msfield" data-key="TW">
   <label>Triwulan</label>
-  <select id="fTW">
-    <option value="">Semua</option>
-  </select>
+  <button type="button" class="ms-toggle" onclick="toggleMS('TW')">
+    <span class="ms-label" id="msLabel-TW">Semua</span><span class="ms-caret">▾</span>
+  </button>
+  <div class="ms-panel" id="msPanel-TW">
+    <div class="ms-search"><input type="text" placeholder="Cari..." oninput="msFilterOptions('TW',this.value)"></div>
+    <div class="ms-panel-actions">
+      <button type="button" onclick="msSelectAll('TW')">Pilih Semua</button>
+      <button type="button" onclick="msClear('TW')">Bersihkan</button>
+    </div>
+    <div class="ms-options" id="msOptions-TW"></div>
+  </div>
 </div>
 
-<div class="field">
+<div class="field msfield" data-key="Nama">
   <label>Nama</label>
-  <select id="fNama">
-    <option value="">Semua</option>
-  </select>
+  <button type="button" class="ms-toggle" onclick="toggleMS('Nama')">
+    <span class="ms-label" id="msLabel-Nama">Semua</span><span class="ms-caret">▾</span>
+  </button>
+  <div class="ms-panel" id="msPanel-Nama">
+    <div class="ms-search"><input type="text" placeholder="Cari..." oninput="msFilterOptions('Nama',this.value)"></div>
+    <div class="ms-panel-actions">
+      <button type="button" onclick="msSelectAll('Nama')">Pilih Semua</button>
+      <button type="button" onclick="msClear('Nama')">Bersihkan</button>
+    </div>
+    <div class="ms-options" id="msOptions-Nama"></div>
+  </div>
 </div>
 
-<div class="field">
+<div class="field msfield" data-key="Jabatan">
   <label>Jabatan</label>
-  <select id="fJabatan">
-    <option value="">Semua</option>
-  </select>
+  <button type="button" class="ms-toggle" onclick="toggleMS('Jabatan')">
+    <span class="ms-label" id="msLabel-Jabatan">Semua</span><span class="ms-caret">▾</span>
+  </button>
+  <div class="ms-panel" id="msPanel-Jabatan">
+    <div class="ms-search"><input type="text" placeholder="Cari..." oninput="msFilterOptions('Jabatan',this.value)"></div>
+    <div class="ms-panel-actions">
+      <button type="button" onclick="msSelectAll('Jabatan')">Pilih Semua</button>
+      <button type="button" onclick="msClear('Jabatan')">Bersihkan</button>
+    </div>
+    <div class="ms-options" id="msOptions-Jabatan"></div>
+  </div>
 </div>
 
-<div class="field">
+<div class="field msfield" data-key="IK">
   <label>Deskripsi IK</label>
-  <select id="fIK">
-    <option value="">Semua</option>
-  </select>
+  <button type="button" class="ms-toggle" onclick="toggleMS('IK')">
+    <span class="ms-label" id="msLabel-IK">Semua</span><span class="ms-caret">▾</span>
+  </button>
+  <div class="ms-panel" id="msPanel-IK">
+    <div class="ms-search"><input type="text" placeholder="Cari..." oninput="msFilterOptions('IK',this.value)"></div>
+    <div class="ms-panel-actions">
+      <button type="button" onclick="msSelectAll('IK')">Pilih Semua</button>
+      <button type="button" onclick="msClear('IK')">Bersihkan</button>
+    </div>
+    <div class="ms-options" id="msOptions-IK"></div>
+  </div>
 </div>
 
-<div class="field">
+<div class="field msfield" data-key="RK">
   <label>Deskripsi RK</label>
-  <select id="fRK">
-    <option value="">Semua</option>
-  </select>
+  <button type="button" class="ms-toggle" onclick="toggleMS('RK')">
+    <span class="ms-label" id="msLabel-RK">Semua</span><span class="ms-caret">▾</span>
+  </button>
+  <div class="ms-panel" id="msPanel-RK">
+    <div class="ms-search"><input type="text" placeholder="Cari..." oninput="msFilterOptions('RK',this.value)"></div>
+    <div class="ms-panel-actions">
+      <button type="button" onclick="msSelectAll('RK')">Pilih Semua</button>
+      <button type="button" onclick="msClear('RK')">Bersihkan</button>
+    </div>
+    <div class="ms-options" id="msOptions-RK"></div>
+  </div>
 </div>
 
-<div class="field">
+<div class="field msfield" data-key="Peran">
   <label>Peran</label>
-  <select id="fPeran">
-    <option value="">Semua</option>
-  </select>
+  <button type="button" class="ms-toggle" onclick="toggleMS('Peran')">
+    <span class="ms-label" id="msLabel-Peran">Semua</span><span class="ms-caret">▾</span>
+  </button>
+  <div class="ms-panel" id="msPanel-Peran">
+    <div class="ms-search"><input type="text" placeholder="Cari..." oninput="msFilterOptions('Peran',this.value)"></div>
+    <div class="ms-panel-actions">
+      <button type="button" onclick="msSelectAll('Peran')">Pilih Semua</button>
+      <button type="button" onclick="msClear('Peran')">Bersihkan</button>
+    </div>
+    <div class="ms-options" id="msOptions-Peran"></div>
+  </div>
 </div>
 
-<div class="field">
+<div class="field msfield" data-key="Bukti">
   <label>Bukti</label>
-  <select id="fBukti">
-    <option value="">Semua</option>
-    <option value="Tersedia">Tersedia</option>
-    <option value="Tidak Tersedia">Tidak Tersedia</option>
-  </select>
+  <button type="button" class="ms-toggle" onclick="toggleMS('Bukti')">
+    <span class="ms-label" id="msLabel-Bukti">Semua</span><span class="ms-caret">▾</span>
+  </button>
+  <div class="ms-panel" id="msPanel-Bukti">
+    <div class="ms-panel-actions">
+      <button type="button" onclick="msSelectAll('Bukti')">Pilih Semua</button>
+      <button type="button" onclick="msClear('Bukti')">Bersihkan</button>
+    </div>
+    <div class="ms-options" id="msOptions-Bukti"></div>
+  </div>
 </div>
 
-<div class="field">
+<div class="field msfield" data-key="Sesuai">
   <label>Kesesuaian</label>
-  <select id="fSesuai">
-    <option value="">Semua</option>
-    <option value="Sesuai">Sesuai</option>
-    <option value="Tidak Sesuai">Tidak Sesuai</option>
-  </select>
+  <button type="button" class="ms-toggle" onclick="toggleMS('Sesuai')">
+    <span class="ms-label" id="msLabel-Sesuai">Semua</span><span class="ms-caret">▾</span>
+  </button>
+  <div class="ms-panel" id="msPanel-Sesuai">
+    <div class="ms-panel-actions">
+      <button type="button" onclick="msSelectAll('Sesuai')">Pilih Semua</button>
+      <button type="button" onclick="msClear('Sesuai')">Bersihkan</button>
+    </div>
+    <div class="ms-options" id="msOptions-Sesuai"></div>
+  </div>
 </div>
 
-<div class="field">
+<div class="field msfield" data-key="Validasi">
   <label>Validasi</label>
-  <select id="fValidasi">
-    <option value="">Semua</option>
-  </select>
+  <button type="button" class="ms-toggle" onclick="toggleMS('Validasi')">
+    <span class="ms-label" id="msLabel-Validasi">Semua</span><span class="ms-caret">▾</span>
+  </button>
+  <div class="ms-panel" id="msPanel-Validasi">
+    <div class="ms-search"><input type="text" placeholder="Cari..." oninput="msFilterOptions('Validasi',this.value)"></div>
+    <div class="ms-panel-actions">
+      <button type="button" onclick="msSelectAll('Validasi')">Pilih Semua</button>
+      <button type="button" onclick="msClear('Validasi')">Bersihkan</button>
+    </div>
+    <div class="ms-options" id="msOptions-Validasi"></div>
+  </div>
 </div>
 
 <button class="btn-primary" onclick="exportExcel()">📦 Export Excel</button>
@@ -561,44 +1049,51 @@ td a:hover{
   <span class="tag" id="resultTag">Live</span>
 </div>
 
-<div class="stats-row">
-  <div class="stat">
-    <div class="stat-title">Total Data</div>
-    <div class="stat-value" id="totalData">0</div>
+<div class="summary-row">
+  <div class="stats-row">
+    <div class="stat">
+      <div class="stat-title">Total Data</div>
+      <div class="stat-value" id="totalData">0</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-title">Total Pegawai</div>
+      <div class="stat-value" id="totalPegawai">0</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-title">Total Peran</div>
+      <div class="stat-value" id="totalPeran">0</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-title">% Bukti Tersedia</div>
+      <div class="stat-value" id="persenBukti">0%</div>
+      <div class="progress"><div id="barBukti"></div></div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-title">% Kesesuaian Sesuai</div>
+      <div class="stat-value" id="persenSesuai">0%</div>
+      <div class="progress"><div id="barSesuai"></div></div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-title">% Validasi Publik</div>
+      <div class="stat-value" id="persenValidasi">0%</div>
+      <div class="progress"><div id="barValidasi"></div></div>
+    </div>
   </div>
 
-  <div class="stat">
-    <div class="stat-title">Total Pegawai</div>
-    <div class="stat-value" id="totalPegawai">0</div>
-  </div>
-
-  <div class="stat">
-    <div class="stat-title">Total Peran</div>
-    <div class="stat-value" id="totalPeran">0</div>
-  </div>
-
-  <div class="stat">
-    <div class="stat-title">% Bukti Tersedia</div>
-    <div class="stat-value" id="persenBukti">0%</div>
-    <div class="progress"><div id="barBukti"></div></div>
-  </div>
-
-  <div class="stat">
-    <div class="stat-title">% Kesesuaian Sesuai</div>
-    <div class="stat-value" id="persenSesuai">0%</div>
-    <div class="progress"><div id="barSesuai"></div></div>
-  </div>
-
-  <div class="stat">
-    <div class="stat-title">% Validasi Publik</div>
-    <div class="stat-value" id="persenValidasi">0%</div>
-    <div class="progress"><div id="barValidasi"></div></div>
+  <div class="card ranking-box">
+    <div class="card-head">🧠 Pegawai Paling Aktif</div>
+    <div id="ranking"></div>
   </div>
 </div>
 
 <!-- CHART -->
 <div class="section-head">
-  <h2>📈 Grafik &amp; Ranking</h2>
+  <h2>📈 Grafik &amp; Pivot Silang</h2>
 </div>
 
 <div class="chart-wrapper">
@@ -634,9 +1129,36 @@ td a:hover{
     </div>
   </div>
 
-  <div class="card ranking-box">
-    <div class="card-head">🧠 Pegawai Paling Aktif</div>
-    <div id="ranking"></div>
+  <div class="card pivot-box">
+    <div class="card-head" id="pivotHead">🔀 Pivot Silang</div>
+
+    <div class="chart-controls">
+      <div class="field">
+        <label>Baris</label>
+        <select id="pivotRow">
+          <option value="Nama">Nama</option>
+          <option value="Jabatan">Jabatan</option>
+          <option value="IK">Deskripsi IK</option>
+          <option value="RK">Deskripsi RK</option>
+          <option value="Peran">Peran</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Kolom</label>
+        <select id="pivotCol">
+          <option value="IK" selected>Deskripsi IK</option>
+          <option value="Nama">Nama</option>
+          <option value="Jabatan">Jabatan</option>
+          <option value="RK">Deskripsi RK</option>
+          <option value="Peran">Peran</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="pivot-scroll" id="pivotScroll">
+      <table class="pivot-table" id="pivotTable"></table>
+    </div>
   </div>
 </div>
 
@@ -695,6 +1217,19 @@ td a:hover{
 </div>
 
 </div>
+
+<!-- PREVIEW MODAL -->
+<div class="preview-overlay" id="previewOverlay" onclick="if(event.target===this) closePreview()">
+  <div class="preview-modal">
+    <div class="preview-modal-head">
+      <span class="pv-title" id="previewTitle">Preview</span>
+      <a href="#" id="previewOpenNew" target="_blank" rel="noopener">Buka di tab baru ↗</a>
+      <button type="button" class="preview-close" onclick="closePreview()">✕</button>
+    </div>
+    <div class="preview-body" id="previewBody"></div>
+  </div>
+</div>
+
 <script>
 const URL =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhK37QgVuPEUvKZUTK5_ZFsoKbP5xLZPNFR90xXK6S0pSvmjU4m5qlChqoDSTuN5Aq0hDEqy-h_5DQ/pub?output=csv";
@@ -746,66 +1281,80 @@ function isValidasiPublik(d){
   return norm(getValidasi(d)).startsWith("publik");
 }
 
-/* FILTER EVENT */
-document.addEventListener("input",()=>{
-  page = 1;
-  applyFilter();
+function escapeHtml(s){
+  return (s||"").toString()
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+}
+
+/* ===== MULTI-SELECT CASCADING FILTERS ===== */
+const FILTER_FIELDS = [
+  {key:"TW",       label:"Triwulan",     getter:d=>val(d,"TW")},
+  {key:"Nama",      label:"Nama",         getter:d=>val(d,"Nama")},
+  {key:"Jabatan",   label:"Jabatan",      getter:d=>val(d,"Jabatan")},
+  {key:"IK",        label:"Deskripsi IK", getter:d=>val(d,"Deskripsi IK")},
+  {key:"RK",        label:"Deskripsi RK", getter:d=>val(d,"Deskripsi RK")},
+  {key:"Peran",     label:"Peran",        getter:d=>val(d,"Peran")},
+  {key:"Bukti",     label:"Bukti",        getter:d=>getBukti(d)},
+  {key:"Sesuai",    label:"Kesesuaian",   getter:d=>getSesuai(d)},
+  {key:"Validasi",  label:"Validasi",     getter:d=>getValidasi(d)}
+];
+
+let msSelected = {};
+FILTER_FIELDS.forEach(f=> msSelected[f.key] = new Set());
+
+/* ===== Pivot dimension config (reuses FILTER_FIELDS getters) ===== */
+const PIVOT_KEYS = ["Nama","Jabatan","IK","RK","Peran"];
+let PIVOT_GETTERS = {};
+let PIVOT_LABELS = {};
+FILTER_FIELDS.forEach(f=>{
+  if(PIVOT_KEYS.includes(f.key)){
+    PIVOT_GETTERS[f.key] = f.getter;
+    PIVOT_LABELS[f.key] = f.label;
+  }
 });
 
-document.addEventListener("change",()=>{
+let msOptionCache = {};   // full available values per field (before own-field search narrowing)
+let searchTerm = "";
+
+/* dataset filtered by search text + every filter EXCEPT excludeKey (used to compute cascading options) */
+function getFilteredBase(excludeKey){
+  return all.filter(d=>{
+    if(searchTerm){
+      let gabung = norm(Object.values(d).join(" "));
+      if(!gabung.includes(searchTerm)) return false;
+    }
+    for(const f of FILTER_FIELDS){
+      if(f.key === excludeKey) continue;
+      const sel = msSelected[f.key];
+      if(sel.size > 0 && !sel.has(f.getter(d))) return false;
+    }
+    return true;
+  });
+}
+
+/* FILTER EVENT (search box only; multi-select panels trigger applyFilter directly) */
+document.getElementById("search").addEventListener("input", function(){
+  searchTerm = norm(this.value);
   page = 1;
   applyFilter();
 });
 
 /* FILTER */
 function applyFilter(){
-
-  let search = norm(document.getElementById("search").value);
-  let tw = document.getElementById("fTW").value;
-  let nama = document.getElementById("fNama").value;
-  let jab = document.getElementById("fJabatan").value;
-  let ik = document.getElementById("fIK").value;
-  let rk = document.getElementById("fRK").value;
-  let peran = document.getElementById("fPeran").value;
-  let bukti = document.getElementById("fBukti").value;
-  let sesuai = document.getElementById("fSesuai").value;
-  let validasi = document.getElementById("fValidasi").value;
-
-  filtered = all.filter(d=>{
-
-    let gabung = Object.values(d).join(" ").toLowerCase();
-
-    return(
-      (!tw || val(d,"TW") === tw) &&
-      (!nama || d.Nama === nama) &&
-      (!jab || d.Jabatan === jab) &&
-      (!ik || val(d,"Deskripsi IK") === ik) &&
-      (!rk || val(d,"Deskripsi RK") === rk) &&
-      (!peran || val(d,"Peran") === peran) &&
-      (!bukti || getBukti(d) === bukti) &&
-      (!sesuai || getSesuai(d) === sesuai) &&
-      (!validasi || getValidasi(d) === validasi) &&
-      (!search || gabung.includes(search))
-    );
-
-  });
-
+  filtered = getFilteredBase(null);
   refreshDropdowns();
   render();
 }
 
 /* RESET */
 function resetFilter(){
-  document.getElementById("search").value="";
-  document.getElementById("fTW").value="";
-  document.getElementById("fNama").value="";
-  document.getElementById("fJabatan").value="";
-  document.getElementById("fIK").value="";
-  document.getElementById("fRK").value="";
-  document.getElementById("fPeran").value="";
-  document.getElementById("fBukti").value="";
-  document.getElementById("fSesuai").value="";
-  document.getElementById("fValidasi").value="";
+  document.getElementById("search").value = "";
+  searchTerm = "";
+  FILTER_FIELDS.forEach(f=> msSelected[f.key] = new Set());
 
   filtered = all;
   page = 1;
@@ -814,39 +1363,101 @@ function resetFilter(){
   render();
 }
 
-/* FILTER DINAMIS */
+/* Rebuild every filter panel's available options based on the OTHER active filters (cascading) */
 function refreshDropdowns(){
-  updateDropdown("TW","fTW");
-  updateDropdown("Nama","fNama");
-  updateDropdown("Jabatan","fJabatan");
-  updateDropdown("Deskripsi IK","fIK");
-  updateDropdown("Deskripsi RK","fRK");
-  updateDropdown("Peran","fPeran");
-  updateDropdown("Validasi","fValidasi");
+  FILTER_FIELDS.forEach(f=>{
+    const base = getFilteredBase(f.key);
+    const values = [...new Set(base.map(f.getter))].filter(Boolean).sort();
+
+    // drop selections that are no longer valid given the other active filters
+    let changed = false;
+    msSelected[f.key].forEach(v=>{
+      if(!values.includes(v)){ msSelected[f.key].delete(v); changed = true; }
+    });
+
+    msOptionCache[f.key] = values;
+    renderMSOptions(f.key, values);
+    updateMSLabel(f.key);
+  });
 }
 
-function updateDropdown(field,id){
+function renderMSOptions(key, values){
+  const container = document.getElementById("msOptions-"+key);
+  if(!container) return;
 
-  let current = document.getElementById(id).value;
-  let select = document.getElementById(id);
+  if(values.length === 0){
+    container.innerHTML = `<div class="ms-empty">Tidak ada opsi</div>`;
+    return;
+  }
 
-  let label = select.options[0] ? select.options[0].text : field;
+  container.innerHTML = values.map(v=>{
+    const checked = msSelected[key].has(v) ? "checked" : "";
+    const esc = escapeHtml(v);
+    return `<label class="ms-opt"><input type="checkbox" value="${esc}" ${checked} onchange="msToggleValue('${key}', this)"><span title="${esc}">${esc}</span></label>`;
+  }).join("");
+}
 
-  let values =
-    [...new Set(
-      filtered.map(d=>d[field]).filter(Boolean)
-    )].sort();
+function updateMSLabel(key){
+  const sel = msSelected[key];
+  const labelEl = document.getElementById("msLabel-"+key);
+  const fieldEl = document.querySelector(`.msfield[data-key="${key}"]`);
+  if(!labelEl) return;
 
-  select.innerHTML = `<option value="">${label}</option>`;
-
-  values.forEach(v=>{
-    select.innerHTML += `<option value="${v}">${v}</option>`;
-  });
-
-  if(values.includes(current)){
-    select.value = current;
+  if(sel.size === 0){
+    labelEl.textContent = "Semua";
+    if(fieldEl) fieldEl.classList.remove("ms-has-selection");
+  } else if(sel.size === 1){
+    labelEl.textContent = [...sel][0];
+    if(fieldEl) fieldEl.classList.add("ms-has-selection");
+  } else {
+    labelEl.textContent = sel.size + " dipilih";
+    if(fieldEl) fieldEl.classList.add("ms-has-selection");
   }
 }
+
+function msToggleValue(key, checkboxEl){
+  const v = checkboxEl.value;
+  if(checkboxEl.checked) msSelected[key].add(v);
+  else msSelected[key].delete(v);
+
+  page = 1;
+  applyFilter();
+}
+
+function msSelectAll(key){
+  const base = getFilteredBase(key);
+  const fieldCfg = FILTER_FIELDS.find(f=>f.key===key);
+  const values = [...new Set(base.map(fieldCfg.getter))].filter(Boolean);
+  msSelected[key] = new Set(values);
+
+  page = 1;
+  applyFilter();
+}
+
+function msClear(key){
+  msSelected[key] = new Set();
+  page = 1;
+  applyFilter();
+}
+
+function msFilterOptions(key, term){
+  const q = norm(term);
+  const values = (msOptionCache[key] || []).filter(v=> norm(v).includes(q));
+  renderMSOptions(key, values);
+}
+
+function toggleMS(key){
+  const panel = document.getElementById("msPanel-"+key);
+  const isOpen = panel.classList.contains("open");
+  document.querySelectorAll(".ms-panel.open").forEach(p=>p.classList.remove("open"));
+  if(!isOpen) panel.classList.add("open");
+}
+
+document.addEventListener("click", function(e){
+  if(!e.target.closest(".msfield")){
+    document.querySelectorAll(".ms-panel.open").forEach(p=>p.classList.remove("open"));
+  }
+});
 
 /* RENDER */
 function render(){
@@ -854,6 +1465,7 @@ function render(){
   renderStats();
   renderChart();
   renderRanking();
+  renderPivot();
 }
 
 /* TABLE */
@@ -895,7 +1507,10 @@ function renderTable(){
 
       <td>${
         d.Link && d.Link !== "-"
-        ? `<a href="${d.Link}" target="_blank" rel="noopener">Buka</a>`
+        ? `<div class="link-cell">
+             <a href="${d.Link}" target="_blank" rel="noopener">Buka</a>
+             <button type="button" class="preview-btn" onclick="openPreview('${d.Link.replace(/'/g,"\\'")}')">👁 Prev</button>
+           </div>`
         : "-"
       }</td>
     </tr>
@@ -970,7 +1585,7 @@ function renderChart(){
       datasets:[{
         label:field,
         data:values,
-        backgroundColor: type==="bar" || type==="line" ? "#ff9644" : palette,
+        backgroundColor: type==="bar" || type==="line" ? "#562f00" : palette,
         borderColor: type==="line" ? "#562f00" : "#fff",
         borderWidth: type==="line" ? 2 : 1
       }]
@@ -986,6 +1601,88 @@ function renderChart(){
     }
   });
 
+}
+
+/* RANKING UNIK */
+function renderPivot(){
+
+  const table = document.getElementById("pivotTable");
+  const rowKey = document.getElementById("pivotRow").value;
+  const colKey = document.getElementById("pivotCol").value;
+
+  const getRow = PIVOT_GETTERS[rowKey];
+  const getCol = PIVOT_GETTERS[colKey];
+  const rowLabel = PIVOT_LABELS[rowKey];
+  const colLabel = PIVOT_LABELS[colKey];
+
+  document.getElementById("pivotHead").textContent = `🔀 Pivot Silang: ${rowLabel} × ${colLabel}`;
+
+  if(filtered.length === 0){
+    table.innerHTML = `<tbody><tr><td style="padding:16px;color:#b89a7f;">Tidak ada data.</td></tr></tbody>`;
+    return;
+  }
+
+  let rowList = [...new Set(filtered.map(getRow))].filter(Boolean).sort();
+  let colList = [...new Set(filtered.map(getCol))].filter(Boolean).sort();
+
+  let matrix = {};   // row -> col -> count
+  let colTotal = {}; // col -> count
+  let rowTotal = {}; // row -> count
+
+  rowList.forEach(r=> matrix[r] = {});
+  colList.forEach(c=> colTotal[c] = 0);
+
+  filtered.forEach(d=>{
+    let r = getRow(d);
+    let c = getCol(d);
+    if(!r || !c) return;
+
+    matrix[r][c] = (matrix[r][c] || 0) + 1;
+    colTotal[c] = (colTotal[c] || 0) + 1;
+    rowTotal[r] = (rowTotal[r] || 0) + 1;
+  });
+
+  // Sort rows by total kinerja desc
+  rowList.sort((a,b)=> (rowTotal[b]||0) - (rowTotal[a]||0));
+
+  // ===== Header =====
+  let headerCells = `<th class="pivot-name-h">${escapeHtml(rowLabel)}</th>`;
+  colList.forEach(c=>{
+    headerCells += `<th title="${escapeHtml(c)}">${escapeHtml(c)}</th>`;
+  });
+  headerCells += `<th>Total Kinerja</th>`;
+
+  // ===== Body =====
+  let bodyRows = rowList.map(r=>{
+    let cells = colList.map(c=>{
+      let v = matrix[r][c] || 0;
+      return `<td class="${v===0 ? 'pivot-zero':''}">${v===0 ? '-' : v}</td>`;
+    }).join("");
+
+    return `<tr>
+      <td class="pivot-name" title="${escapeHtml(r)}">${escapeHtml(r)}</td>
+      ${cells}
+      <td class="pivot-total">${rowTotal[r]||0}</td>
+    </tr>`;
+  }).join("");
+
+  // ===== Footer =====
+  let footCells = colList.map(c=> `<td>${colTotal[c]||0}</td>`).join("");
+  let grandTotal = Object.values(rowTotal).reduce((a,b)=>a+b,0);
+
+  table.innerHTML = `
+    <thead>
+      <tr>${headerCells}</tr>
+    </thead>
+    <tbody>${bodyRows}</tbody>
+    <tfoot>
+      <tr>
+        <td class="pivot-name">Total</td>
+        ${footCells}
+        <td>${grandTotal}</td>
+      </tr>
+    </tfoot>
+  `;
 }
 
 /* RANKING UNIK */
@@ -1014,8 +1711,8 @@ function renderRanking(){
     arr.length
     ? arr.map((v,i)=>`
       <div class="ranking-item">
-        <span><span class="rank-badge">${i+1}</span><b>${v[0]}</b></span>
-        <span>${v[1]}</span>
+        <span class="rk-name"><span class="rank-badge">${i+1}</span><b>${escapeHtml(v[0])}</b></span>
+        <span class="rk-count">${v[1]}</span>
       </div>
       `).join("")
     : `<div style="color:#b89a7f;font-size:13px;">Belum ada data.</div>`;
@@ -1038,27 +1735,115 @@ function prevPage(){
 
 /* DROPDOWN AWAL */
 function fillDropdown(){
-  fill("TW","fTW");
-  fill("Nama","fNama");
-  fill("Jabatan","fJabatan");
-  fill("Deskripsi IK","fIK");
-  fill("Deskripsi RK","fRK");
-  fill("Peran","fPeran");
-  fill("Validasi","fValidasi");
+  refreshDropdowns();
 }
 
-function fill(field,id){
-  let set =
-    [...new Set(
-      all.map(d=>d[field]).filter(Boolean)
-    )].sort();
+/* ===== LINK PREVIEW MODAL ===== */
+function openPreview(url){
+  const overlay = document.getElementById("previewOverlay");
+  const body = document.getElementById("previewBody");
+  const title = document.getElementById("previewTitle");
+  const openNew = document.getElementById("previewOpenNew");
 
-  let select = document.getElementById(id);
+  let host = "";
+  try{ host = new URL(url).hostname; }catch(e){ host = url; }
 
-  set.forEach(v=>{
-    select.innerHTML += `<option value="${v}">${v}</option>`;
-  });
+  title.textContent = host;
+  openNew.href = url;
+
+  body.innerHTML = `<iframe src="${url}" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>`;
+
+  const iframe = body.querySelector("iframe");
+  let loaded = false;
+  iframe.addEventListener("load", ()=>{ loaded = true; });
+
+  // some sites (Notion, banks, etc.) block being embedded in an iframe (X-Frame-Options / CSP).
+  // if nothing fires after a short wait, fall back to a screenshot image of the page instead
+  // (rendered by a third-party screenshot service, so it isn't subject to the target site's
+  // iframe-embedding restrictions).
+  setTimeout(()=>{
+    if(!loaded){
+      showScreenshotFallback(url, host);
+    }
+  }, 2500);
+
+  overlay.classList.add("open");
+  document.body.style.overflow = "hidden";
 }
+
+function showScreenshotFallback(url, host){
+  const body = document.getElementById("previewBody");
+  const encoded = encodeURIComponent(url);
+
+  body.innerHTML = `
+    <div class="preview-shot-wrap">
+      <div class="preview-shot-note">📸 <b>${host}</b> memblokir tampilan iframe — ini pratinjau gambar (statis, tidak interaktif) dari halamannya. <span id="shotStatus"></span></div>
+      <div class="preview-shot-img"><img id="shotImg" alt="Pratinjau ${host}"></div>
+    </div>`;
+
+  const img = document.getElementById("shotImg");
+  const statusEl = document.getElementById("shotStatus");
+
+  // try several independent screenshot providers in order; if one is down/blocked,
+  // fall through to the next before giving up entirely.
+  const providers = [
+    ()=> "https://s.wordpress.com/mshots/v1/" + encoded + "?w=1200&h=900&_t=" + Date.now(),
+    ()=> "https://api.microlink.io/?url=" + encoded + "&screenshot=true&meta=false&embed=screenshot.url",
+    ()=> "https://image.thum.io/get/width/1200/noanimate/" + url
+  ];
+
+  let providerIdx = 0;
+  let refineAttempt = 0;
+  const maxRefine = 3;
+
+  function tryProvider(){
+    if(providerIdx >= providers.length){
+      showPreviewLocked(host);
+      return;
+    }
+    refineAttempt = 0;
+    statusEl.textContent = "";
+    img.src = providers[providerIdx]();
+  }
+
+  img.onerror = function(){
+    providerIdx++;
+    tryProvider();
+  };
+
+  img.onload = function(){
+    statusEl.textContent = "";
+    // mshots in particular renders async and may return a placeholder first —
+    // reload it a couple of times to get the real screenshot.
+    if(providerIdx === 0 && refineAttempt < maxRefine){
+      refineAttempt++;
+      statusEl.textContent = "(memuat ulang untuk hasil lebih jelas...)";
+      setTimeout(()=>{ img.src = providers[0](); }, 2200);
+    }
+  };
+
+  tryProvider();
+}
+
+
+function showPreviewLocked(host){
+  document.getElementById("previewBody").innerHTML = `
+    <div class="preview-fallback">
+      <div style="font-size:28px;">🔒</div>
+      <div><b>${host}</b> tidak mengizinkan tampilan preview.</div>
+      <div>Silakan buka langsung di tab baru untuk melihat isinya.</div>
+    </div>`;
+}
+
+function closePreview(){
+  document.getElementById("previewOverlay").classList.remove("open");
+  document.getElementById("previewBody").innerHTML = "";
+  document.body.style.overflow = "";
+}
+
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape") closePreview();
+});
 
 /* EXPORT */
 function exportExcel(){
@@ -1124,6 +1909,25 @@ document.getElementById("pageSize").addEventListener("change",function(){
   perPage = parseInt(this.value,10) || 15;
   page = 1;
   renderTable();
+});
+
+document.getElementById("pivotRow").addEventListener("change",function(){
+  const colSel = document.getElementById("pivotCol");
+  if(colSel.value === this.value){
+    // pick the next available option so row/col are never identical
+    const other = [...colSel.options].map(o=>o.value).find(v=>v!==this.value);
+    if(other) colSel.value = other;
+  }
+  renderPivot();
+});
+
+document.getElementById("pivotCol").addEventListener("change",function(){
+  const rowSel = document.getElementById("pivotRow");
+  if(rowSel.value === this.value){
+    const other = [...rowSel.options].map(o=>o.value).find(v=>v!==this.value);
+    if(other) rowSel.value = other;
+  }
+  renderPivot();
 });
 
 </script>
