@@ -330,9 +330,10 @@ h1,h2,h3,.display{
 }
 
 .summary-row .ranking-box #ranking{
-  overflow-y:auto;
-  max-height:210px;
+  overflow-y:visible;
+  max-height:none;
   padding-right:4px;
+  width:100%;
 }
 
 .stat{
@@ -357,6 +358,34 @@ h1,h2,h3,.display{
   font-size:26px;
   font-weight:600;
   color:var(--brown-deep);
+}
+
+.dominant-row{
+  margin-top:14px;
+}
+
+.stat-dominant{
+  min-width:0;
+}
+
+.stat-value-sm{
+  font-family:'Fraunces',serif;
+  font-size:16px;
+  font-weight:600;
+  color:var(--brown-deep);
+  line-height:1.3;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+}
+
+.stat-sub{
+  color:var(--orange);
+  font-size:13px;
+  font-weight:700;
+  margin-top:4px;
 }
 
 .progress{
@@ -511,6 +540,8 @@ h1,h2,h3,.display{
   overflow:auto;
   border:1px solid var(--peach-soft);
   border-radius:10px;
+  -webkit-overflow-scrolling:touch;
+  scroll-behavior:smooth;
 }
 
 table.pivot-table{
@@ -542,7 +573,6 @@ table.pivot-table thead th{
 }
 
 table.pivot-table thead tr:first-child th{ top:0; z-index:3; }
-table.pivot-table thead tr:last-child th{ top:22px; }
 
 table.pivot-table td.pivot-name, table.pivot-table th.pivot-name-h{
   position:sticky;
@@ -552,15 +582,20 @@ table.pivot-table td.pivot-name, table.pivot-table th.pivot-name-h{
   text-align:left;
   font-weight:600;
   color:var(--brown-deep);
-  max-width:150px;
+  width:140px;
+  min-width:140px;
+  max-width:140px;
   overflow:hidden;
   text-overflow:ellipsis;
+  border-right:none;
+  box-shadow:2px 0 5px -2px rgba(86,47,0,.22);
 }
 
 table.pivot-table thead th.pivot-name-h{
   z-index:4;
   background:var(--brown);
   color:var(--cream);
+  box-shadow:2px 0 5px -2px rgba(86,47,0,.35);
 }
 
 table.pivot-table td.pivot-total{
@@ -774,6 +809,24 @@ td a:hover{
 }
 
 .preview-modal-head a:hover{ text-decoration:underline; }
+
+.preview-imgmode-btn{
+  border:1px solid rgba(255,206,153,0.4);
+  background:rgba(255,253,241,0.12);
+  color:var(--peach);
+  font-size:11.5px;
+  font-weight:700;
+  padding:5px 10px;
+  border-radius:8px;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+
+.preview-imgmode-btn:hover{
+  background:rgba(255,253,241,0.22);
+}
 
 .preview-close{
   border:none;
@@ -1104,7 +1157,7 @@ td a:hover{
     </div>
 
     <div class="stat">
-      <div class="stat-title">Total Peran</div>
+      <div class="stat-title">Jumlah Kegiatan Unik</div>
       <div class="stat-value" id="totalPeran">0</div>
     </div>
 
@@ -1133,6 +1186,29 @@ td a:hover{
   </div>
 </div>
 
+<div class="stats-row dominant-row">
+  <div class="stat stat-dominant">
+    <div class="stat-title">Deskripsi IK Paling Dominan</div>
+    <div class="stat-value stat-value-sm" id="dominantIK" title="">–</div>
+    <div class="stat-sub" id="persenIK">0%</div>
+    <div class="progress"><div id="barIK"></div></div>
+  </div>
+
+  <div class="stat stat-dominant">
+    <div class="stat-title">Deskripsi RK Paling Dominan</div>
+    <div class="stat-value stat-value-sm" id="dominantRK" title="">–</div>
+    <div class="stat-sub" id="persenRK">0%</div>
+    <div class="progress"><div id="barRK"></div></div>
+  </div>
+
+  <div class="stat stat-dominant">
+    <div class="stat-title">Kegiatan Paling Dominan</div>
+    <div class="stat-value stat-value-sm" id="dominantPeran" title="">–</div>
+    <div class="stat-sub" id="persenPeran">0%</div>
+    <div class="progress"><div id="barPeran"></div></div>
+  </div>
+</div>
+
 <!-- CHART -->
 <div class="section-head">
   <h2>📈 Grafik &amp; Pivot Silang</h2>
@@ -1150,7 +1226,7 @@ td a:hover{
 
     <div class="chart-controls">
       <div class="field">
-        <label>Sumbu X</label>
+        <label>Variabel</label>
         <select id="chartX">
           <option value="TW">Triwulan</option>
           <option value="Nama">Nama</option>
@@ -1276,6 +1352,7 @@ td a:hover{
   <div class="preview-modal">
     <div class="preview-modal-head">
       <span class="pv-title" id="previewTitle">Preview</span>
+      <button type="button" class="preview-imgmode-btn" id="previewImgBtn" onclick="forceScreenshotFallback()">📸 Versi Gambar</button>
       <a href="#" id="previewOpenNew" target="_blank" rel="noopener">Buka di tab baru ↗</a>
       <button type="button" class="preview-close" onclick="closePreview()">✕</button>
     </div>
@@ -1518,6 +1595,7 @@ document.addEventListener("click", function(e){
 function render(){
   renderTable();
   renderStats();
+  renderDominant();
   renderChart();
   renderRanking();
   renderPivot();
@@ -1587,7 +1665,7 @@ function renderStats(){
     new Set(filtered.map(d=>d.Nama)).size;
 
   document.getElementById("totalPeran").innerText =
-    new Set(filtered.map(d=>val(d,"Peran"))).size;
+    new Set(filtered.map(d=>val(d,"Realisasi Berdasarkan Bukti Dukung"))).size;
 
   let total = filtered.length || 1;
 
@@ -1609,6 +1687,49 @@ function renderStats(){
   document.getElementById("barBukti").style.width = pb+"%";
   document.getElementById("barSesuai").style.width = ps+"%";
   document.getElementById("barValidasi").style.width = pv+"%";
+}
+
+/* DOMINAN */
+function findDominant(field){
+  let count = {};
+  filtered.forEach(d=>{
+    let v = val(d,field);
+    if(!v) return;
+    count[v] = (count[v] || 0) + 1;
+  });
+
+  let entries = Object.entries(count).sort((a,b)=>b[1]-a[1]);
+  if(!entries.length) return { label:"–", percent:"0" };
+
+  let [label,jumlah] = entries[0];
+  let total = filtered.length || 1;
+  let percent = ((jumlah/total)*100).toFixed(1);
+
+  return { label, percent };
+}
+
+function renderDominant(){
+  let ik = findDominant("Deskripsi IK");
+  let rk = findDominant("Deskripsi RK");
+  let peran = findDominant("Realisasi Berdasarkan Bukti Dukung");
+
+  let elIK = document.getElementById("dominantIK");
+  elIK.innerText = ik.label;
+  elIK.title = ik.label;
+  document.getElementById("persenIK").innerText = ik.percent+"%";
+  document.getElementById("barIK").style.width = ik.percent+"%";
+
+  let elRK = document.getElementById("dominantRK");
+  elRK.innerText = rk.label;
+  elRK.title = rk.label;
+  document.getElementById("persenRK").innerText = rk.percent+"%";
+  document.getElementById("barRK").style.width = rk.percent+"%";
+
+  let elPeran = document.getElementById("dominantPeran");
+  elPeran.innerText = peran.label;
+  elPeran.title = peran.label;
+  document.getElementById("persenPeran").innerText = peran.percent+"%";
+  document.getElementById("barPeran").style.width = peran.percent+"%";
 }
 
 /* CHART */
@@ -1799,6 +1920,9 @@ function fillDropdown(){
 }
 
 /* ===== LINK PREVIEW MODAL ===== */
+let currentPreviewUrl = null;
+let currentPreviewHost = null;
+
 function openPreview(url){
   const overlay = document.getElementById("previewOverlay");
   const body = document.getElementById("previewBody");
@@ -1807,6 +1931,9 @@ function openPreview(url){
 
   let host = "";
   try{ host = new URL(url).hostname; }catch(e){ host = url; }
+
+  currentPreviewUrl = url;
+  currentPreviewHost = host;
 
   title.textContent = host;
   openNew.href = url;
@@ -1817,10 +1944,12 @@ function openPreview(url){
   let loaded = false;
   iframe.addEventListener("load", ()=>{ loaded = true; });
 
-  // some sites (Notion, banks, etc.) block being embedded in an iframe (X-Frame-Options / CSP).
-  // if nothing fires after a short wait, fall back to a screenshot image of the page instead
-  // (rendered by a third-party screenshot service, so it isn't subject to the target site's
-  // iframe-embedding restrictions).
+  // NOTE: many sites (Notion, banks, etc.) block being embedded in an iframe via
+  // X-Frame-Options / CSP frame-ancestors. Unfortunately the iframe's "load" event
+  // still fires even when the content is blocked (the browser shows an empty/error
+  // page, which still counts as "loaded") — so this timeout is only a best-effort
+  // check and won't always catch a block. That's why there's also a manual
+  // "📸 Versi Gambar" button in the modal header the user can click any time.
   setTimeout(()=>{
     if(!loaded){
       showScreenshotFallback(url, host);
@@ -1831,62 +1960,79 @@ function openPreview(url){
   document.body.style.overflow = "hidden";
 }
 
-function showScreenshotFallback(url, host){
+function forceScreenshotFallback(){
+  if(!currentPreviewUrl) return;
+  showScreenshotFallback(currentPreviewUrl, currentPreviewHost);
+}
+
+async function showScreenshotFallback(url, host){
   const body = document.getElementById("previewBody");
   const encoded = encodeURIComponent(url);
 
   body.innerHTML = `
     <div class="preview-shot-wrap">
-      <div class="preview-shot-note">📸 <b>${host}</b> memblokir tampilan iframe — ini pratinjau gambar (statis, tidak interaktif) dari halamannya. <span id="shotStatus"></span></div>
+      <div class="preview-shot-note">📸 <b>${host}</b> memblokir tampilan iframe — ini pratinjau gambar (statis, tidak interaktif) dari halamannya. <span id="shotStatus">Mengambil screenshot dari Google PageSpeed Insights, mohon tunggu (~10 detik)...</span></div>
       <div class="preview-shot-img"><img id="shotImg" alt="Pratinjau ${host}"></div>
     </div>`;
 
   const img = document.getElementById("shotImg");
   const statusEl = document.getElementById("shotStatus");
 
-  // try several independent screenshot providers in order; if one is down/blocked,
-  // fall through to the next before giving up entirely.
-  const providers = [
-    ()=> "https://s.wordpress.com/mshots/v1/" + encoded + "?w=1200&h=900&_t=" + Date.now(),
-    ()=> "https://api.microlink.io/?url=" + encoded + "&screenshot=true&meta=false&embed=screenshot.url",
-    ()=> "https://image.thum.io/get/width/1200/noanimate/" + url
-  ];
-
-  let providerIdx = 0;
-  let refineAttempt = 0;
-  const maxRefine = 3;
-
-  function tryProvider(){
-    if(providerIdx >= providers.length){
-      console.warn("[SIVERA preview] semua provider screenshot gagal untuk:", url);
-      showPreviewLocked(host);
-      return;
-    }
-    refineAttempt = 0;
-    statusEl.textContent = "";
-    const shotUrl = providers[providerIdx]();
-    console.log("[SIVERA preview] mencoba provider #" + (providerIdx+1) + ":", shotUrl);
-    img.src = shotUrl;
+  // 1) Primary: Google PageSpeed Insights actually renders the page with real Chrome on
+  //    Google's servers and returns a screenshot as base64 — free, no API key, and reliable
+  //    since it's Google infrastructure. Downside: slower (real audit, ~5-15s) and rate-limited
+  //    to a modest number of requests/day per IP without a key.
+  async function tryPageSpeed(){
+    const api = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=" + encoded + "&screenshot=true&category=performance";
+    console.log("[SIVERA preview] mencoba Google PageSpeed Insights:", api);
+    const res = await fetch(api);
+    if(!res.ok) throw new Error("PSI HTTP " + res.status);
+    const data = await res.json();
+    const shot = data && data.lighthouseResult && data.lighthouseResult.audits
+      && data.lighthouseResult.audits["final-screenshot"]
+      && data.lighthouseResult.audits["final-screenshot"].details
+      && data.lighthouseResult.audits["final-screenshot"].details.data;
+    if(!shot) throw new Error("PSI: tidak ada screenshot di response");
+    return shot; // already a data:image/jpeg;base64,... URI
   }
 
-  img.onerror = function(){
-    console.warn("[SIVERA preview] provider #" + (providerIdx+1) + " gagal dimuat, coba berikutnya...");
-    providerIdx++;
-    tryProvider();
-  };
+  // 2) Fallback: mshots (WordPress) — fast but sometimes returns a "still generating" placeholder.
+  function tryMshots(){
+    return new Promise((resolve, reject)=>{
+      const test = new Image();
+      const shotUrl = "https://s.wordpress.com/mshots/v1/" + encoded + "?w=1200&h=900&_t=" + Date.now();
+      console.log("[SIVERA preview] mencoba mshots:", shotUrl);
+      test.onload = ()=> resolve(shotUrl);
+      test.onerror = ()=> reject(new Error("mshots gagal dimuat"));
+      test.src = shotUrl;
+    });
+  }
 
-  img.onload = function(){
+  statusEl.textContent = "Mengambil screenshot dari Google PageSpeed Insights, mohon tunggu (~10 detik)...";
+
+  try{
+    const dataUri = await tryPageSpeed();
+    img.src = dataUri;
     statusEl.textContent = "";
-    // mshots in particular renders async and may return a placeholder first —
-    // reload it a couple of times to get the real screenshot.
-    if(providerIdx === 0 && refineAttempt < maxRefine){
-      refineAttempt++;
-      statusEl.textContent = "(memuat ulang untuk hasil lebih jelas...)";
-      setTimeout(()=>{ img.src = providers[0](); }, 2200);
-    }
-  };
+    console.log("[SIVERA preview] berhasil pakai Google PageSpeed Insights");
+    return;
+  }catch(err){
+    console.warn("[SIVERA preview] PageSpeed gagal:", err.message);
+  }
 
-  tryProvider();
+  statusEl.textContent = "Mencoba sumber cadangan...";
+  try{
+    const shotUrl = await tryMshots();
+    img.src = shotUrl;
+    statusEl.textContent = "";
+    console.log("[SIVERA preview] berhasil pakai mshots");
+    return;
+  }catch(err){
+    console.warn("[SIVERA preview] mshots gagal:", err.message);
+  }
+
+  console.warn("[SIVERA preview] semua sumber screenshot gagal untuk:", url);
+  showPreviewLocked(host);
 }
 
 
