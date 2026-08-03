@@ -572,8 +572,6 @@ table.pivot-table thead th{
   z-index:2;
 }
 
-table.pivot-table thead tr:first-child th{ top:0; z-index:3; }
-
 table.pivot-table td.pivot-name, table.pivot-table th.pivot-name-h{
   position:sticky;
   left:0;
@@ -720,6 +718,202 @@ tbody tr:hover{
   overflow:hidden;
   text-overflow:ellipsis;
   cursor:pointer;
+}
+
+.status-cell{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  min-width:130px;
+}
+
+.status-select{
+  appearance:none;
+  -webkit-appearance:none;
+  border:none;
+  border-radius:20px;
+  padding:3px 24px 3px 10px;
+  font-weight:700;
+  font-size:11px;
+  cursor:pointer;
+  background-repeat:no-repeat;
+  background-position:right 8px center;
+  background-size:9px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'><path d='M0 0l5 6 5-6z' fill='%23806040'/></svg>");
+}
+
+.status-select.ok{
+  background-color:#e4f8ef;
+  color:var(--ok);
+}
+
+.status-select.bad{
+  background-color:#fdeaea;
+  color:var(--bad);
+}
+
+.status-select.neutral{
+  background-color:var(--peach-soft);
+  color:var(--brown);
+}
+
+.status-detail-btn{
+  border:1px dashed var(--peach-soft);
+  border-radius:8px;
+  padding:3px 8px;
+  font-size:10.5px;
+  font-family:'Inter',sans-serif;
+  color:var(--brown);
+  background:var(--white);
+  width:100%;
+  text-align:left;
+  cursor:pointer;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.status-detail-btn:hover{
+  border-style:solid;
+  border-color:var(--orange);
+}
+
+.status-note:focus, .status-select:focus{
+  outline:2px solid var(--orange);
+  outline-offset:1px;
+}
+
+.status-select.saving, .status-note.saving{
+  opacity:.55;
+}
+
+.status-select.save-error, .status-note.save-error{
+  outline:2px solid var(--bad);
+}
+
+/* STATUS VERIFICATION MODAL */
+.status-modal-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(74,44,20,0.45);
+  z-index:200;
+  align-items:center;
+  justify-content:center;
+}
+
+.status-modal{
+  background:var(--white);
+  border-radius:16px;
+  width:min(420px, 92vw);
+  padding:20px;
+  box-shadow:0 10px 40px rgba(74,44,20,0.3);
+}
+
+.status-modal-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:6px;
+}
+
+.status-modal-head span{
+  font-family:'Fraunces',serif;
+  font-weight:600;
+  font-size:17px;
+  color:var(--brown-deep);
+}
+
+.status-modal-close{
+  border:none;
+  background:transparent;
+  font-size:16px;
+  color:var(--brown);
+  cursor:pointer;
+  line-height:1;
+}
+
+.status-modal-status{
+  font-size:12.5px;
+  color:var(--brown);
+  margin-bottom:14px;
+}
+
+.status-modal-steps{
+  display:flex;
+  gap:8px;
+  margin-bottom:16px;
+}
+
+.status-modal-steps .step{
+  flex:1;
+  text-align:center;
+  font-size:10.5px;
+  font-weight:700;
+  padding:6px 4px;
+  border-radius:20px;
+  background:var(--peach-soft);
+  color:var(--brown);
+}
+
+.status-modal-steps .step.active{
+  background:var(--orange);
+  color:var(--white);
+}
+
+.status-modal-body label{
+  display:block;
+  font-size:11.5px;
+  font-weight:700;
+  color:var(--brown);
+  margin-bottom:6px;
+}
+
+.status-modal-body input, .status-modal-body textarea{
+  width:100%;
+  border:1px solid var(--peach-soft);
+  border-radius:10px;
+  padding:9px 12px;
+  font-family:'Inter',sans-serif;
+  font-size:13px;
+  color:var(--brown-deep);
+  resize:vertical;
+}
+
+.status-modal-body input:focus, .status-modal-body textarea:focus{
+  outline:2px solid var(--orange);
+  outline-offset:1px;
+}
+
+.status-modal-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  margin-top:16px;
+}
+
+.status-modal-btn{
+  border:none;
+  border-radius:20px;
+  padding:8px 18px;
+  font-weight:700;
+  font-size:12.5px;
+  cursor:pointer;
+}
+
+.status-modal-btn.ghost{
+  background:var(--peach-soft);
+  color:var(--brown);
+}
+
+.status-modal-btn.primary{
+  background:var(--orange);
+  color:var(--white);
+}
+
+.status-modal-btn.primary:disabled{
+  opacity:.6;
+  cursor:default;
 }
 
 td a{
@@ -1360,9 +1554,49 @@ td a:hover{
   </div>
 </div>
 
+<!-- STATUS VERIFICATION MODAL -->
+<div class="status-modal-overlay" id="statusModalOverlay" onclick="if(event.target===this) closeStatusModal(true)">
+  <div class="status-modal">
+    <div class="status-modal-head">
+      <span id="statusModalTitle">Verifikasi</span>
+      <button type="button" class="status-modal-close" onclick="closeStatusModal(true)">✕</button>
+    </div>
+    <div class="status-modal-status">
+      Status dipilih: <strong id="statusModalValue">-</strong>
+    </div>
+    <div class="status-modal-steps">
+      <span class="step active" data-step="verifikator">1. Verifikator</span>
+      <span class="step" data-step="catatan">2. Catatan</span>
+    </div>
+
+    <div class="status-modal-body">
+      <div class="status-step" id="statusStepVerifikator">
+        <label>Nama Verifikator</label>
+        <input type="text" id="statusModalVerifikator" placeholder="Nama yang memverifikasi">
+        <div class="status-modal-actions">
+          <button type="button" class="status-modal-btn ghost" onclick="closeStatusModal(true)">Batal</button>
+          <button type="button" class="status-modal-btn primary" onclick="statusModalGoto('catatan')">Lanjut</button>
+        </div>
+      </div>
+
+      <div class="status-step" id="statusStepCatatan" style="display:none;">
+        <label>Catatan</label>
+        <textarea id="statusModalCatatan" placeholder="Catatan (opsional)" rows="3"></textarea>
+        <div class="status-modal-actions">
+          <button type="button" class="status-modal-btn ghost" onclick="statusModalGoto('verifikator')">Kembali</button>
+          <button type="button" class="status-modal-btn primary" id="statusModalSubmitBtn" onclick="submitStatusModal()">Simpan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 const URL =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhK37QgVuPEUvKZUTK5_ZFsoKbP5xLZPNFR90xXK6S0pSvmjU4m5qlChqoDSTuN5Aq0hDEqy-h_5DQ/pub?output=csv";
+
+/* Ganti dengan URL Web App hasil deploy StatusAPI.gs (lihat file StatusAPI.gs terpisah) */
+const STATUS_API_URL = "https://script.google.com/macros/s/AKfycbw3xcaWXTONFptUMXJE5AWFMirAjkLDWJBddDlZ0q2HeU7M5m3ewpWzO8AeYk04Hllc_Q/exec";
 
 let all = [];
 let filtered = [];
@@ -1420,6 +1654,145 @@ function escapeHtml(s){
     .replace(/>/g,"&gt;")
     .replace(/"/g,"&quot;")
     .replace(/'/g,"&#39;");
+}
+
+/* ===== VERIFIKASI KESESUAIAN / VALIDASI (dropdown -> verifikator -> catatan) ===== */
+/* Baris ditandai/dicari lewat kombinasi kolom Triwulan s.d. Realisasi
+   Berdasarkan Bukti Dukung (lihat StatusAPI.gs) */
+let statusModalState = null;
+
+function applyStatusColor(sel){
+  let normVal = norm(sel.value);
+  sel.classList.remove("ok","bad","neutral");
+  if(normVal === "sesuai" || normVal === "valid"){
+    sel.classList.add("ok");
+  }else if(normVal === "tidak sesuai" || normVal === "tidak valid"){
+    sel.classList.add("bad");
+  }else{
+    sel.classList.add("neutral");
+  }
+}
+
+function onStatusChange(sel){
+  applyStatusColor(sel);
+  openStatusModal(sel);
+}
+
+function openStatusModalManual(sel){
+  if(!sel) return;
+  openStatusModal(sel);
+}
+
+function openStatusModal(sel){
+  statusModalState = {
+    sel: sel,
+    field: sel.dataset.field,
+    value: sel.value,
+    keyData: {
+      tw: sel.dataset.tw,
+      nama: sel.dataset.nama,
+      jabatan: sel.dataset.jabatan,
+      ik: sel.dataset.ik,
+      rk: sel.dataset.rk,
+      peran: sel.dataset.peran,
+      realisasi: sel.dataset.realisasi
+    }
+  };
+
+  document.getElementById("statusModalTitle").textContent =
+    "Verifikasi " + (statusModalState.field === "Kesesuaian" ? "Kesesuaian" : "Validasi");
+  document.getElementById("statusModalValue").textContent = sel.value || "(belum dipilih)";
+  document.getElementById("statusModalVerifikator").value = sel.dataset.verifikator || "";
+  document.getElementById("statusModalCatatan").value = sel.dataset.catatan || "";
+
+  statusModalGoto("verifikator");
+  document.getElementById("statusModalOverlay").style.display = "flex";
+}
+
+function statusModalGoto(step){
+  document.getElementById("statusStepVerifikator").style.display = step === "verifikator" ? "block" : "none";
+  document.getElementById("statusStepCatatan").style.display = step === "catatan" ? "block" : "none";
+  document.querySelectorAll(".status-modal-steps .step").forEach(el=>{
+    el.classList.toggle("active", el.dataset.step === step);
+  });
+  if(step === "verifikator"){
+    document.getElementById("statusModalVerifikator").focus();
+  }else{
+    document.getElementById("statusModalCatatan").focus();
+  }
+}
+
+function closeStatusModal(revert){
+  if(revert && statusModalState){
+    let sel = statusModalState.sel;
+    sel.value = sel.dataset.prevvalue || "";
+    applyStatusColor(sel);
+  }
+  document.getElementById("statusModalOverlay").style.display = "none";
+  statusModalState = null;
+}
+
+async function submitStatusModal(){
+  if(!statusModalState) return;
+
+  if(!STATUS_API_URL || STATUS_API_URL.indexOf("PASTE_URL") === 0){
+    alert("URL Web App belum diatur. Isi STATUS_API_URL di bagian atas script dengan URL hasil deploy StatusAPI.gs.");
+    return;
+  }
+
+  let { sel, field, value, keyData } = statusModalState;
+  let verifikator = document.getElementById("statusModalVerifikator").value.trim();
+  let catatan = document.getElementById("statusModalCatatan").value.trim();
+
+  let catatanField = field === "Kesesuaian" ? "Catatan Kesesuaian" : "Catatan Validasi";
+  let verifikatorField = field === "Kesesuaian" ? "Verifikator Kesesuaian" : "Verifikator Validasi";
+
+  let payload = Object.assign({}, keyData, {
+    updates: [
+      { field: field, value: value },
+      { field: verifikatorField, value: verifikator },
+      { field: catatanField, value: catatan }
+    ]
+  });
+
+  let submitBtn = document.getElementById("statusModalSubmitBtn");
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Menyimpan...";
+  sel.classList.add("saving");
+  sel.classList.remove("save-error");
+
+  try{
+    let res = await fetch(STATUS_API_URL, {
+      method: "POST",
+      headers: {"Content-Type": "text/plain;charset=utf-8"},
+      body: JSON.stringify(payload)
+    });
+    let json = await res.json();
+    if(!json || json.success !== true){
+      throw new Error((json && json.message) || "Gagal menyimpan");
+    }
+
+    sel.dataset.prevvalue = value;
+    sel.dataset.verifikator = verifikator;
+    sel.dataset.catatan = catatan;
+
+    let detailBtn = sel.parentElement.querySelector(".status-detail-btn");
+    if(detailBtn){
+      detailBtn.textContent = (verifikator || catatan)
+        ? "📝 " + (verifikator || "Catatan")
+        : "+ Verifikator/Catatan";
+    }
+
+    document.getElementById("statusModalOverlay").style.display = "none";
+    statusModalState = null;
+  }catch(err){
+    sel.classList.add("save-error");
+    alert("Gagal menyimpan perubahan: " + err.message);
+  }finally{
+    sel.classList.remove("saving");
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Simpan";
+  }
 }
 
 /* ===== MULTI-SELECT CASCADING FILTERS ===== */
@@ -1623,6 +1996,28 @@ function renderTable(){
     let ik = val(d,"Deskripsi IK");
     let rk = val(d,"Deskripsi RK");
 
+    let rowKeyAttrs = `
+        data-tw="${escapeHtml(val(d,"TW"))}"
+        data-nama="${escapeHtml(val(d,"Nama"))}"
+        data-jabatan="${escapeHtml(val(d,"Jabatan"))}"
+        data-ik="${escapeHtml(ik)}"
+        data-rk="${escapeHtml(rk)}"
+        data-peran="${escapeHtml(val(d,"Peran"))}"
+        data-realisasi="${escapeHtml(realisasi)}"`;
+
+    let catatanSesuai = val(d,"Catatan Kesesuaian");
+    catatanSesuai = catatanSesuai === "-" ? "" : catatanSesuai;
+    let catatanValidasi = val(d,"Catatan Validasi");
+    catatanValidasi = catatanValidasi === "-" ? "" : catatanValidasi;
+
+    let verifikatorSesuai = val(d,"Verifikator Kesesuaian");
+    verifikatorSesuai = verifikatorSesuai === "-" ? "" : verifikatorSesuai;
+    let verifikatorValidasi = val(d,"Verifikator Validasi");
+    verifikatorValidasi = verifikatorValidasi === "-" ? "" : verifikatorValidasi;
+
+    let normSesuai = norm(sesuai);
+    let normValidasi = norm(validasi);
+
     tbody.innerHTML += `
     <tr>
       <td>${start+i+1}</td>
@@ -1635,8 +2030,41 @@ function renderTable(){
       <td class="ellipsis" title="${realisasi}">${realisasi}</td>
 
       <td><span class="badge ${bukti==='Tersedia'?'ok':'bad'}">${bukti}</span></td>
-      <td><span class="badge ${sesuai==='Sesuai'?'ok':'bad'}">${sesuai}</span></td>
-      <td><span class="badge ${isValidasiPublik(d)?'ok':'neutral'} ellipsis" title="${validasi}">${validasi}</span></td>
+
+      <td>
+        <div class="status-cell">
+          <select class="status-select ${normSesuai==='sesuai'?'ok':'bad'}"
+              data-field="Kesesuaian" data-prevvalue="${escapeHtml(sesuai)}"
+              data-verifikator="${escapeHtml(verifikatorSesuai)}"
+              data-catatan="${escapeHtml(catatanSesuai)}"
+              ${rowKeyAttrs} onchange="onStatusChange(this)">
+            <option value="Sesuai" ${normSesuai==='sesuai'?'selected':''}>Sesuai</option>
+            <option value="Tidak Sesuai" ${normSesuai==='tidak sesuai'?'selected':''}>Tidak Sesuai</option>
+          </select>
+          <button type="button" class="status-detail-btn" title="Lihat/ubah verifikator & catatan"
+              onclick="openStatusModalManual(this.previousElementSibling)">
+            ${(verifikatorSesuai || catatanSesuai) ? "📝 " + escapeHtml(verifikatorSesuai || "Catatan") : "+ Verifikator/Catatan"}
+          </button>
+        </div>
+      </td>
+
+      <td>
+        <div class="status-cell">
+          <select class="status-select ${normValidasi==='valid'?'ok':(normValidasi==='tidak valid'?'bad':'neutral')}"
+              data-field="Validasi" data-prevvalue="${escapeHtml(validasi==='-'?'':validasi)}"
+              data-verifikator="${escapeHtml(verifikatorValidasi)}"
+              data-catatan="${escapeHtml(catatanValidasi)}"
+              ${rowKeyAttrs} onchange="onStatusChange(this)">
+            <option value="" ${(normValidasi!=='valid'&&normValidasi!=='tidak valid')?'selected':''}>–</option>
+            <option value="Valid" ${normValidasi==='valid'?'selected':''}>Valid</option>
+            <option value="Tidak Valid" ${normValidasi==='tidak valid'?'selected':''}>Tidak Valid</option>
+          </select>
+          <button type="button" class="status-detail-btn" title="Lihat/ubah verifikator & catatan"
+              onclick="openStatusModalManual(this.previousElementSibling)">
+            ${(verifikatorValidasi || catatanValidasi) ? "📝 " + escapeHtml(verifikatorValidasi || "Catatan") : "+ Verifikator/Catatan"}
+          </button>
+        </div>
+      </td>
 
       <td>${
         d.Link && d.Link !== "-"
