@@ -368,17 +368,18 @@ h1,h2,h3,.display{
   min-width:0;
 }
 
-.stat-value-sm{
-  font-family:'Fraunces',serif;
-  font-size:16px;
-  font-weight:600;
-  color:var(--brown-deep);
-  line-height:1.3;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  display:-webkit-box;
-  -webkit-line-clamp:2;
-  -webkit-box-orient:vertical;
+.stat-value-sm {
+  font-family: 'Fraunces', serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--brown-deep);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2; /* <--- TAMBAHKAN BARIS INI DI SINI */
+  -webkit-box-orient: vertical;
 }
 
 .stat-sub{
@@ -616,6 +617,164 @@ table.pivot-table tfoot td{
   color:var(--brown);
   position:sticky;
   bottom:0;
+}
+
+/* ===== Team Interaction (Ketua & Anggota) ===== */
+.team-box{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.team-box .chart-controls{ margin-bottom:0; }
+
+.team-hint{
+  color:#8a6a52;
+  font-size:13px;
+  background:var(--cream);
+  border:1px dashed var(--peach-soft);
+  border-radius:12px;
+  padding:14px 16px;
+  line-height:1.5;
+}
+
+.team-stat-row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.team-stat{
+  background:var(--peach-soft);
+  color:var(--brown);
+  font-size:12.5px;
+  font-weight:600;
+  border-radius:10px;
+  padding:8px 14px;
+}
+
+.team-stat b{
+  font-family:'Fraunces',serif;
+  font-size:15px;
+  margin-right:4px;
+}
+
+.team-scroll{
+  max-height:340px;
+  overflow:auto;
+  border:1px solid var(--peach-soft);
+  border-radius:10px;
+  -webkit-overflow-scrolling:touch;
+}
+
+table.team-table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  font-size:12px;
+}
+
+table.team-table th, table.team-table td{
+  padding:9px 12px;
+  border-bottom:1px solid var(--peach-soft);
+  text-align:left;
+}
+
+table.team-table thead th{
+  background:var(--brown);
+  color:var(--cream);
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+  font-size:10px;
+  position:sticky;
+  top:0;
+  z-index:2;
+}
+
+table.team-table tbody tr:nth-child(even){
+  background:#FFFCF4;
+}
+
+table.team-table td.team-count{
+  text-align:center;
+  font-weight:800;
+  color:var(--brown);
+}
+
+table.team-table td.team-tasks{
+  color:#8a6a52;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  max-width:1px;
+}
+
+.team-badge{
+  display:inline-block;
+  background:var(--peach-soft);
+  color:var(--brown);
+  font-size:10.5px;
+  font-weight:700;
+  border-radius:100px;
+  padding:2px 9px;
+}
+
+.team-subhead{
+  font-family:'Fraunces',serif;
+  font-size:14px;
+  font-weight:600;
+  color:var(--brown-deep);
+  margin-top:6px;
+}
+
+.team-mindmap-scroll{
+  max-height:460px;
+  overflow:auto;
+  border:1px solid var(--peach-soft);
+  border-radius:10px;
+  background:var(--cream);
+  -webkit-overflow-scrolling:touch;
+}
+
+#teamMindmapSvg .mm-link{
+  fill:none;
+  stroke:var(--peach-soft);
+  stroke-width:2;
+}
+
+#teamMindmapSvg .mm-root-box{
+  fill:var(--brown);
+  stroke:none;
+}
+#teamMindmapSvg .mm-root-text{
+  fill:var(--cream);
+  font-family:'Fraunces',serif;
+  font-size:13px;
+  font-weight:600;
+}
+
+#teamMindmapSvg .mm-rk-box{
+  fill:var(--orange);
+  stroke:none;
+}
+#teamMindmapSvg .mm-rk-text{
+  fill:var(--white);
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:700;
+}
+
+#teamMindmapSvg .mm-leaf-box{
+  fill:var(--white);
+  stroke:var(--peach-soft);
+  stroke-width:1.2;
+}
+#teamMindmapSvg .mm-leaf-text{
+  fill:var(--brown-deep);
+  font-family:'Inter',sans-serif;
+  font-size:10.5px;
+  font-weight:600;
 }
 
 /* ===== Table ===== */
@@ -1485,6 +1644,38 @@ td a:hover{
   </div>
 </div>
 
+<!-- TEAM INTERACTION -->
+<div class="section-head">
+  <h2>🤝 Interaksi Tim: Ketua &amp; Anggota</h2>
+</div>
+
+<div class="card team-box">
+  <div class="card-head-row">
+    <div class="card-head">Interaksi Antar Ketua dan Anggota Tim</div>
+  </div>
+
+  <div class="chart-controls">
+    <div class="field">
+      <label>Pilih Nama (sebagai Ketua Tim)</label>
+      <select id="teamKetuaSelect" onchange="renderTeamInteraction()">
+        <option value="">— Pilih Nama —</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="teamSummary"></div>
+
+  <div class="team-subhead">📋 Tabel Rincian: IK yang Dibawahi &amp; Anggota Tim</div>
+  <div class="team-scroll" id="teamScroll">
+    <table class="team-table" id="teamTable"></table>
+  </div>
+
+  <div class="team-subhead">🗺️ Mind Map Struktur Tim</div>
+  <div class="team-mindmap-scroll" id="teamMindmapScroll">
+    <svg id="teamMindmapSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+</div>
+
 <!-- TABLE -->
 <div class="section-head">
   <h2>🗂️ Detail Data</h2>
@@ -1596,7 +1787,7 @@ const URL =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhK37QgVuPEUvKZUTK5_ZFsoKbP5xLZPNFR90xXK6S0pSvmjU4m5qlChqoDSTuN5Aq0hDEqy-h_5DQ/pub?output=csv";
 
 /* Ganti dengan URL Web App hasil deploy StatusAPI.gs (lihat file StatusAPI.gs terpisah) */
-const STATUS_API_URL = "https://script.google.com/macros/s/AKfycbw3xcaWXTONFptUMXJE5AWFMirAjkLDWJBddDlZ0q2HeU7M5m3ewpWzO8AeYk04Hllc_Q/exec";
+const STATUS_API_URL = "PASTE_URL_WEBAPP_STATUSAPI_DI_SINI";
 
 let all = [];
 let filtered = [];
@@ -1972,6 +2163,7 @@ function render(){
   renderChart();
   renderRanking();
   renderPivot();
+  renderTeamInteraction();
 }
 
 /* TABLE */
@@ -2292,6 +2484,282 @@ function renderPivot(){
       </tr>
     </tfoot>
   `;
+}
+
+/* ===== TEAM INTERACTION: KETUA & ANGGOTA (berdasarkan Deskripsi RK) ===== */
+function fillTeamKetuaOptions(){
+  let sel = document.getElementById("teamKetuaSelect");
+  if(!sel) return;
+  let prev = sel.value;
+
+  // Prioritaskan nama yang pernah tercatat berperan sebagai "Ketua Tim" pada kolom Peran
+  let ketuaNames = new Set();
+  filtered.forEach(d=>{
+    if(/ketua/i.test(val(d,"Peran"))) ketuaNames.add(val(d,"Nama"));
+  });
+
+  let list;
+  if(ketuaNames.size > 0){
+    list = [...ketuaNames].filter(Boolean).sort();
+  } else {
+    // Fallback: jika tidak ada label "Ketua" pada kolom Peran, tampilkan semua nama
+    list = [...new Set(filtered.map(d=>val(d,"Nama")))].filter(Boolean).sort();
+  }
+
+  sel.innerHTML = `<option value="">— Pilih Nama —</option>` +
+    list.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("");
+
+  if(list.includes(prev)) sel.value = prev;
+}
+
+/* Bangun struktur: untuk seorang Ketua Tim, RK apa saja yang ia bawahi (Peran="Ketua Tim"
+   pada RK tsb), dan siapa saja Anggota Tim yang mengerjakan RK yang sama. */
+function buildKetuaStructure(ketua){
+  let groups = {}; // ik -> Map(nama -> {peran, rks: Set, daftarKegiatan: Set})
+  filtered.forEach(d=>{
+    let ik = val(d,"Deskripsi IK");
+    if(!ik || ik === "-") return;
+    
+    let nama = val(d,"Nama");
+    let peran = val(d,"Peran");
+    let rk = val(d,"Deskripsi RK");
+    let realisasi = val(d,"Realisasi Berdasarkan Bukti Dukung");
+
+    if(!groups[ik]) groups[ik] = new Map();
+    
+    // Siapkan objek data untuk setiap anggota tim, ditambah daftarKegiatan
+    let mData = groups[ik].get(nama) || { peran: peran, rks: new Set(), daftarKegiatan: new Set() };
+    if(/ketua/i.test(peran)) mData.peran = peran;
+    if(rk && rk !== "-") mData.rks.add(rk);
+    
+    // Menyimpan teks realisasi ke dalam Set (agar tidak ada duplikat untuk orang yang sama)
+    if(realisasi && realisasi.trim() !== "" && realisasi !== "-") {
+        mData.daftarKegiatan.add(realisasi.trim());
+    }
+
+    groups[ik].set(nama, mData);
+  });
+
+  let structure = [];
+  Object.keys(groups).forEach(ik=>{
+    let members = groups[ik];
+    let ketuaData = members.get(ketua);
+    
+    if(!ketuaData || !/ketua/i.test(ketuaData.peran)) return; 
+
+    // Format anggota menjadi array of object
+    let anggota = [...members.entries()]
+      .filter(([nama])=> nama !== ketua)
+      .map(([nama, mData])=> {
+         return {
+           nama: nama,
+           rk: Array.from(mData.rks).join(", "),
+           kegiatanCount: mData.daftarKegiatan.size, // Menghitung jumlahnya
+           kegiatanList: Array.from(mData.daftarKegiatan) // Menyimpan list teksnya
+         };
+      })
+      .sort((a,b)=> a.nama.localeCompare(b.nama));
+
+    structure.push({ ik, anggota }); 
+  });
+
+  structure.sort((a,b)=> b.anggota.length - a.anggota.length);
+  return structure;
+}
+
+function renderTeamInteraction(){
+  fillTeamKetuaOptions();
+
+  let sel = document.getElementById("teamKetuaSelect");
+  let summaryEl = document.getElementById("teamSummary");
+  let table = document.getElementById("teamTable");
+  let svg = document.getElementById("teamMindmapSvg");
+  if(!sel || !table || !summaryEl || !svg) return;
+
+  let ketua = sel.value;
+
+  if(!ketua){
+    summaryEl.innerHTML = `<div class="team-hint">Pilih nama di atas untuk melihat Deskripsi IK apa saja yang dibawahi orang tersebut sebagai Ketua Tim, beserta Anggota Tim yang mengerjakan IK yang sama.</div>`;
+    table.innerHTML = "";
+    svg.innerHTML = "";
+    svg.removeAttribute("viewBox");
+    return;
+  }
+
+  let structure = buildKetuaStructure(ketua);
+
+  if(structure.length === 0){
+    summaryEl.innerHTML = `<div class="team-hint"><b>${escapeHtml(ketua)}</b> tidak tercatat berperan sebagai Ketua Tim pada Deskripsi IK manapun, pada filter saat ini.</div>`;
+    table.innerHTML = "";
+    svg.innerHTML = "";
+    svg.removeAttribute("viewBox");
+    return;
+  }
+
+  let totalAnggotaUnik = new Set();
+  structure.forEach(g=> g.anggota.forEach(n=> totalAnggotaUnik.add(n.nama)));
+
+  summaryEl.innerHTML = `
+    <div class="team-stat-row">
+      <div class="team-stat"><b>${structure.length}</b> Deskripsi IK Dibawahi</div>
+      <div class="team-stat"><b>${totalAnggotaUnik.size}</b> Anggota Tim Berbeda</div>
+    </div>`;
+
+  // ===== Tabel =====
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>Deskripsi IK</th>
+        <th>Anggota Tim</th>
+        <th>Deskripsi RK</th>
+        <th>Daftar Kegiatan</th> <!-- KOLOM BARU -->
+        <th>Jumlah Kegiatan</th>
+        <th>Jumlah Anggota</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${structure.map((g,i)=>{
+        if(g.anggota.length === 0){
+           return `
+           <tr>
+             <td>${i+1}</td>
+             <td title="${escapeHtml(g.ik || g.rk)}">${escapeHtml(g.ik || g.rk)}</td>
+             <td><span style="color:#c9b494;">— Tidak ada anggota lain —</span></td>
+             <td>-</td>
+             <td>-</td> <!-- SEL KOSONG UNTUK KOLOM BARU -->
+             <td style="text-align:center;">-</td>
+             <td class="team-count">0</td>
+           </tr>`;
+        }
+
+        let rowsHtml = "";
+        g.anggota.forEach((a, index) => {
+           // Mengubah array daftar kegiatan menjadi bullet points HTML
+           let listKegiatanHtml = a.kegiatanList.length > 0 
+             ? `<ul style="margin:0; padding-left:1.2em;">${a.kegiatanList.map(k => `<li>${escapeHtml(k)}</li>`).join("")}</ul>`
+             : "-";
+
+           if (index === 0) {
+             rowsHtml += `
+             <tr>
+               <td rowspan="${g.anggota.length}">${i+1}</td>
+               <td rowspan="${g.anggota.length}" title="${escapeHtml(g.ik || g.rk)}">${escapeHtml(g.ik || g.rk)}</td>
+               <td><span class="team-badge">${escapeHtml(a.nama)}</span></td>
+               <td style="font-size:0.9em; line-height:1.4;">${escapeHtml(a.rk || "-")}</td>
+               <td style="font-size:0.9em; line-height:1.4;">${listKegiatanHtml}</td> <!-- PRINT LIST KEGIATAN -->
+               <td style="text-align:center;"><span class="team-badge" style="background:#eef2f3; color:#333;">${a.kegiatanCount}</span></td>
+               <td rowspan="${g.anggota.length}" class="team-count">${g.anggota.length}</td>
+             </tr>`;
+           } else {
+             rowsHtml += `
+             <tr>
+               <td><span class="team-badge">${escapeHtml(a.nama)}</span></td>
+               <td style="font-size:0.9em; line-height:1.4;">${escapeHtml(a.rk || "-")}</td>
+               <td style="font-size:0.9em; line-height:1.4;">${listKegiatanHtml}</td> <!-- PRINT LIST KEGIATAN -->
+               <td style="text-align:center;"><span class="team-badge" style="background:#eef2f3; color:#333;">${a.kegiatanCount}</span></td>
+             </tr>`;
+           }
+        });
+        return rowsHtml;
+      }).join("")}
+    </tbody>
+  `;
+
+  // ===== Mind Map =====
+  renderTeamMindMap(ketua, structure);
+}
+
+/* Render mind map (percabangan): Ketua Tim -> Deskripsi RK -> Anggota Tim, sebagai SVG */
+function renderTeamMindMap(ketua, structure){
+  const svg = document.getElementById("teamMindmapSvg");
+  if(!svg) return;
+
+  const leafH = 32;
+  const padY = 24;
+  const rootX = 20, rootW = 190, rootH = 46;
+  const rkX = 250, rkW = 300, rkH = 30;
+  const leafX = 590, leafW = 220, leafH_box = 26;
+  const svgW = 840;
+
+  let y = padY;
+  let leafNodes = [];   // {label, y}
+  let rkNodes = [];     // {rk, y, leafYs:[]}
+
+  structure.forEach(g=>{
+    let startY = y;
+    let leafYs = [];
+    if(g.anggota.length === 0){
+      leafNodes.push({ label: "(tidak ada anggota lain)", y, placeholder:true });
+      leafYs.push(y);
+      y += leafH;
+    } else {
+      g.anggota.forEach(a=>{
+        leafNodes.push({ label: a.nama, y });
+        leafYs.push(y);
+        y += leafH;
+      });
+    }
+    let rkY = (leafYs[0] + leafYs[leafYs.length-1]) / 2;
+    
+    // PERBAIKAN DI SINI: Mengambil data dari g.ik
+    rkNodes.push({ rk: g.ik || g.rk, y: rkY, leafYs });
+  });
+
+  let totalHeight = y + padY;
+  let rootY = totalHeight / 2;
+
+  function truncate(s, n){
+    s = (s||"").toString();
+    return s.length > n ? s.slice(0, n-1) + "…" : s;
+  }
+
+  function bezierPath(x1,y1,x2,y2){
+    let mx = (x1+x2)/2;
+    return `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`;
+  }
+
+  let linksHtml = "";
+  let rkBoxesHtml = "";
+  let leafBoxesHtml = "";
+
+  rkNodes.forEach(rn=>{
+    // link root -> rk node
+    linksHtml += `<path class="mm-link" d="${bezierPath(rootX+rootW, rootY, rkX, rn.y)}"/>`;
+    rkBoxesHtml += `
+      <g>
+        <title>${escapeHtml(rn.rk)}</title>
+        <rect class="mm-rk-box" x="${rkX}" y="${rn.y - rkH/2}" width="${rkW}" height="${rkH}" rx="8"></rect>
+        <text class="mm-rk-text" x="${rkX + 12}" y="${rn.y + 4}">${escapeHtml(truncate(rn.rk, 40))}</text>
+      </g>`;
+
+    // link rk -> each leaf under this rk
+    rn.leafYs.forEach(ly=>{
+      linksHtml += `<path class="mm-link" d="${bezierPath(rkX+rkW, rn.y, leafX, ly)}"/>`;
+    });
+  });
+
+  leafNodes.forEach(ln=>{
+    leafBoxesHtml += `
+      <g>
+        <title>${escapeHtml(ln.label)}</title>
+        <rect class="mm-leaf-box" x="${leafX}" y="${ln.y - leafH_box/2}" width="${leafW}" height="${leafH_box}" rx="7"></rect>
+        <text class="mm-leaf-text" x="${leafX + 10}" y="${ln.y + 4}">${escapeHtml(truncate(ln.label, 30))}</text>
+      </g>`;
+  });
+
+  let rootHtml = `
+    <g>
+      <title>${escapeHtml(ketua)}</title>
+      <rect class="mm-root-box" x="${rootX}" y="${rootY - rootH/2}" width="${rootW}" height="${rootH}" rx="10"></rect>
+      <text class="mm-root-text" x="${rootX + 12}" y="${rootY - 2}">👑 Ketua Tim</text>
+      <text class="mm-root-text" x="${rootX + 12}" y="${rootY + 14}">${escapeHtml(truncate(ketua, 24))}</text>
+    </g>`;
+
+  svg.setAttribute("viewBox", `0 0 ${svgW} ${totalHeight}`);
+  svg.setAttribute("width", "100%");
+  svg.setAttribute("height", Math.min(totalHeight, 460));
+  svg.innerHTML = linksHtml + rootHtml + rkBoxesHtml + leafBoxesHtml;
 }
 
 /* RANKING UNIK */
