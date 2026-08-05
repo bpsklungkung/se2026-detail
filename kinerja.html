@@ -836,6 +836,66 @@ table.team-table td.team-tasks{
 .team-legend i.leg-line-ik{ background:#a8590f; }
 .team-legend i.leg-line-rk{ background:#5c6b3f; }
 
+/* ===== Cross Tab (Matriks Interaksi) ===== */
+.crosstab-table{
+  border-collapse:separate;
+  border-spacing:0;
+}
+.crosstab-table th, .crosstab-table td{
+  border:1px solid var(--peach-soft);
+  padding:8px 10px;
+  vertical-align:top;
+  min-width:150px;
+  max-width:220px;
+}
+.crosstab-table thead th{
+  position:sticky;
+  top:0;
+  z-index:2;
+  background:var(--brown);
+  color:var(--cream);
+  font-size:11px;
+}
+.crosstab-table thead th.crosstab-corner{
+  left:0;
+  z-index:3;
+  background:var(--brown-deep);
+}
+.crosstab-table tbody th{
+  position:sticky;
+  left:0;
+  z-index:1;
+  background:var(--orange);
+  color:#fff;
+  font-size:11px;
+  text-align:left;
+  min-width:130px;
+  max-width:160px;
+}
+.crosstab-table td.crosstab-diag{
+  background:repeating-linear-gradient(135deg, var(--peach-soft), var(--peach-soft) 6px, var(--cream) 6px, var(--cream) 12px);
+  text-align:center;
+  color:#c9b494;
+}
+.crosstab-table td.crosstab-empty{
+  color:#d8c3ac;
+  text-align:center;
+}
+.crosstab-cell-ik{
+  font-size:0.85em;
+  line-height:1.4;
+  color:#a8590f;
+  font-weight:600;
+  margin:0 0 4px 0;
+}
+.crosstab-cell-rk{
+  font-size:0.85em;
+  line-height:1.4;
+  color:#5c6b3f;
+  font-weight:600;
+  margin:0;
+}
+
 /* ===== Table ===== */
 .table-card{
   background:var(--white);
@@ -1758,6 +1818,21 @@ td a:hover{
   <div class="team-mindmap-scroll" id="teamMindmapScroll">
     <svg id="teamNetworkSvg" xmlns="http://www.w3.org/2000/svg"></svg>
   </div>
+
+  <div class="team-subhead-row">
+    <div class="team-subhead">🔢 Cross Tab: Matriks Interaksi Antar Nama Terpilih</div>
+    <div class="dl-btns">
+      <button type="button" class="dl-btn" onclick="exportTeamCrossTabExcel()">📊 Excel</button>
+    </div>
+  </div>
+  <div class="team-legend">
+    <span><i class="leg-line-ik"></i>Sel (i, j) = Deskripsi IK — i sbg Ketua Tim dari j</span>
+    <span><i class="leg-line-rk"></i>Sel (j, i) = Deskripsi RK — j sbg Anggota Tim di bawah i</span>
+    <span>▪️ Diagonal (i, i) dikosongkan</span>
+  </div>
+  <div class="team-scroll" id="teamCrossTabScroll">
+    <table class="team-table crosstab-table" id="teamCrossTabTable"></table>
+  </div>
 </div>
 
 <!-- TABLE -->
@@ -1879,6 +1954,7 @@ let chart;
 let lastChartData = null;
 let lastPivotData = null;
 let lastTeamRows = [];
+let lastTeamCrossTab = { names: [], matrix: {} };
 
 let page = 1;
 let perPage = 15;
@@ -1938,6 +2014,14 @@ const _measureCtx = _measureCanvas.getContext("2d");
 function measureTextWidth(text, fontSizePx, weight){
   _measureCtx.font = `${weight || 700} ${fontSizePx}px Inter, sans-serif`;
   return _measureCtx.measureText(text || "").width;
+}
+
+/* ambil N kata pertama dari sebuah nama, mis. truncateWords("Anak Agung Ketut Agung", 2) -> "Anak Agung…" */
+function truncateWords(s, wordCount){
+  s = (s||"").toString().trim();
+  let parts = s.split(/\s+/).filter(Boolean);
+  if(parts.length <= wordCount) return s;
+  return parts.slice(0, wordCount).join(" ") + "…";
 }
 
 /* ===== VERIFIKASI KESESUAIAN / VALIDASI (dropdown -> verifikator -> catatan) ===== */
@@ -2731,6 +2815,7 @@ function renderTeamInteraction(){
     svg.innerHTML = "";
     svg.removeAttribute("viewBox");
     lastTeamRows = [];
+    renderTeamCrossTab([], []);
     return;
   }
 
@@ -2742,6 +2827,7 @@ function renderTeamInteraction(){
     svg.innerHTML = "";
     svg.removeAttribute("viewBox");
     lastTeamRows = [];
+    renderTeamCrossTab([...teamMsSelected], []);
     return;
   }
 
@@ -2789,6 +2875,9 @@ function renderTeamInteraction(){
 
   // ===== Network Map =====
   renderTeamNetworkGraph(net, teamMsSelected);
+
+  // ===== Cross Tab =====
+  renderTeamCrossTab([...teamMsSelected], net.edges);
 }
 
 /* Render network map (radial): setiap node ditempatkan melingkar, node yang dipilih
@@ -2800,13 +2889,6 @@ function renderTeamNetworkGraph(net, selectedNames){
   function truncate(s, n){
     s = (s||"").toString();
     return s.length > n ? s.slice(0, n-1) + "…" : s;
-  }
-  // ambil 2 suku kata (kata) pertama dari nama, misal "Anak Agung Ketut Agung..." -> "Anak Agung"
-  function truncateWords(s, wordCount){
-    s = (s||"").toString().trim();
-    let parts = s.split(/\s+/).filter(Boolean);
-    if(parts.length <= wordCount) return s;
-    return parts.slice(0, wordCount).join(" ") + "…";
   }
   function quadPoint(p0,c,p2,t){
     let mt = 1-t;
@@ -3023,59 +3105,169 @@ function exportTeamNetworkJPG(){
     return;
   }
 
-  let vb = svg.getAttribute("viewBox").split(" ").map(Number);
-  let w = vb[2], h = vb[3];
+  try{
+    let vb = svg.getAttribute("viewBox").split(/\s+/).map(Number);
+    let w = vb[2], h = vb[3];
+    if(!w || !h){
+      alert("Ukuran network map tidak terbaca. Coba pilih ulang nama lalu export lagi.");
+      return;
+    }
 
-  // Klon SVG + sisipkan style eksplisit (warna hex, bukan var()) agar tampil benar saat dirender sebagai gambar mandiri.
-  let clone = svg.cloneNode(true);
-  clone.setAttribute("width", w);
-  clone.setAttribute("height", h);
+    // Klon SVG + sisipkan style eksplisit (warna hex, bukan var()) agar tampil benar saat dirender sebagai gambar mandiri.
+    let clone = svg.cloneNode(true);
+    clone.setAttribute("width", w);
+    clone.setAttribute("height", h);
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    clone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
 
-  let styleEl = document.createElementNS("http://www.w3.org/2000/svg", "style");
-  styleEl.textContent = `
-    .net-edge{ fill:none; stroke:#FFE7C9; stroke-width:1.6; }
-    .net-edge.net-edge-selected{ stroke:#FF9644; stroke-width:2.2; }
-    .net-node-circle{ stroke:#FFFFFF; stroke-width:2; }
-    .net-node-circle.net-root{ fill:#562F00; }
-    .net-node-circle.net-ketua{ fill:#FF9644; }
-    .net-node-circle.net-anggota{ fill:#FFCE99; }
-    .net-node-label{ font-family:Inter,sans-serif; font-size:12px; font-weight:700; fill:#3a1f00; }
-    .net-node-label.net-root-label{ font-weight:800; fill:#562F00; }
-    .net-node-label-in{ font-family:Inter,sans-serif; font-weight:700; letter-spacing:0.2px; }
-    .net-node-label-in-light{ fill:#FFFDF1; }
-    .net-node-label-in-dark{ fill:#5c3a12; }
-    .net-root-label-in{ font-weight:800; }
-    .net-edge-label{ font-family:Inter,sans-serif; font-size:9.5px; }
-    .net-edge-label-ik{ fill:#a8590f; font-weight:700; }
-    .net-edge-label-rk{ fill:#5c6b3f; font-weight:700; }
-  `;
-  clone.insertBefore(styleEl, clone.firstChild);
+    let styleEl = document.createElementNS("http://www.w3.org/2000/svg", "style");
+    styleEl.textContent = `
+      .net-edge{ fill:none; stroke:#FFE7C9; stroke-width:1.6; }
+      .net-edge.net-edge-selected{ stroke:#FF9644; stroke-width:2.2; }
+      .net-node-circle{ stroke:#FFFFFF; stroke-width:2; }
+      .net-node-circle.net-root{ fill:#562F00; }
+      .net-node-circle.net-ketua{ fill:#FF9644; }
+      .net-node-circle.net-anggota{ fill:#FFCE99; }
+      .net-node-label{ font-family:Inter,sans-serif; font-size:12px; font-weight:700; fill:#3a1f00; }
+      .net-node-label.net-root-label{ font-weight:800; fill:#562F00; }
+      .net-node-label-in{ font-family:Inter,sans-serif; font-weight:700; letter-spacing:0.2px; }
+      .net-node-label-in-light{ fill:#FFFDF1; }
+      .net-node-label-in-dark{ fill:#5c3a12; }
+      .net-root-label-in{ font-weight:800; }
+      .net-edge-label{ font-family:Inter,sans-serif; font-size:9.5px; }
+      .net-edge-label-ik{ fill:#a8590f; font-weight:700; }
+      .net-edge-label-rk{ fill:#5c6b3f; font-weight:700; }
+    `;
+    clone.insertBefore(styleEl, clone.firstChild);
 
-  let svgData = new XMLSerializer().serializeToString(clone);
-  let svgBlob = new Blob([svgData], { type:"image/svg+xml;charset=utf-8" });
-  let url = URL.createObjectURL(svgBlob);
+    let svgData = new XMLSerializer().serializeToString(clone);
+    // pakai data-URI (base64) alih-alih blob URL -- jauh lebih konsisten lintas-browser untuk konversi SVG -> canvas
+    let svg64 = window.btoa(unescape(encodeURIComponent(svgData)));
+    let imageSrc = "data:image/svg+xml;base64," + svg64;
 
-  let img = new Image();
-  img.onload = function(){
-    let scale = 2; // resolusi lebih tajam
-    let canvas = document.createElement("canvas");
-    canvas.width = w * scale;
-    canvas.height = h * scale;
-    let ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#FFFDF1";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    URL.revokeObjectURL(url);
+    let img = new Image();
+    img.onload = function(){
+      try{
+        let scale = 2; // resolusi lebih tajam
+        let canvas = document.createElement("canvas");
+        canvas.width = w * scale;
+        canvas.height = h * scale;
+        let ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#FFFDF1";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-    canvas.toBlob(function(blob){
-      saveAs(blob, "SIVERA_Network_Map.jpg");
-    }, "image/jpeg", 0.95);
-  };
-  img.onerror = function(){
-    URL.revokeObjectURL(url);
-    alert("Gagal membuat gambar network map.");
-  };
-  img.src = url;
+        canvas.toBlob(function(blob){
+          if(!blob){
+            alert("Gagal membuat file JPG dari network map.");
+            return;
+          }
+          saveAs(blob, "SIVERA_Network_Map.jpg");
+        }, "image/jpeg", 0.95);
+      } catch(err){
+        console.error("exportTeamNetworkJPG - gagal menggambar ke canvas:", err);
+        alert("Gagal membuat gambar network map (canvas). Detail error ada di console browser.");
+      }
+    };
+    img.onerror = function(err){
+      console.error("exportTeamNetworkJPG - gagal load image dari SVG:", err);
+      alert("Gagal memuat network map sebagai gambar. Coba refresh halaman lalu export lagi.");
+    };
+    img.src = imageSrc;
+  } catch(err){
+    console.error("exportTeamNetworkJPG - error:", err);
+    alert("Terjadi kesalahan saat menyiapkan export JPG. Detail error ada di console browser.");
+  }
+}
+
+/* ===== TEAM INTERACTION: CROSS TAB (matriks Ketua-Anggota antar nama terpilih) ===== */
+/* Sel (i, j) = Deskripsi IK karena i adalah Ketua Tim dari j.
+   Sel (j, i) = Deskripsi RK karena j adalah Anggota Tim di bawah i (pada IK yang sama).
+   Diagonal (i, i) dikosongkan. */
+function renderTeamCrossTab(names, edges){
+  const table = document.getElementById("teamCrossTabTable");
+  if(!table) return;
+
+  if(!names || names.length === 0){
+    table.innerHTML = `<tbody><tr><td class="team-hint" style="border:none; padding:14px;">Pilih satu atau beberapa nama di atas untuk melihat matriks interaksinya.</td></tr></tbody>`;
+    lastTeamCrossTab = { names: [], matrix: {} };
+    return;
+  }
+  if(names.length < 2){
+    table.innerHTML = `<tbody><tr><td class="team-hint" style="border:none; padding:14px;">Pilih minimal 2 nama supaya matriks silang (cross tab) dapat ditampilkan.</td></tr></tbody>`;
+    lastTeamCrossTab = { names: names.slice(), matrix: {} };
+    return;
+  }
+
+  let sortedNames = names.slice().sort((a,b)=> a.localeCompare(b));
+  let nameSet = new Set(sortedNames);
+
+  // matrix[i][j] = { ikList:[], rkList:[] }
+  let matrix = {};
+  sortedNames.forEach(i=>{
+    matrix[i] = {};
+    sortedNames.forEach(j=>{
+      if(i !== j) matrix[i][j] = { ikList: [], rkList: [] };
+    });
+  });
+
+  (edges || []).forEach(e=>{
+    if(!nameSet.has(e.from) || !nameSet.has(e.to) || e.from === e.to) return;
+    if(!matrix[e.from][e.to].ikList.includes(e.ik)) matrix[e.from][e.to].ikList.push(e.ik);
+    if(e.rk && !matrix[e.to][e.from].rkList.includes(e.rk)) matrix[e.to][e.from].rkList.push(e.rk);
+  });
+
+  lastTeamCrossTab = { names: sortedNames, matrix };
+
+  let headerHtml = `<th class="crosstab-corner">Ketua \\ Anggota</th>` +
+    sortedNames.map(n=>`<th title="${escapeHtml(n)}">${escapeHtml(truncateWords(n,2))}</th>`).join("");
+
+  let bodyHtml = sortedNames.map(i=>{
+    let cells = sortedNames.map(j=>{
+      if(i === j) return `<td class="crosstab-diag">—</td>`;
+      let cell = matrix[i][j];
+      let parts = "";
+      if(cell.ikList.length) parts += cell.ikList.map(t=>`<p class="crosstab-cell-ik" title="${escapeHtml(t)}">IK: ${escapeHtml(t)}</p>`).join("");
+      if(cell.rkList.length) parts += cell.rkList.map(t=>`<p class="crosstab-cell-rk" title="${escapeHtml(t)}">RK: ${escapeHtml(t)}</p>`).join("");
+      if(!parts) return `<td class="crosstab-empty">-</td>`;
+      return `<td>${parts}</td>`;
+    }).join("");
+    return `<tr><th title="${escapeHtml(i)}">${escapeHtml(truncateWords(i,2))}</th>${cells}</tr>`;
+  }).join("");
+
+  table.innerHTML = `<thead><tr>${headerHtml}</tr></thead><tbody>${bodyHtml}</tbody>`;
+}
+
+function exportTeamCrossTabExcel(){
+  let { names, matrix } = lastTeamCrossTab;
+  if(!names || names.length < 2){
+    alert("Pilih minimal 2 nama terlebih dahulu untuk export matriks cross tab.");
+    return;
+  }
+
+  let aoa = [];
+  aoa.push(["Ketua \\ Anggota", ...names]);
+  names.forEach(i=>{
+    let row = [i];
+    names.forEach(j=>{
+      if(i === j){ row.push("-"); return; }
+      let cell = matrix[i][j];
+      let text = [];
+      if(cell.ikList.length) text.push("IK: " + cell.ikList.join(" | "));
+      if(cell.rkList.length) text.push("RK: " + cell.rkList.join(" | "));
+      row.push(text.length ? text.join("\n") : "-");
+    });
+    aoa.push(row);
+  });
+
+  let ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws["!cols"] = [{wch:28}, ...names.map(()=>({wch:35}))];
+
+  let wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Cross Tab Interaksi");
+
+  let buf = XLSX.write(wb, { bookType:"xlsx", type:"array" });
+  saveAs(new Blob([buf], { type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8" }), "SIVERA_CrossTab_Interaksi_Tim.xlsx");
 }
 
 /* RANKING UNIK */
