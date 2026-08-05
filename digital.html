@@ -338,28 +338,28 @@
     }
 
     th, td{
-      padding:9px 12px;
+      padding:7px 9px;
       border-bottom:1px solid var(--peach-soft);
       white-space:nowrap;
     }
 
-    td{ color:var(--brown-deep); }
+    td{ color:var(--brown-deep); font-size:11.5px; }
 
     th{
       background:var(--brown);
       color:var(--cream);
       font-family:'Inter',sans-serif;
       font-weight:700;
-      font-size:11px;
+      font-size:10.5px;
       text-transform:uppercase;
-      letter-spacing:.5px;
+      letter-spacing:.4px;
       position:sticky;
       top:0;
       z-index:2;
       white-space:nowrap;
     }
 
-    tbody tr{ transition:background-color .12s, box-shadow .12s; border-left:3px solid transparent; }
+    tbody tr{ transition:background-color .12s, box-shadow .12s; border-left:3px solid transparent; background:var(--white); }
     tbody tr:nth-child(even){ background:#FFF9EC; }
 
     tbody tr:hover{
@@ -373,14 +373,31 @@
       left:0;
       z-index:1;
       background:inherit;
+      max-width:110px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
     }
 
-    thead th:first-child{ z-index:3; }
+    thead th:first-child{
+      z-index:3;
+      background:var(--brown); /* jangan pakai inherit di sini: sel pojok (sticky top+left)
+                                   perlu background solid sendiri, bukan warisan dari <tr>
+                                   yang transparan, supaya header Usaha tidak mengintip di belakangnya */
+    }
 
     tbody tr td:first-child{
       font-weight:700;
       color:var(--brown);
       box-shadow:2px 0 4px rgba(86,47,0,0.06);
+    }
+
+    /* Kolom Usaha & Alamat dibiarkan bisa membungkus teks (bukan nowrap)
+       supaya kolomnya tidak melebar berlebihan dan tabel lebih ringkas */
+    td.col-wrap{
+      white-space:normal;
+      max-width:150px;
+      line-height:1.35;
     }
 
     .wa-btn{
@@ -619,6 +636,9 @@
     <div style="overflow:auto;">
       <table id="pivotTable"></table>
     </div>
+    <div style="text-align:center; margin-top:14px;">
+      <button id="pivotShowMoreBtn" class="page-btn" style="display:none; padding:8px 18px;">Tampilkan lebih banyak</button>
+    </div>
   </div>
 
   <div class="section-head">
@@ -630,7 +650,8 @@
     <div class="table-toolbar-left">
       Tampilkan
       <select id="rowsPerPage">
-        <option value="15" selected>15</option>
+        <option value="10" selected>10</option>
+        <option value="15">15</option>
         <option value="25">25</option>
         <option value="50">50</option>
         <option value="100">100</option>
@@ -702,7 +723,7 @@ let searchQuery = "";
 let markerMap = {};
 let chartUtama;
 let currentPage = 1;
-let rowsPerPage = 15;
+let rowsPerPage = 10;
 let usahaColorMap = {};
 let legendControl = null;
 const usahaPalette = ['#FF9644','#562F00','#2E86AB','#4C9A2A','#B8336A','#D4A017','#6A4C93','#8C6A00','#1B998B','#C1121F','#7209B7','#3A86FF','#EF476F','#06A77D'];
@@ -865,7 +886,17 @@ function hitungPivot(data, rowField, colField){
 
   return pivot;
 }
-function tampilkanPivot(data){
+let pivotVisibleRows = 10;
+let pivotSortedRowsCache = [];
+let pivotLastData = null;
+
+function tampilkanPivot(data, resetLimit = true){
+
+  if(resetLimit){
+    pivotVisibleRows = 10;
+  }
+
+  pivotLastData = data;
 
   let rowField = document.getElementById("pivotRow").value;
   let colField = document.getElementById("pivotCol").value;
@@ -890,6 +921,10 @@ function tampilkanPivot(data){
     return sumB - sumA;
   });
 
+  pivotSortedRowsCache = sortedRows;
+
+  let visibleRows = sortedRows.slice(0, pivotVisibleRows);
+
   // ✅ HEADER (SUDAH BENAR POSISINYA)
   let thead = "<tr><th>"+rowField+"</th>";
   colKeys.forEach(c => thead += "<th>"+c+"</th>");
@@ -898,7 +933,7 @@ function tampilkanPivot(data){
   // BODY
   let tbody = "";
 
-  sortedRows.forEach(r => {
+  visibleRows.forEach(r => {
 
     let totalRow = 0;
     tbody += "<tr><td><b>"+r+"</b></td>";
@@ -913,6 +948,11 @@ function tampilkanPivot(data){
   });
 
   table.innerHTML = "<thead>" + thead + "</thead><tbody>" + tbody + "</tbody>";
+
+  let showMoreBtn = document.getElementById("pivotShowMoreBtn");
+  if(showMoreBtn){
+    showMoreBtn.style.display = pivotVisibleRows < sortedRows.length ? "inline-block" : "none";
+  }
 }
 function hitungDistribusi(data, field){
   let count = {};
@@ -1159,12 +1199,13 @@ let kesimpulan = d["Kesimpulan"]
   : "-";
 
     let row = document.createElement("tr");
+    row.title = "Klik baris ini untuk melihat lokasinya di peta";
 
     row.innerHTML = `
       <td>${d.Nama}</td>
-      <td>${d.Usaha}</td>
+      <td class="col-wrap">${d.Usaha}</td>
       <td>${d.KBLI || "-"}</td>
-      <td>${d.Alamat}</td>
+      <td class="col-wrap">${d.Alamat}</td>
       
 
       <td>${wa ? `<a class="wa-btn" href="https://wa.me/${wa.replace(/[^0-9]/g,'')}" target="_blank">WA</a>` : "-"}</td>
@@ -1185,7 +1226,9 @@ let kesimpulan = d["Kesimpulan"]
       <td>${kesimpulan}</td>
     `;
 
-    row.onclick = () => {
+    row.onclick = (ev) => {
+
+  if(ev.target.closest("a")) return; // klik tombol WA/Maps tidak memicu lompat ke peta
 
   map.setView([d.Lat, d.Long], 17);
 
@@ -1194,6 +1237,8 @@ let kesimpulan = d["Kesimpulan"]
   if(m){
     m.openPopup();
   }
+
+  document.getElementById("map").scrollIntoView({ behavior:"smooth", block:"center" });
 };
     tbody.appendChild(row);
   });
@@ -1350,9 +1395,15 @@ document.getElementById("pivotRow")
 document.getElementById("pivotCol")
   .addEventListener("change", () => tampilkanPivot(filteredData));
 
+document.getElementById("pivotShowMoreBtn")
+  .addEventListener("click", () => {
+    pivotVisibleRows += 10;
+    tampilkanPivot(pivotLastData || filteredData, false);
+});
+
 document.getElementById("rowsPerPage")
   .addEventListener("change", function(e){
-    rowsPerPage = parseInt(e.target.value, 10) || 25;
+    rowsPerPage = parseInt(e.target.value, 10) || 10;
     currentPage = 1;
     tampilkanTabel(filteredData);
 });
