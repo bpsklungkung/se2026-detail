@@ -110,8 +110,82 @@
     border-radius:2px 2px 0 0;
   }
   .tab:hover{ color:var(--orange-deep); }
+  .tab-sep{
+    width:1px;
+    align-self:stretch;
+    background:var(--line);
+    margin:8px 8px 9px;
+  }
 
   main{ max-width:1180px; margin:0 auto; padding:0 28px; }
+
+  /* Compare view */
+  .compare-wrap{ margin-top:30px; }
+  .compare-intro h2{
+    font-family:'Fraunces',serif; font-weight:600; font-size:24px;
+    margin:0 0 4px; color:var(--brown);
+  }
+  .compare-intro p{ margin:0 0 22px; color:var(--brown-mid); font-size:14px; max-width:580px; line-height:1.5; }
+
+  .compare-controls{
+    display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+    background:var(--card-bg); border:1px solid var(--line); border-radius:14px;
+    padding:14px 18px; margin-bottom:20px;
+  }
+  .ctrl-item{ display:flex; align-items:center; gap:8px; }
+  .ctrl-item label{ font-size:12px; font-weight:600; color:var(--brown-mid); }
+  .ctrl-item select{
+    font-family:'Inter',sans-serif; font-size:13px; padding:6px 10px; border-radius:8px;
+    border:1px solid var(--line); background:var(--cream); color:var(--brown);
+  }
+  .cmp-normalize{ display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--brown-mid); cursor:pointer; }
+  .cmp-normalize input{ accent-color:var(--orange-deep); width:15px; height:15px; }
+  .cmp-clear{
+    margin-left:auto; font-size:12.5px; font-weight:700; color:var(--rust);
+    background:var(--rust-bg); border:none; padding:7px 14px; border-radius:999px; cursor:pointer;
+  }
+  .cmp-clear:hover{ filter:brightness(.96); }
+
+  .compare-body{
+    display:grid; grid-template-columns:260px 1fr; gap:18px; align-items:start;
+  }
+  .compare-picker{
+    background:var(--card-bg); border:1px solid var(--line); border-radius:14px;
+    padding:10px; max-height:540px; overflow-y:auto;
+  }
+  .picker-kategori{
+    font-size:11px; text-transform:uppercase; letter-spacing:.06em; font-weight:700;
+    color:var(--orange-deep); margin:14px 8px 4px;
+  }
+  .picker-kategori:first-child{ margin-top:2px; }
+  .picker-kelompok{
+    font-size:11.5px; font-weight:700; color:var(--brown-mid); margin:8px 8px 4px;
+  }
+  .picker-item{
+    display:flex; align-items:center; gap:9px;
+    font-size:13px; color:var(--brown); padding:6px 8px; border-radius:8px;
+    cursor:pointer;
+  }
+  .picker-item:hover{ background:var(--cream-deep); }
+  .picker-item.picked{ background:var(--peach-soft); }
+  .picker-item input{ accent-color:var(--orange-deep); width:15px; height:15px; flex-shrink:0; }
+  .picker-item span{ flex:1; line-height:1.3; }
+  .picker-item.picked::after{
+    content:''; width:8px; height:8px; border-radius:50%;
+    background:var(--dotcolor, var(--orange-deep)); flex-shrink:0;
+  }
+
+  .compare-chart-area{ min-height:360px; }
+  .compare-empty{
+    display:none;
+    background:var(--card-bg); border:1px dashed var(--line); border-radius:14px;
+    padding:70px 30px; text-align:center; color:var(--brown-soft); font-size:14px;
+  }
+
+  @media (max-width:760px){
+    .compare-body{ grid-template-columns:1fr; }
+    .compare-picker{ max-height:280px; }
+  }
 
   /* Category section */
   .kategori-block{ margin-top:38px; }
@@ -391,6 +465,16 @@ let activePeriode = null;
 let chartInstance = null;
 let currentSeriesKey = null;
 
+let compareMode = false;
+let comparePeriode = null;
+let compareIndex = {};
+let compareSelected = new Set();
+let compareFrom = null;
+let compareTo = null;
+let normalizeCompare = false;
+let compareChart = null;
+const COMPARE_COLORS = ['#C97A3D','#4E7D5A','#A63A50','#3E6E8E','#8C6BAF','#B98B27','#4A3324','#5C8C8C'];
+
 function toNumber(v){
   if(v===undefined||v===null) return NaN;
   const s = v.toString().trim().replace(/\./g,'').replace(/,/g,'.');
@@ -405,10 +489,17 @@ function fmtNum(n){
   return n.toLocaleString('id-ID', {maximumFractionDigits:2});
 }
 
-function sortKey(e){ return e.tahun*10 + (e.triwulan ? parseInt(e.triwulan) : 0); }
+function triwulanToNum(t){
+  if(!t) return 0;
+  const s = t.toString().trim().toUpperCase();
+  const map = {'I':1,'II':2,'III':3,'IV':4,'1':1,'2':2,'3':3,'4':4};
+  return map[s] || 0;
+}
+
+function sortKey(e){ return e.tahun*10 + triwulanToNum(e.triwulan); }
 
 function periodLabel(e){
-  return e.triwulan ? `${e.tahun} T${e.triwulan}` : `${e.tahun}`;
+  return e.triwulan ? `${e.tahun} TW ${e.triwulan}` : `${e.tahun}`;
 }
 
 function loadData(){
@@ -485,11 +576,21 @@ function renderTabs(){
   tabsEl.innerHTML = '';
   STORE.__order.forEach(p=>{
     const btn = document.createElement('button');
-    btn.className = 'tab' + (p===activePeriode?' active':'');
+    btn.className = 'tab' + (!compareMode && p===activePeriode?' active':'');
     btn.textContent = p;
-    btn.onclick = ()=>{ activePeriode = p; renderTabs(); renderContent(p); };
+    btn.onclick = ()=>{ compareMode = false; activePeriode = p; renderTabs(); renderContent(p); };
     tabsEl.appendChild(btn);
   });
+
+  const sep = document.createElement('span');
+  sep.className = 'tab-sep';
+  tabsEl.appendChild(sep);
+
+  const cmpBtn = document.createElement('button');
+  cmpBtn.className = 'tab' + (compareMode ? ' active' : '');
+  cmpBtn.textContent = '⇄ Bandingkan';
+  cmpBtn.onclick = ()=>{ compareMode = true; renderTabs(); renderCompareView(); };
+  tabsEl.appendChild(cmpBtn);
 }
 
 function makeSparkline(entries){
@@ -647,6 +748,227 @@ function openDetail(periode,kategori,kelompok,sub){
 
 function closeDetail(){
   document.getElementById('overlay').classList.remove('show');
+}
+
+/* ---------- Compare view ---------- */
+
+function buildCompareIndex(periode){
+  const idx = {};
+  const katObj = STORE[periode];
+  Object.keys(katObj).forEach(kategori=>{
+    Object.keys(katObj[kategori]).forEach(kelompok=>{
+      Object.keys(katObj[kategori][kelompok]).forEach(sub=>{
+        const key = `${kategori}|||${kelompok}|||${sub}`;
+        idx[key] = {kategori, kelompok, sub, entries: katObj[kategori][kelompok][sub]};
+      });
+    });
+  });
+  return idx;
+}
+
+function renderCompareView(){
+  if(!comparePeriode || !STORE[comparePeriode]) comparePeriode = STORE.__order[0];
+  compareIndex = buildCompareIndex(comparePeriode);
+
+  let allEntries = [];
+  Object.values(compareIndex).forEach(v=>{ allEntries = allEntries.concat(v.entries); });
+  const years = [...new Set(allEntries.map(e=>e.tahun))].sort((a,b)=>a-b);
+  if(!compareFrom || !years.includes(compareFrom)) compareFrom = years[0];
+  if(!compareTo || !years.includes(compareTo)) compareTo = years[years.length-1];
+
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <section class="compare-wrap">
+      <div class="compare-intro">
+        <h2>Bandingkan Indikator</h2>
+        <p>Pilih beberapa indikator dari periode yang sama untuk melihat trennya berdampingan dalam satu grafik.</p>
+      </div>
+      <div class="compare-controls">
+        <div class="ctrl-item"><label>Periode</label><select id="cmpPeriode"></select></div>
+        <div class="ctrl-item"><label>Dari</label><select id="cmpFrom"></select></div>
+        <div class="ctrl-item"><label>Sampai</label><select id="cmpTo"></select></div>
+        <label class="cmp-normalize"><input type="checkbox" id="cmpNormalize"> Indeks (awal = 100)</label>
+        <button class="cmp-clear" id="cmpClear">Hapus pilihan</button>
+      </div>
+      <div class="compare-body">
+        <div class="compare-picker" id="cmpPicker"></div>
+        <div class="compare-chart-area">
+          <div class="chart-box" id="cmpChartBox" style="height:380px;">
+            <canvas id="compareChart"></canvas>
+          </div>
+          <div class="compare-empty" id="cmpEmpty">Pilih minimal satu indikator di samping untuk mulai membandingkan.</div>
+        </div>
+      </div>
+    </section>
+  `;
+
+  const periodeSel = document.getElementById('cmpPeriode');
+  STORE.__order.forEach(p=>{
+    periodeSel.innerHTML += `<option value="${p}" ${p===comparePeriode?'selected':''}>${p}</option>`;
+  });
+  periodeSel.onchange = ()=>{
+    comparePeriode = periodeSel.value;
+    compareSelected.clear();
+    compareFrom = null; compareTo = null;
+    renderCompareView();
+  };
+
+  const fromSel = document.getElementById('cmpFrom');
+  const toSel = document.getElementById('cmpTo');
+  years.forEach(y=>{
+    fromSel.innerHTML += `<option value="${y}" ${y===compareFrom?'selected':''}>${y}</option>`;
+    toSel.innerHTML += `<option value="${y}" ${y===compareTo?'selected':''}>${y}</option>`;
+  });
+  fromSel.onchange = ()=>{ compareFrom = parseInt(fromSel.value); renderCompareChart(); };
+  toSel.onchange = ()=>{ compareTo = parseInt(toSel.value); renderCompareChart(); };
+
+  document.getElementById('cmpNormalize').checked = normalizeCompare;
+  document.getElementById('cmpNormalize').onchange = (e)=>{ normalizeCompare = e.target.checked; renderCompareChart(); };
+  document.getElementById('cmpClear').onclick = ()=>{ compareSelected.clear(); renderComparePicker(); renderCompareChart(); };
+
+  renderComparePicker();
+  renderCompareChart();
+}
+
+function renderComparePicker(){
+  const picker = document.getElementById('cmpPicker');
+  const katObj = STORE[comparePeriode];
+  let html = '';
+  Object.keys(katObj).forEach(kategori=>{
+    html += `<div class="picker-kategori">${escapeHtml(kategori)}</div>`;
+    Object.keys(katObj[kategori]).forEach(kelompok=>{
+      html += `<div class="picker-kelompok">${escapeHtml(kelompok)}</div>`;
+      Object.keys(katObj[kategori][kelompok]).forEach(sub=>{
+        const key = `${kategori}|||${kelompok}|||${sub}`;
+        const checked = compareSelected.has(key) ? 'checked' : '';
+        html += `<label class="picker-item">
+          <input type="checkbox" data-key="${encodeURIComponent(key)}" ${checked}>
+          <span>${escapeHtml(sub)}</span>
+        </label>`;
+      });
+    });
+  });
+  picker.innerHTML = html;
+
+  picker.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.onchange = ()=>{
+      const key = decodeURIComponent(cb.dataset.key);
+      if(cb.checked){
+        if(compareSelected.size >= 8){
+          cb.checked = false;
+          alert('Maksimal 8 indikator sekaligus supaya grafik tetap mudah dibaca.');
+          return;
+        }
+        compareSelected.add(key);
+      }else{
+        compareSelected.delete(key);
+      }
+      updatePickerColors();
+      renderCompareChart();
+    };
+  });
+  updatePickerColors();
+}
+
+function updatePickerColors(){
+  const keys = [...compareSelected];
+  document.querySelectorAll('#cmpPicker .picker-item').forEach(item=>{
+    const cb = item.querySelector('input');
+    const key = decodeURIComponent(cb.dataset.key);
+    const idx = keys.indexOf(key);
+    if(idx >= 0){
+      item.classList.add('picked');
+      item.style.setProperty('--dotcolor', COMPARE_COLORS[idx % COMPARE_COLORS.length]);
+    }else{
+      item.classList.remove('picked');
+      item.style.removeProperty('--dotcolor');
+    }
+  });
+}
+
+function renderCompareChart(){
+  const box = document.getElementById('cmpChartBox');
+  const empty = document.getElementById('cmpEmpty');
+  const keys = [...compareSelected];
+
+  if(keys.length === 0){
+    box.style.display = 'none';
+    empty.style.display = 'block';
+    if(compareChart){ compareChart.destroy(); compareChart = null; }
+    return;
+  }
+  box.style.display = 'block';
+  empty.style.display = 'none';
+
+  if(typeof Chart === 'undefined'){
+    box.innerHTML = '<div style="padding:20px;font-size:13px;color:var(--brown-mid);">Grafik gagal dimuat (library Chart.js tidak tersedia). Coba refresh halaman.</div>';
+    return;
+  }
+  if(!document.getElementById('compareChart')){
+    box.innerHTML = '<canvas id="compareChart"></canvas>';
+  }
+
+  const uniqueLabelsMap = new Map();
+  keys.forEach(k=>{
+    compareIndex[k].entries.forEach(e=>{
+      if(e.tahun >= compareFrom && e.tahun <= compareTo) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+    });
+  });
+  const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
+  const labels = sortedKeys.map(sk=>uniqueLabelsMap.get(sk));
+
+  const datasets = keys.map((k,i)=>{
+    const info = compareIndex[k];
+    const bySort = {};
+    info.entries.forEach(e=>{ bySort[sortKey(e)] = e.data; });
+    let values = sortedKeys.map(sk=> bySort.hasOwnProperty(sk) ? bySort[sk] : null);
+    if(normalizeCompare){
+      const base = values.find(v=>v!==null && v!==undefined && v!==0);
+      if(base){
+        values = values.map(v=>(v===null||v===undefined) ? null : (v/base*100));
+      }
+    }
+    const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+    return {
+      label: info.sub,
+      data: values,
+      borderColor: color,
+      backgroundColor: color,
+      pointRadius: 3,
+      pointHoverRadius: 5,
+      borderWidth: 2.2,
+      spanGaps: true,
+      tension: .25,
+      fill: false
+    };
+  });
+
+  const ctx = document.getElementById('compareChart').getContext('2d');
+  if(compareChart) compareChart.destroy();
+  compareChart = new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{
+        legend:{
+          position:'bottom',
+          labels:{ color:'#4A3324', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true }
+        },
+        tooltip:{
+          callbacks:{
+            label: (c)=> `${c.dataset.label}: ${normalizeCompare ? c.parsed.y.toFixed(1) : fmtNum(c.parsed.y)}${normalizeCompare?' idx':''}`
+          }
+        }
+      },
+      scales:{
+        x:{ grid:{display:false}, ticks:{ color:'#7C5B42', font:{family:'Inter', size:11} } },
+        y:{ grid:{color:'#EFE3CC'}, ticks:{ color:'#7C5B42', font:{family:'Inter', size:11} } }
+      }
+    }
+  });
 }
 
 document.getElementById('overlay').addEventListener('click', (e)=>{
