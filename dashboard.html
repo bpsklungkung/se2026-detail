@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';document.head.appendChild(s);"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';document.head.appendChild(s);"></script>
 <style>
   :root{
     --cream:#FAF3E6;
@@ -410,27 +411,98 @@
     padding:18px 14px 8px;
     height:280px;
   }
-  .drawer-table{
+  .chart-box-wrap{ position:relative; }
+  .dl-btn{
+    position:absolute;
+    top:10px; right:10px;
+    z-index:2;
+    font-size:11.5px;
+    font-weight:700;
+    color:var(--brown-mid);
+    background:var(--cream);
+    border:1px solid var(--line);
+    padding:5px 11px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .dl-btn:hover{ border-color:var(--orange); color:var(--orange-deep); }
+  .table-head-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
     margin-top:22px;
+    margin-bottom:8px;
+  }
+  .table-head-label{
+    font-size:12px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--brown-soft);
+  }
+  .table-head-row .dl-btn{ position:static; }
+  .table-scroll{
+    max-height:280px;
+    overflow-y:auto;
+    border:1px solid var(--line);
+    border-radius:12px;
+  }
+  .drawer-desc{
+    background:var(--peach-soft);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px 18px;
+    margin-top:16px;
+  }
+  .drawer-desc-label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    font-weight:700;
+    color:var(--orange-deep);
+    margin-bottom:5px;
+  }
+  .drawer-desc p{
+    margin:0;
+    font-size:13.5px;
+    line-height:1.55;
+    color:var(--brown-mid);
+  }
+  .drawer-narrative{
+    margin-top:16px;
+    font-size:13.5px;
+    line-height:1.65;
+    color:var(--brown);
+    padding:2px 2px;
+  }
+  .drawer-narrative b{ color:var(--brown); font-weight:700; }
+  .drawer-narrative .trend-up{ color:var(--rust); font-weight:700; }
+  .drawer-narrative .trend-down{ color:var(--green); font-weight:700; }
+  .drawer-narrative .trend-flat{ color:var(--brown-soft); font-weight:700; }
+  .drawer-table{
     width:100%;
     border-collapse:collapse;
     font-size:13px;
   }
-  .drawer-table th{
+  .drawer-table thead th{
+    position:sticky;
+    top:0;
+    background:var(--card-bg);
     text-align:left;
     font-size:11px;
     text-transform:uppercase;
     letter-spacing:.04em;
     color:var(--brown-soft);
-    padding:8px 6px;
+    padding:9px 12px;
     border-bottom:1px solid var(--line);
   }
   .drawer-table td{
-    padding:8px 6px;
+    padding:8px 12px;
     border-bottom:1px solid var(--line);
     color:var(--brown-mid);
   }
-  .drawer-table tr:last-child td{ font-weight:700; color:var(--brown); }
+  .drawer-table tbody tr:last-child td{ border-bottom:none; }
+  .drawer-table tbody tr:first-child td{ font-weight:700; color:var(--brown); }
 
   @media (max-width:640px){
     header{ padding:30px 18px 12px; }
@@ -461,6 +533,7 @@
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS0IHQMxQuwLfTdSgKoXUqA8guCT788uBZ4cwlE72X6co3LMRcGU6tk1PSMbi7nVeEB2g-kTVXYBPyv/pub?output=csv";
 
 let STORE = {};        // STORE[periode][kategori][kelompok][subkelompok] = [entries]
+let DEFINISI = {};     // DEFINISI[subkelompok] = teks definisi (dari kolom I & J)
 let activePeriode = null;
 let chartInstance = null;
 let currentSeriesKey = null;
@@ -505,7 +578,7 @@ function periodLabel(e){
 function loadData(){
   Papa.parse(CSV_URL, {
     download:true,
-    header:true,
+    header:false,
     skipEmptyLines:true,
     complete: function(res){
       try{
@@ -527,16 +600,24 @@ function showError(msg){
     `<div class="state-msg">⚠ ${msg}<br><br><a href="${CSV_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div>`;
 }
 
+// Column positions (0-indexed): A Periode, B Triwulan, C Tahun, D Kategori,
+// E Kelompok, F Subkelompok, G Data, H (unused gap), I Subkelompok (definisi), J Definisi
 function buildStore(rows){
   STORE = {};
-  rows.forEach(r=>{
-    const periode = (r['Periode']||'').toString().trim();
-    const kategori = (r['Kategori']||'').toString().trim();
-    const kelompok = (r['Kelompok']||'').toString().trim();
-    const subkelompok = (r['Subkelompok']||'').toString().trim();
-    const tahun = parseInt((r['Tahun']||'').toString().trim());
-    const triwulan = (r['Triwulan']||'').toString().trim();
-    const data = toNumber(r['Data']);
+  DEFINISI = {};
+  rows.slice(1).forEach(row=>{ // skip header row
+    const periode = (row[0]||'').toString().trim();
+    const triwulan = (row[1]||'').toString().trim();
+    const tahun = parseInt((row[2]||'').toString().trim());
+    const kategori = (row[3]||'').toString().trim();
+    const kelompok = (row[4]||'').toString().trim();
+    const subkelompok = (row[5]||'').toString().trim();
+    const data = toNumber(row[6]);
+
+    const defSub = (row[8]||'').toString().trim();
+    const defText = (row[9]||'').toString().trim();
+    if(defSub && defText && !DEFINISI[defSub]) DEFINISI[defSub] = defText;
+
     if(!periode || !kategori || !kelompok || !subkelompok || isNaN(tahun) || isNaN(data)) return;
 
     if(!STORE[periode]) STORE[periode] = {};
@@ -618,11 +699,10 @@ function changeBadge(entries){
   if(entries.length < 2) return `<span class="badge na">Data awal</span>`;
   const latest = entries[entries.length-1].data;
   const prev = entries[entries.length-2].data;
-  if(prev === 0) return `<span class="badge na">n/a</span>`;
-  const pct = ((latest-prev)/prev)*100;
-  if(Math.abs(pct) < 0.05) return `<span class="badge flat">▬ 0%</span>`;
-  const up = pct > 0;
-  return `<span class="badge ${up?'up':'down'}">${up?'▲':'▼'} ${Math.abs(pct).toFixed(1)}%</span>`;
+  const diff = latest - prev;
+  if(Math.abs(diff) < 0.0005) return `<span class="badge flat">▬ ${fmtNum(prev)}</span>`;
+  const up = diff > 0;
+  return `<span class="badge ${up?'up':'down'}">${up?'▲':'▼'} ${fmtNum(prev)}</span>`;
 }
 
 function renderContent(periode){
@@ -711,10 +791,30 @@ function openDetail(periode,kategori,kelompok,sub){
       </div>
     </div>
 
-    <div class="chart-box"><canvas id="detailChart"></canvas></div>
+    <div class="chart-box-wrap">
+      <button class="dl-btn" id="dlChart" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+      <div class="chart-box"><canvas id="detailChart"></canvas></div>
+    </div>
 
-    <table class="drawer-table" id="detailTable"></table>
+    ${DEFINISI[sub] ? `
+    <div class="drawer-desc">
+      <div class="drawer-desc-label">Definisi</div>
+      <p>${escapeHtml(DEFINISI[sub])}</p>
+    </div>` : ''}
+
+    <div class="drawer-narrative" id="drawerNarrative"></div>
+
+    <div class="table-head-row">
+      <span class="table-head-label">Riwayat Data</span>
+      <button class="dl-btn" id="dlExcel" title="Unduh tabel sebagai Excel">⬇ Excel</button>
+    </div>
+    <div class="table-scroll">
+      <table class="drawer-table" id="detailTable"></table>
+    </div>
   `;
+
+  document.getElementById('dlChart').onclick = downloadChartJPG;
+  document.getElementById('dlExcel').onclick = downloadTableExcel;
 
   const fromSel = drawer.querySelector('#fromYear');
   const toSel = drawer.querySelector('#toYear');
@@ -748,6 +848,32 @@ function openDetail(periode,kategori,kelompok,sub){
 
 function closeDetail(){
   document.getElementById('overlay').classList.remove('show');
+}
+
+function downloadChartJPG(){
+  if(!chartInstance){ alert('Grafik belum siap.'); return; }
+  const link = document.createElement('a');
+  link.href = chartInstance.toBase64Image('image/jpeg', 1.0);
+  link.download = `${(currentSeriesKey.sub||'grafik').replace(/[^a-z0-9]+/gi,'_')}.jpg`;
+  link.click();
+}
+
+function downloadTableExcel(){
+  if(typeof XLSX === 'undefined'){ alert('Gagal memuat library Excel. Coba refresh halaman.'); return; }
+  if(!currentSeriesKey) return;
+  const {periode,kategori,kelompok,sub} = currentSeriesKey;
+  const entries = STORE[periode][kategori][kelompok][sub];
+  const fromSel = document.getElementById('fromYear');
+  const toSel = document.getElementById('toYear');
+  const fromYear = parseInt(fromSel.value), toYear = parseInt(toSel.value);
+  const filtered = entries.filter(e=>e.tahun>=fromYear && e.tahun<=toYear);
+
+  const data = [['Periode','Nilai'], ...filtered.map(e=>[periodLabel(e), e.data])];
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws['!cols'] = [{wch:16},{wch:12}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Data');
+  XLSX.writeFile(wb, `${sub.replace(/[^a-z0-9]+/gi,'_')}.xlsx`);
 }
 
 /* ---------- Compare view ---------- */
@@ -1000,12 +1126,32 @@ function refreshDetail(entries, fromYear, toYear){
     <div class="stat-box"><div class="stat-label">Tertinggi / Terendah</div><div class="stat-value" style="font-size:15px;">${fmtNum(max)} / ${fmtNum(min)}</div></div>
   `;
 
+  // narrative sentence
+  const narrEl = document.getElementById('drawerNarrative');
+  if(narrEl && currentSeriesKey){
+    const first = filtered[0];
+    const last = filtered[filtered.length-1];
+    const indikator = currentSeriesKey.sub;
+    if(first && last && first !== last){
+      let trendWord = 'tidak berubah dibandingkan';
+      let trendClass = 'trend-flat';
+      if(last.data > first.data){ trendWord = 'meningkat dibandingkan'; trendClass = 'trend-up'; }
+      else if(last.data < first.data){ trendWord = 'menurun dibandingkan'; trendClass = 'trend-down'; }
+      narrEl.innerHTML = `Pada periode <b>${periodLabel(last)}</b>, indikator <b>${escapeHtml(indikator)}</b> mencapai <b>${fmtNum(last.data)}</b>. Nilai ini <span class="${trendClass}">${trendWord}</span> periode <b>${periodLabel(first)}</b> yang mencapai <b>${fmtNum(first.data)}</b>.`;
+    }else if(last){
+      narrEl.innerHTML = `Pada periode <b>${periodLabel(last)}</b>, indikator <b>${escapeHtml(indikator)}</b> mencapai <b>${fmtNum(last.data)}</b>.`;
+    }else{
+      narrEl.innerHTML = '';
+    }
+  }
+
   // table (reversed, latest first)
-  let rows = '<tr><th>Periode</th><th>Nilai</th></tr>';
+  let rows = '';
   [...filtered].reverse().forEach(e=>{
     rows += `<tr><td>${periodLabel(e)}</td><td>${fmtNum(e.data)}</td></tr>`;
   });
-  document.getElementById('detailTable').innerHTML = rows;
+  document.getElementById('detailTable').innerHTML =
+    `<thead><tr><th>Periode</th><th>Nilai</th></tr></thead><tbody>${rows}</tbody>`;
 
   // chart
   const canvasEl = document.getElementById('detailChart');
