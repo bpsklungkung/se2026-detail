@@ -2165,8 +2165,11 @@ body {
       <div class="layer-btn layer-btn-cekbangunan off" id="btnCekBangunan" onclick="toggleLayer('cekbangunan')">
         🏗️ Cek Bangunan
       </div>
+      <button type="button" class="btn btn-sm" id="btnLokasiSaya" onclick="showMyLocation()"
+        style="margin-left:auto;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600"
+        title="Tampilkan posisi Anda saat ini di peta (butuh izin lokasi browser)">📍 Lokasi Saya</button>
       <button type="button" class="btn btn-sm" onclick="printMapJpg()"
-        style="margin-left:auto;background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;border:none;display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600"
+        style="background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;border:none;display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600"
         title="Cetak peta (sesuai layer & filter aktif) sbg JPG & otomatis salin ke clipboard (Ctrl+V utk tempel)">🖼️ Cetak JPG</button>
     </div>
     <div id="mapCaptureArea">
@@ -9949,6 +9952,177 @@ function getAssignColor(assignment) {
     colorMap[assignment] = '#6c757d';
   }
   return colorMap[assignment];
+}
+
+// ══ Tombol "📍 Lokasi Saya" — tampilkan posisi user saat ini di peta ══
+let myLocationMarker = null;
+let myLocationAccuracyCircle = null;
+let myLocationWatchId = null;
+
+/* ── Point-in-polygon (ray casting), mendukung Polygon & MultiPolygon + lubang ── */
+function pointInRing(lat, lng, ring){
+  // ring: array [lng, lat]
+  let inside = false;
+  for(let i = 0, j = ring.length - 1; i < ring.length; j = i++){
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    const intersect = ((yi > lat) !== (yj > lat)) &&
+      (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi);
+    if(intersect) inside = !inside;
+  }
+  return inside;
+}
+function pointInPolygonCoords(lat, lng, polygonCoords){
+  // polygonCoords: [outerRing, hole1, hole2, ...]
+  if(!pointInRing(lat, lng, polygonCoords[0])) return false;
+  for(let h = 1; h < polygonCoords.length; h++){
+    if(pointInRing(lat, lng, polygonCoords[h])) return false; // di dalam lubang
+  }
+  return true;
+}
+function findSubSlsAtPoint(lat, lng){
+  if(typeof SUBSLS_GEOJSON === 'undefined') return null;
+  for(const feature of SUBSLS_GEOJSON.features){
+    const geom = feature.geometry;
+    if(!geom) continue;
+    if(geom.type === 'Polygon'){
+      if(pointInPolygonCoords(lat, lng, geom.coordinates)) return feature;
+    } else if(geom.type === 'MultiPolygon'){
+      for(const poly of geom.coordinates){
+        if(pointInPolygonCoords(lat, lng, poly)) return feature;
+      }
+    }
+  }
+  return null;
+}
+
+/* ── Bangun isi popup "Lokasi Anda": info wilayah + progres di titik tsb ── */
+function buildMyLocationPopupHtml(latitude, longitude, accuracy){
+  const feature = findSubSlsAtPoint(latitude, longitude);
+  let wilayahHtml;
+  if(feature){
+    const p = feature.properties;
+    const kode = (p.idsubsls || '').toString().trim();
+    const stats = (mapInstance && mapInstance._progresStats) ? mapInstance._progresStats[kode] : null;
+    const pencacahTxt = stats ? formatNameSet(stats.pencacah) : '-';
+    const pengawasTxt = stats ? formatNameSet(stats.pengawas) : '-';
+    const pctTxt = stats && stats.target > 0 ? stats.progres.toFixed(1) + '%' : 'Tidak ada data';
+    const col = stats && stats.target > 0 ? progresColor(stats.progres) : '#94a3b8';
+    wilayahHtml = `
+      <div style="margin-top:4px;padding-top:4px;border-top:1px solid #e2e8f0">
+        <b style="color:#1e293b">${p.nmsls||'-'} (SubSLS ${p.subsls||'-'})</b><br>
+        <span style="color:#64748b">${p.nmdesa||''} · ${p.nmkec||''}</span><br>
+        <b style="color:${col}">${pctTxt}</b> Progres Pendataan<br>
+        <span style="color:#64748b;font-size:11px">👤 Pencacah: ${pencacahTxt}</span><br>
+        <span style="color:#64748b;font-size:11px">🧑‍💼 Pengawas: ${pengawasTxt}</span>
+      </div>`;
+  } else {
+    wilayahHtml = `<div style="margin-top:4px;padding-top:4px;border-top:1px solid #e2e8f0;color:#94a3b8">
+        Titik ini berada di luar batas wilayah SubSLS yang terdata.
+      </div>`;
+  }
+  return `<div style="font-size:12px;font-family:'Inter',sans-serif;min-width:190px">
+      <b>📍 Lokasi Anda</b><br>
+      Akurasi ± ${Math.round(accuracy)} m
+      ${wilayahHtml}
+    </div>`;
+}
+
+function showMyLocation(){
+  if(!mapInstance){ alert('Peta belum siap, coba lagi sebentar.'); return; }
+  if(!navigator.geolocation){
+    alert('Browser ini tidak mendukung fitur lokasi.');
+    return;
+  }
+
+  const btn = document.getElementById('btnLokasiSaya');
+  const originalHtml = btn.innerHTML;
+  btn.disabled = true;
+
+  // Hentikan pemantauan sebelumnya kalau masih jalan
+  if(myLocationWatchId !== null){
+    navigator.geolocation.clearWatch(myLocationWatchId);
+    myLocationWatchId = null;
+  }
+
+  let best = null;       // pos.coords terbaik (akurasi terkecil) yang didapat
+  let refineCount = 0;
+
+  function renderMarker(latitude, longitude, accuracy){
+    if(myLocationMarker) mapInstance.removeLayer(myLocationMarker);
+    if(myLocationAccuracyCircle) mapInstance.removeLayer(myLocationAccuracyCircle);
+
+    // Lingkaran radius akurasi — interactive:false supaya TIDAK menutupi/
+    // memblokir hover & klik pada layer choropleth/poligon di bawahnya
+    myLocationAccuracyCircle = L.circle([latitude, longitude], {
+      radius: accuracy, interactive: false,
+      color: '#2563eb', weight: 1, fillColor: '#3b82f6', fillOpacity: 0.1, pane: 'pointsPane'
+    }).addTo(mapInstance);
+
+    const dotIcon = L.divIcon({
+      className: '',
+      html: `<div style="position:relative;width:18px;height:18px;">
+               <div style="position:absolute;inset:-6px;border-radius:50%;background:#3b82f6;opacity:0.25;"></div>
+               <div style="position:absolute;inset:0;border-radius:50%;background:#2563eb;border:2.5px solid #fff;box-shadow:0 0 3px rgba(0,0,0,.4);"></div>
+             </div>`,
+      iconSize: [18, 18], iconAnchor: [9, 9]
+    });
+    myLocationMarker = L.marker([latitude, longitude], { icon: dotIcon, pane: 'pointsPane', zIndexOffset: 1000 })
+      .addTo(mapInstance)
+      .bindPopup(buildMyLocationPopupHtml(latitude, longitude, accuracy));
+  }
+
+  myLocationWatchId = navigator.geolocation.watchPosition(
+    function(pos){
+      const { latitude, longitude, accuracy } = pos.coords;
+      refineCount++;
+
+      // Simpan hanya kalau ini pembacaan paling akurat sejauh ini
+      if(!best || accuracy < best.accuracy){
+        best = { latitude, longitude, accuracy };
+        renderMarker(latitude, longitude, accuracy);
+        mapInstance.setView([latitude, longitude], Math.max(mapInstance.getZoom(), 16));
+      }
+
+      btn.innerHTML = `⏳ Menyempurnakan… (±${Math.round(best.accuracy)} m)`;
+
+      // Berhenti menyempurnakan setelah akurasi cukup baik (≤25m) atau
+      // sudah mencoba beberapa kali / 8 detik
+      const goodEnough = best.accuracy <= 25;
+      if(goodEnough || refineCount >= 12){
+        navigator.geolocation.clearWatch(myLocationWatchId);
+        myLocationWatchId = null;
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+        myLocationMarker.openPopup();
+      }
+    },
+    function(err){
+      if(myLocationWatchId !== null){
+        navigator.geolocation.clearWatch(myLocationWatchId);
+        myLocationWatchId = null;
+      }
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+      let msg = 'Gagal mengambil lokasi.';
+      if(err.code === err.PERMISSION_DENIED) msg = 'Izin lokasi ditolak. Aktifkan izin lokasi untuk situs ini di pengaturan browser.';
+      else if(err.code === err.POSITION_UNAVAILABLE) msg = 'Lokasi tidak tersedia saat ini. Pastikan GPS/Location Service perangkat aktif.';
+      else if(err.code === err.TIMEOUT) msg = 'Permintaan lokasi timeout, coba lagi.';
+      alert(msg);
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+  );
+
+  // Batas waktu keras 8 detik: hentikan penyempurnaan meski belum "goodEnough"
+  setTimeout(function(){
+    if(myLocationWatchId !== null){
+      navigator.geolocation.clearWatch(myLocationWatchId);
+      myLocationWatchId = null;
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+      if(myLocationMarker) myLocationMarker.openPopup();
+    }
+  }, 8000);
 }
 
 function initMap(){
