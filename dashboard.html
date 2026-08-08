@@ -649,6 +649,12 @@ function getGroupColor(kategori, kelompok){
 function getGroupChartType(kategori, kelompok){
   const key = kategori + '|||' + kelompok;
   getGroupColor(kategori, kelompok); 
+  
+  // Jika kelompoknya berkaitan dengan Konsumsi / Pengeluaran, paksa jadi 'rounded-bar'
+  if (/konsumsi|pengeluaran/i.test(kelompok)) {
+    return 'rounded-bar';
+  }
+
   const idx = Object.keys(GROUP_COLOR_MAP).indexOf(key);
   const types = ['filled-area', 'bar', 'stepped-area', 'dashed-area', 'scatter'];
   return types[idx % types.length];
@@ -829,6 +835,15 @@ function makeSparkline(entries, color, type){
       const y = h - pad - barH;
       return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" fill="${color}" rx="1"></rect>`;
     }).join('');
+  } else if (type === 'rounded-bar') {
+    const barW = Math.max(3, (w - pad * 2) / vals.length * 0.6);
+    svgContent = vals.map((v, i) => {
+      let barH = ((v - min) / range) * (h - pad * 2);
+      barH = Math.max(barH, 3); 
+      const x = pad + i * step - barW / 2;
+      const y = h - pad - barH;
+      return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" fill="${color}" rx="3" ry="3"></rect>`;
+    }).join('');
   } else if (type === 'stepped-area') {
     let pathD = '';
     const pts = vals.map((v,i) => {
@@ -965,7 +980,13 @@ function renderContent(periode){
 
 function splitCompositionSegments(subObj){
   const subs = Object.keys(subObj);
-  const candidates = subs.filter(s => /^\d+(\.\d+)?%/.test(s.trim()));
+  
+  // Deteksi kandidat: yang diawali angka% ATAU yang mengandung kata 'Persentase'
+  const candidates = subs.filter(s => {
+    const t = s.trim();
+    return /^\d+(\.\d+)?%/.test(t) || /^persentase/i.test(t);
+  });
+
   if(candidates.length < 2 || candidates.length > 8) return null;
 
   const yearTotals = {};
@@ -977,8 +998,11 @@ function splitCompositionSegments(subObj){
   });
   const totals = Object.values(yearTotals);
   if(totals.length === 0) return null;
+  
+  // Pastikan total dari penjumlahan indikator tersebut mendekati 100 (toleransi 5%)
   const closeTo100 = totals.filter(t=>Math.abs(t-100) <= 5).length;
   if((closeTo100 / totals.length) < 0.6) return null;
+  
   return candidates;
 }
 
@@ -1733,8 +1757,8 @@ function refreshDetail(entries, fromYear, toYear){
   const ctx = canvasEl.getContext('2d');
   if(chartInstance) chartInstance.destroy();
 
-  const accent = currentDetailColor || '#FF9644';
-  const isBar = currentDetailChartType === 'bar';
+const accent = currentDetailColor || '#FF9644';
+  const isBar = currentDetailChartType === 'bar' || currentDetailChartType === 'rounded-bar';
   const isScatter = currentDetailChartType === 'scatter';
   const isStepped = currentDetailChartType === 'stepped-area';
   const isDashed = currentDetailChartType === 'dashed-area';
