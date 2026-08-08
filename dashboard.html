@@ -650,13 +650,19 @@ function getGroupChartType(kategori, kelompok){
   const key = kategori + '|||' + kelompok;
   getGroupColor(kategori, kelompok); 
   
-  // Jika kelompoknya berkaitan dengan Konsumsi / Pengeluaran, paksa jadi 'rounded-bar'
+  // Penyesuaian tipe grafik khusus per kelompok
   if (/konsumsi|pengeluaran/i.test(kelompok)) {
     return 'rounded-bar';
   }
+  if (/gender/i.test(kelompok) || /gender/i.test(kategori)) {
+    return 'lollipop';
+  }
+  if (/pendidikan/i.test(kelompok) || /pendidikan/i.test(kategori)) {
+    return 'spline';
+  }
 
   const idx = Object.keys(GROUP_COLOR_MAP).indexOf(key);
-  const types = ['filled-area', 'bar', 'stepped-area', 'dashed-area', 'scatter'];
+  const types = ['filled-area', 'bar', 'stepped-area', 'dashed-area', 'scatter', 'lollipop', 'rounded-bar', 'spline'];
   return types[idx % types.length];
 }
 
@@ -844,6 +850,41 @@ function makeSparkline(entries, color, type){
       const y = h - pad - barH;
       return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" fill="${color}" rx="3" ry="3"></rect>`;
     }).join('');
+  } else if (type === 'lollipop') {
+    svgContent = vals.map((v, i) => {
+      const x = pad + i * step;
+      const y = h - pad - ((v - min) / range) * (h - pad * 2);
+      const baseY = h - pad;
+      return `
+        <line x1="${x.toFixed(1)}" y1="${baseY.toFixed(1)}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${color}"/>
+      `;
+    }).join('');
+  } else if (type === 'spline') {
+    // Kurva Bezier halus untuk Sparkline Spline
+    let pathD = '';
+    const pts = vals.map((v, i) => {
+      const x = pad + i * step;
+      const y = h - pad - ((v - min) / range) * (h - pad * 2);
+      return {x, y};
+    });
+    pts.forEach((p, i) => {
+      if (i === 0) {
+        pathD += `M ${p.x.toFixed(1)},${p.y.toFixed(1)} `;
+      } else {
+        const prev = pts[i - 1];
+        const cpX = (prev.x + p.x) / 2;
+        pathD += `C ${cpX.toFixed(1)},${prev.y.toFixed(1)} ${cpX.toFixed(1)},${p.y.toFixed(1)} ${p.x.toFixed(1)},${p.y.toFixed(1)} `;
+      }
+    });
+    const last = pts[pts.length - 1];
+    const first = pts[0];
+    const poly = `${first.x.toFixed(1)},${h} ${pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')} ${last.x.toFixed(1)},${h}`;
+    svgContent = `
+      <polygon points="${poly}" fill="${color}" opacity="0.12"/>
+      <path d="${pathD}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="3" fill="${color}"/>
+    `;
   } else if (type === 'stepped-area') {
     let pathD = '';
     const pts = vals.map((v,i) => {
@@ -980,13 +1021,10 @@ function renderContent(periode){
 
 function splitCompositionSegments(subObj){
   const subs = Object.keys(subObj);
-  
-  // Deteksi kandidat: yang diawali angka% ATAU yang mengandung kata 'Persentase'
   const candidates = subs.filter(s => {
     const t = s.trim();
     return /^\d+(\.\d+)?%/.test(t) || /^persentase/i.test(t);
   });
-
   if(candidates.length < 2 || candidates.length > 8) return null;
 
   const yearTotals = {};
@@ -998,11 +1036,8 @@ function splitCompositionSegments(subObj){
   });
   const totals = Object.values(yearTotals);
   if(totals.length === 0) return null;
-  
-  // Pastikan total dari penjumlahan indikator tersebut mendekati 100 (toleransi 5%)
   const closeTo100 = totals.filter(t=>Math.abs(t-100) <= 5).length;
   if((closeTo100 / totals.length) < 0.6) return null;
-  
   return candidates;
 }
 
@@ -1584,6 +1619,7 @@ function renderCompareChart(){
     
     const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
     const type = getGroupChartType(info.kategori, info.kelompok);
+    const isSpline = type === 'spline';
     const isStepped = type === 'stepped-area';
     const isDashed = type === 'dashed-area';
     const isScatter = type === 'scatter';
@@ -1598,7 +1634,7 @@ function renderCompareChart(){
       pointHoverRadius: 5,
       borderWidth: 2.2,
       spanGaps: true,
-      tension: (isStepped || isDashed) ? 0 : .25,
+      tension: isSpline ? 0.4 : ((isStepped || isDashed) ? 0 : 0.25),
       stepped: isStepped,
       borderDash: isDashed ? [6, 4] : [],
       showLine: !isScatter,
@@ -1757,24 +1793,48 @@ function refreshDetail(entries, fromYear, toYear){
   const ctx = canvasEl.getContext('2d');
   if(chartInstance) chartInstance.destroy();
 
-const accent = currentDetailColor || '#FF9644';
+  const accent = currentDetailColor || '#FF9644';
   const isBar = currentDetailChartType === 'bar' || currentDetailChartType === 'rounded-bar';
+  const isLollipop = currentDetailChartType === 'lollipop';
+  const isSpline = currentDetailChartType === 'spline';
   const isScatter = currentDetailChartType === 'scatter';
   const isStepped = currentDetailChartType === 'stepped-area';
   const isDashed = currentDetailChartType === 'dashed-area';
 
-  let dataset;
-  if (isBar) {
-    dataset = {
+  let datasets = [];
+  if (isLollipop) {
+    datasets = [
+      {
+        type: 'bar',
+        data: values,
+        backgroundColor: hexToRgba(accent, 0.6),
+        borderWidth: 0,
+        maxBarThickness: 4,
+        borderRadius: 3
+      },
+      {
+        type: 'line',
+        data: values,
+        borderColor: accent,
+        backgroundColor: accent,
+        pointBackgroundColor: accent,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        showLine: false,
+        fill: false
+      }
+    ];
+  } else if (isBar) {
+    datasets = [{
       data: values,
       backgroundColor: hexToRgba(accent, 0.75),
       borderColor: accent,
-      borderWidth:1,
-      borderRadius:5,
-      maxBarThickness:38
-    };
+      borderWidth: 1,
+      borderRadius: currentDetailChartType === 'rounded-bar' ? 5 : 1,
+      maxBarThickness: 38
+    }];
   } else if (isScatter) {
-    dataset = {
+    datasets = [{
       type: 'line',
       data: values,
       borderColor: accent,
@@ -1784,29 +1844,29 @@ const accent = currentDetailColor || '#FF9644';
       pointHoverRadius: 7,
       showLine: false,
       fill: false
-    };
+    }];
   } else {
     const gradient = ctx.createLinearGradient(0,0,0,260);
     gradient.addColorStop(0, hexToRgba(accent, 0.35));
     gradient.addColorStop(1, hexToRgba(accent, 0.02));
-    dataset = {
+    datasets = [{
       data: values,
       borderColor: accent,
       backgroundColor: gradient,
       pointBackgroundColor: accent,
-      pointRadius:4,
-      pointHoverRadius:6,
-      borderWidth:2.5,
-      fill:true,
-      tension: (isStepped || isDashed) ? 0 : 0.25,
+      pointRadius: 4,
+      pointHoverRadius: 6,
+      borderWidth: 2.5,
+      fill: true,
+      tension: isSpline ? 0.4 : ((isStepped || isDashed) ? 0 : 0.25),
       stepped: isStepped ? true : false,
       borderDash: isDashed ? [6, 4] : []
-    };
+    }];
   }
 
   chartInstance = new Chart(ctx, {
     type: isBar ? 'bar' : 'line',
-    data:{ labels, datasets:[dataset] },
+    data:{ labels, datasets },
     options:{
       responsive:true,
       maintainAspectRatio:false,
