@@ -14,111 +14,120 @@
     --cream:#FFFDF1;
     --cream-deep:#FFF3DC;
     --peach:#FFCE99;
-    --peach-soft:#FFE0B8;
+    --peach-soft:#FFE7C9;
     --orange:#FF9644;
     --orange-deep:#D97730;
     --brown:#562F00;
-    --brown-mid:#8A5A24;
-    --brown-soft:#AD8452;
+    --brown-deep:#3a1f00;
+    --brown-mid:#7a5230;
+    --brown-soft:#a08a70;
     --green:#6F8F52;
     --green-bg:#E9EEDD;
     --rust:#C1440E;
     --rust-bg:#FCE1CB;
-    --card-bg:#FFFEFA;
-    --line:#F2DEB8;
-    --shadow: 0 1px 2px rgba(86,47,0,.06), 0 6px 18px rgba(86,47,0,.08);
-    --radius:14px;
+    --white:#FFFFFF;
+    --card-bg:#FFFFFF;
+    --page-bg:#FFFFFF;
+    --line:#FFE7C9;
+    --shadow: 0 6px 20px rgba(86,47,0,0.10);
+    --radius:16px;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
     font-family:'Inter',sans-serif;
     color:var(--brown);
-    background:
-      radial-gradient(circle at 1px 1px, rgba(86,47,0,0.06) 1px, transparent 0) 0 0/20px 20px,
-      var(--cream);
+    background:var(--page-bg);
     min-height:100vh;
     padding-bottom:50px;
   }
   ::selection{background:var(--peach);}
 
-  /* Header */
-  header{
-    padding:26px 24px 12px;
-    max-width:1180px;
-    margin:0 auto;
-  }
-  .eyebrow{
-    font-size:11px;
-    letter-spacing:.13em;
-    text-transform:uppercase;
-    color:var(--orange-deep);
-    font-weight:700;
-    margin-bottom:6px;
-    display:flex;
-    align-items:center;
-    gap:7px;
-  }
-  .eyebrow::before{
-    content:'';
-    width:14px;height:2px;background:var(--orange-deep);display:inline-block;
-  }
-  h1{
+  h1,h2,h3,.display{
     font-family:'Fraunces',serif;
-    font-optical-sizing:auto;
-    font-weight:600;
-    font-size:clamp(24px,3vw,32px);
-    margin:0 0 5px;
-    letter-spacing:-.01em;
-    color:var(--brown);
-  }
-  .subtitle{
-    color:var(--brown-mid);
-    font-size:13px;
-    max-width:520px;
-    line-height:1.45;
+    color:var(--brown-deep);
     margin:0;
   }
 
-  /* Tabs */
-  .tabs{
-    display:flex;
-    gap:2px;
-    margin:18px 0 0;
-    border-bottom:1px solid var(--line);
-    flex-wrap:wrap;
+  /* ===== Hero ===== */
+  .hero{
+    background: linear-gradient(135deg, var(--brown) 0%, #7a4310 55%, var(--orange) 130%);
+    padding:30px 24px 40px;
+    position:relative;
+    overflow:hidden;
+  }
+  .hero::after{
+    content:"";
+    position:absolute; right:-60px; top:-60px;
+    width:220px; height:220px; border-radius:50%;
+    background:radial-gradient(circle, rgba(255,150,68,0.35), transparent 70%);
+  }
+  .hero-inner{
+    max-width:1280px; margin:0 auto; position:relative; z-index:1;
+    display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap;
+  }
+  .hero-eyebrow{
+    color:var(--peach); font-weight:600; letter-spacing:.13em; text-transform:uppercase;
+    font-size:11px; margin-bottom:8px; font-family:'Inter',sans-serif;
+  }
+  .hero h1{ color:var(--cream); font-size:clamp(22px,3vw,32px); font-weight:600; line-height:1.15; }
+  .hero p{ color:var(--peach-soft); margin-top:6px; font-size:12.5px; max-width:480px; line-height:1.45; }
+
+  .hero-stats{ display:flex; gap:10px; flex-wrap:wrap; }
+  .stat-pill{
+    background:rgba(255,253,241,0.12);
+    border:1px solid rgba(255,206,153,0.35);
+    border-radius:12px;
+    padding:9px 15px;
+    min-width:88px;
+    backdrop-filter:blur(4px);
+  }
+  .stat-pill .num{ color:var(--cream); font-family:'Fraunces',serif; font-size:20px; font-weight:600; line-height:1; }
+  .stat-pill .lbl{ color:var(--peach-soft); font-size:10px; margin-top:3px; letter-spacing:.05em; }
+
+  /* ===== Layout ===== */
+  .page-wrap{ max-width:1280px; margin:0 auto; padding:0 24px; }
+
+  /* Tabbar (filterbar style) */
+  .tabbar{
+    background:var(--white);
+    border:1px solid var(--peach-soft);
+    border-radius:16px;
+    box-shadow:var(--shadow);
+    padding:9px 10px;
+    margin-top:-22px;
+    position:relative; z-index:5;
+    display:flex; gap:6px; flex-wrap:wrap; align-items:center;
   }
   .tab{
     font-family:'Inter',sans-serif;
     font-weight:600;
     font-size:12.5px;
-    padding:8px 13px;
+    padding:8px 14px;
     background:none;
     border:none;
+    border-radius:10px;
     cursor:pointer;
-    color:var(--brown-soft);
-    position:relative;
-    top:1px;
-    transition:color .2s;
+    color:var(--brown);
+    transition:background .15s, color .15s;
   }
-  .tab.active{ color:var(--orange-deep); }
-  .tab.active::after{
-    content:'';
-    position:absolute;
-    left:11px;right:11px;bottom:-1px;
-    height:2px;
-    background:var(--orange-deep);
-    border-radius:2px 2px 0 0;
-  }
-  .tab:hover{ color:var(--orange-deep); }
+  .tab.active{ background:var(--orange); color:#fff; }
+  .tab:hover:not(.active){ background:var(--peach-soft); }
   .tab-sep{
     width:1px;
     align-self:stretch;
-    background:var(--line);
-    margin:7px 6px 8px;
+    background:var(--peach-soft);
+    margin:4px 4px;
   }
 
-  main{ max-width:1180px; margin:0 auto; padding:0 24px; }
+  main{ padding-top:22px; }
+
+  /* ===== Section headers ===== */
+  .section-head{ display:flex; align-items:baseline; justify-content:space-between; margin:22px 0 10px; flex-wrap:wrap; gap:6px;}
+  .section-head h2{ font-size:17px; font-weight:600; }
+  .section-head .tag{ font-size:11px; color:var(--brown); background:var(--peach-soft); padding:4px 10px; border-radius:100px; font-weight:600; letter-spacing:.04em;}
+
+  .footer-note{ text-align:center; color:var(--brown-soft); font-size:11.5px; margin-top:30px; }
 
   /* Compare view */
   .compare-wrap{ margin-top:20px; }
@@ -190,23 +199,10 @@
 
   /* Category section */
   .kategori-block{ margin-top:24px; }
-  .kategori-head{
-    display:flex;
-    align-items:baseline;
-    gap:8px;
-    margin-bottom:4px;
-  }
-  .kategori-head h2{
-    font-family:'Fraunces',serif;
-    font-weight:600;
-    font-size:17px;
-    margin:0;
-    color:var(--brown);
-  }
-  .kategori-count{
-    font-size:11px;
-    color:var(--brown-soft);
-    font-weight:600;
+  .section-head h2{ display:flex; align-items:center; gap:9px; }
+  .kat-dot{
+    width:11px; height:11px; border-radius:50%;
+    display:inline-block; flex-shrink:0;
   }
   .kelompok-block{ margin-top:14px; }
   .kelompok-chip{
@@ -226,26 +222,27 @@
   .kelompok-chip::before{
     content:'';
     width:5px;height:5px;border-radius:50%;
-    background:var(--orange-deep);
+    background:currentColor;
   }
 
   .card-grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
-    gap:10px;
+    grid-template-columns:repeat(auto-fill,minmax(255px,1fr));
+    gap:12px;
   }
 
   .card{
     background:var(--card-bg);
     border:1px solid var(--line);
+    border-top:3px solid var(--kat-accent, var(--orange));
     border-radius:var(--radius);
-    padding:13px 14px 11px;
+    padding:15px 19px 15px;
     cursor:pointer;
     box-shadow:var(--shadow);
     transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
     display:flex;
     flex-direction:column;
-    gap:7px;
+    gap:9px;
   }
   .card:hover{
     transform:translateY(-2px);
@@ -257,7 +254,7 @@
   }
   .comp-bar{
     display:flex;
-    height:20px;
+    height:22px;
     border-radius:7px;
     overflow:hidden;
     background:var(--cream-deep);
@@ -269,7 +266,7 @@
     gap:6px 16px;
   }
   .comp-legend-item{
-    font-size:12px;
+    font-size:12.5px;
     color:var(--brown-mid);
     display:flex;
     align-items:center;
@@ -281,38 +278,38 @@
     display:inline-block; flex-shrink:0;
   }
   .card-label{
-    font-size:11.5px;
+    font-size:12.5px;
     font-weight:600;
     color:var(--brown-mid);
-    line-height:1.3;
-    min-height:28px;
+    line-height:1.32;
+    min-height:32px;
   }
   .card-value-row{
     display:flex;
     align-items:flex-end;
     justify-content:space-between;
-    gap:7px;
+    gap:8px;
   }
   .card-value{
     font-family:'Fraunces',serif;
     font-weight:600;
-    font-size:22px;
-    color:var(--brown);
+    font-size:27px;
+    color:var(--brown-deep);
     letter-spacing:-.01em;
   }
   .card-period{
-    font-size:10px;
+    font-size:10.5px;
     color:var(--brown-soft);
     font-weight:600;
-    margin-bottom:3px;
+    margin-bottom:4px;
   }
   .badge{
     display:inline-flex;
     align-items:center;
     gap:3px;
-    font-size:11px;
+    font-size:11.5px;
     font-weight:700;
-    padding:2px 8px;
+    padding:3px 9px;
     border-radius:999px;
     width:fit-content;
   }
@@ -320,14 +317,12 @@
   .badge.down{ background:var(--green-bg); color:var(--green); }
   .badge.flat{ background:var(--cream-deep); color:var(--brown-soft); }
   .badge.na{ background:var(--cream-deep); color:var(--brown-soft); }
-  .spark-wrap{ height:26px; }
-  .spark-wrap svg{ display:block; overflow:visible; }
+  .spark-wrap{ height:32px; width:100%; overflow:hidden; }
+  .spark-wrap svg{ display:block; width:100%; height:100%; }
 
   /* Loading / empty */
   .state-msg{
-    max-width:1180px;
-    margin:44px auto;
-    padding:0 24px;
+    margin:44px 0;
     color:var(--brown-mid);
     font-size:13px;
   }
@@ -533,8 +528,8 @@
   .drawer-table tbody tr:first-child td{ font-weight:700; color:var(--brown); }
 
   @media (max-width:640px){
-    header{ padding:20px 16px 8px; }
-    main{ padding:0 16px; }
+    .hero{ padding:22px 16px 32px; }
+    .page-wrap{ padding:0 16px; }
     .drawer{ padding:18px 16px 36px; }
     .drawer-stats{ grid-template-columns:1fr 1fr; }
   }
@@ -542,16 +537,30 @@
 </head>
 <body>
 
-<header>
-  <div class="eyebrow">BPS Kabupaten Klungkung</div>
-  <h1>Dashboard Indikator</h1>
-  <p class="subtitle">Ringkasan data terkini per subkelompok indikator, dikelompokkan menurut periode, kategori, dan kelompok. Klik kartu untuk melihat tren lengkapnya.</p>
-  <div class="tabs" id="tabs"></div>
-</header>
+<div class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-eyebrow">BPS Kabupaten Klungkung</div>
+      <h1>Dashboard Indikator</h1>
+      <p>Ringkasan data terkini per subkelompok indikator, dikelompokkan menurut periode, kategori, dan kelompok.</p>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-pill"><div class="num" id="statIndikator">–</div><div class="lbl">INDIKATOR</div></div>
+      <div class="stat-pill"><div class="num" id="statKategori">–</div><div class="lbl">KATEGORI</div></div>
+      <div class="stat-pill"><div class="num" id="statTerbaru">–</div><div class="lbl">DATA TERBARU</div></div>
+    </div>
+  </div>
+</div>
 
-<main id="main">
-  <div class="state-msg" id="stateMsg"><span class="spinner"></span>Memuat data dari Google Sheets…</div>
-</main>
+<div class="page-wrap">
+  <div class="tabbar" id="tabs"></div>
+
+  <main id="main">
+    <div class="state-msg" id="stateMsg"><span class="spinner"></span>Memuat data dari Google Sheets…</div>
+  </main>
+
+  <div class="footer-note">Badan Pusat Statistik Kabupaten Klungkung</div>
+</div>
 
 <div class="overlay" id="overlay">
   <div class="drawer" id="drawer"></div>
@@ -562,6 +571,7 @@ const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS0IHQMxQuwLfTd
 
 let STORE = {};        // STORE[periode][kategori][kelompok][subkelompok] = [entries]
 let DEFINISI = {};     // DEFINISI[subkelompok] = teks definisi (dari kolom I & J)
+let SATUAN = {};       // SATUAN[subkelompok] = satuan data (dari kolom H)
 let activePeriode = null;
 let chartInstance = null;
 let currentSeriesKey = null;
@@ -576,6 +586,33 @@ let compareTo = null;
 let normalizeCompare = false;
 let compareChart = null;
 const COMPARE_COLORS = ['#FF9644','#4E7D5A','#A63A50','#3E6E8E','#8C6BAF','#B98B27','#562F00','#5C8C8C'];
+
+// Distinct accent color per Kelompok (assigned in first-seen order, stable across tab switches).
+// Keyed by "kategori|||kelompok" so e.g. Kemiskinan and Ketimpangan get different colors even
+// though both sit under the same Kategori "Sosial".
+const KATEGORI_PALETTE = ['#FF6B6B','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#FF9644','#008080','#4C5C7D','#C1440E'];
+let GROUP_COLOR_MAP = {};
+function getGroupColor(kategori, kelompok){
+  const key = kategori + '|||' + kelompok;
+  if(!GROUP_COLOR_MAP[key]){
+    const idx = Object.keys(GROUP_COLOR_MAP).length % KATEGORI_PALETTE.length;
+    GROUP_COLOR_MAP[key] = KATEGORI_PALETTE[idx];
+  }
+  return GROUP_COLOR_MAP[key];
+}
+
+// Alternate chart type (line / bar) per Kelompok, based on the same stable insertion order
+// used for coloring, so a Kelompok always renders the same way (e.g. Kemiskinan = line,
+// Ketimpangan = bar) instead of randomly differing between visits.
+function getGroupChartType(kategori, kelompok){
+  const key = kategori + '|||' + kelompok;
+  getGroupColor(kategori, kelompok); // ensure it's registered first
+  const idx = Object.keys(GROUP_COLOR_MAP).indexOf(key);
+  return idx % 2 === 0 ? 'line' : 'bar';
+}
+
+let currentDetailColor = '#FF9644';
+let currentDetailChartType = 'line';
 
 function toNumber(v){
   if(v===undefined||v===null) return NaN;
@@ -612,6 +649,7 @@ function loadData(){
     complete: function(res){
       try{
         buildStore(res.data);
+        computeHeroStats();
         renderTabs();
         if(activePeriode) renderContent(activePeriode);
       }catch(err){
@@ -630,10 +668,11 @@ function showError(msg){
 }
 
 // Column positions (0-indexed): A Periode, B Triwulan, C Tahun, D Kategori,
-// E Kelompok, F Subkelompok, G Data, H (unused gap), I Subkelompok (definisi), J Definisi
+// E Kelompok, F Subkelompok, G Data, H Satuan, I Subkelompok (definisi), J Definisi
 function buildStore(rows){
   STORE = {};
   DEFINISI = {};
+  SATUAN = {};
   rows.slice(1).forEach(row=>{ // skip header row
     const periode = (row[0]||'').toString().trim();
     const triwulan = (row[1]||'').toString().trim();
@@ -642,10 +681,12 @@ function buildStore(rows){
     const kelompok = (row[4]||'').toString().trim();
     const subkelompok = (row[5]||'').toString().trim();
     const data = toNumber(row[6]);
+    const satuan = (row[7]||'').toString().trim();
 
     const defSub = (row[8]||'').toString().trim();
     const defText = (row[9]||'').toString().trim();
     if(defSub && defText && !DEFINISI[defSub]) DEFINISI[defSub] = defText;
+    if(subkelompok && satuan && !SATUAN[subkelompok]) SATUAN[subkelompok] = satuan;
 
     if(!periode || !kategori || !kelompok || !subkelompok || isNaN(tahun) || isNaN(data)) return;
 
@@ -681,6 +722,29 @@ function buildStore(rows){
   STORE.__order = periodeList;
 }
 
+function computeHeroStats(){
+  const subSet = new Set();
+  const katSet = new Set();
+  let maxTahun = -Infinity;
+  STORE.__order.forEach(p=>{
+    Object.keys(STORE[p]).forEach(kat=>{
+      katSet.add(kat);
+      Object.keys(STORE[p][kat]).forEach(kel=>{
+        Object.keys(STORE[p][kat][kel]).forEach(sub=>{
+          subSet.add(kat+'|||'+kel+'|||'+sub);
+          STORE[p][kat][kel][sub].forEach(e=>{ if(e.tahun>maxTahun) maxTahun = e.tahun; });
+        });
+      });
+    });
+  });
+  const elIndikator = document.getElementById('statIndikator');
+  const elKategori = document.getElementById('statKategori');
+  const elTerbaru = document.getElementById('statTerbaru');
+  if(elIndikator) elIndikator.textContent = subSet.size;
+  if(elKategori) elKategori.textContent = katSet.size;
+  if(elTerbaru) elTerbaru.textContent = isFinite(maxTahun) ? maxTahun : '–';
+}
+
 function renderTabs(){
   const tabsEl = document.getElementById('tabs');
   tabsEl.innerHTML = '';
@@ -703,7 +767,8 @@ function renderTabs(){
   tabsEl.appendChild(cmpBtn);
 }
 
-function makeSparkline(entries){
+function makeSparkline(entries, color){
+  color = color || 'var(--orange)';
   const vals = entries.slice(-8).map(e=>e.data);
   if(vals.length < 2){
     return `<div class="spark-wrap"></div>`;
@@ -718,9 +783,9 @@ function makeSparkline(entries){
     return `${x.toFixed(1)},${y.toFixed(1)}`;
   });
   const last = pts[pts.length-1].split(',');
-  return `<div class="spark-wrap"><svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
-    <polyline points="${pts.join(' ')}" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="${last[0]}" cy="${last[1]}" r="3" fill="var(--orange-deep)"/>
+  return `<div class="spark-wrap"><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${last[0]}" cy="${last[1]}" r="3" fill="${color}"/>
   </svg></div>`;
 }
 
@@ -744,17 +809,18 @@ function renderContent(periode){
     const kelObj = katObj[kategori];
     const subCount = Object.values(kelObj).reduce((n,k)=>n+Object.keys(k).length,0);
     html += `<section class="kategori-block">
-      <div class="kategori-head"><h2>${escapeHtml(kategori)}</h2><span class="kategori-count">${subCount} indikator</span></div>`;
+      <div class="section-head"><h2><span class="kat-dot"></span>${escapeHtml(kategori)}</h2><span class="tag">${subCount} indikator</span></div>`;
 
     Object.keys(kelObj).forEach(kelompok=>{
       const subObj = kelObj[kelompok];
       const compSegs = splitCompositionSegments(subObj);
-      html += `<div class="kelompok-block">
-        <div class="kelompok-chip">${escapeHtml(kelompok)}</div>
+      const kelColor = getGroupColor(kategori, kelompok);
+      html += `<div class="kelompok-block" style="--kat-accent:${kelColor}">
+        <div class="kelompok-chip" style="background:${kelColor}22;color:${kelColor}">${escapeHtml(kelompok)}</div>
         <div class="card-grid">`;
 
       if(compSegs){
-        html += renderCompositionCardHtml(periode,kategori,kelompok,subObj,compSegs);
+        html += renderCompositionCardHtml(periode,kategori,kelompok,subObj,compSegs,kelColor);
       }
       const normalSubs = compSegs ? Object.keys(subObj).filter(s=>!compSegs.includes(s)) : Object.keys(subObj);
       normalSubs.forEach(sub=>{
@@ -770,7 +836,7 @@ function renderContent(periode){
                   ${changeBadge(entries)}
                 </div>
               </div>
-              ${makeSparkline(entries)}
+              ${makeSparkline(entries, kelColor)}
             </div>`;
       });
 
@@ -821,7 +887,7 @@ function splitCompositionSegments(subObj){
   return candidates;
 }
 
-function renderCompositionCardHtml(periode,kategori,kelompok,subObj,segs){
+function renderCompositionCardHtml(periode,kategori,kelompok,subObj,segs,katColor){
   let maxSK = -Infinity;
   segs.forEach(s=> subObj[s].forEach(e=>{ maxSK = Math.max(maxSK, sortKey(e)); }));
   const latestEntries = segs.map(s=>{
@@ -860,6 +926,8 @@ function escapeHtml(s){
 function openDetail(periode,kategori,kelompok,sub){
   currentSeriesKey = {periode,kategori,kelompok,sub};
   currentCompKey = null;
+  currentDetailColor = getKategoriColor(kategori);
+  currentDetailChartType = getKategoriChartType(kategori);
   const entries = STORE[periode][kategori][kelompok][sub];
   const years = [...new Set(entries.map(e=>e.tahun))].sort((a,b)=>a-b);
 
@@ -1425,14 +1493,15 @@ function refreshDetail(entries, fromYear, toYear){
     const first = filtered[0];
     const last = filtered[filtered.length-1];
     const indikator = currentSeriesKey.sub;
+    const satuan = SATUAN[indikator] ? ' ' + escapeHtml(SATUAN[indikator]) : '';
     if(first && last && first !== last){
       let trendWord = 'tidak berubah dibandingkan';
       let trendClass = 'trend-flat';
       if(last.data > first.data){ trendWord = 'meningkat dibandingkan'; trendClass = 'trend-up'; }
       else if(last.data < first.data){ trendWord = 'menurun dibandingkan'; trendClass = 'trend-down'; }
-      narrEl.innerHTML = `Pada periode <b>${periodLabel(last)}</b>, indikator <b>${escapeHtml(indikator)}</b> mencapai <b>${fmtNum(last.data)}</b>. Nilai ini <span class="${trendClass}">${trendWord}</span> periode <b>${periodLabel(first)}</b> yang mencapai <b>${fmtNum(first.data)}</b>.`;
+      narrEl.innerHTML = `Pada periode <b>${periodLabel(last)}</b>, indikator <b>${escapeHtml(indikator)}</b> mencapai <b>${fmtNum(last.data)}${satuan}</b>. Nilai ini <span class="${trendClass}">${trendWord}</span> periode <b>${periodLabel(first)}</b> yang mencapai <b>${fmtNum(first.data)}${satuan}</b>.`;
     }else if(last){
-      narrEl.innerHTML = `Pada periode <b>${periodLabel(last)}</b>, indikator <b>${escapeHtml(indikator)}</b> mencapai <b>${fmtNum(last.data)}</b>.`;
+      narrEl.innerHTML = `Pada periode <b>${periodLabel(last)}</b>, indikator <b>${escapeHtml(indikator)}</b> mencapai <b>${fmtNum(last.data)}${satuan}</b>.`;
     }else{
       narrEl.innerHTML = '';
     }
@@ -1454,26 +1523,40 @@ function refreshDetail(entries, fromYear, toYear){
   }
   const ctx = canvasEl.getContext('2d');
   if(chartInstance) chartInstance.destroy();
-  const gradient = ctx.createLinearGradient(0,0,0,260);
-  gradient.addColorStop(0, 'rgba(255,150,68,0.28)');
-  gradient.addColorStop(1, 'rgba(255,150,68,0.02)');
+
+  const accent = currentDetailColor || '#FF9644';
+  const isBar = currentDetailChartType === 'bar';
+
+  let dataset;
+  if(isBar){
+    dataset = {
+      data: values,
+      backgroundColor: hexToRgba(accent, 0.75),
+      borderColor: accent,
+      borderWidth:1,
+      borderRadius:5,
+      maxBarThickness:38
+    };
+  }else{
+    const gradient = ctx.createLinearGradient(0,0,0,260);
+    gradient.addColorStop(0, hexToRgba(accent, 0.28));
+    gradient.addColorStop(1, hexToRgba(accent, 0.02));
+    dataset = {
+      data: values,
+      borderColor: accent,
+      backgroundColor: gradient,
+      pointBackgroundColor: accent,
+      pointRadius:4,
+      pointHoverRadius:6,
+      borderWidth:2.5,
+      fill:true,
+      tension:.25
+    };
+  }
 
   chartInstance = new Chart(ctx, {
-    type:'line',
-    data:{
-      labels,
-      datasets:[{
-        data: values,
-        borderColor:'#FF9644',
-        backgroundColor: gradient,
-        pointBackgroundColor:'#D97730',
-        pointRadius:4,
-        pointHoverRadius:6,
-        borderWidth:2.5,
-        fill:true,
-        tension:.25
-      }]
-    },
+    type: isBar ? 'bar' : 'line',
+    data:{ labels, datasets:[dataset] },
     options:{
       responsive:true,
       maintainAspectRatio:false,
@@ -1484,6 +1567,14 @@ function refreshDetail(entries, fromYear, toYear){
       }
     }
   });
+}
+
+function hexToRgba(hex, alpha){
+  const h = hex.replace('#','');
+  const r = parseInt(h.substring(0,2),16);
+  const g = parseInt(h.substring(2,4),16);
+  const b = parseInt(h.substring(4,6),16);
+  return `rgba(${r},${g},${b},${alpha})`;
 }
 
 loadData();
