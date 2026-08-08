@@ -646,10 +646,16 @@ function getGroupColor(kategori, kelompok){
   return GROUP_COLOR_MAP[key];
 }
 
-function getGroupChartType(kategori, kelompok){
-  const key = kategori + '|||' + kelompok;
+function getGroupChartType(kategori, kelompok, sub){
+  const key = kategori + '|||' + kelompok + '|||' + (sub || '');
   getGroupColor(kategori, kelompok); 
   
+  if (sub && /indeks\s*kemahalan\s*konstruksi/i.test(sub)) {
+    return 'pure-bubble';
+  }
+  if (/upah/i.test(kategori) || /upah/i.test(kelompok) || /upah/i.test(sub || '')) {
+    return 'bar'; // Diubah menjadi bar chart standar (bukan rounded-bar) untuk upah atau kategori terkait
+  }
   if (/konsumsi|pengeluaran/i.test(kelompok)) {
     return 'rounded-bar';
   }
@@ -663,8 +669,8 @@ function getGroupChartType(kategori, kelompok){
     return 'bubble-ts';
   }
 
-  const idx = Object.keys(GROUP_COLOR_MAP).indexOf(key);
-  const types = ['filled-area', 'bar', 'stepped-area', 'dashed-area', 'scatter', 'lollipop', 'rounded-bar', 'spline', 'bubble-ts'];
+  const idx = Object.keys(GROUP_COLOR_MAP).indexOf(kategori + '|||' + kelompok);
+  const types = ['filled-area', 'bar', 'stepped-area', 'dashed-area', 'scatter', 'lollipop', 'rounded-bar', 'spline', 'bubble-ts', 'pure-bubble'];
   return types[idx % types.length];
 }
 
@@ -842,7 +848,7 @@ function makeSparkline(entries, color, type){
       barH = Math.max(barH, 2); 
       const x = pad + i * step - barW / 2;
       const y = h - pad - barH;
-      return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" fill="${color}" rx="1"></rect>`;
+      return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" fill="${color}" rx="0"></rect>`;
     }).join('');
   } else if (type === 'rounded-bar') {
     const barW = Math.max(3, (w - pad * 2) / vals.length * 0.6);
@@ -862,6 +868,14 @@ function makeSparkline(entries, color, type){
         <line x1="${x.toFixed(1)}" y1="${baseY.toFixed(1)}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>
         <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${color}"/>
       `;
+    }).join('');
+  } else if (type === 'pure-bubble') {
+    svgContent = vals.map((v, i) => {
+      const x = pad + i * step;
+      const normVal = range > 0 ? (v - min) / range : 0.5;
+      const y = h - pad - normVal * (h - pad * 2);
+      const radius = 2 + normVal * 4; 
+      return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${radius.toFixed(1)}" fill="${color}" opacity="0.85"/>`;
     }).join('');
   } else if (type === 'bubble-ts') {
     let pathD = '';
@@ -990,7 +1004,7 @@ function renderContent(periode){
       const subObj = kelObj[kelompok];
       const compSegs = splitCompositionSegments(subObj);
       const kelColor = getGroupColor(kategori, kelompok);
-      const kelChartType = getGroupChartType(kategori, kelompok);
+      
       html += `<div class="kelompok-block" style="--kat-accent:${kelColor}">
         <div class="kelompok-chip" style="background:${kelColor}22;color:${kelColor}">${escapeHtml(kelompok)}</div>
         <div class="card-grid">`;
@@ -1003,6 +1017,7 @@ function renderContent(periode){
           const entries = subObj[sub];
           const latest = entries[entries.length-1];
           const key = encodeURIComponent(JSON.stringify([periode,kategori,kelompok,sub]));
+          const subChartType = getGroupChartType(kategori, kelompok, sub);
           
           const satuanTeks = SATUAN[sub] ? `<span class="card-unit">${escapeHtml(SATUAN[sub])}</span>` : '';
 
@@ -1015,7 +1030,7 @@ function renderContent(periode){
                   ${changeBadge(entries)}
                 </div>
               </div>
-              ${makeSparkline(entries, kelColor, kelChartType)}
+              ${makeSparkline(entries, kelColor, subChartType)}
             </div>`;
       });
 
@@ -1102,7 +1117,7 @@ function openDetail(periode,kategori,kelompok,sub){
   currentSeriesKey = {periode,kategori,kelompok,sub};
   currentCompKey = null;
   currentDetailColor = getGroupColor(kategori, kelompok);
-  currentDetailChartType = getGroupChartType(kategori, kelompok);
+  currentDetailChartType = getGroupChartType(kategori, kelompok, sub);
   const entries = STORE[periode][kategori][kelompok][sub];
   const years = [...new Set(entries.map(e=>e.tahun))].sort((a,b)=>a-b);
 
@@ -1324,7 +1339,7 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
   const datasets = segs.map((s,i)=>{
     const data = sortedSK.map(sk=> bySegSK[s].hasOwnProperty(sk) ? bySegSK[s][sk] : null);
     const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
-    return { label:s, data, backgroundColor:color, borderRadius:3, stack:'comp' };
+    return { label:s, data, backgroundColor:color, borderRadius:0, stack:'comp' };
   });
 
   const lastSK = sortedSK[sortedSK.length-1];
@@ -1640,7 +1655,7 @@ function renderCompareChart(){
     }
     
     const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
-    const type = getGroupChartType(info.kategori, info.kelompok);
+    const type = getGroupChartType(info.kategori, info.kelompok, info.sub);
     const isSpline = type === 'spline';
     const isStepped = type === 'stepped-area';
     const isDashed = type === 'dashed-area';
@@ -1820,6 +1835,7 @@ function refreshDetail(entries, fromYear, toYear){
   const isLollipop = currentDetailChartType === 'lollipop';
   const isSpline = currentDetailChartType === 'spline';
   const isBubbleTS = currentDetailChartType === 'bubble-ts';
+  const isPureBubble = currentDetailChartType === 'pure-bubble';
   const isScatter = currentDetailChartType === 'scatter';
   const isStepped = currentDetailChartType === 'stepped-area';
   const isDashed = currentDetailChartType === 'dashed-area';
@@ -1833,7 +1849,7 @@ function refreshDetail(entries, fromYear, toYear){
         backgroundColor: hexToRgba(accent, 0.6),
         borderWidth: 0,
         maxBarThickness: 4,
-        borderRadius: 3
+        borderRadius: 0
       },
       {
         type: 'line',
@@ -1847,8 +1863,31 @@ function refreshDetail(entries, fromYear, toYear){
         fill: false
       }
     ];
+  } else if (isPureBubble) {
+    const minV = Math.min(...values), maxV = Math.max(...values);
+    const rangeV = (maxV - minV) || 1;
+    datasets = [{
+      type: 'line',
+      data: values,
+      borderColor: accent,
+      backgroundColor: hexToRgba(accent, 0.75),
+      pointRadius: function(context) {
+        const v = context.raw;
+        if(v === null || v === undefined) return 7;
+        const norm = (v - minV) / rangeV;
+        return Math.max(7, norm * 24 + 7);
+      },
+      pointHoverRadius: function(context) {
+        const v = context.raw;
+        if(v === null || v === undefined) return 12;
+        const norm = (v - minV) / rangeV;
+        return Math.max(12, norm * 24 + 12);
+      },
+      pointBackgroundColor: accent,
+      showLine: false,
+      fill: false
+    }];
   } else if (isBubbleTS) {
-    // Bubble Time Series: Tahun tersebar horizontal secara merata (kategori x-axis), ukuran titik (bubble) berskala proporsional
     const minV = Math.min(...values), maxV = Math.max(...values);
     const rangeV = (maxV - minV) || 1;
     datasets = [{
@@ -1866,7 +1905,7 @@ function refreshDetail(entries, fromYear, toYear){
         const v = context.raw;
         if(v === null || v === undefined) return 8;
         const norm = (v - minV) / rangeV;
-        return Math.max(8, norm * 18 + 9);
+        return Math.max(8, norm * 18 + 8);
       },
       pointBackgroundColor: accent,
       borderWidth: 2.2,
@@ -1879,7 +1918,7 @@ function refreshDetail(entries, fromYear, toYear){
       backgroundColor: hexToRgba(accent, 0.75),
       borderColor: accent,
       borderWidth: 1,
-      borderRadius: currentDetailChartType === 'rounded-bar' ? 5 : 1,
+      borderRadius: 0, // Siku tegas tanpa lengkung (standard bar chart)
       maxBarThickness: 38
     }];
   } else if (isScatter) {
