@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';document.head.appendChild(s);"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';document.head.appendChild(s);"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';document.head.appendChild(s);"></script>
 <style>
   :root{
     --cream:#FFFDF1;
@@ -290,27 +290,31 @@
     box-shadow:0 3px 6px rgba(86,47,0,.08), 0 10px 22px rgba(86,47,0,.12);
   }
   .card.comp-card{
-    grid-column:1 / -1;
+    display:flex;
+    flex-direction:column;
   }
   .comp-bar{
     display:flex;
-    height:22px;
-    border-radius:7px;
+    height:16px;
+    border-radius:6px;
     overflow:hidden;
     background:var(--cream-deep);
   }
   .comp-bar-seg{ min-width:2px; }
   .comp-legend{
-    display:flex;
-    flex-wrap:wrap;
-    gap:6px 16px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:4px 10px;
   }
   .comp-legend-item{
-    font-size:12.5px;
+    font-size:11px;
     color:var(--brown-mid);
     display:flex;
     align-items:center;
     gap:5px;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
   }
   .comp-legend-item b{ color:var(--brown); }
   .comp-legend-item .dot{
@@ -633,6 +637,7 @@ let compareFrom = null;
 let compareTo = null;
 let normalizeCompare = false;
 let compareChart = null;
+let compareChartType = 'line';
 const COMPARE_COLORS = ['#FF9644','#4E7D5A','#A63A50','#3E6E8E','#8C6BAF','#B98B27','#562F00','#5C8C8C'];
 
 const KATEGORI_PALETTE = ['#FF6B6B','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#FF9644','#008080','#4C5C7D','#C1440E'];
@@ -1002,17 +1007,18 @@ function renderContent(periode){
 
     Object.keys(kelObj).forEach(kelompok=>{
       const subObj = kelObj[kelompok];
-      const compSegs = splitCompositionSegments(subObj);
+      const compGroups = getCompositionGroups(subObj, kelompok);
       const kelColor = getGroupColor(kategori, kelompok);
       
       html += `<div class="kelompok-block" style="--kat-accent:${kelColor}">
         <div class="kelompok-chip" style="background:${kelColor}22;color:${kelColor}">${escapeHtml(kelompok)}</div>
         <div class="card-grid">`;
 
-      if(compSegs){
-        html += renderCompositionCardHtml(periode,kategori,kelompok,subObj,compSegs,kelColor);
-      }
-      const normalSubs = compSegs ? Object.keys(subObj).filter(s=>!compSegs.includes(s)) : Object.keys(subObj);
+      compGroups.forEach(g=>{
+        html += renderCompositionCardHtml(periode,kategori,kelompok,subObj,g,kelColor);
+      });
+      const claimedSubs = new Set(compGroups.flatMap(g=>g.segs));
+      const normalSubs = Object.keys(subObj).filter(s=>!claimedSubs.has(s));
       normalSubs.forEach(sub=>{
           const entries = subObj[sub];
           const latest = entries[entries.length-1];
@@ -1051,8 +1057,8 @@ function renderContent(periode){
 
   document.querySelectorAll('.comp-card').forEach(card=>{
     card.addEventListener('click', ()=>{
-      const [periode,kategori,kelompok] = JSON.parse(decodeURIComponent(card.dataset.compkey));
-      openCompositionDetail(periode,kategori,kelompok);
+      const [periode,kategori,kelompok,label,segs] = JSON.parse(decodeURIComponent(card.dataset.compkey));
+      openCompositionDetail(periode,kategori,kelompok,label,segs);
     });
   });
 }
@@ -1079,7 +1085,38 @@ function splitCompositionSegments(subObj){
   return candidates;
 }
 
-function renderCompositionCardHtml(periode,kategori,kelompok,subObj,segs,katColor){
+const LEVEL_SUFFIX_RE = /\s+(SD\/Sederajat|SMP\/Sederajat|SMA\/Sederajat|SMK\/Sederajat|Perguruan Tinggi|\d{1,2}\s*-\s*\d{1,2}\s*Tahun)$/i;
+
+function splitLevelGroups(subObj){
+  const subs = Object.keys(subObj);
+  const groups = {};
+  subs.forEach(s=>{
+    const m = s.match(LEVEL_SUFFIX_RE);
+    if(m){
+      const prefix = s.slice(0, m.index).trim();
+      if(!groups[prefix]) groups[prefix] = [];
+      groups[prefix].push(s);
+    }
+  });
+  return Object.keys(groups)
+    .filter(p=>groups[p].length >= 2)
+    .map(p=>({ label:p, segs:groups[p] }));
+}
+
+function getCompositionGroups(subObj, kelompok){
+  const groups = [];
+  const pctSegs = splitCompositionSegments(subObj);
+  if(pctSegs) groups.push({ label:kelompok, segs:pctSegs, normalized:true });
+  const claimed = new Set(pctSegs || []);
+  splitLevelGroups(subObj).forEach(g=>{
+    const segs = g.segs.filter(s=>!claimed.has(s));
+    if(segs.length >= 2) groups.push({ label:g.label, segs, normalized:false });
+  });
+  return groups;
+}
+
+function renderCompositionCardHtml(periode,kategori,kelompok,subObj,group,katColor){
+  const { label, segs, normalized } = group;
   let maxSK = -Infinity;
   segs.forEach(s=> subObj[s].forEach(e=>{ maxSK = Math.max(maxSK, sortKey(e)); }));
   const latestEntries = segs.map(s=>{
@@ -1097,13 +1134,18 @@ function renderCompositionCardHtml(periode,kategori,kelompok,subObj,segs,katColo
 
   const legend = latestEntries.map((x,i)=>{
     const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
-    return `<div class="comp-legend-item"><span class="dot" style="background:${color}"></span>${escapeHtml(x.sub)} <b>${fmtNum(x.entry?x.entry.data:NaN)}</b></div>`;
+    let shortName = x.sub;
+    if(shortName.startsWith(label)){
+      shortName = shortName.slice(label.length).trim().replace(/^[-–:\/]\s*/,'');
+    }
+    if(!shortName) shortName = x.sub;
+    return `<div class="comp-legend-item" title="${escapeHtml(x.sub)}: ${fmtNum(x.entry?x.entry.data:NaN)}"><span class="dot" style="background:${color}"></span>${escapeHtml(shortName)}</div>`;
   }).join('');
 
-  const key = encodeURIComponent(JSON.stringify([periode,kategori,kelompok]));
+  const key = encodeURIComponent(JSON.stringify([periode,kategori,kelompok,label,segs]));
   return `<div class="card comp-card" data-compkey='${key}'>
-      <div class="card-label">${escapeHtml(kelompok)}</div>
-      <div class="card-period">${latestLabel} · Komposisi</div>
+      <div class="card-label">${escapeHtml(label)}</div>
+      <div class="card-period">${latestLabel} · ${normalized ? 'Komposisi' : 'Rincian per Jenjang'}</div>
       <div class="comp-bar">${barSegs}</div>
       <div class="comp-legend">${legend}</div>
     </div>`;
@@ -1156,7 +1198,10 @@ function openDetail(periode,kategori,kelompok,sub){
       <p>${escapeHtml(DEFINISI[sub])}</p>
     </div>` : ''}
 
-    <div class="drawer-narrative" id="drawerNarrative"></div>
+    <div class="ai-insight-box">
+      <div class="ai-insight-title">Fast Insight</div>
+      <div class="ai-insight-content drawer-narrative" id="drawerNarrative">Memuat analisis…</div>
+    </div>
 
     <div class="table-head-row">
       <span class="table-head-label">Riwayat Data</span>
@@ -1206,17 +1251,95 @@ function closeDetail(){
 
 function triggerJPGDownload(inst, name){
   if(!inst){ alert('Grafik belum siap.'); return; }
-  const link = document.createElement('a');
-  link.href = inst.toBase64Image('image/jpeg', 1.0);
-  link.download = `${(name||'grafik').replace(/[^a-z0-9]+/gi,'_')}.jpg`;
-  link.click();
+  const srcCanvas = inst.canvas;
+  const tmpCanvas = document.createElement('canvas');
+  tmpCanvas.width = srcCanvas.width;
+  tmpCanvas.height = srcCanvas.height;
+  const tctx = tmpCanvas.getContext('2d');
+  tctx.fillStyle = '#ffffff';
+  tctx.fillRect(0, 0, tmpCanvas.width, tmpCanvas.height);
+  tctx.drawImage(srcCanvas, 0, 0);
+  tmpCanvas.toBlob(function(blob){
+    if(!blob){ alert('Gagal membuat gambar.'); return; }
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${(name||'grafik').replace(/[^a-z0-9]+/gi,'_')}.jpg`;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  }, 'image/jpeg', 1.0);
 }
 function downloadChartJPG(){ triggerJPGDownload(chartInstance, currentSeriesKey ? currentSeriesKey.sub : 'grafik'); }
-function downloadCompChartJPG(){ triggerJPGDownload(chartInstance, currentCompKey ? currentCompKey.kelompok : 'komposisi'); }
+function downloadCompChartJPG(){ triggerJPGDownload(chartInstance, currentCompKey ? currentCompKey.label : 'komposisi'); }
 function downloadCompareChartJPG(){ triggerJPGDownload(compareChart, 'perbandingan_indikator'); }
 
+async function exportStyledExcel(filename, sheetName, header, rows){
+  if(typeof ExcelJS === 'undefined'){ alert('Gagal memuat library Excel. Coba refresh halaman.'); return; }
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet(sheetName);
+  ws.addRow(header);
+  rows.forEach(r=>ws.addRow(r));
+
+  const headerRow = ws.getRow(1);
+  headerRow.eachCell(cell=>{
+    cell.font = { bold:true, color:{argb:'FFFFFFFF'} };
+    cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFE97B2A'} };
+    cell.alignment = { vertical:'middle', horizontal:'center' };
+    cell.border = {
+      top:{style:'thin',color:{argb:'FFD8A15B'}}, left:{style:'thin',color:{argb:'FFD8A15B'}},
+      bottom:{style:'thin',color:{argb:'FFD8A15B'}}, right:{style:'thin',color:{argb:'FFD8A15B'}}
+    };
+  });
+  headerRow.height = 20;
+
+  for(let i=2;i<=ws.rowCount;i++){
+    const row = ws.getRow(i);
+    row.eachCell((cell, colNumber)=>{
+      cell.border = {
+        top:{style:'thin',color:{argb:'FFEFDCB8'}}, left:{style:'thin',color:{argb:'FFEFDCB8'}},
+        bottom:{style:'thin',color:{argb:'FFEFDCB8'}}, right:{style:'thin',color:{argb:'FFEFDCB8'}}
+      };
+      if(typeof cell.value === 'number'){
+        cell.numFmt = '#,##0.00';
+        cell.alignment = { horizontal:'right' };
+      }else{
+        cell.alignment = { horizontal: colNumber===1 ? 'left' : 'center' };
+      }
+      if(i % 2 === 0){
+        cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFFBF3E4'} };
+      }
+    });
+  }
+
+  ws.columns.forEach((col,idx)=>{
+    let maxLen = String(header[idx]==null?'':header[idx]).length;
+    rows.forEach(r=>{
+      const v = r[idx];
+      const len = (v===null||v===undefined||v==='') ? 1 : String(v).length;
+      if(len>maxLen) maxLen = len;
+    });
+    col.width = Math.min(Math.max(maxLen+3, 10), 40);
+  });
+
+  ws.views = [{ state:'frozen', ySplit:1 }];
+
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
 function downloadTableExcel(){
-  if(typeof XLSX === 'undefined'){ alert('Gagal memuat library Excel. Coba refresh halaman.'); return; }
   if(!currentSeriesKey) return;
   const {periode,kategori,kelompok,sub} = currentSeriesKey;
   const entries = STORE[periode][kategori][kelompok][sub];
@@ -1225,19 +1348,14 @@ function downloadTableExcel(){
   const fromYear = parseInt(fromSel.value), toYear = parseInt(toSel.value);
   const filtered = entries.filter(e=>e.tahun>=fromYear && e.tahun<=toYear);
 
-  const data = [['Periode','Nilai'], ...filtered.map(e=>[periodLabel(e), e.data])];
-  const ws = XLSX.utils.aoa_to_sheet(data);
-  ws['!cols'] = [{wch:16},{wch:12}];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Data');
-  XLSX.writeFile(wb, `${sub.replace(/[^a-z0-9]+/gi,'_')}.xlsx`);
+  const rows = filtered.map(e=>[periodLabel(e), e.data]);
+  exportStyledExcel(`${sub.replace(/[^a-z0-9]+/gi,'_')}.xlsx`, 'Data', ['Periode','Nilai'], rows);
 }
 
-function openCompositionDetail(periode,kategori,kelompok){
+function openCompositionDetail(periode,kategori,kelompok,label,segs){
   const subObj = STORE[periode][kategori][kelompok];
-  const segs = splitCompositionSegments(subObj);
-  if(!segs) return;
-  currentCompKey = {periode,kategori,kelompok};
+  if(!segs || segs.length < 2) return;
+  currentCompKey = {periode,kategori,kelompok,label};
   currentSeriesKey = null;
 
   let allEntries = [];
@@ -1248,8 +1366,8 @@ function openCompositionDetail(periode,kategori,kelompok){
   drawer.innerHTML = `
     <div class="drawer-top">
       <div>
-        <div class="drawer-eyebrow">${escapeHtml(kategori)} · Komposisi</div>
-        <h3>${escapeHtml(kelompok)}</h3>
+        <div class="drawer-eyebrow">${escapeHtml(kategori)} · ${escapeHtml(kelompok)}</div>
+        <h3>${escapeHtml(label)}</h3>
       </div>
       <button class="drawer-close" id="closeDrawer">✕</button>
     </div>
@@ -1393,7 +1511,6 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
 }
 
 function downloadCompositionExcel(subObj, segs){
-  if(typeof XLSX === 'undefined'){ alert('Gagal memuat library Excel. Coba refresh halaman.'); return; }
   const fromSel = document.getElementById('compFromYear');
   const toSel = document.getElementById('compToYear');
   const fromYear = parseInt(fromSel.value), toYear = parseInt(toSel.value);
@@ -1407,7 +1524,7 @@ function downloadCompositionExcel(subObj, segs){
   const sortedSK = [...skMap.keys()].sort((a,b)=>a-b);
 
   const header = ['Periode', ...segs, 'Total'];
-  const data = [header];
+  const rows = [];
   sortedSK.forEach(sk=>{
     const label = skMap.get(sk);
     let rowTotal = 0;
@@ -1417,13 +1534,10 @@ function downloadCompositionExcel(subObj, segs){
       if(typeof v === 'number') rowTotal += v;
       return v;
     });
-    data.push([label, ...vals, rowTotal]);
+    rows.push([label, ...vals, rowTotal]);
   });
 
-  const ws = XLSX.utils.aoa_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Komposisi');
-  XLSX.writeFile(wb, `${(currentCompKey?currentCompKey.kelompok:'komposisi').replace(/[^a-z0-9]+/gi,'_')}.xlsx`);
+  exportStyledExcel(`${(currentCompKey?currentCompKey.label:'komposisi').replace(/[^a-z0-9]+/gi,'_')}.xlsx`, 'Komposisi', header, rows);
 }
 
 function buildCompareIndex(periode){
@@ -1461,6 +1575,11 @@ function renderCompareView(){
         <div class="ctrl-item"><label>Periode</label><select id="cmpPeriode"></select></div>
         <div class="ctrl-item"><label>Dari</label><select id="cmpFrom"></select></div>
         <div class="ctrl-item"><label>Sampai</label><select id="cmpTo"></select></div>
+        <div class="ctrl-item"><label>Jenis Grafik</label><select id="cmpChartType">
+          <option value="line">Garis</option>
+          <option value="bar">Batang</option>
+          <option value="area">Area</option>
+        </select></div>
         <label class="cmp-normalize"><input type="checkbox" id="cmpNormalize"> Indeks (awal = 100)</label>
         <button class="cmp-clear" id="cmpClear">Hapus pilihan</button>
       </div>
@@ -1477,7 +1596,7 @@ function renderCompareView(){
           
           <div class="cmp-info-grid" id="cmpInfoGrid" style="display:none;">
             <div class="ai-insight-box">
-              <div class="ai-insight-title">✨ AI Insights & Analisis Mendalam Tren</div>
+              <div class="ai-insight-title">✨ Fast Insight & Analisis Tren</div>
               <div class="ai-insight-content" id="aiInsightText">Pilih indikator untuk melihat analisis.</div>
             </div>
             <div class="compare-defs-box">
@@ -1509,6 +1628,9 @@ function renderCompareView(){
   });
   fromSel.onchange = ()=>{ compareFrom = parseInt(fromSel.value); renderCompareChart(); };
   toSel.onchange = ()=>{ compareTo = parseInt(toSel.value); renderCompareChart(); };
+
+  document.getElementById('cmpChartType').value = compareChartType;
+  document.getElementById('cmpChartType').onchange = (e)=>{ compareChartType = e.target.value; renderCompareChart(); };
 
   document.getElementById('cmpNormalize').checked = normalizeCompare;
   document.getElementById('cmpNormalize').onchange = (e)=>{ normalizeCompare = e.target.checked; renderCompareChart(); };
@@ -1661,21 +1783,24 @@ function renderCompareChart(){
     const isDashed = type === 'dashed-area';
     const isScatter = type === 'scatter';
     const yAxisID = (!normalizeCompare && keys.length > 1 && i % 2 === 1) ? 'y1' : 'y';
+    const isBarMode = compareChartType === 'bar';
+    const isAreaMode = compareChartType === 'area';
 
     return {
+      type: isBarMode ? 'bar' : 'line',
       label: info.sub,
       data: values,
       borderColor: color,
-      backgroundColor: color,
-      pointRadius: 3,
-      pointHoverRadius: 5,
+      backgroundColor: (isBarMode || isAreaMode) ? color + '55' : color,
+      pointRadius: isBarMode ? 0 : 3,
+      pointHoverRadius: isBarMode ? 0 : 5,
       borderWidth: 2.2,
       spanGaps: true,
       tension: isSpline ? 0.4 : ((isStepped || isDashed) ? 0 : 0.25),
       stepped: isStepped,
       borderDash: isDashed ? [6, 4] : [],
       showLine: !isScatter,
-      fill: false,
+      fill: isAreaMode ? true : false,
       yAxisID: yAxisID
     };
   });
@@ -1685,7 +1810,7 @@ function renderCompareChart(){
   const ctx = document.getElementById('compareChart').getContext('2d');
   if(compareChart) compareChart.destroy();
   compareChart = new Chart(ctx, {
-    type:'line',
+    type: compareChartType === 'bar' ? 'bar' : 'line',
     data:{ labels, datasets },
     options:{
       responsive:true,
@@ -1775,6 +1900,39 @@ document.addEventListener('keydown', (e)=>{
   if(e.key === 'Escape') closeDetail();
 });
 
+function buildSeriesInsight(filtered, indikator){
+  if(!filtered || filtered.length === 0) return 'Tidak ada data pada rentang periode ini.';
+  const satuan = SATUAN[indikator] ? ' ' + escapeHtml(SATUAN[indikator]) : '';
+  const first = filtered[0];
+  const last = filtered[filtered.length-1];
+
+  let maxObj = filtered[0], minObj = filtered[0], sum = 0;
+  filtered.forEach(e=>{
+    if(e.data > maxObj.data) maxObj = e;
+    if(e.data < minObj.data) minObj = e;
+    sum += e.data;
+  });
+  const avg = sum / filtered.length;
+
+  let trendWord = 'relatif stabil dibandingkan', trendClass = 'trend-flat';
+  if(last.data > first.data){ trendWord = 'meningkat dibandingkan'; trendClass = 'trend-up'; }
+  else if(last.data < first.data){ trendWord = 'menurun dibandingkan'; trendClass = 'trend-down'; }
+
+  let html = `Pada periode <b>${periodLabel(last)}</b>, indikator <b>${escapeHtml(indikator)}</b> tercatat <b>${fmtNum(last.data)}${satuan}</b>.`;
+
+  if(first !== last){
+    const diff = last.data - first.data;
+    const pct = first.data !== 0 ? (diff/first.data*100) : 0;
+    const spanYears = (last.tahun - first.tahun) || 1;
+    const cagr = first.data > 0 ? (Math.pow(last.data/first.data, 1/spanYears) - 1) * 100 : 0;
+    html += ` Nilai ini <span class="${trendClass}">${trendWord}</span> periode <b>${periodLabel(first)}</b> (${fmtNum(first.data)}${satuan}), setara perubahan kumulatif <b>${pct>0?'+':''}${pct.toFixed(1)}%</b> (laju rata-rata tahunan/CAGR: <b>${cagr>0?'+':''}${cagr.toFixed(2)}%/tahun</b>).`;
+  }
+
+  html += ` Sepanjang rentang ini, nilai tertinggi tercatat pada <b>${periodLabel(maxObj)}</b> (${fmtNum(maxObj.data)}${satuan}) dan terendah pada <b>${periodLabel(minObj)}</b> (${fmtNum(minObj.data)}${satuan}), dengan rata-rata sekitar <b>${fmtNum(avg)}${satuan}</b>.`;
+
+  return html;
+}
+
 function refreshDetail(entries, fromYear, toYear){
   const filtered = entries.filter(e=>e.tahun>=fromYear && e.tahun<=toYear);
   const labels = filtered.map(periodLabel);
@@ -1798,21 +1956,7 @@ function refreshDetail(entries, fromYear, toYear){
 
   const narrEl = document.getElementById('drawerNarrative');
   if(narrEl && currentSeriesKey){
-    const first = filtered[0];
-    const last = filtered[filtered.length-1];
-    const indikator = currentSeriesKey.sub;
-    const satuan = SATUAN[indikator] ? ' ' + escapeHtml(SATUAN[indikator]) : '';
-    if(first && last && first !== last){
-      let trendWord = 'tidak berubah dibandingkan';
-      let trendClass = 'trend-flat';
-      if(last.data > first.data){ trendWord = 'meningkat dibandingkan'; trendClass = 'trend-up'; }
-      else if(last.data < first.data){ trendWord = 'menurun dibandingkan'; trendClass = 'trend-down'; }
-      narrEl.innerHTML = `Pada periode <b>${periodLabel(last)}</b>, indikator <b>${escapeHtml(indikator)}</b> mencapai <b>${fmtNum(last.data)}${satuan}</b>. Nilai ini <span class="${trendClass}">${trendWord}</span> periode <b>${periodLabel(first)}</b> yang mencapai <b>${fmtNum(first.data)}${satuan}</b>.`;
-    }else if(last){
-      narrEl.innerHTML = `Pada periode <b>${periodLabel(last)}</b>, indikator <b>${escapeHtml(indikator)}</b> mencapai <b>${fmtNum(last.data)}${satuan}</b>.`;
-    }else{
-      narrEl.innerHTML = '';
-    }
+    narrEl.innerHTML = buildSeriesInsight(filtered, currentSeriesKey.sub);
   }
 
   let rows = '';
