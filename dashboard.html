@@ -926,8 +926,8 @@ function escapeHtml(s){
 function openDetail(periode,kategori,kelompok,sub){
   currentSeriesKey = {periode,kategori,kelompok,sub};
   currentCompKey = null;
-  currentDetailColor = getKategoriColor(kategori);
-  currentDetailChartType = getKategoriChartType(kategori);
+  currentDetailColor = getGroupColor(kategori, kelompok);
+  currentDetailChartType = getGroupChartType(kategori, kelompok);
   const entries = STORE[periode][kategori][kelompok][sub];
   const years = [...new Set(entries.map(e=>e.tahun))].sort((a,b)=>a-b);
 
