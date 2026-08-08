@@ -297,6 +297,14 @@
     color:var(--brown-deep);
     letter-spacing:-.01em;
   }
+  .card-unit {
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--brown-soft);
+    margin-left: 4px;
+    letter-spacing: 0;
+  }
   .card-period{
     font-size:10.5px;
     color:var(--brown-soft);
@@ -767,8 +775,9 @@ function renderTabs(){
   tabsEl.appendChild(cmpBtn);
 }
 
-function makeSparkline(entries, color){
+function makeSparkline(entries, color, type){
   color = color || 'var(--orange)';
+  type = type || 'line';
   const vals = entries.slice(-8).map(e=>e.data);
   if(vals.length < 2){
     return `<div class="spark-wrap"></div>`;
@@ -777,16 +786,32 @@ function makeSparkline(entries, color){
   const min = Math.min(...vals), max = Math.max(...vals);
   const range = (max-min) || 1;
   const step = (w-pad*2) / (vals.length-1);
-  const pts = vals.map((v,i)=>{
-    const x = pad + i*step;
-    const y = h - pad - ((v-min)/range)*(h-pad*2);
-    return `${x.toFixed(1)},${y.toFixed(1)}`;
-  });
-  const last = pts[pts.length-1].split(',');
-  return `<div class="spark-wrap"><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
-    <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="${last[0]}" cy="${last[1]}" r="3" fill="${color}"/>
-  </svg></div>`;
+
+  let svgContent = '';
+
+  if (type === 'bar') {
+    const barW = Math.max(3, (w - pad * 2) / vals.length * 0.5);
+    svgContent = vals.map((v, i) => {
+      let barH = ((v - min) / range) * (h - pad * 2);
+      barH = Math.max(barH, 2); // Pastikan bar tidak hilang sepenuhnya jika nilainya paling kecil
+      const x = pad + i * step - barW / 2;
+      const y = h - pad - barH;
+      return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" fill="${color}" rx="1"></rect>`;
+    }).join('');
+  } else {
+    const pts = vals.map((v,i)=>{
+      const x = pad + i*step;
+      const y = h - pad - ((v-min)/range)*(h-pad*2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+    const last = pts[pts.length-1].split(',');
+    svgContent = `
+      <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${last[0]}" cy="${last[1]}" r="3" fill="${color}"/>
+    `;
+  }
+
+  return `<div class="spark-wrap"><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${svgContent}</svg></div>`;
 }
 
 function changeBadge(entries){
@@ -815,6 +840,7 @@ function renderContent(periode){
       const subObj = kelObj[kelompok];
       const compSegs = splitCompositionSegments(subObj);
       const kelColor = getGroupColor(kategori, kelompok);
+      const kelChartType = getGroupChartType(kategori, kelompok);
       html += `<div class="kelompok-block" style="--kat-accent:${kelColor}">
         <div class="kelompok-chip" style="background:${kelColor}22;color:${kelColor}">${escapeHtml(kelompok)}</div>
         <div class="card-grid">`;
@@ -827,16 +853,19 @@ function renderContent(periode){
           const entries = subObj[sub];
           const latest = entries[entries.length-1];
           const key = encodeURIComponent(JSON.stringify([periode,kategori,kelompok,sub]));
+          
+          const satuanTeks = SATUAN[sub] ? `<span class="card-unit">${escapeHtml(SATUAN[sub])}</span>` : '';
+
           html += `<div class="card" data-key='${key}'>
               <div class="card-label">${escapeHtml(sub)}</div>
               <div>
                 <div class="card-period">${periodLabel(latest)}</div>
                 <div class="card-value-row">
-                  <div class="card-value">${fmtNum(latest.data)}</div>
+                  <div class="card-value">${fmtNum(latest.data)}${satuanTeks}</div>
                   ${changeBadge(entries)}
                 </div>
               </div>
-              ${makeSparkline(entries, kelColor)}
+              ${makeSparkline(entries, kelColor, kelChartType)}
             </div>`;
       });
 
