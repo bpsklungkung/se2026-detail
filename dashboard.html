@@ -88,7 +88,7 @@
   /* ===== Layout ===== */
   .page-wrap{ max-width:1280px; margin:0 auto; padding:0 24px; }
 
-  /* Tabbar (filterbar style) */
+  /* Tabbar */
   .tabbar{
     background:var(--white);
     border:1px solid var(--peach-soft);
@@ -185,12 +185,52 @@
     background:var(--dotcolor, var(--orange-deep)); flex-shrink:0;
   }
 
-  .compare-chart-area{ min-height:300px; }
+  .compare-chart-area{ min-height:300px; display:flex; flex-direction:column; gap:12px; }
   .compare-empty{
     display:none;
     background:var(--card-bg); border:1px dashed var(--line); border-radius:12px;
     padding:50px 24px; text-align:center; color:var(--brown-soft); font-size:13px;
   }
+
+  /* AI Insight & Definisi Grid */
+  .cmp-info-grid{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap:12px;
+  }
+  .ai-insight-box{
+    background: linear-gradient(135deg, var(--cream) 0%, var(--cream-deep) 100%);
+    border:1px solid var(--peach);
+    border-radius:12px;
+    padding:18px;
+  }
+  .ai-insight-title{
+    font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; font-weight:700;
+    color:var(--orange-deep); margin-bottom:8px; display:flex; align-items:center; gap:6px;
+  }
+  .ai-insight-content{
+    font-size:12.5px; line-height:1.6; color:var(--brown);
+  }
+  .ai-insight-content b{ color:var(--brown-deep); }
+  .insight-section-title{
+    font-weight:700; color:var(--brown-deep); margin-top:10px; margin-bottom:4px; display:block;
+  }
+
+  .compare-defs-box{
+    background:var(--card-bg);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:16px;
+  }
+  .compare-defs-title{
+    font-size:11px; text-transform:uppercase; letter-spacing:.08em; font-weight:700;
+    color:var(--orange-deep); margin-bottom:8px;
+  }
+  .def-item{
+    font-size:12px; line-height:1.45; color:var(--brown-mid); margin-bottom:8px;
+  }
+  .def-item:last-child{ margin-bottom:0; }
+  .def-item b{ color:var(--brown); }
 
   @media (max-width:760px){
     .compare-body{ grid-template-columns:1fr; }
@@ -577,9 +617,9 @@
 <script>
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS0IHQMxQuwLfTdSgKoXUqA8guCT788uBZ4cwlE72X6co3LMRcGU6tk1PSMbi7nVeEB2g-kTVXYBPyv/pub?output=csv";
 
-let STORE = {};        // STORE[periode][kategori][kelompok][subkelompok] = [entries]
-let DEFINISI = {};     // DEFINISI[subkelompok] = teks definisi (dari kolom I & J)
-let SATUAN = {};       // SATUAN[subkelompok] = satuan data (dari kolom H)
+let STORE = {};        
+let DEFINISI = {};     
+let SATUAN = {};       
 let activePeriode = null;
 let chartInstance = null;
 let currentSeriesKey = null;
@@ -595,9 +635,6 @@ let normalizeCompare = false;
 let compareChart = null;
 const COMPARE_COLORS = ['#FF9644','#4E7D5A','#A63A50','#3E6E8E','#8C6BAF','#B98B27','#562F00','#5C8C8C'];
 
-// Distinct accent color per Kelompok (assigned in first-seen order, stable across tab switches).
-// Keyed by "kategori|||kelompok" so e.g. Kemiskinan and Ketimpangan get different colors even
-// though both sit under the same Kategori "Sosial".
 const KATEGORI_PALETTE = ['#FF6B6B','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#FF9644','#008080','#4C5C7D','#C1440E'];
 let GROUP_COLOR_MAP = {};
 function getGroupColor(kategori, kelompok){
@@ -609,22 +646,20 @@ function getGroupColor(kategori, kelompok){
   return GROUP_COLOR_MAP[key];
 }
 
-// Menambahkan variasi stepped-area dan dashed-area ke dalam daftar tipe grafik yang dirotasi
 function getGroupChartType(kategori, kelompok){
   const key = kategori + '|||' + kelompok;
-  getGroupColor(kategori, kelompok); // pastikan warnanya terdaftar terlebih dahulu
+  getGroupColor(kategori, kelompok); 
   const idx = Object.keys(GROUP_COLOR_MAP).indexOf(key);
-  const types = ['line', 'bar', 'stepped-area', 'dashed-area'];
+  const types = ['filled-area', 'bar', 'stepped-area', 'dashed-area', 'scatter'];
   return types[idx % types.length];
 }
 
 let currentDetailColor = '#FF9644';
-let currentDetailChartType = 'line';
+let currentDetailChartType = 'filled-area';
 
 function toNumber(v){
   if(v===undefined||v===null) return NaN;
   const s = v.toString().trim().replace(/\./g,'').replace(/,/g,'.');
-  // handle plain numbers like "12.5" already (Papa keeps original string) — try both
   const direct = parseFloat(v.toString().trim().replace(/,/g,''));
   if(!isNaN(direct)) return direct;
   return parseFloat(s);
@@ -674,13 +709,11 @@ function showError(msg){
     `<div class="state-msg">⚠ ${msg}<br><br><a href="${CSV_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div>`;
 }
 
-// Column positions (0-indexed): A Periode, B Triwulan, C Tahun, D Kategori,
-// E Kelompok, F Subkelompok, G Data, H Satuan, I Subkelompok (definisi), J Definisi
 function buildStore(rows){
   STORE = {};
   DEFINISI = {};
   SATUAN = {};
-  rows.slice(1).forEach(row=>{ // skip header row
+  rows.slice(1).forEach(row=>{ 
     const periode = (row[0]||'').toString().trim();
     const triwulan = (row[1]||'').toString().trim();
     const tahun = parseInt((row[2]||'').toString().trim());
@@ -705,7 +738,6 @@ function buildStore(rows){
     STORE[periode][kategori][kelompok][subkelompok].push({tahun, triwulan, data});
   });
 
-  // sort each series chronologically
   Object.values(STORE).forEach(katObj=>{
     Object.values(katObj).forEach(kelObj=>{
       Object.values(kelObj).forEach(subObj=>{
@@ -774,10 +806,9 @@ function renderTabs(){
   tabsEl.appendChild(cmpBtn);
 }
 
-// Logika sparkline diperbarui untuk menyesuaikan tipe grafik
 function makeSparkline(entries, color, type){
   color = color || 'var(--orange)';
-  type = type || 'line';
+  type = type || 'filled-area';
   const vals = entries.slice(-8).map(e=>e.data);
   if(vals.length < 2){
     return `<div class="spark-wrap"></div>`;
@@ -830,15 +861,22 @@ function makeSparkline(entries, color, type){
       <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4,4"/>
       <circle cx="${last[0]}" cy="${last[1]}" r="3" fill="${color}"/>
     `;
+  } else if (type === 'scatter') {
+    svgContent = vals.map((v, i) => {
+      const x = pad + i * step;
+      const y = h - pad - ((v - min) / range) * (h - pad * 2);
+      return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${color}"/>`;
+    }).join('');
   } else {
-    // tipe line normal
     const pts = vals.map((v,i) => {
       const x = pad + i * step;
       const y = h - pad - ((v - min) / range) * (h - pad * 2);
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     });
     const last = pts[pts.length-1].split(',');
+    const poly = `${pts[0].split(',')[0]},${h} ${pts.join(' ')} ${last[0]},${h}`;
     svgContent = `
+      <polygon points="${poly}" fill="${color}" opacity="0.15"/>
       <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       <circle cx="${last[0]}" cy="${last[1]}" r="3" fill="${color}"/>
     `;
@@ -925,8 +963,6 @@ function renderContent(periode){
   });
 }
 
-/* ---------- Composition (distribusi) detection & rendering ---------- */
-
 function splitCompositionSegments(subObj){
   const subs = Object.keys(subObj);
   const candidates = subs.filter(s => /^\d+(\.\d+)?%/.test(s.trim()));
@@ -979,8 +1015,6 @@ function renderCompositionCardHtml(periode,kategori,kelompok,subObj,segs,katColo
 function escapeHtml(s){
   return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-
-/* ---------- Detail drawer ---------- */
 
 function openDetail(periode,kategori,kelompok,sub){
   currentSeriesKey = {periode,kategori,kelompok,sub};
@@ -1073,15 +1107,16 @@ function closeDetail(){
   document.getElementById('overlay').classList.remove('show');
 }
 
-function triggerJPGDownload(name){
-  if(!chartInstance){ alert('Grafik belum siap.'); return; }
+function triggerJPGDownload(inst, name){
+  if(!inst){ alert('Grafik belum siap.'); return; }
   const link = document.createElement('a');
-  link.href = chartInstance.toBase64Image('image/jpeg', 1.0);
+  link.href = inst.toBase64Image('image/jpeg', 1.0);
   link.download = `${(name||'grafik').replace(/[^a-z0-9]+/gi,'_')}.jpg`;
   link.click();
 }
-function downloadChartJPG(){ triggerJPGDownload(currentSeriesKey ? currentSeriesKey.sub : 'grafik'); }
-function downloadCompChartJPG(){ triggerJPGDownload(currentCompKey ? currentCompKey.kelompok : 'komposisi'); }
+function downloadChartJPG(){ triggerJPGDownload(chartInstance, currentSeriesKey ? currentSeriesKey.sub : 'grafik'); }
+function downloadCompChartJPG(){ triggerJPGDownload(chartInstance, currentCompKey ? currentCompKey.kelompok : 'komposisi'); }
+function downloadCompareChartJPG(){ triggerJPGDownload(compareChart, 'perbandingan_indikator'); }
 
 function downloadTableExcel(){
   if(typeof XLSX === 'undefined'){ alert('Gagal memuat library Excel. Coba refresh halaman.'); return; }
@@ -1100,8 +1135,6 @@ function downloadTableExcel(){
   XLSX.utils.book_append_sheet(wb, ws, 'Data');
   XLSX.writeFile(wb, `${sub.replace(/[^a-z0-9]+/gi,'_')}.xlsx`);
 }
-
-/* ---------- Composition detail drawer ---------- */
 
 function openCompositionDetail(periode,kategori,kelompok){
   const subObj = STORE[periode][kategori][kelompok];
@@ -1296,8 +1329,6 @@ function downloadCompositionExcel(subObj, segs){
   XLSX.writeFile(wb, `${(currentCompKey?currentCompKey.kelompok:'komposisi').replace(/[^a-z0-9]+/gi,'_')}.xlsx`);
 }
 
-/* ---------- Compare view ---------- */
-
 function buildCompareIndex(periode){
   const idx = {};
   const katObj = STORE[periode];
@@ -1339,10 +1370,25 @@ function renderCompareView(){
       <div class="compare-body">
         <div class="compare-picker" id="cmpPicker"></div>
         <div class="compare-chart-area">
-          <div class="chart-box" id="cmpChartBox" style="height:380px;">
-            <canvas id="compareChart"></canvas>
+          <div class="chart-box-wrap" id="cmpChartWrap" style="display:none;">
+            <button class="dl-btn" id="dlCompareChart" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+            <div class="chart-box" id="cmpChartBox" style="height:360px;">
+              <canvas id="compareChart"></canvas>
+            </div>
           </div>
           <div class="compare-empty" id="cmpEmpty">Pilih minimal satu indikator di samping untuk mulai membandingkan.</div>
+          
+          <!-- Area AI Insight Mendalam & Definisi -->
+          <div class="cmp-info-grid" id="cmpInfoGrid" style="display:none;">
+            <div class="ai-insight-box">
+              <div class="ai-insight-title">✨ AI Insights & Analisis Mendalam Tren</div>
+              <div class="ai-insight-content" id="ai InsightText">Menganalisis pergerakan data secara mendalam...</div>
+            </div>
+            <div class="compare-defs-box">
+              <div class="compare-defs-title">Definisi Indikator Terpilih</div>
+              <div id="compareDefsList"></div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -1371,6 +1417,7 @@ function renderCompareView(){
   document.getElementById('cmpNormalize').checked = normalizeCompare;
   document.getElementById('cmpNormalize').onchange = (e)=>{ normalizeCompare = e.target.checked; renderCompareChart(); };
   document.getElementById('cmpClear').onclick = ()=>{ compareSelected.clear(); renderComparePicker(); renderCompareChart(); };
+  document.getElementById('dlCompareChart').onclick = downloadCompareChartJPG;
 
   renderComparePicker();
   renderCompareChart();
@@ -1433,25 +1480,28 @@ function updatePickerColors(){
 }
 
 function renderCompareChart(){
-  const box = document.getElementById('cmpChartBox');
+  const wrap = document.getElementById('cmpChartWrap');
   const empty = document.getElementById('cmpEmpty');
+  const infoGrid = document.getElementById('cmpInfoGrid');
   const keys = [...compareSelected];
 
   if(keys.length === 0){
-    box.style.display = 'none';
+    wrap.style.display = 'none';
     empty.style.display = 'block';
+    infoGrid.style.display = 'none';
     if(compareChart){ compareChart.destroy(); compareChart = null; }
     return;
   }
-  box.style.display = 'block';
+  wrap.style.display = 'block';
   empty.style.display = 'none';
+  infoGrid.style.display = 'grid';
 
   if(typeof Chart === 'undefined'){
-    box.innerHTML = '<div style="padding:20px;font-size:13px;color:var(--brown-mid);">Grafik gagal dimuat (library Chart.js tidak tersedia). Coba refresh halaman.</div>';
+    document.getElementById('cmpChartBox').innerHTML = '<div style="padding:20px;font-size:13px;color:var(--brown-mid);">Grafik gagal dimuat (library Chart.js tidak tersedia). Coba refresh halaman.</div>';
     return;
   }
   if(!document.getElementById('compareChart')){
-    box.innerHTML = '<canvas id="compareChart"></canvas>';
+    document.getElementById('cmpChartBox').innerHTML = '<canvas id="compareChart"></canvas>';
   }
 
   const uniqueLabelsMap = new Map();
@@ -1463,21 +1513,60 @@ function renderCompareChart(){
   const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
   const labels = sortedKeys.map(sk=>uniqueLabelsMap.get(sk));
 
+  const seriesAnalysisData = [];
+
   const datasets = keys.map((k,i)=>{
     const info = compareIndex[k];
     const bySort = {};
     info.entries.forEach(e=>{ bySort[sortKey(e)] = e.data; });
     let values = sortedKeys.map(sk=> bySort.hasOwnProperty(sk) ? bySort[sk] : null);
+    
+    // Ekstraksi data mendalam untuk AI Insight
+    const filteredEntries = info.entries.filter(e => e.tahun >= compareFrom && e.tahun <= compareTo);
+    if(filteredEntries.length > 0){
+      let maxObj = filteredEntries[0];
+      let minObj = filteredEntries[0];
+      filteredEntries.forEach(e => {
+        if(e.data > maxObj.data) maxObj = e;
+        if(e.data < minObj.data) minObj = e;
+      });
+
+      const firstVal = filteredEntries[0].data;
+      const lastVal = filteredEntries[filteredEntries.length - 1].data;
+      const diff = lastVal - firstVal;
+      const pct = firstVal !== 0 ? (diff / firstVal) * 100 : 0;
+      const spanYears = (compareTo - compareFrom) || 1;
+      const cagr = firstVal > 0 ? (Math.pow(lastVal / firstVal, 1 / spanYears) - 1) * 100 : 0;
+
+      seriesAnalysisData.push({
+        name: info.sub,
+        first: firstVal,
+        firstYear: periodLabel(filteredEntries[0]),
+        last: lastVal,
+        lastYear: periodLabel(filteredEntries[filteredEntries.length - 1]),
+        pct: pct,
+        cagr: cagr,
+        max: maxObj.data,
+        maxLabel: periodLabel(maxObj),
+        min: minObj.data,
+        minLabel: periodLabel(minObj),
+        unit: SATUAN[info.sub] || ''
+      });
+    }
+
     if(normalizeCompare){
       const base = values.find(v=>v!==null && v!==undefined && v!==0);
       if(base){
         values = values.map(v=>(v===null||v===undefined) ? null : (v/base*100));
       }
     }
+    
     const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
     const type = getGroupChartType(info.kategori, info.kelompok);
     const isStepped = type === 'stepped-area';
     const isDashed = type === 'dashed-area';
+    const isScatter = type === 'scatter';
+    const yAxisID = (!normalizeCompare && keys.length > 1 && i % 2 === 1) ? 'y1' : 'y';
 
     return {
       label: info.sub,
@@ -1491,9 +1580,13 @@ function renderCompareChart(){
       tension: (isStepped || isDashed) ? 0 : .25,
       stepped: isStepped,
       borderDash: isDashed ? [6, 4] : [],
-      fill: false // Untuk menu bandingkan, fill dimatikan agar tumpukan chart tetap terbaca jelas
+      showLine: !isScatter,
+      fill: false,
+      yAxisID: yAxisID
     };
   });
+
+  const hasY1 = !normalizeCompare && keys.length > 1 && keys.some((_, i) => i % 2 === 1);
 
   const ctx = document.getElementById('compareChart').getContext('2d');
   if(compareChart) compareChart.destroy();
@@ -1511,16 +1604,74 @@ function renderCompareChart(){
         },
         tooltip:{
           callbacks:{
-            label: (c)=> `${c.dataset.label}: ${normalizeCompare ? c.parsed.y.toFixed(1) : fmtNum(c.parsed.y)}${normalizeCompare?' idx':''}`
+            label: (c)=> `${c.dataset.label} (${c.dataset.yAxisID === 'y1' ? 'Kanan' : 'Kiri'}): ${normalizeCompare ? c.parsed.y.toFixed(1) : fmtNum(c.parsed.y)}${normalizeCompare?' idx':''}`
           }
         }
       },
       scales:{
         x:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
-        y:{ grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } }
+        y:{
+          type: 'linear',
+          display: true,
+          position: 'left',
+          grid:{color:'#F2DEB8'},
+          ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} }
+        },
+        y1:{
+          type: 'linear',
+          display: hasY1,
+          position: 'right',
+          grid:{ drawOnChartArea: false },
+          ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} }
+        }
       }
     }
   });
+
+  generateAdvancedAIInsight(seriesAnalysisData);
+  renderCompareDefinitions(keys);
+}
+
+function generateAdvancedAIInsight(dataList){
+  const textEl = document.getElementById('aiInsightText');
+  if(!textEl) return;
+
+  if(!dataList || dataList.length === 0){
+    textEl.innerHTML = `Silakan centang minimal satu indikator di panel sebelah kiri untuk melihat hasil analisis mendalam.`;
+    return;
+  }
+
+  let html = `<span class="insight-section-title">📊 Rangkuman Kinerja & Tren Multi-Indikator</span>`;
+  html += `Analisis mencakup rentang waktu <b>${compareFrom}</b> hingga <b>${compareTo}</b>:<br><br>`;
+
+  dataList.forEach(item=>{
+    const arah = item.pct > 0 ? 'menunjukkan tren kenaikan' : (item.pct < 0 ? 'menunjukkan tren penurunan' : 'cenderung stagnan');
+    const warnaArah = item.pct > 0 ? 'color:var(--rust);' : (item.pct < 0 ? 'color:var(--green);' : '');
+    
+    html += `• <b>${escapeHtml(item.name)}</b>: <span style="${warnaArah}font-weight:700;">${arah}</span> sebesar <b>${item.pct > 0 ? '+' : ''}${item.pct.toFixed(1)}%</b> secara kumulatif (Laju rata-rata tahunan/CAGR: <b>${item.cagr > 0 ? '+' : ''}${item.cagr.toFixed(2)}%/tahun</b>). Nilai tertinggi tercatat pada <b>${item.maxLabel}</b> (${fmtNum(item.max)} ${item.unit}), sementara titik terendahnya berada di <b>${item.minLabel}</b> (${fmtNum(item.min)} ${item.unit}).<br>`;
+  });
+
+  html += `<span class="insight-section-title" style="margin-top:14px;">🔍 Catatan Komparasi & Rekomendasi Analisis</span>`;
+  if(dataList.length === 1){
+    html += `Anda sedang memantau satu indikator tunggal. Tambahkan indikator pembanding lain di panel sebelah kiri untuk melihat pola korelasi atau divergensi antar variabel.`;
+  } else {
+    html += `Dengan membandingkan <b>${dataList.length} indikator terpilih</b>, Anda dapat mengamati apakah pergerakan variabel-variabel ini saling sejalan (sinkron) atau bergerak secara berlawanan (trade-off).`;
+  }
+
+  textEl.innerHTML = html;
+}
+
+function renderCompareDefinitions(keys){
+  const listEl = document.getElementById('compareDefsList');
+  if(!listEl) return;
+
+  let html = '';
+  keys.forEach(k=>{
+    const info = compareIndex[k];
+    const def = DEFINISI[info.sub] || 'Belum ada deskripsi definisi untuk indikator ini.';
+    html += `<div class="def-item"><b>${escapeHtml(info.sub)}:</b> ${escapeHtml(def)}</div>`;
+  });
+  listEl.innerHTML = html;
 }
 
 document.getElementById('overlay').addEventListener('click', (e)=>{
@@ -1535,7 +1686,6 @@ function refreshDetail(entries, fromYear, toYear){
   const labels = filtered.map(periodLabel);
   const values = filtered.map(e=>e.data);
 
-  // stats
   const latest = filtered[filtered.length-1];
   const prev = filtered[filtered.length-2];
   let changeStr = '—';
@@ -1552,7 +1702,6 @@ function refreshDetail(entries, fromYear, toYear){
     <div class="stat-box"><div class="stat-label">Tertinggi / Terendah</div><div class="stat-value" style="font-size:15px;">${fmtNum(max)} / ${fmtNum(min)}</div></div>
   `;
 
-  // narrative sentence
   const narrEl = document.getElementById('drawerNarrative');
   if(narrEl && currentSeriesKey){
     const first = filtered[0];
@@ -1572,7 +1721,6 @@ function refreshDetail(entries, fromYear, toYear){
     }
   }
 
-  // table (reversed, latest first)
   let rows = '';
   [...filtered].reverse().forEach(e=>{
     rows += `<tr><td>${periodLabel(e)}</td><td>${fmtNum(e.data)}</td></tr>`;
@@ -1580,7 +1728,6 @@ function refreshDetail(entries, fromYear, toYear){
   document.getElementById('detailTable').innerHTML =
     `<thead><tr><th>Periode</th><th>Nilai</th></tr></thead><tbody>${rows}</tbody>`;
 
-  // chart setup dengan konfigurasi style variatif (line, stepped-area, dashed-area)
   const canvasEl = document.getElementById('detailChart');
   if(typeof Chart === 'undefined'){
     canvasEl.parentElement.innerHTML = '<div style="padding:20px;font-size:13px;color:var(--brown-mid);">Grafik gagal dimuat (library Chart.js tidak tersedia). Coba refresh halaman.</div>';
@@ -1591,11 +1738,12 @@ function refreshDetail(entries, fromYear, toYear){
 
   const accent = currentDetailColor || '#FF9644';
   const isBar = currentDetailChartType === 'bar';
+  const isScatter = currentDetailChartType === 'scatter';
   const isStepped = currentDetailChartType === 'stepped-area';
   const isDashed = currentDetailChartType === 'dashed-area';
 
   let dataset;
-  if(isBar){
+  if (isBar) {
     dataset = {
       data: values,
       backgroundColor: hexToRgba(accent, 0.75),
@@ -1604,10 +1752,21 @@ function refreshDetail(entries, fromYear, toYear){
       borderRadius:5,
       maxBarThickness:38
     };
-  }else{
+  } else if (isScatter) {
+    dataset = {
+      type: 'line',
+      data: values,
+      borderColor: accent,
+      backgroundColor: accent,
+      pointBackgroundColor: accent,
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      showLine: false,
+      fill: false
+    };
+  } else {
     const gradient = ctx.createLinearGradient(0,0,0,260);
-    // Untuk area stepped dan dashed, kita pertebal sedikit alpha gradiennya agar mirip contoh
-    gradient.addColorStop(0, hexToRgba(accent, (isStepped || isDashed) ? 0.35 : 0.28));
+    gradient.addColorStop(0, hexToRgba(accent, 0.35));
     gradient.addColorStop(1, hexToRgba(accent, 0.02));
     dataset = {
       data: values,
