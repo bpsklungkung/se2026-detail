@@ -11,23 +11,23 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';document.head.appendChild(s);"></script>
 <style>
   :root{
-    --cream:#FAF3E6;
-    --cream-deep:#F3E7D3;
-    --peach:#EFCFA6;
-    --peach-soft:#F6DFC0;
-    --orange:#C97A3D;
-    --orange-deep:#A85F28;
-    --brown:#4A3324;
-    --brown-mid:#7C5B42;
-    --brown-soft:#9C816B;
-    --green:#6E8F6B;
-    --green-bg:#E4EBDF;
-    --rust:#B0512E;
-    --rust-bg:#F3DCD1;
-    --card-bg:#FFFCF6;
-    --line:#E6D7BE;
-    --shadow: 0 1px 2px rgba(74,51,36,.06), 0 8px 24px rgba(74,51,36,.08);
-    --radius:16px;
+    --cream:#FFFDF1;
+    --cream-deep:#FFF3DC;
+    --peach:#FFCE99;
+    --peach-soft:#FFE0B8;
+    --orange:#FF9644;
+    --orange-deep:#D97730;
+    --brown:#562F00;
+    --brown-mid:#8A5A24;
+    --brown-soft:#AD8452;
+    --green:#6F8F52;
+    --green-bg:#E9EEDD;
+    --rust:#C1440E;
+    --rust-bg:#FCE1CB;
+    --card-bg:#FFFEFA;
+    --line:#F2DEB8;
+    --shadow: 0 1px 2px rgba(86,47,0,.06), 0 6px 18px rgba(86,47,0,.08);
+    --radius:14px;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -35,64 +35,64 @@
     font-family:'Inter',sans-serif;
     color:var(--brown);
     background:
-      radial-gradient(circle at 1px 1px, rgba(74,51,36,0.07) 1px, transparent 0) 0 0/22px 22px,
+      radial-gradient(circle at 1px 1px, rgba(86,47,0,0.06) 1px, transparent 0) 0 0/20px 20px,
       var(--cream);
     min-height:100vh;
-    padding-bottom:80px;
+    padding-bottom:50px;
   }
   ::selection{background:var(--peach);}
 
   /* Header */
   header{
-    padding:44px 28px 20px;
+    padding:26px 24px 12px;
     max-width:1180px;
     margin:0 auto;
   }
   .eyebrow{
-    font-size:12px;
-    letter-spacing:.14em;
+    font-size:11px;
+    letter-spacing:.13em;
     text-transform:uppercase;
     color:var(--orange-deep);
     font-weight:700;
-    margin-bottom:8px;
+    margin-bottom:6px;
     display:flex;
     align-items:center;
-    gap:8px;
+    gap:7px;
   }
   .eyebrow::before{
     content:'';
-    width:16px;height:2px;background:var(--orange-deep);display:inline-block;
+    width:14px;height:2px;background:var(--orange-deep);display:inline-block;
   }
   h1{
     font-family:'Fraunces',serif;
     font-optical-sizing:auto;
     font-weight:600;
-    font-size:clamp(30px,4vw,44px);
-    margin:0 0 8px;
+    font-size:clamp(24px,3vw,32px);
+    margin:0 0 5px;
     letter-spacing:-.01em;
     color:var(--brown);
   }
   .subtitle{
     color:var(--brown-mid);
-    font-size:15px;
-    max-width:560px;
-    line-height:1.5;
+    font-size:13px;
+    max-width:520px;
+    line-height:1.45;
     margin:0;
   }
 
   /* Tabs */
   .tabs{
     display:flex;
-    gap:4px;
-    margin:28px 0 4px;
+    gap:2px;
+    margin:18px 0 0;
     border-bottom:1px solid var(--line);
     flex-wrap:wrap;
   }
   .tab{
     font-family:'Inter',sans-serif;
     font-weight:600;
-    font-size:14px;
-    padding:10px 18px;
+    font-size:12.5px;
+    padding:8px 13px;
     background:none;
     border:none;
     cursor:pointer;
@@ -105,7 +105,7 @@
   .tab.active::after{
     content:'';
     position:absolute;
-    left:14px;right:14px;bottom:-1px;
+    left:11px;right:11px;bottom:-1px;
     height:2px;
     background:var(--orange-deep);
     border-radius:2px 2px 0 0;
@@ -115,176 +115,204 @@
     width:1px;
     align-self:stretch;
     background:var(--line);
-    margin:8px 8px 9px;
+    margin:7px 6px 8px;
   }
 
-  main{ max-width:1180px; margin:0 auto; padding:0 28px; }
+  main{ max-width:1180px; margin:0 auto; padding:0 24px; }
 
   /* Compare view */
-  .compare-wrap{ margin-top:30px; }
+  .compare-wrap{ margin-top:20px; }
   .compare-intro h2{
-    font-family:'Fraunces',serif; font-weight:600; font-size:24px;
-    margin:0 0 4px; color:var(--brown);
+    font-family:'Fraunces',serif; font-weight:600; font-size:19px;
+    margin:0 0 3px; color:var(--brown);
   }
-  .compare-intro p{ margin:0 0 22px; color:var(--brown-mid); font-size:14px; max-width:580px; line-height:1.5; }
+  .compare-intro p{ margin:0 0 14px; color:var(--brown-mid); font-size:12.5px; max-width:560px; line-height:1.45; }
 
   .compare-controls{
-    display:flex; align-items:center; gap:18px; flex-wrap:wrap;
-    background:var(--card-bg); border:1px solid var(--line); border-radius:14px;
-    padding:14px 18px; margin-bottom:20px;
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    background:var(--card-bg); border:1px solid var(--line); border-radius:12px;
+    padding:10px 14px; margin-bottom:14px;
   }
-  .ctrl-item{ display:flex; align-items:center; gap:8px; }
-  .ctrl-item label{ font-size:12px; font-weight:600; color:var(--brown-mid); }
+  .ctrl-item{ display:flex; align-items:center; gap:7px; }
+  .ctrl-item label{ font-size:11.5px; font-weight:600; color:var(--brown-mid); }
   .ctrl-item select{
-    font-family:'Inter',sans-serif; font-size:13px; padding:6px 10px; border-radius:8px;
+    font-family:'Inter',sans-serif; font-size:12.5px; padding:5px 9px; border-radius:7px;
     border:1px solid var(--line); background:var(--cream); color:var(--brown);
   }
-  .cmp-normalize{ display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--brown-mid); cursor:pointer; }
-  .cmp-normalize input{ accent-color:var(--orange-deep); width:15px; height:15px; }
+  .cmp-normalize{ display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; color:var(--brown-mid); cursor:pointer; }
+  .cmp-normalize input{ accent-color:var(--orange-deep); width:14px; height:14px; }
   .cmp-clear{
-    margin-left:auto; font-size:12.5px; font-weight:700; color:var(--rust);
-    background:var(--rust-bg); border:none; padding:7px 14px; border-radius:999px; cursor:pointer;
+    margin-left:auto; font-size:12px; font-weight:700; color:var(--rust);
+    background:var(--rust-bg); border:none; padding:6px 12px; border-radius:999px; cursor:pointer;
   }
   .cmp-clear:hover{ filter:brightness(.96); }
 
   .compare-body{
-    display:grid; grid-template-columns:260px 1fr; gap:18px; align-items:start;
+    display:grid; grid-template-columns:230px 1fr; gap:14px; align-items:start;
   }
   .compare-picker{
-    background:var(--card-bg); border:1px solid var(--line); border-radius:14px;
-    padding:10px; max-height:540px; overflow-y:auto;
+    background:var(--card-bg); border:1px solid var(--line); border-radius:12px;
+    padding:8px; max-height:480px; overflow-y:auto;
   }
   .picker-kategori{
-    font-size:11px; text-transform:uppercase; letter-spacing:.06em; font-weight:700;
-    color:var(--orange-deep); margin:14px 8px 4px;
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; font-weight:700;
+    color:var(--orange-deep); margin:11px 7px 3px;
   }
-  .picker-kategori:first-child{ margin-top:2px; }
+  .picker-kategori:first-child{ margin-top:1px; }
   .picker-kelompok{
-    font-size:11.5px; font-weight:700; color:var(--brown-mid); margin:8px 8px 4px;
+    font-size:11px; font-weight:700; color:var(--brown-mid); margin:6px 7px 3px;
   }
   .picker-item{
-    display:flex; align-items:center; gap:9px;
-    font-size:13px; color:var(--brown); padding:6px 8px; border-radius:8px;
+    display:flex; align-items:center; gap:8px;
+    font-size:12.5px; color:var(--brown); padding:5px 7px; border-radius:7px;
     cursor:pointer;
   }
   .picker-item:hover{ background:var(--cream-deep); }
   .picker-item.picked{ background:var(--peach-soft); }
-  .picker-item input{ accent-color:var(--orange-deep); width:15px; height:15px; flex-shrink:0; }
-  .picker-item span{ flex:1; line-height:1.3; }
+  .picker-item input{ accent-color:var(--orange-deep); width:14px; height:14px; flex-shrink:0; }
+  .picker-item span{ flex:1; line-height:1.25; }
   .picker-item.picked::after{
-    content:''; width:8px; height:8px; border-radius:50%;
+    content:''; width:7px; height:7px; border-radius:50%;
     background:var(--dotcolor, var(--orange-deep)); flex-shrink:0;
   }
 
-  .compare-chart-area{ min-height:360px; }
+  .compare-chart-area{ min-height:300px; }
   .compare-empty{
     display:none;
-    background:var(--card-bg); border:1px dashed var(--line); border-radius:14px;
-    padding:70px 30px; text-align:center; color:var(--brown-soft); font-size:14px;
+    background:var(--card-bg); border:1px dashed var(--line); border-radius:12px;
+    padding:50px 24px; text-align:center; color:var(--brown-soft); font-size:13px;
   }
 
   @media (max-width:760px){
     .compare-body{ grid-template-columns:1fr; }
-    .compare-picker{ max-height:280px; }
+    .compare-picker{ max-height:240px; }
   }
 
   /* Category section */
-  .kategori-block{ margin-top:38px; }
+  .kategori-block{ margin-top:24px; }
   .kategori-head{
     display:flex;
     align-items:baseline;
-    gap:10px;
-    margin-bottom:6px;
+    gap:8px;
+    margin-bottom:4px;
   }
   .kategori-head h2{
     font-family:'Fraunces',serif;
     font-weight:600;
-    font-size:22px;
+    font-size:17px;
     margin:0;
     color:var(--brown);
   }
   .kategori-count{
-    font-size:12px;
+    font-size:11px;
     color:var(--brown-soft);
     font-weight:600;
   }
-  .kelompok-block{ margin-top:22px; }
+  .kelompok-block{ margin-top:14px; }
   .kelompok-chip{
     display:inline-flex;
     align-items:center;
-    gap:6px;
+    gap:5px;
     background:var(--peach-soft);
     color:var(--orange-deep);
-    font-size:12px;
+    font-size:11px;
     font-weight:700;
     letter-spacing:.04em;
     text-transform:uppercase;
-    padding:5px 12px;
+    padding:4px 10px;
     border-radius:999px;
-    margin-bottom:14px;
+    margin-bottom:9px;
   }
   .kelompok-chip::before{
     content:'';
-    width:6px;height:6px;border-radius:50%;
+    width:5px;height:5px;border-radius:50%;
     background:var(--orange-deep);
   }
 
   .card-grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
-    gap:14px;
+    grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+    gap:10px;
   }
 
   .card{
     background:var(--card-bg);
     border:1px solid var(--line);
     border-radius:var(--radius);
-    padding:18px 18px 14px;
+    padding:13px 14px 11px;
     cursor:pointer;
     box-shadow:var(--shadow);
-    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
     display:flex;
     flex-direction:column;
-    gap:10px;
+    gap:7px;
   }
   .card:hover{
-    transform:translateY(-3px);
+    transform:translateY(-2px);
     border-color:var(--orange);
-    box-shadow:0 4px 8px rgba(74,51,36,.08), 0 14px 30px rgba(74,51,36,.13);
+    box-shadow:0 3px 6px rgba(86,47,0,.08), 0 10px 22px rgba(86,47,0,.12);
+  }
+  .card.comp-card{
+    grid-column:1 / -1;
+  }
+  .comp-bar{
+    display:flex;
+    height:20px;
+    border-radius:7px;
+    overflow:hidden;
+    background:var(--cream-deep);
+  }
+  .comp-bar-seg{ min-width:2px; }
+  .comp-legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px 16px;
+  }
+  .comp-legend-item{
+    font-size:12px;
+    color:var(--brown-mid);
+    display:flex;
+    align-items:center;
+    gap:5px;
+  }
+  .comp-legend-item b{ color:var(--brown); }
+  .comp-legend-item .dot{
+    width:8px; height:8px; border-radius:50%;
+    display:inline-block; flex-shrink:0;
   }
   .card-label{
-    font-size:12.5px;
+    font-size:11.5px;
     font-weight:600;
     color:var(--brown-mid);
-    line-height:1.35;
-    min-height:32px;
+    line-height:1.3;
+    min-height:28px;
   }
   .card-value-row{
     display:flex;
     align-items:flex-end;
     justify-content:space-between;
-    gap:8px;
+    gap:7px;
   }
   .card-value{
     font-family:'Fraunces',serif;
     font-weight:600;
-    font-size:28px;
+    font-size:22px;
     color:var(--brown);
     letter-spacing:-.01em;
   }
   .card-period{
-    font-size:11px;
+    font-size:10px;
     color:var(--brown-soft);
     font-weight:600;
-    margin-bottom:5px;
+    margin-bottom:3px;
   }
   .badge{
     display:inline-flex;
     align-items:center;
-    gap:4px;
-    font-size:12px;
+    gap:3px;
+    font-size:11px;
     font-weight:700;
-    padding:3px 9px;
+    padding:2px 8px;
     border-radius:999px;
     width:fit-content;
   }
@@ -292,33 +320,33 @@
   .badge.down{ background:var(--green-bg); color:var(--green); }
   .badge.flat{ background:var(--cream-deep); color:var(--brown-soft); }
   .badge.na{ background:var(--cream-deep); color:var(--brown-soft); }
-  .spark-wrap{ height:34px; }
+  .spark-wrap{ height:26px; }
   .spark-wrap svg{ display:block; overflow:visible; }
 
   /* Loading / empty */
   .state-msg{
     max-width:1180px;
-    margin:60px auto;
-    padding:0 28px;
+    margin:44px auto;
+    padding:0 24px;
     color:var(--brown-mid);
-    font-size:14px;
+    font-size:13px;
   }
   .spinner{
-    width:22px;height:22px;
+    width:20px;height:20px;
     border:2.5px solid var(--peach);
     border-top-color:var(--orange-deep);
     border-radius:50%;
     animation:spin .8s linear infinite;
     display:inline-block;
     vertical-align:middle;
-    margin-right:10px;
+    margin-right:9px;
   }
   @keyframes spin{ to{ transform:rotate(360deg);} }
 
   /* Detail overlay */
   .overlay{
     position:fixed; inset:0;
-    background:rgba(41,28,18,.42);
+    background:rgba(50,28,0,.42);
     backdrop-filter:blur(2px);
     display:none;
     align-items:stretch;
@@ -328,77 +356,77 @@
   .overlay.show{ display:flex; }
   .drawer{
     background:var(--cream);
-    width:min(640px,100%);
+    width:min(600px,100%);
     height:100%;
     overflow-y:auto;
-    box-shadow:-8px 0 30px rgba(41,28,18,.2);
-    padding:30px 30px 60px;
+    box-shadow:-8px 0 26px rgba(50,28,0,.2);
+    padding:22px 22px 40px;
     transform:translateX(20px);
-    animation:slidein .25s ease forwards;
+    animation:slidein .22s ease forwards;
   }
   @keyframes slidein{ to{ transform:translateX(0); } }
   .drawer-top{
     display:flex; justify-content:space-between; align-items:flex-start;
-    margin-bottom:6px;
+    margin-bottom:4px;
   }
   .drawer-close{
     background:var(--card-bg);
     border:1px solid var(--line);
-    width:34px;height:34px;
+    width:30px;height:30px;
     border-radius:50%;
     cursor:pointer;
-    font-size:16px;
+    font-size:14px;
     color:var(--brown-mid);
     flex-shrink:0;
   }
   .drawer-close:hover{ border-color:var(--orange); color:var(--orange-deep); }
   .drawer-eyebrow{
-    font-size:11px; text-transform:uppercase; letter-spacing:.1em;
-    color:var(--orange-deep); font-weight:700; margin-bottom:6px;
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.09em;
+    color:var(--orange-deep); font-weight:700; margin-bottom:4px;
   }
   .drawer h3{
     font-family:'Fraunces',serif;
     font-weight:600;
-    font-size:24px;
-    margin:0 0 18px;
-    line-height:1.25;
+    font-size:19px;
+    margin:0 0 13px;
+    line-height:1.2;
     max-width:88%;
   }
   .drawer-stats{
     display:grid;
     grid-template-columns:repeat(3,1fr);
-    gap:10px;
-    margin-bottom:22px;
+    gap:8px;
+    margin-bottom:14px;
   }
   .stat-box{
     background:var(--card-bg);
     border:1px solid var(--line);
-    border-radius:12px;
-    padding:12px 14px;
+    border-radius:11px;
+    padding:9px 11px;
   }
-  .stat-box .stat-label{ font-size:11px; color:var(--brown-soft); font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
-  .stat-box .stat-value{ font-family:'Fraunces',serif; font-size:19px; font-weight:600; margin-top:4px; color:var(--brown); }
+  .stat-box .stat-label{ font-size:10px; color:var(--brown-soft); font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+  .stat-box .stat-value{ font-family:'Fraunces',serif; font-size:16px; font-weight:600; margin-top:3px; color:var(--brown); }
 
   .filter-row{
-    display:flex; gap:10px; align-items:center; margin-bottom:16px; flex-wrap:wrap;
+    display:flex; gap:8px; align-items:center; margin-bottom:10px; flex-wrap:wrap;
   }
-  .filter-row label{ font-size:12px; font-weight:600; color:var(--brown-mid); }
+  .filter-row label{ font-size:11.5px; font-weight:600; color:var(--brown-mid); }
   .filter-row select{
     font-family:'Inter',sans-serif;
-    font-size:13px;
-    padding:7px 10px;
-    border-radius:8px;
+    font-size:12.5px;
+    padding:6px 9px;
+    border-radius:7px;
     border:1px solid var(--line);
     background:var(--card-bg);
     color:var(--brown);
   }
-  .quickbtns{ display:flex; gap:6px; margin-left:auto; }
+  .quickbtns{ display:flex; gap:5px; margin-left:auto; }
   .quickbtns button{
-    font-size:12px; font-weight:600;
+    font-size:11.5px; font-weight:600;
     border:1px solid var(--line);
     background:var(--card-bg);
     color:var(--brown-mid);
-    padding:6px 11px;
+    padding:5px 10px;
     border-radius:999px;
     cursor:pointer;
   }
@@ -407,21 +435,21 @@
   .chart-box{
     background:var(--card-bg);
     border:1px solid var(--line);
-    border-radius:16px;
-    padding:18px 14px 8px;
-    height:280px;
+    border-radius:14px;
+    padding:14px 10px 6px;
+    height:230px;
   }
   .chart-box-wrap{ position:relative; }
   .dl-btn{
     position:absolute;
-    top:10px; right:10px;
+    top:8px; right:8px;
     z-index:2;
-    font-size:11.5px;
+    font-size:11px;
     font-weight:700;
     color:var(--brown-mid);
     background:var(--cream);
     border:1px solid var(--line);
-    padding:5px 11px;
+    padding:4px 10px;
     border-radius:999px;
     cursor:pointer;
   }
@@ -430,11 +458,11 @@
     display:flex;
     align-items:center;
     justify-content:space-between;
-    margin-top:22px;
-    margin-bottom:8px;
+    margin-top:14px;
+    margin-bottom:6px;
   }
   .table-head-label{
-    font-size:12px;
+    font-size:11px;
     font-weight:700;
     text-transform:uppercase;
     letter-spacing:.05em;
@@ -442,38 +470,38 @@
   }
   .table-head-row .dl-btn{ position:static; }
   .table-scroll{
-    max-height:280px;
+    max-height:230px;
     overflow-y:auto;
     border:1px solid var(--line);
-    border-radius:12px;
+    border-radius:11px;
   }
   .drawer-desc{
     background:var(--peach-soft);
     border:1px solid var(--line);
-    border-radius:14px;
-    padding:14px 18px;
-    margin-top:16px;
+    border-radius:12px;
+    padding:11px 14px;
+    margin-top:10px;
   }
   .drawer-desc-label{
-    font-size:11px;
+    font-size:10.5px;
     text-transform:uppercase;
     letter-spacing:.08em;
     font-weight:700;
     color:var(--orange-deep);
-    margin-bottom:5px;
+    margin-bottom:4px;
   }
   .drawer-desc p{
     margin:0;
-    font-size:13.5px;
-    line-height:1.55;
+    font-size:12.5px;
+    line-height:1.5;
     color:var(--brown-mid);
   }
   .drawer-narrative{
-    margin-top:16px;
-    font-size:13.5px;
-    line-height:1.65;
+    margin-top:10px;
+    font-size:12.5px;
+    line-height:1.55;
     color:var(--brown);
-    padding:2px 2px;
+    padding:1px 1px;
   }
   .drawer-narrative b{ color:var(--brown); font-weight:700; }
   .drawer-narrative .trend-up{ color:var(--rust); font-weight:700; }
@@ -482,22 +510,22 @@
   .drawer-table{
     width:100%;
     border-collapse:collapse;
-    font-size:13px;
+    font-size:12.5px;
   }
   .drawer-table thead th{
     position:sticky;
     top:0;
     background:var(--card-bg);
     text-align:left;
-    font-size:11px;
+    font-size:10.5px;
     text-transform:uppercase;
     letter-spacing:.04em;
     color:var(--brown-soft);
-    padding:9px 12px;
+    padding:7px 10px;
     border-bottom:1px solid var(--line);
   }
   .drawer-table td{
-    padding:8px 12px;
+    padding:6px 10px;
     border-bottom:1px solid var(--line);
     color:var(--brown-mid);
   }
@@ -505,9 +533,9 @@
   .drawer-table tbody tr:first-child td{ font-weight:700; color:var(--brown); }
 
   @media (max-width:640px){
-    header{ padding:30px 18px 12px; }
-    main{ padding:0 18px; }
-    .drawer{ padding:22px 18px 50px; }
+    header{ padding:20px 16px 8px; }
+    main{ padding:0 16px; }
+    .drawer{ padding:18px 16px 36px; }
     .drawer-stats{ grid-template-columns:1fr 1fr; }
   }
 </style>
@@ -537,6 +565,7 @@ let DEFINISI = {};     // DEFINISI[subkelompok] = teks definisi (dari kolom I & 
 let activePeriode = null;
 let chartInstance = null;
 let currentSeriesKey = null;
+let currentCompKey = null;
 
 let compareMode = false;
 let comparePeriode = null;
@@ -546,7 +575,7 @@ let compareFrom = null;
 let compareTo = null;
 let normalizeCompare = false;
 let compareChart = null;
-const COMPARE_COLORS = ['#C97A3D','#4E7D5A','#A63A50','#3E6E8E','#8C6BAF','#B98B27','#4A3324','#5C8C8C'];
+const COMPARE_COLORS = ['#FF9644','#4E7D5A','#A63A50','#3E6E8E','#8C6BAF','#B98B27','#562F00','#5C8C8C'];
 
 function toNumber(v){
   if(v===undefined||v===null) return NaN;
@@ -719,25 +748,30 @@ function renderContent(periode){
 
     Object.keys(kelObj).forEach(kelompok=>{
       const subObj = kelObj[kelompok];
+      const compSegs = splitCompositionSegments(subObj);
       html += `<div class="kelompok-block">
         <div class="kelompok-chip">${escapeHtml(kelompok)}</div>
         <div class="card-grid">`;
 
-      Object.keys(subObj).forEach(sub=>{
-        const entries = subObj[sub];
-        const latest = entries[entries.length-1];
-        const key = encodeURIComponent(JSON.stringify([periode,kategori,kelompok,sub]));
-        html += `<div class="card" data-key='${key}'>
-            <div class="card-label">${escapeHtml(sub)}</div>
-            <div>
-              <div class="card-period">${periodLabel(latest)}</div>
-              <div class="card-value-row">
-                <div class="card-value">${fmtNum(latest.data)}</div>
-                ${changeBadge(entries)}
+      if(compSegs){
+        html += renderCompositionCardHtml(periode,kategori,kelompok,subObj,compSegs);
+      }
+      const normalSubs = compSegs ? Object.keys(subObj).filter(s=>!compSegs.includes(s)) : Object.keys(subObj);
+      normalSubs.forEach(sub=>{
+          const entries = subObj[sub];
+          const latest = entries[entries.length-1];
+          const key = encodeURIComponent(JSON.stringify([periode,kategori,kelompok,sub]));
+          html += `<div class="card" data-key='${key}'>
+              <div class="card-label">${escapeHtml(sub)}</div>
+              <div>
+                <div class="card-period">${periodLabel(latest)}</div>
+                <div class="card-value-row">
+                  <div class="card-value">${fmtNum(latest.data)}</div>
+                  ${changeBadge(entries)}
+                </div>
               </div>
-            </div>
-            ${makeSparkline(entries)}
-          </div>`;
+              ${makeSparkline(entries)}
+            </div>`;
       });
 
       html += `</div></div>`;
@@ -748,12 +782,73 @@ function renderContent(periode){
 
   main.innerHTML = html;
 
-  document.querySelectorAll('.card').forEach(card=>{
+  document.querySelectorAll('.card:not(.comp-card)').forEach(card=>{
     card.addEventListener('click', ()=>{
       const [periode,kategori,kelompok,sub] = JSON.parse(decodeURIComponent(card.dataset.key));
       openDetail(periode,kategori,kelompok,sub);
     });
   });
+
+  document.querySelectorAll('.comp-card').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      const [periode,kategori,kelompok] = JSON.parse(decodeURIComponent(card.dataset.compkey));
+      openCompositionDetail(periode,kategori,kelompok);
+    });
+  });
+}
+
+/* ---------- Composition (distribusi) detection & rendering ---------- */
+
+function splitCompositionSegments(subObj){
+  const subs = Object.keys(subObj);
+  // Only subkelompok whose name starts with a percentage prefix (e.g. "40% Rendah") are
+  // treated as candidate composition segments. This keeps unrelated indicators (e.g. "Rasio
+  // Gini") that happen to share the same Kelompok from being pulled into the composition.
+  const candidates = subs.filter(s => /^\d+(\.\d+)?%/.test(s.trim()));
+  if(candidates.length < 2 || candidates.length > 8) return null;
+
+  const yearTotals = {};
+  candidates.forEach(sub=>{
+    subObj[sub].forEach(e=>{
+      const k = sortKey(e);
+      yearTotals[k] = (yearTotals[k]||0) + e.data;
+    });
+  });
+  const totals = Object.values(yearTotals);
+  if(totals.length === 0) return null;
+  const closeTo100 = totals.filter(t=>Math.abs(t-100) <= 5).length;
+  if((closeTo100 / totals.length) < 0.6) return null;
+  return candidates;
+}
+
+function renderCompositionCardHtml(periode,kategori,kelompok,subObj,segs){
+  let maxSK = -Infinity;
+  segs.forEach(s=> subObj[s].forEach(e=>{ maxSK = Math.max(maxSK, sortKey(e)); }));
+  const latestEntries = segs.map(s=>{
+    const arr = subObj[s];
+    return { sub:s, entry: arr.find(e=>sortKey(e)===maxSK) || arr[arr.length-1] };
+  });
+  const total = latestEntries.reduce((sum,x)=>sum + (x.entry?x.entry.data:0), 0) || 1;
+  const latestLabel = latestEntries[0].entry ? periodLabel(latestEntries[0].entry) : '';
+
+  const barSegs = latestEntries.map((x,i)=>{
+    const pct = x.entry ? (x.entry.data/total*100) : 0;
+    const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+    return `<div class="comp-bar-seg" style="flex:${Math.max(pct,0.5)};background:${color};" title="${escapeHtml(x.sub)}: ${fmtNum(x.entry?x.entry.data:NaN)}"></div>`;
+  }).join('');
+
+  const legend = latestEntries.map((x,i)=>{
+    const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+    return `<div class="comp-legend-item"><span class="dot" style="background:${color}"></span>${escapeHtml(x.sub)} <b>${fmtNum(x.entry?x.entry.data:NaN)}</b></div>`;
+  }).join('');
+
+  const key = encodeURIComponent(JSON.stringify([periode,kategori,kelompok]));
+  return `<div class="card comp-card" data-compkey='${key}'>
+      <div class="card-label">${escapeHtml(kelompok)}</div>
+      <div class="card-period">${latestLabel} · Komposisi</div>
+      <div class="comp-bar">${barSegs}</div>
+      <div class="comp-legend">${legend}</div>
+    </div>`;
 }
 
 function escapeHtml(s){
@@ -764,6 +859,7 @@ function escapeHtml(s){
 
 function openDetail(periode,kategori,kelompok,sub){
   currentSeriesKey = {periode,kategori,kelompok,sub};
+  currentCompKey = null;
   const entries = STORE[periode][kategori][kelompok][sub];
   const years = [...new Set(entries.map(e=>e.tahun))].sort((a,b)=>a-b);
 
@@ -850,13 +946,15 @@ function closeDetail(){
   document.getElementById('overlay').classList.remove('show');
 }
 
-function downloadChartJPG(){
+function triggerJPGDownload(name){
   if(!chartInstance){ alert('Grafik belum siap.'); return; }
   const link = document.createElement('a');
   link.href = chartInstance.toBase64Image('image/jpeg', 1.0);
-  link.download = `${(currentSeriesKey.sub||'grafik').replace(/[^a-z0-9]+/gi,'_')}.jpg`;
+  link.download = `${(name||'grafik').replace(/[^a-z0-9]+/gi,'_')}.jpg`;
   link.click();
 }
+function downloadChartJPG(){ triggerJPGDownload(currentSeriesKey ? currentSeriesKey.sub : 'grafik'); }
+function downloadCompChartJPG(){ triggerJPGDownload(currentCompKey ? currentCompKey.kelompok : 'komposisi'); }
 
 function downloadTableExcel(){
   if(typeof XLSX === 'undefined'){ alert('Gagal memuat library Excel. Coba refresh halaman.'); return; }
@@ -874,6 +972,201 @@ function downloadTableExcel(){
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Data');
   XLSX.writeFile(wb, `${sub.replace(/[^a-z0-9]+/gi,'_')}.xlsx`);
+}
+
+/* ---------- Composition detail drawer ---------- */
+
+function openCompositionDetail(periode,kategori,kelompok){
+  const subObj = STORE[periode][kategori][kelompok];
+  const segs = splitCompositionSegments(subObj);
+  if(!segs) return;
+  currentCompKey = {periode,kategori,kelompok};
+  currentSeriesKey = null;
+
+  let allEntries = [];
+  segs.forEach(s=>{ allEntries = allEntries.concat(subObj[s]); });
+  const years = [...new Set(allEntries.map(e=>e.tahun))].sort((a,b)=>a-b);
+
+  const drawer = document.getElementById('drawer');
+  drawer.innerHTML = `
+    <div class="drawer-top">
+      <div>
+        <div class="drawer-eyebrow">${escapeHtml(kategori)} · Komposisi</div>
+        <h3>${escapeHtml(kelompok)}</h3>
+      </div>
+      <button class="drawer-close" id="closeDrawer">✕</button>
+    </div>
+
+    <div class="filter-row">
+      <label>Dari</label>
+      <select id="compFromYear"></select>
+      <label>Sampai</label>
+      <select id="compToYear"></select>
+      <div class="quickbtns" id="compQuickBtns">
+        <button data-range="all">Semua</button>
+        <button data-range="5">5 Terakhir</button>
+        <button data-range="3">3 Terakhir</button>
+      </div>
+    </div>
+
+    <div class="chart-box-wrap">
+      <button class="dl-btn" id="dlCompChart" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+      <div class="chart-box" style="height:320px;"><canvas id="compDetailChart"></canvas></div>
+    </div>
+
+    <div class="comp-legend" id="compLegendFull" style="margin-top:14px;"></div>
+
+    ${segs.some(s=>DEFINISI[s]) ? `
+    <div class="drawer-desc">
+      <div class="drawer-desc-label">Definisi</div>
+      ${segs.filter(s=>DEFINISI[s]).map(s=>`<p><b>${escapeHtml(s)}:</b> ${escapeHtml(DEFINISI[s])}</p>`).join('')}
+    </div>` : ''}
+
+    <div class="table-head-row">
+      <span class="table-head-label">Riwayat Data</span>
+      <button class="dl-btn" id="dlCompExcel" title="Unduh tabel sebagai Excel">⬇ Excel</button>
+    </div>
+    <div class="table-scroll">
+      <table class="drawer-table" id="compDetailTable"></table>
+    </div>
+  `;
+
+  const fromSel = drawer.querySelector('#compFromYear');
+  const toSel = drawer.querySelector('#compToYear');
+  years.forEach(y=>{
+    fromSel.innerHTML += `<option value="${y}">${y}</option>`;
+    toSel.innerHTML += `<option value="${y}">${y}</option>`;
+  });
+  fromSel.value = years[0];
+  toSel.value = years[years.length-1];
+
+  fromSel.onchange = toSel.onchange = ()=>refreshCompositionDetail(subObj, segs, parseInt(fromSel.value), parseInt(toSel.value));
+
+  drawer.querySelectorAll('#compQuickBtns button').forEach(btn=>{
+    btn.onclick = ()=>{
+      drawer.querySelectorAll('#compQuickBtns button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const r = btn.dataset.range;
+      if(r==='all'){ fromSel.value = years[0]; }
+      else{ const n = parseInt(r); fromSel.value = years[Math.max(0, years.length-n)]; }
+      toSel.value = years[years.length-1];
+      refreshCompositionDetail(subObj, segs, parseInt(fromSel.value), parseInt(toSel.value));
+    };
+  });
+  drawer.querySelector('#compQuickBtns [data-range="all"]').classList.add('active');
+
+  document.getElementById('closeDrawer').onclick = closeDetail;
+  document.getElementById('dlCompChart').onclick = downloadCompChartJPG;
+  document.getElementById('dlCompExcel').onclick = ()=>downloadCompositionExcel(subObj, segs);
+  document.getElementById('overlay').classList.add('show');
+
+  refreshCompositionDetail(subObj, segs, years[0], years[years.length-1]);
+}
+
+function refreshCompositionDetail(subObj, segs, fromYear, toYear){
+  const skMap = new Map();
+  segs.forEach(s=>{
+    subObj[s].forEach(e=>{
+      if(e.tahun >= fromYear && e.tahun <= toYear) skMap.set(sortKey(e), periodLabel(e));
+    });
+  });
+  const sortedSK = [...skMap.keys()].sort((a,b)=>a-b);
+  const labels = sortedSK.map(sk=>skMap.get(sk));
+
+  const bySegSK = {};
+  segs.forEach(s=>{
+    bySegSK[s] = {};
+    subObj[s].forEach(e=>{ bySegSK[s][sortKey(e)] = e.data; });
+  });
+
+  const datasets = segs.map((s,i)=>{
+    const data = sortedSK.map(sk=> bySegSK[s].hasOwnProperty(sk) ? bySegSK[s][sk] : null);
+    const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+    return { label:s, data, backgroundColor:color, borderRadius:3, stack:'comp' };
+  });
+
+  const lastSK = sortedSK[sortedSK.length-1];
+  const legendHtml = segs.map((s,i)=>{
+    const val = bySegSK[s][lastSK];
+    const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+    return `<div class="comp-legend-item"><span class="dot" style="background:${color}"></span>${escapeHtml(s)} <b>${val!==undefined?fmtNum(val):'—'}</b></div>`;
+  }).join('');
+  document.getElementById('compLegendFull').innerHTML = legendHtml;
+
+  const canvasEl = document.getElementById('compDetailChart');
+  if(typeof Chart === 'undefined'){
+    canvasEl.parentElement.innerHTML = '<div style="padding:20px;font-size:13px;color:var(--brown-mid);">Grafik gagal dimuat (library Chart.js tidak tersedia). Coba refresh halaman.</div>';
+  }else{
+    const ctx = canvasEl.getContext('2d');
+    if(chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(ctx, {
+      type:'bar',
+      data:{ labels, datasets },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{ display:false },
+          tooltip:{
+            mode:'index', intersect:false,
+            callbacks:{ label:(c)=>`${c.dataset.label}: ${fmtNum(c.parsed.y)}` }
+          }
+        },
+        scales:{
+          x:{ stacked:true, grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
+          y:{ stacked:true, grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } }
+        }
+      }
+    });
+  }
+
+  let theadCells = `<th>Periode</th>` + segs.map(s=>`<th>${escapeHtml(s)}</th>`).join('') + `<th>Total</th>`;
+  let bodyRows = '';
+  [...sortedSK].reverse().forEach(sk=>{
+    const label = skMap.get(sk);
+    let rowTotal = 0;
+    const cells = segs.map(s=>{
+      const v = bySegSK[s].hasOwnProperty(sk) ? bySegSK[s][sk] : null;
+      if(v !== null) rowTotal += v;
+      return `<td>${v!==null ? fmtNum(v) : '—'}</td>`;
+    }).join('');
+    bodyRows += `<tr><td>${label}</td>${cells}<td>${fmtNum(rowTotal)}</td></tr>`;
+  });
+  document.getElementById('compDetailTable').innerHTML = `<thead><tr>${theadCells}</tr></thead><tbody>${bodyRows}</tbody>`;
+}
+
+function downloadCompositionExcel(subObj, segs){
+  if(typeof XLSX === 'undefined'){ alert('Gagal memuat library Excel. Coba refresh halaman.'); return; }
+  const fromSel = document.getElementById('compFromYear');
+  const toSel = document.getElementById('compToYear');
+  const fromYear = parseInt(fromSel.value), toYear = parseInt(toSel.value);
+
+  const skMap = new Map();
+  segs.forEach(s=>{
+    subObj[s].forEach(e=>{
+      if(e.tahun >= fromYear && e.tahun <= toYear) skMap.set(sortKey(e), periodLabel(e));
+    });
+  });
+  const sortedSK = [...skMap.keys()].sort((a,b)=>a-b);
+
+  const header = ['Periode', ...segs, 'Total'];
+  const data = [header];
+  sortedSK.forEach(sk=>{
+    const label = skMap.get(sk);
+    let rowTotal = 0;
+    const vals = segs.map(s=>{
+      const entry = subObj[s].find(e=>sortKey(e)===sk);
+      const v = entry ? entry.data : '';
+      if(typeof v === 'number') rowTotal += v;
+      return v;
+    });
+    data.push([label, ...vals, rowTotal]);
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Komposisi');
+  XLSX.writeFile(wb, `${(currentCompKey?currentCompKey.kelompok:'komposisi').replace(/[^a-z0-9]+/gi,'_')}.xlsx`);
 }
 
 /* ---------- Compare view ---------- */
@@ -1081,7 +1374,7 @@ function renderCompareChart(){
       plugins:{
         legend:{
           position:'bottom',
-          labels:{ color:'#4A3324', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true }
+          labels:{ color:'#562F00', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true }
         },
         tooltip:{
           callbacks:{
@@ -1090,8 +1383,8 @@ function renderCompareChart(){
         }
       },
       scales:{
-        x:{ grid:{display:false}, ticks:{ color:'#7C5B42', font:{family:'Inter', size:11} } },
-        y:{ grid:{color:'#EFE3CC'}, ticks:{ color:'#7C5B42', font:{family:'Inter', size:11} } }
+        x:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
+        y:{ grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } }
       }
     }
   });
@@ -1162,8 +1455,8 @@ function refreshDetail(entries, fromYear, toYear){
   const ctx = canvasEl.getContext('2d');
   if(chartInstance) chartInstance.destroy();
   const gradient = ctx.createLinearGradient(0,0,0,260);
-  gradient.addColorStop(0, 'rgba(201,122,61,0.28)');
-  gradient.addColorStop(1, 'rgba(201,122,61,0.02)');
+  gradient.addColorStop(0, 'rgba(255,150,68,0.28)');
+  gradient.addColorStop(1, 'rgba(255,150,68,0.02)');
 
   chartInstance = new Chart(ctx, {
     type:'line',
@@ -1171,9 +1464,9 @@ function refreshDetail(entries, fromYear, toYear){
       labels,
       datasets:[{
         data: values,
-        borderColor:'#C97A3D',
+        borderColor:'#FF9644',
         backgroundColor: gradient,
-        pointBackgroundColor:'#A85F28',
+        pointBackgroundColor:'#D97730',
         pointRadius:4,
         pointHoverRadius:6,
         borderWidth:2.5,
@@ -1186,8 +1479,8 @@ function refreshDetail(entries, fromYear, toYear){
       maintainAspectRatio:false,
       plugins:{ legend:{display:false} },
       scales:{
-        x:{ grid:{display:false}, ticks:{ color:'#7C5B42', font:{family:'Inter', size:11} } },
-        y:{ grid:{color:'#EFE3CC'}, ticks:{ color:'#7C5B42', font:{family:'Inter', size:11} } }
+        x:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
+        y:{ grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } }
       }
     }
   });
