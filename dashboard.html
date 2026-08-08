@@ -609,14 +609,13 @@ function getGroupColor(kategori, kelompok){
   return GROUP_COLOR_MAP[key];
 }
 
-// Alternate chart type (line / bar) per Kelompok, based on the same stable insertion order
-// used for coloring, so a Kelompok always renders the same way (e.g. Kemiskinan = line,
-// Ketimpangan = bar) instead of randomly differing between visits.
+// Menambahkan variasi stepped-area dan dashed-area ke dalam daftar tipe grafik yang dirotasi
 function getGroupChartType(kategori, kelompok){
   const key = kategori + '|||' + kelompok;
-  getGroupColor(kategori, kelompok); // ensure it's registered first
+  getGroupColor(kategori, kelompok); // pastikan warnanya terdaftar terlebih dahulu
   const idx = Object.keys(GROUP_COLOR_MAP).indexOf(key);
-  return idx % 2 === 0 ? 'line' : 'bar';
+  const types = ['line', 'bar', 'stepped-area', 'dashed-area'];
+  return types[idx % types.length];
 }
 
 let currentDetailColor = '#FF9644';
@@ -775,6 +774,7 @@ function renderTabs(){
   tabsEl.appendChild(cmpBtn);
 }
 
+// Logika sparkline diperbarui untuk menyesuaikan tipe grafik
 function makeSparkline(entries, color, type){
   color = color || 'var(--orange)';
   type = type || 'line';
@@ -782,7 +782,7 @@ function makeSparkline(entries, color, type){
   if(vals.length < 2){
     return `<div class="spark-wrap"></div>`;
   }
-  const w = 220, h = 34, pad=3;
+  const w = 220, h = 34, pad = 3;
   const min = Math.min(...vals), max = Math.max(...vals);
   const range = (max-min) || 1;
   const step = (w-pad*2) / (vals.length-1);
@@ -793,15 +793,48 @@ function makeSparkline(entries, color, type){
     const barW = Math.max(3, (w - pad * 2) / vals.length * 0.5);
     svgContent = vals.map((v, i) => {
       let barH = ((v - min) / range) * (h - pad * 2);
-      barH = Math.max(barH, 2); // Pastikan bar tidak hilang sepenuhnya jika nilainya paling kecil
+      barH = Math.max(barH, 2); 
       const x = pad + i * step - barW / 2;
       const y = h - pad - barH;
       return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" fill="${color}" rx="1"></rect>`;
     }).join('');
+  } else if (type === 'stepped-area') {
+    let pathD = '';
+    const pts = vals.map((v,i) => {
+      const x = pad + i * step;
+      const y = h - pad - ((v - min) / range) * (h - pad * 2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+    pts.forEach((p, i) => {
+      const [x, y] = p.split(',');
+      if (i === 0) {
+        pathD += `M ${x},${y} `;
+      } else {
+        const prevY = pts[i-1].split(',')[1];
+        pathD += `L ${x},${prevY} L ${x},${y} `;
+      }
+    });
+    const last = pts[pts.length-1].split(',');
+    svgContent = `
+      <path d="${pathD}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${last[0]}" cy="${last[1]}" r="3" fill="${color}"/>
+    `;
+  } else if (type === 'dashed-area') {
+    const pts = vals.map((v,i) => {
+      const x = pad + i * step;
+      const y = h - pad - ((v - min) / range) * (h - pad * 2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+    const last = pts[pts.length-1].split(',');
+    svgContent = `
+      <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4,4"/>
+      <circle cx="${last[0]}" cy="${last[1]}" r="3" fill="${color}"/>
+    `;
   } else {
-    const pts = vals.map((v,i)=>{
-      const x = pad + i*step;
-      const y = h - pad - ((v-min)/range)*(h-pad*2);
+    // tipe line normal
+    const pts = vals.map((v,i) => {
+      const x = pad + i * step;
+      const y = h - pad - ((v - min) / range) * (h - pad * 2);
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     });
     const last = pts[pts.length-1].split(',');
@@ -896,9 +929,6 @@ function renderContent(periode){
 
 function splitCompositionSegments(subObj){
   const subs = Object.keys(subObj);
-  // Only subkelompok whose name starts with a percentage prefix (e.g. "40% Rendah") are
-  // treated as candidate composition segments. This keeps unrelated indicators (e.g. "Rasio
-  // Gini") that happen to share the same Kelompok from being pulled into the composition.
   const candidates = subs.filter(s => /^\d+(\.\d+)?%/.test(s.trim()));
   if(candidates.length < 2 || candidates.length > 8) return null;
 
@@ -1445,6 +1475,10 @@ function renderCompareChart(){
       }
     }
     const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+    const type = getGroupChartType(info.kategori, info.kelompok);
+    const isStepped = type === 'stepped-area';
+    const isDashed = type === 'dashed-area';
+
     return {
       label: info.sub,
       data: values,
@@ -1454,8 +1488,10 @@ function renderCompareChart(){
       pointHoverRadius: 5,
       borderWidth: 2.2,
       spanGaps: true,
-      tension: .25,
-      fill: false
+      tension: (isStepped || isDashed) ? 0 : .25,
+      stepped: isStepped,
+      borderDash: isDashed ? [6, 4] : [],
+      fill: false // Untuk menu bandingkan, fill dimatikan agar tumpukan chart tetap terbaca jelas
     };
   });
 
@@ -1544,7 +1580,7 @@ function refreshDetail(entries, fromYear, toYear){
   document.getElementById('detailTable').innerHTML =
     `<thead><tr><th>Periode</th><th>Nilai</th></tr></thead><tbody>${rows}</tbody>`;
 
-  // chart
+  // chart setup dengan konfigurasi style variatif (line, stepped-area, dashed-area)
   const canvasEl = document.getElementById('detailChart');
   if(typeof Chart === 'undefined'){
     canvasEl.parentElement.innerHTML = '<div style="padding:20px;font-size:13px;color:var(--brown-mid);">Grafik gagal dimuat (library Chart.js tidak tersedia). Coba refresh halaman.</div>';
@@ -1555,6 +1591,8 @@ function refreshDetail(entries, fromYear, toYear){
 
   const accent = currentDetailColor || '#FF9644';
   const isBar = currentDetailChartType === 'bar';
+  const isStepped = currentDetailChartType === 'stepped-area';
+  const isDashed = currentDetailChartType === 'dashed-area';
 
   let dataset;
   if(isBar){
@@ -1568,7 +1606,8 @@ function refreshDetail(entries, fromYear, toYear){
     };
   }else{
     const gradient = ctx.createLinearGradient(0,0,0,260);
-    gradient.addColorStop(0, hexToRgba(accent, 0.28));
+    // Untuk area stepped dan dashed, kita pertebal sedikit alpha gradiennya agar mirip contoh
+    gradient.addColorStop(0, hexToRgba(accent, (isStepped || isDashed) ? 0.35 : 0.28));
     gradient.addColorStop(1, hexToRgba(accent, 0.02));
     dataset = {
       data: values,
@@ -1579,7 +1618,9 @@ function refreshDetail(entries, fromYear, toYear){
       pointHoverRadius:6,
       borderWidth:2.5,
       fill:true,
-      tension:.25
+      tension: (isStepped || isDashed) ? 0 : 0.25,
+      stepped: isStepped ? true : false,
+      borderDash: isDashed ? [6, 4] : []
     };
   }
 
