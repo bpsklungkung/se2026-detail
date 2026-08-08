@@ -122,6 +122,68 @@
 
   main{ padding-top:22px; }
 
+  /* ===== Filter panel (left sidebar) ===== */
+  .content-row{ display:flex; align-items:flex-start; gap:20px; }
+  .content-row main{ flex:1; min-width:0; }
+  .kel-filter-panel{
+    width:220px;
+    flex-shrink:0;
+    background:var(--white);
+    border:1px solid var(--peach-soft);
+    border-radius:16px;
+    box-shadow:var(--shadow);
+    padding:16px;
+    margin-top:22px;
+    position:sticky;
+    top:16px;
+    max-height:calc(100vh - 32px);
+    overflow-y:auto;
+  }
+  .kel-filter-head{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:8px; margin-bottom:12px;
+  }
+  .kel-filter-head span{
+    font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+    font-weight:700; color:var(--brown-mid);
+  }
+  .kel-filter-reset{
+    font-size:10.5px; font-weight:600; color:var(--orange-deep);
+    background:none; border:none; cursor:pointer; padding:2px 0;
+    text-decoration:underline;
+  }
+  .kel-filter-reset:hover{ color:var(--orange); }
+  .kel-filter-kat{ margin-bottom:14px; }
+  .kel-filter-kat:last-child{ margin-bottom:0; }
+  .kel-filter-kat-head{
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:11.5px; font-weight:700; color:var(--brown-deep);
+    margin-bottom:6px; padding-bottom:5px;
+    border-bottom:1px solid var(--cream-deep);
+  }
+  .kel-filter-kat-toggle{
+    font-size:10px; font-weight:600; color:var(--brown-soft);
+    background:none; border:none; cursor:pointer; padding:0;
+  }
+  .kel-filter-kat-toggle:hover{ color:var(--orange-deep); }
+  .kel-filter-item{
+    display:flex; align-items:center; gap:7px;
+    font-size:12px; color:var(--brown-mid);
+    padding:4px 2px; cursor:pointer; border-radius:6px;
+  }
+  .kel-filter-item:hover{ background:var(--cream); color:var(--brown); }
+  .kel-filter-item input{ accent-color:var(--orange); cursor:pointer; flex-shrink:0; }
+  @media (max-width:900px){
+    .content-row{ flex-direction:column; }
+    .kel-filter-panel{
+      width:100%;
+      position:static;
+      max-height:none;
+      margin-top:14px;
+    }
+    .kel-filter-kat{ margin-bottom:10px; }
+  }
+
   /* ===== Section headers ===== */
   .section-head{ display:flex; align-items:baseline; justify-content:space-between; margin:22px 0 10px; flex-wrap:wrap; gap:6px;}
   .section-head h2{ font-size:17px; font-weight:600; }
@@ -298,8 +360,9 @@
   .comp-color-strip{
     position:absolute;
     top:0; left:0; right:0;
-    height:3px;
+    height:5px;
     border-radius:var(--radius) var(--radius) 0 0;
+    overflow:hidden;
   }
   .comp-bar{
     display:flex;
@@ -636,9 +699,12 @@
 <div class="page-wrap">
   <div class="tabbar" id="tabs"></div>
 
-  <main id="main">
-    <div class="state-msg" id="stateMsg"><span class="spinner"></span>Memuat data dari Google Sheets…</div>
-  </main>
+  <div class="content-row">
+    <aside class="kel-filter-panel" id="kelFilterPanel"></aside>
+    <main id="main">
+      <div class="state-msg" id="stateMsg"><span class="spinner"></span>Memuat data dari Google Sheets…</div>
+    </main>
+  </div>
 
   <div class="footer-note">Badan Pusat Statistik Kabupaten Klungkung</div>
 </div>
@@ -654,6 +720,7 @@ let STORE = {};
 let DEFINISI = {};     
 let SATUAN = {};       
 let activePeriode = null;
+let ENABLED_KELOMPOK = null;
 let chartInstance = null;
 let currentSeriesKey = null;
 let currentCompKey = null;
@@ -833,6 +900,84 @@ function buildStore(rows){
   });
   if(!activePeriode || !STORE[activePeriode]) activePeriode = periodeList[0];
   STORE.__order = periodeList;
+
+  if(!ENABLED_KELOMPOK) ENABLED_KELOMPOK = new Set();
+  periodeList.forEach(p=>{
+    Object.keys(STORE[p]).forEach(kat=>{
+      Object.keys(STORE[p][kat]).forEach(kel=>{
+        const key = `${kat}|||${kel}`;
+        if(!ENABLED_KELOMPOK.has(key)) ENABLED_KELOMPOK.add(key);
+      });
+    });
+  });
+}
+
+function renderKelFilterPanel(periode){
+  const panel = document.getElementById('kelFilterPanel');
+  if(!panel) return;
+  panel.style.display = '';
+  const katObj = STORE[periode];
+  if(!katObj){ panel.innerHTML = ''; return; }
+
+  let html = `<div class="kel-filter-head">
+      <span>Tampilkan Data</span>
+      <button class="kel-filter-reset" id="kelFilterReset">Tampilkan Semua</button>
+    </div>`;
+
+  Object.keys(katObj).forEach(kategori=>{
+    const kelompokList = Object.keys(katObj[kategori]);
+    html += `<div class="kel-filter-kat">
+        <div class="kel-filter-kat-head">
+          <span>${escapeHtml(kategori)}</span>
+          <button class="kel-filter-kat-toggle" data-kat="${encodeURIComponent(kategori)}">semua/tidak</button>
+        </div>`;
+    kelompokList.forEach(kelompok=>{
+      const key = `${kategori}|||${kelompok}`;
+      const checked = ENABLED_KELOMPOK.has(key) ? 'checked' : '';
+      html += `<label class="kel-filter-item">
+          <input type="checkbox" data-key="${encodeURIComponent(key)}" ${checked}>
+          <span>${escapeHtml(kelompok)}</span>
+        </label>`;
+    });
+    html += `</div>`;
+  });
+
+  panel.innerHTML = html;
+
+  panel.querySelectorAll('.kel-filter-item input[type=checkbox]').forEach(cb=>{
+    cb.onchange = ()=>{
+      const key = decodeURIComponent(cb.dataset.key);
+      if(cb.checked) ENABLED_KELOMPOK.add(key); else ENABLED_KELOMPOK.delete(key);
+      renderContent(activePeriode);
+    };
+  });
+
+  panel.querySelectorAll('.kel-filter-kat-toggle').forEach(btn=>{
+    btn.onclick = ()=>{
+      const kategori = decodeURIComponent(btn.dataset.kat);
+      const kelompokList = Object.keys(katObj[kategori]);
+      const allOn = kelompokList.every(kel=>ENABLED_KELOMPOK.has(`${kategori}|||${kel}`));
+      kelompokList.forEach(kel=>{
+        const key = `${kategori}|||${kel}`;
+        if(allOn) ENABLED_KELOMPOK.delete(key); else ENABLED_KELOMPOK.add(key);
+      });
+      renderKelFilterPanel(periode);
+      renderContent(activePeriode);
+    };
+  });
+
+  const resetBtn = document.getElementById('kelFilterReset');
+  if(resetBtn){
+    resetBtn.onclick = ()=>{
+      Object.keys(katObj).forEach(kategori=>{
+        Object.keys(katObj[kategori]).forEach(kelompok=>{
+          ENABLED_KELOMPOK.add(`${kategori}|||${kelompok}`);
+        });
+      });
+      renderKelFilterPanel(periode);
+      renderContent(activePeriode);
+    };
+  }
 }
 
 function computeHeroStats(){
@@ -1046,14 +1191,20 @@ function renderContent(periode){
   const katObj = STORE[periode];
   if(!katObj){ main.innerHTML = '<div class="state-msg">Tidak ada data.</div>'; return; }
 
+  renderKelFilterPanel(periode);
+
   let html = '';
+  let anyVisible = false;
   Object.keys(katObj).forEach(kategori=>{
     const kelObj = katObj[kategori];
-    const subCount = Object.values(kelObj).reduce((n,k)=>n+Object.keys(k).length,0);
+    const visibleKelompok = Object.keys(kelObj).filter(kel=>ENABLED_KELOMPOK.has(`${kategori}|||${kel}`));
+    if(visibleKelompok.length === 0) return;
+    anyVisible = true;
+    const subCount = visibleKelompok.reduce((n,k)=>n+Object.keys(kelObj[k]).length,0);
     html += `<section class="kategori-block">
       <div class="section-head"><h2><span class="kat-dot"></span>${escapeHtml(kategori)}</h2><span class="tag">${subCount} indikator</span></div>`;
 
-    Object.keys(kelObj).forEach(kelompok=>{
+    visibleKelompok.forEach(kelompok=>{
       const subObj = kelObj[kelompok];
       const compGroups = getCompositionGroups(subObj, kelompok);
       const kelColor = getGroupColor(kategori, kelompok);
@@ -1098,6 +1249,10 @@ function renderContent(periode){
 
     html += `</section>`;
   });
+
+  if(!anyVisible){
+    html = `<div class="state-msg">Tidak ada kelompok yang ditampilkan. Pilih minimal satu kelompok di panel sebelah kiri.</div>`;
+  }
 
   main.innerHTML = html;
 
@@ -1148,7 +1303,7 @@ function splitCompositionSegments(subObj){
   return candidates;
 }
 
-const LEVEL_SUFFIX_RE = /\s+(SD\/Sederajat|SMP\/Sederajat|SMA\/Sederajat|SMK\/Sederajat|Perguruan Tinggi|\d{1,2}\s*-\s*\d{1,2}\s*Tahun)$/i;
+const LEVEL_SUFFIX_RE = /\s+(SD\/Sederajat|SMP\/Sederajat|SMA\/Sederajat|SMK\/Sederajat|Perguruan Tinggi|\d{1,2}\s*-\s*\d{1,2}\s*Tahun|Laki-laki|Laki-Laki|Perempuan)$/i;
 
 function splitLevelGroups(subObj){
   const subs = Object.keys(subObj);
@@ -1207,9 +1362,16 @@ function renderCompositionCardHtml(periode,kategori,kelompok,subObj,group,katCol
 
   const key = encodeURIComponent(JSON.stringify([periode,kategori,kelompok,label,segs]));
   const gradientColors = latestEntries.map((_,i)=>COMPARE_COLORS[i % COMPARE_COLORS.length]);
-  const stripGradient = gradientColors.length > 1
-    ? `linear-gradient(90deg, ${gradientColors.join(', ')})`
-    : (gradientColors[0] || katColor);
+  let stripGradient = gradientColors[0] || katColor;
+  if(gradientColors.length > 1){
+    const n = gradientColors.length;
+    const stops = gradientColors.map((c,i)=>{
+      const startPct = (i/n*100).toFixed(2);
+      const endPct = ((i+1)/n*100).toFixed(2);
+      return `${c} ${startPct}%, ${c} ${endPct}%`;
+    }).join(', ');
+    stripGradient = `linear-gradient(90deg, ${stops})`;
+  }
   return `<div class="card comp-card" data-compkey='${key}'>
       <div class="comp-color-strip" style="background:${stripGradient}"></div>
       <div class="card-label">${escapeHtml(label)}</div>
@@ -1267,7 +1429,7 @@ function openDetail(periode,kategori,kelompok,sub){
     </div>` : ''}
 
     <div class="ai-insight-box">
-      <div class="ai-insight-title">✨ AI Insight</div>
+      <div class="ai-insight-title">✨ Data Insight</div>
       <div class="ai-insight-content drawer-narrative" id="drawerNarrative">Memuat analisis…</div>
     </div>
 
@@ -1465,6 +1627,11 @@ function openCompositionDetail(periode,kategori,kelompok,label,segs){
       ${segs.filter(s=>DEFINISI[s]).map(s=>`<p><b>${escapeHtml(s)}:</b> ${escapeHtml(DEFINISI[s])}</p>`).join('')}
     </div>` : ''}
 
+    <div class="ai-insight-box">
+      <div class="ai-insight-title">✨ Data Insight</div>
+      <div class="ai-insight-content drawer-narrative" id="compDrawerNarrative">Memuat analisis…</div>
+    </div>
+
     <div class="table-head-row">
       <span class="table-head-label">Riwayat Data</span>
       <button class="dl-btn" id="dlCompExcel" title="Unduh tabel sebagai Excel">⬇ Excel</button>
@@ -1506,6 +1673,51 @@ function openCompositionDetail(periode,kategori,kelompok,label,segs){
   refreshCompositionDetail(subObj, segs, years[0], years[years.length-1]);
 }
 
+function buildCompositionInsight(label, segs, bySegSK, sortedSK, skMap){
+  if(!sortedSK || sortedSK.length === 0) return 'Tidak ada data pada rentang periode ini.';
+  const satuan = SATUAN[segs[0]] ? ' ' + escapeHtml(SATUAN[segs[0]]) : '';
+  const firstSK = sortedSK[0], lastSK = sortedSK[sortedSK.length-1];
+  const firstLabel = skMap.get(firstSK), lastLabel = skMap.get(lastSK);
+
+  const firstTotal = segs.reduce((sum,s)=> sum + (bySegSK[s][firstSK] || 0), 0);
+  const lastTotal = segs.reduce((sum,s)=> sum + (bySegSK[s][lastSK] || 0), 0);
+
+  let domSeg = segs[0], domVal = -Infinity;
+  segs.forEach(s=>{
+    const v = bySegSK[s][lastSK];
+    if(v !== undefined && v > domVal){ domVal = v; domSeg = s; }
+  });
+  const domShare = lastTotal > 0 ? (domVal/lastTotal*100) : 0;
+
+  let bestSeg = null, bestChange = -Infinity, worstSeg = null, worstChange = Infinity;
+  segs.forEach(s=>{
+    const f = bySegSK[s][firstSK], l = bySegSK[s][lastSK];
+    if(f !== undefined && l !== undefined){
+      const diff = l - f;
+      if(diff > bestChange){ bestChange = diff; bestSeg = s; }
+      if(diff < worstChange){ worstChange = diff; worstSeg = s; }
+    }
+  });
+
+  let trendWord = 'relatif stabil dibandingkan', trendClass = 'trend-flat';
+  if(lastTotal > firstTotal){ trendWord = 'meningkat dibandingkan'; trendClass = 'trend-up'; }
+  else if(lastTotal < firstTotal){ trendWord = 'menurun dibandingkan'; trendClass = 'trend-down'; }
+
+  let html = `Pada periode <b>${escapeHtml(lastLabel)}</b>, total gabungan seluruh komponen <b>${escapeHtml(label)}</b> tercatat <b>${fmtNum(lastTotal)}${satuan}</b> (dijumlah apa adanya dari ${segs.length} komponen, bukan dinormalisasi ke 100%).`;
+
+  if(firstSK !== lastSK){
+    html += ` Nilai gabungan ini <span class="${trendClass}">${trendWord}</span> periode <b>${escapeHtml(firstLabel)}</b> yang tercatat <b>${fmtNum(firstTotal)}${satuan}</b>.`;
+  }
+
+  html += ` Komponen dengan porsi terbesar saat ini adalah <b>${escapeHtml(domSeg)}</b> (${fmtNum(domVal)}${satuan}, sekitar ${domShare.toFixed(1)}% dari total gabungan).`;
+
+  if(bestSeg && worstSeg && bestSeg !== worstSeg){
+    html += ` Sepanjang rentang ini, <b>${escapeHtml(bestSeg)}</b> mencatat kenaikan paling besar (${bestChange>0?'+':''}${fmtNum(bestChange)}${satuan}), sementara <b>${escapeHtml(worstSeg)}</b> mencatat perubahan paling rendah/menurun (${worstChange>0?'+':''}${fmtNum(worstChange)}${satuan}).`;
+  }
+
+  return html;
+}
+
 function refreshCompositionDetail(subObj, segs, fromYear, toYear){
   const skMap = new Map();
   segs.forEach(s=>{
@@ -1535,6 +1747,11 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
     return `<div class="comp-legend-item"><span class="dot" style="background:${color}"></span>${escapeHtml(s)} <b>${val!==undefined?fmtNum(val):'—'}</b></div>`;
   }).join('');
   document.getElementById('compLegendFull').innerHTML = legendHtml;
+
+  const narrEl = document.getElementById('compDrawerNarrative');
+  if(narrEl){
+    narrEl.innerHTML = buildCompositionInsight(currentCompKey ? currentCompKey.label : '', segs, bySegSK, sortedSK, skMap);
+  }
 
   const canvasEl = document.getElementById('compDetailChart');
   if(typeof Chart === 'undefined'){
@@ -1623,6 +1840,9 @@ function buildCompareIndex(periode){
 }
 
 function renderCompareView(){
+  const filterPanel = document.getElementById('kelFilterPanel');
+  if(filterPanel) filterPanel.style.display = 'none';
+
   if(!comparePeriode || !STORE[comparePeriode]) comparePeriode = STORE.__order[0];
   compareIndex = buildCompareIndex(comparePeriode);
 
@@ -1645,8 +1865,17 @@ function renderCompareView(){
         <div class="ctrl-item"><label>Sampai</label><select id="cmpTo"></select></div>
         <div class="ctrl-item"><label>Jenis Grafik</label><select id="cmpChartType">
           <option value="line">Garis</option>
+          <option value="area">Area Terisi</option>
+          <option value="spline">Kurva Halus</option>
           <option value="bar">Batang</option>
-          <option value="area">Area</option>
+          <option value="rounded-bar">Batang Bulat</option>
+          <option value="stepped-area">Tangga</option>
+          <option value="dashed-area">Putus-putus</option>
+          <option value="scatter">Sebar (Scatter)</option>
+          <option value="lollipop">Lollipop</option>
+          <option value="bubble-ts">Bubble Time Series</option>
+          <option value="pure-bubble">Bubble Murni</option>
+          <option value="slope">Slope (Awal vs Akhir)</option>
         </select></div>
         <label class="cmp-normalize"><input type="checkbox" id="cmpNormalize"> Indeks (awal = 100)</label>
         <button class="cmp-clear" id="cmpClear">Hapus pilihan</button>
@@ -1664,7 +1893,7 @@ function renderCompareView(){
           
           <div class="cmp-info-grid" id="cmpInfoGrid" style="display:none;">
             <div class="ai-insight-box">
-              <div class="ai-insight-title">✨ AI Insights & Analisis Mendalam Tren</div>
+              <div class="ai-insight-title">✨ Data dan Tren Insights  Tren</div>
               <div class="ai-insight-content" id="aiInsightText">Pilih indikator untuk melihat analisis.</div>
             </div>
             <div class="compare-defs-box">
@@ -1798,10 +2027,13 @@ function renderCompareChart(){
   });
   const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
   const labels = sortedKeys.map(sk=>uniqueLabelsMap.get(sk));
+  const isSlope = compareChartType === 'slope';
+  const chartLabels = (isSlope && labels.length >= 2) ? [labels[0], labels[labels.length-1]] : labels;
 
   const seriesAnalysisData = [];
+  const datasets = [];
 
-  const datasets = keys.map((k,i)=>{
+  keys.forEach((k,i)=>{
     const info = compareIndex[k];
     const bySort = {};
     info.entries.forEach(e=>{ bySort[sortKey(e)] = e.data; });
@@ -1845,41 +2077,71 @@ function renderCompareChart(){
     }
     
     const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
-    const type = getGroupChartType(info.kategori, info.kelompok, info.sub);
-    const isSpline = type === 'spline';
-    const isStepped = type === 'stepped-area';
-    const isDashed = type === 'dashed-area';
-    const isScatter = type === 'scatter';
     const yAxisID = (!normalizeCompare && keys.length > 1 && i % 2 === 1) ? 'y1' : 'y';
-    const isBarMode = compareChartType === 'bar';
-    const isAreaMode = compareChartType === 'area';
 
-    return {
-      type: isBarMode ? 'bar' : 'line',
-      label: info.sub,
-      data: values,
-      borderColor: color,
-      backgroundColor: (isBarMode || isAreaMode) ? color + '55' : color,
-      pointRadius: isBarMode ? 0 : 3,
-      pointHoverRadius: isBarMode ? 0 : 5,
-      borderWidth: 2.2,
-      spanGaps: true,
-      tension: isSpline ? 0.4 : ((isStepped || isDashed) ? 0 : 0.25),
-      stepped: isStepped,
-      borderDash: isDashed ? [6, 4] : [],
-      showLine: !isScatter,
-      fill: isAreaMode ? true : false,
-      yAxisID: yAxisID
-    };
+    if(compareChartType === 'lollipop'){
+      datasets.push({
+        type:'bar', label:info.sub, data:values, backgroundColor: hexToRgba(color,0.5),
+        maxBarThickness:5, borderWidth:0, yAxisID, order:2
+      });
+      datasets.push({
+        type:'line', label:info.sub, data:values, borderColor:color, backgroundColor:color,
+        pointBackgroundColor:color, pointRadius:5, pointHoverRadius:7, showLine:false, fill:false,
+        yAxisID, order:1
+      });
+    }else if(compareChartType === 'pure-bubble' || compareChartType === 'bubble-ts'){
+      const numericVals = values.filter(v=>v!==null && v!==undefined);
+      const minV = numericVals.length ? Math.min(...numericVals) : 0;
+      const maxV = numericVals.length ? Math.max(...numericVals) : 1;
+      const rangeV = (maxV-minV) || 1;
+      const isTS = compareChartType === 'bubble-ts';
+      datasets.push({
+        type:'line',
+        label: info.sub,
+        data: values,
+        borderColor: color,
+        backgroundColor: isTS ? hexToRgba(color,0.16) : hexToRgba(color,0.7),
+        pointBackgroundColor: color,
+        showLine: isTS,
+        fill: isTS,
+        tension: isTS ? 0.3 : 0,
+        borderDash: isTS ? [3,3] : [],
+        borderWidth: isTS ? 1.4 : 0,
+        pointRadius: function(context){
+          const v = context.raw;
+          if(v===null||v===undefined) return 0;
+          const norm = (v-minV)/rangeV;
+          return computeBubbleRadius(norm, context.chart, keys.length);
+        },
+        pointHoverRadius: function(context){
+          const v = context.raw;
+          if(v===null||v===undefined) return 0;
+          const norm = (v-minV)/rangeV;
+          return computeBubbleRadius(norm, context.chart, keys.length) + 3;
+        },
+        yAxisID
+      });
+    }else if(isSlope){
+      const twoVals = values.length >= 2 ? [values[0], values[values.length-1]] : values;
+      datasets.push({
+        type:'line', label:info.sub, data:twoVals, borderColor:color, backgroundColor:color,
+        pointBackgroundColor:color, pointRadius:5, pointHoverRadius:7, borderWidth:3, tension:0,
+        fill:false, yAxisID
+      });
+    }else{
+      const style = getCompareTypeStyle(compareChartType, color);
+      datasets.push(Object.assign({ label:info.sub, data:values, borderColor:color, yAxisID, spanGaps:true }, style));
+    }
   });
 
   const hasY1 = !normalizeCompare && keys.length > 1 && keys.some((_, i) => i % 2 === 1);
+  const topType = (compareChartType === 'bar' || compareChartType === 'rounded-bar' || compareChartType === 'lollipop') ? 'bar' : 'line';
 
   const ctx = document.getElementById('compareChart').getContext('2d');
   if(compareChart) compareChart.destroy();
   compareChart = new Chart(ctx, {
-    type: compareChartType === 'bar' ? 'bar' : 'line',
-    data:{ labels, datasets },
+    type: topType,
+    data:{ labels: chartLabels, datasets },
     options:{
       responsive:true,
       maintainAspectRatio:false,
@@ -1887,7 +2149,10 @@ function renderCompareChart(){
       plugins:{
         legend:{
           position:'bottom',
-          labels:{ color:'#562F00', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true }
+          labels:{
+            color:'#562F00', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true,
+            filter: (legendItem)=> compareChartType !== 'lollipop' || legendItem.datasetIndex % 2 === 1
+          }
         },
         tooltip:{
           callbacks:{
@@ -1917,6 +2182,28 @@ function renderCompareChart(){
 
   generateAdvancedAIInsight(seriesAnalysisData);
   renderCompareDefinitions(keys);
+}
+
+function getCompareTypeStyle(type, color){
+  switch(type){
+    case 'bar':
+      return { type:'bar', backgroundColor: hexToRgba(color,0.68), borderRadius:0, borderWidth:0 };
+    case 'rounded-bar':
+      return { type:'bar', backgroundColor: hexToRgba(color,0.68), borderRadius:6, borderWidth:0 };
+    case 'area':
+      return { type:'line', backgroundColor: hexToRgba(color,0.28), fill:true, tension:0.25, borderWidth:2.2, pointRadius:3, pointHoverRadius:5 };
+    case 'spline':
+      return { type:'line', backgroundColor: color, fill:false, tension:0.42, borderWidth:2.2, pointRadius:3, pointHoverRadius:5 };
+    case 'stepped-area':
+      return { type:'line', backgroundColor: hexToRgba(color,0.22), fill:true, stepped:true, tension:0, borderWidth:2.2, pointRadius:2, pointHoverRadius:5 };
+    case 'dashed-area':
+      return { type:'line', backgroundColor: 'transparent', fill:false, borderDash:[6,4], tension:0, borderWidth:2.2, pointRadius:2, pointHoverRadius:5 };
+    case 'scatter':
+      return { type:'line', backgroundColor: color, fill:false, showLine:false, borderWidth:0, pointRadius:4, pointHoverRadius:6 };
+    case 'line':
+    default:
+      return { type:'line', backgroundColor: color, fill:false, tension:0.22, borderWidth:2.2, pointRadius:3, pointHoverRadius:5 };
+  }
 }
 
 function generateAdvancedAIInsight(dataList){
@@ -2085,15 +2372,15 @@ function refreshDetail(entries, fromYear, toYear){
       backgroundColor: hexToRgba(accent, 0.75),
       pointRadius: function(context) {
         const v = context.raw;
-        if(v === null || v === undefined) return 7;
+        if(v === null || v === undefined) return 0;
         const norm = (v - minV) / rangeV;
-        return Math.max(7, norm * 24 + 7);
+        return computeBubbleRadius(norm, context.chart, 1);
       },
       pointHoverRadius: function(context) {
         const v = context.raw;
-        if(v === null || v === undefined) return 12;
+        if(v === null || v === undefined) return 0;
         const norm = (v - minV) / rangeV;
-        return Math.max(12, norm * 24 + 12);
+        return computeBubbleRadius(norm, context.chart, 1) + 3;
       },
       pointBackgroundColor: accent,
       showLine: false,
@@ -2109,15 +2396,15 @@ function refreshDetail(entries, fromYear, toYear){
       backgroundColor: hexToRgba(accent, 0.22),
       pointRadius: function(context) {
         const v = context.raw;
-        if(v === null || v === undefined) return 5;
+        if(v === null || v === undefined) return 0;
         const norm = (v - minV) / rangeV;
-        return Math.max(5, norm * 18 + 5);
+        return computeBubbleRadius(norm, context.chart, 1) * 0.8;
       },
       pointHoverRadius: function(context) {
         const v = context.raw;
-        if(v === null || v === undefined) return 8;
+        if(v === null || v === undefined) return 0;
         const norm = (v - minV) / rangeV;
-        return Math.max(8, norm * 18 + 8);
+        return computeBubbleRadius(norm, context.chart, 1) * 0.8 + 3;
       },
       pointBackgroundColor: accent,
       borderWidth: 2.2,
@@ -2180,6 +2467,17 @@ function refreshDetail(entries, fromYear, toYear){
       }
     }
   });
+}
+
+function computeBubbleRadius(norm, chart, seriesCount){
+  norm = Math.max(0, Math.min(1, isFinite(norm) ? norm : 0));
+  const area = chart && chart.chartArea;
+  const n = (chart && chart.data && chart.data.labels) ? chart.data.labels.length : 10;
+  const plotWidth = area ? Math.max(60, area.right - area.left) : 300;
+  const perPoint = plotWidth / Math.max(1, n) / Math.max(1, seriesCount || 1);
+  const maxR = Math.max(5, Math.min(20, perPoint * 0.42));
+  const minR = Math.max(3, maxR * 0.32);
+  return minR + Math.sqrt(norm) * (maxR - minR);
 }
 
 function hexToRgba(hex, alpha){
