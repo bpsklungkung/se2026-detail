@@ -1378,11 +1378,11 @@ function renderCompareView(){
           </div>
           <div class="compare-empty" id="cmpEmpty">Pilih minimal satu indikator di samping untuk mulai membandingkan.</div>
           
-          <!-- Area AI Insight Mendalam & Definisi -->
+          <!-- Area AI Insight & Definisi -->
           <div class="cmp-info-grid" id="cmpInfoGrid" style="display:none;">
             <div class="ai-insight-box">
               <div class="ai-insight-title">✨ AI Insights & Analisis Mendalam Tren</div>
-              <div class="ai-insight-content" id="ai InsightText">Menganalisis pergerakan data secara mendalam...</div>
+              <div class="ai-insight-content" id="aiInsightText">Pilih indikator untuk melihat analisis.</div>
             </div>
             <div class="compare-defs-box">
               <div class="compare-defs-title">Definisi Indikator Terpilih</div>
@@ -1521,7 +1521,6 @@ function renderCompareChart(){
     info.entries.forEach(e=>{ bySort[sortKey(e)] = e.data; });
     let values = sortedKeys.map(sk=> bySort.hasOwnProperty(sk) ? bySort[sk] : null);
     
-    // Ekstraksi data mendalam untuk AI Insight
     const filteredEntries = info.entries.filter(e => e.tahun >= compareFrom && e.tahun <= compareTo);
     if(filteredEntries.length > 0){
       let maxObj = filteredEntries[0];
@@ -1541,9 +1540,7 @@ function renderCompareChart(){
       seriesAnalysisData.push({
         name: info.sub,
         first: firstVal,
-        firstYear: periodLabel(filteredEntries[0]),
         last: lastVal,
-        lastYear: periodLabel(filteredEntries[filteredEntries.length - 1]),
         pct: pct,
         cagr: cagr,
         max: maxObj.data,
@@ -1637,7 +1634,7 @@ function generateAdvancedAIInsight(dataList){
   if(!textEl) return;
 
   if(!dataList || dataList.length === 0){
-    textEl.innerHTML = `Silakan centang minimal satu indikator di panel sebelah kiri untuk melihat hasil analisis mendalam.`;
+    textEl.innerHTML = `Silakan centang minimal satu indikator di panel sebelah kiri.`;
     return;
   }
 
