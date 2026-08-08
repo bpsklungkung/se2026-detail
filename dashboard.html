@@ -650,7 +650,6 @@ function getGroupChartType(kategori, kelompok){
   const key = kategori + '|||' + kelompok;
   getGroupColor(kategori, kelompok); 
   
-  // Penyesuaian tipe grafik khusus per kelompok
   if (/konsumsi|pengeluaran/i.test(kelompok)) {
     return 'rounded-bar';
   }
@@ -660,9 +659,12 @@ function getGroupChartType(kategori, kelompok){
   if (/pendidikan/i.test(kelompok) || /pendidikan/i.test(kategori)) {
     return 'spline';
   }
+  if (/penanaman\s*modal/i.test(kelompok) || /penanaman\s*modal/i.test(kategori)) {
+    return 'bubble-ts';
+  }
 
   const idx = Object.keys(GROUP_COLOR_MAP).indexOf(key);
-  const types = ['filled-area', 'bar', 'stepped-area', 'dashed-area', 'scatter', 'lollipop', 'rounded-bar', 'spline'];
+  const types = ['filled-area', 'bar', 'stepped-area', 'dashed-area', 'scatter', 'lollipop', 'rounded-bar', 'spline', 'bubble-ts'];
   return types[idx % types.length];
 }
 
@@ -729,6 +731,7 @@ function buildStore(rows){
     const periode = (row[0]||'').toString().trim();
     const triwulan = (row[1]||'').toString().trim();
     const tahun = parseInt((row[2]||'').toString().trim());
+    
     const kategori = (row[3]||'').toString().trim();
     const kelompok = (row[4]||'').toString().trim();
     const subkelompok = (row[5]||'').toString().trim();
@@ -860,8 +863,28 @@ function makeSparkline(entries, color, type){
         <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${color}"/>
       `;
     }).join('');
+  } else if (type === 'bubble-ts') {
+    let pathD = '';
+    const pts = vals.map((v, i) => {
+      const x = pad + i * step;
+      const y = h - pad - ((v - min) / range) * (h - pad * 2);
+      return {x, y, v};
+    });
+    pts.forEach((p, i) => {
+      if (i === 0) pathD += `M ${p.x.toFixed(1)},${p.y.toFixed(1)} `;
+      else pathD += `L ${p.x.toFixed(1)},${p.y.toFixed(1)} `;
+    });
+    let bubbles = pts.map(p => {
+      const normVal = range > 0 ? (p.v - min) / range : 0.5;
+      const radius = 2 + normVal * 5; 
+      return `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${radius.toFixed(1)}" fill="${color}" opacity="0.85"/>`;
+    }).join('');
+
+    svgContent = `
+      <path d="${pathD}" fill="none" stroke="${color}" stroke-width="1.2" opacity="0.4" stroke-dasharray="3,3"/>
+      ${bubbles}
+    `;
   } else if (type === 'spline') {
-    // Kurva Bezier halus untuk Sparkline Spline
     let pathD = '';
     const pts = vals.map((v, i) => {
       const x = pad + i * step;
@@ -1437,7 +1460,6 @@ function renderCompareView(){
           </div>
           <div class="compare-empty" id="cmpEmpty">Pilih minimal satu indikator di samping untuk mulai membandingkan.</div>
           
-          <!-- Area AI Insight & Definisi -->
           <div class="cmp-info-grid" id="cmpInfoGrid" style="display:none;">
             <div class="ai-insight-box">
               <div class="ai-insight-title">✨ AI Insights & Analisis Mendalam Tren</div>
@@ -1797,6 +1819,7 @@ function refreshDetail(entries, fromYear, toYear){
   const isBar = currentDetailChartType === 'bar' || currentDetailChartType === 'rounded-bar';
   const isLollipop = currentDetailChartType === 'lollipop';
   const isSpline = currentDetailChartType === 'spline';
+  const isBubbleTS = currentDetailChartType === 'bubble-ts';
   const isScatter = currentDetailChartType === 'scatter';
   const isStepped = currentDetailChartType === 'stepped-area';
   const isDashed = currentDetailChartType === 'dashed-area';
@@ -1824,6 +1847,32 @@ function refreshDetail(entries, fromYear, toYear){
         fill: false
       }
     ];
+  } else if (isBubbleTS) {
+    // Bubble Time Series: Tahun tersebar horizontal secara merata (kategori x-axis), ukuran titik (bubble) berskala proporsional
+    const minV = Math.min(...values), maxV = Math.max(...values);
+    const rangeV = (maxV - minV) || 1;
+    datasets = [{
+      type: 'line',
+      data: values,
+      borderColor: accent,
+      backgroundColor: hexToRgba(accent, 0.22),
+      pointRadius: function(context) {
+        const v = context.raw;
+        if(v === null || v === undefined) return 5;
+        const norm = (v - minV) / rangeV;
+        return Math.max(5, norm * 18 + 5);
+      },
+      pointHoverRadius: function(context) {
+        const v = context.raw;
+        if(v === null || v === undefined) return 8;
+        const norm = (v - minV) / rangeV;
+        return Math.max(8, norm * 18 + 9);
+      },
+      pointBackgroundColor: accent,
+      borderWidth: 2.2,
+      fill: true,
+      tension: 0.3
+    }];
   } else if (isBar) {
     datasets = [{
       data: values,
@@ -1859,7 +1908,7 @@ function refreshDetail(entries, fromYear, toYear){
       borderWidth: 2.5,
       fill: true,
       tension: isSpline ? 0.4 : ((isStepped || isDashed) ? 0 : 0.25),
-      stepped: isStepped ? true : false,
+      stepped: isSpline ? false : (isStepped ? true : false),
       borderDash: isDashed ? [6, 4] : []
     }];
   }
@@ -1872,7 +1921,10 @@ function refreshDetail(entries, fromYear, toYear){
       maintainAspectRatio:false,
       plugins:{ legend:{display:false} },
       scales:{
-        x:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
+        x:{ 
+          grid:{display:false}, 
+          ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } 
+        },
         y:{ grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } }
       }
     }
