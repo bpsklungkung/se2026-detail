@@ -2278,25 +2278,31 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
 
   if(compCurrentChartType === 'treemap'){
     if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
+    canvasBox.style.height = 'auto';
     canvasBox.innerHTML = buildTreemapSVG(segs, bySegSK, lastSK);
     noteEl.innerHTML = `Menampilkan komposisi pada periode <b>${escapeHtml(lastLabel)}</b> (snapshot periode terakhir dalam rentang terpilih). Luas kotak proporsional terhadap nilai masing-masing komponen.`;
   }else if(compCurrentChartType === 'waffle'){
     if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
+    canvasBox.style.height = 'auto';
     canvasBox.innerHTML = buildWaffleSVG(segs, bySegSK, lastSK);
     noteEl.innerHTML = `Menampilkan porsi tiap komponen pada periode <b>${escapeHtml(lastLabel)}</b> sebagai 100 kotak — tiap kotak mewakili sekitar 1% dari total gabungan.`;
   }else if(compCurrentChartType === 'dumbbell'){
     if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
+    canvasBox.style.height = 'auto';
     canvasBox.innerHTML = buildDumbbellSVG(segs, bySegSK, sortedSK, skMap);
     noteEl.innerHTML = `Tiap baris tahun menampilkan sebaran nilai antar komponen — titik terhubung menunjukkan rentang dari nilai terendah ke tertinggi pada tahun tersebut.`;
   }else if(compCurrentChartType === 'stream'){
     if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
+    canvasBox.style.height = 'auto';
     canvasBox.innerHTML = buildStreamSVG(segs, bySegSK, sortedSK, skMap);
     noteEl.innerHTML = `Menampilkan alur tiap komponen sepanjang waktu, disusun simetris di sekitar garis tengah (ThemeRiver style). Lebar tiap pita sebanding dengan nilai komponen pada tahun tersebut.`;
   }else if(compCurrentChartType === 'marimekko'){
     if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
+    canvasBox.style.height = 'auto';
     canvasBox.innerHTML = buildMarimekkoSVG(segs, bySegSK, sortedSK, skMap);
     noteEl.innerHTML = `Lebar tiap kolom sebanding dengan total gabungan pada tahun tersebut (relatif terhadap total seluruh tahun), tinggi tiap segmen menunjukkan porsi komponen dalam tahun itu.`;
   }else{
+    canvasBox.style.height = '320px';
     if(!document.getElementById('compDetailChart')){
       canvasBox.innerHTML = '<canvas id="compDetailChart"></canvas>';
     }
@@ -3187,21 +3193,27 @@ function renderCompareChart(){
 
   if(compareChartType === 'surface'){
     if(compareChart){ compareChart.destroy(); compareChart = null; }
-    document.getElementById('cmpChartBox').innerHTML = buildCompareSurfaceGrid(keys);
+    const box = document.getElementById('cmpChartBox');
+    box.style.height = 'auto';
+    box.innerHTML = buildCompareSurfaceGrid(keys);
     generateAdvancedAIInsight(seriesAnalysisData);
     renderCompareDefinitions(keys);
     return;
   }
   if(compareChartType === 'stream'){
     if(compareChart){ compareChart.destroy(); compareChart = null; }
-    document.getElementById('cmpChartBox').innerHTML = buildCompareStreamSVG(keys);
+    const box = document.getElementById('cmpChartBox');
+    box.style.height = 'auto';
+    box.innerHTML = buildCompareStreamSVG(keys);
     generateAdvancedAIInsight(seriesAnalysisData);
     renderCompareDefinitions(keys);
     return;
   }
   if(compareChartType === 'marimekko'){
     if(compareChart){ compareChart.destroy(); compareChart = null; }
-    document.getElementById('cmpChartBox').innerHTML = buildCompareMarimekkoSVG(keys);
+    const box = document.getElementById('cmpChartBox');
+    box.style.height = 'auto';
+    box.innerHTML = buildCompareMarimekkoSVG(keys);
     generateAdvancedAIInsight(seriesAnalysisData);
     renderCompareDefinitions(keys);
     return;
@@ -3209,6 +3221,7 @@ function renderCompareChart(){
   if(!document.getElementById('compareChart')){
     document.getElementById('cmpChartBox').innerHTML = '<canvas id="compareChart"></canvas>';
   }
+  document.getElementById('cmpChartBox').style.height = '360px';
   if(compareChartType === 'waterfall'){
     renderCompareWaterfallChart(keys, seriesAnalysisData);
     generateAdvancedAIInsight(seriesAnalysisData);
