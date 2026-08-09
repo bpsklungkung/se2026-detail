@@ -635,6 +635,45 @@
     line-height:1.5;
     color:var(--brown-mid);
   }
+  .comp-chart-note{
+    margin-top:8px;
+    font-size:11.5px;
+    color:var(--brown-soft);
+    line-height:1.5;
+  }
+  .surface-grid{
+    border-collapse:collapse;
+    font-size:11px;
+    width:100%;
+  }
+  .surface-grid th{
+    padding:6px 8px;
+    font-size:10.5px;
+    color:var(--brown-mid);
+    text-align:center;
+    white-space:nowrap;
+  }
+  .surface-grid .surface-row-label{
+    padding:6px 10px;
+    text-align:left;
+    font-weight:600;
+    color:var(--brown-deep);
+    white-space:nowrap;
+    max-width:180px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    position:sticky;
+    left:0;
+    background:var(--card-bg);
+  }
+  .surface-cell{
+    padding:6px 8px;
+    text-align:center;
+    color:#3a2200;
+    font-weight:600;
+    min-width:52px;
+    border:1px solid #fff;
+  }
   .drawer-narrative{
     margin-top:10px;
     font-size:12.5px;
@@ -706,36 +745,12 @@
     </main>
   </div>
 
-  <div class="footer-note"><h3 style="font-size: 18px; font-weight: bold; color: #333; margin: 0;">Badan Pusat Statistik Kabupaten Klungkung</h3></div>
+  <div class="footer-note">Badan Pusat Statistik Kabupaten Klungkung</div>
 </div>
 
 <div class="overlay" id="overlay">
   <div class="drawer" id="drawer"></div>
 </div>
-
-<footer>
-    <div class="footer-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 30px; gap: 15px;">
-        <!-- Ikon Media Sosial & Web Berwarna Resmi -->
-        <div class="footer-social-media" style="display: flex; gap: 20px; align-items: center; justify-content: center;">
-            
-            <!-- Ikon Website / Globe (Warna Biru Chrome/Web) -->
-            <a target="_blank" aria-label="Website" href="https://klungkungkab.bps.go.id/id" style="display: flex; align-items: center;">
-                <img alt="Website" loading="lazy" width="32" height="32" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/chrome/chrome-original.svg" style="width: 32px; height: 32px;">
-            </a>
-
-            <!-- Ikon Facebook (Warna Biru Resmi) -->
-            <a target="_blank" aria-label="Facebook" href="https://www.facebook.com/bpskabklungkung/" style="display: flex; align-items: center;">
-                <img alt="Facebook" loading="lazy" width="32" height="32" src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/facebook.svg" style="width: 32px; height: 32px; fill: #1877F2; color: #1877F2;">
-            </a>
-
-            <!-- Ikon Instagram (Warna Pink/Gradasi Resmi) -->
-            <a target="_blank" aria-label="Instagram" href="https://www.instagram.com/bps_klungkung/" style="display: flex; align-items: center;">
-                <img alt="Instagram" loading="lazy" width="32" height="32" src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg" style="width: 32px; height: 32px;">
-            </a>
-            
-        </div>
-    </div>
-</footer>
 
 <script>
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS0IHQMxQuwLfTdSgKoXUqA8guCT788uBZ4cwlE72X6co3LMRcGU6tk1PSMbi7nVeEB2g-kTVXYBPyv/pub?output=csv";
@@ -748,6 +763,7 @@ let ENABLED_KELOMPOK = null;
 let chartInstance = null;
 let currentSeriesKey = null;
 let currentCompKey = null;
+let compCurrentChartType = 'stacked-bar';
 
 let compareMode = false;
 let comparePeriode = null;
@@ -782,7 +798,11 @@ const CHART_STYLE_OPTIONS = [
   {value:'scatter', label:'Sebar (Scatter)'},
   {value:'lollipop', label:'Lollipop'},
   {value:'bubble-ts', label:'Bubble Time Series'},
-  {value:'pure-bubble', label:'Bubble Murni'}
+  {value:'pure-bubble', label:'Bubble Murni'},
+  {value:'waterfall', label:'Waterfall'},
+  {value:'funnel', label:'Funnel'},
+  {value:'surface', label:'Surface (Heatmap)'},
+  {value:'radar', label:'Radar'}
 ];
 
 function chartStyleKey(kategori, kelompok, sub){
@@ -1182,6 +1202,49 @@ function makeSparkline(entries, color, type){
       const y = h - pad - ((v - min) / range) * (h - pad * 2);
       return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${color}"/>`;
     }).join('');
+  } else if (type === 'waterfall') {
+    const barW = Math.max(3, (w - pad * 2) / vals.length * 0.55);
+    const zeroY = h - pad;
+    svgContent = vals.map((v, i) => {
+      const prev = i === 0 ? min : vals[i-1];
+      const isUp = v >= prev;
+      const yTop = h - pad - ((Math.max(v,prev) - min) / range) * (h - pad * 2);
+      const yBot = h - pad - ((Math.min(v,prev) - min) / range) * (h - pad * 2);
+      const barH = Math.max(2, yBot - yTop);
+      const x = pad + i * step - barW / 2;
+      const barColor = i === 0 ? color : (isUp ? '#4E7D5A' : '#A63A50');
+      return `<rect x="${x.toFixed(1)}" y="${yTop.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" fill="${barColor}" rx="1"></rect>`;
+    }).join('');
+  } else if (type === 'funnel') {
+    const sortedIdx = vals.map((v,i)=>i).sort((a,b)=>vals[b]-vals[a]);
+    const barH = Math.max(2, (h - pad*2) / vals.length - 2);
+    svgContent = sortedIdx.map((origI, rank) => {
+      const v = vals[origI];
+      const wRatio = range > 0 ? 0.28 + 0.72*((v-min)/range) : 1;
+      const barW = (w - pad*2) * wRatio;
+      const x = pad + ((w - pad*2) - barW)/2;
+      const y = pad + rank * ((h - pad*2)/vals.length);
+      return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" fill="${color}" opacity="${(0.55+0.45*(v-min)/range).toFixed(2)}" rx="2"></rect>`;
+    }).join('');
+  } else if (type === 'surface') {
+    const cellW = (w - pad*2) / vals.length;
+    svgContent = vals.map((v, i) => {
+      const norm = range > 0 ? (v-min)/range : 0.5;
+      const x = pad + i * cellW;
+      const op = 0.25 + norm*0.7;
+      return `<rect x="${x.toFixed(1)}" y="${pad}" width="${(cellW-1.5).toFixed(1)}" height="${(h-pad*2).toFixed(1)}" fill="${color}" opacity="${op.toFixed(2)}" rx="2"></rect>`;
+    }).join('');
+  } else if (type === 'radar') {
+    const cx = h / 2 + 6, cy = h / 2, r = h / 2 - 3;
+    const n = vals.length;
+    const pts = vals.map((v, i) => {
+      const norm = range > 0 ? (v - min) / range : 0.5;
+      const rad = 0.35 + norm * (r - 2);
+      const angle = (Math.PI * 2 * i / n) - Math.PI / 2;
+      return [cx + Math.cos(angle) * rad, cy + Math.sin(angle) * rad];
+    });
+    const poly = pts.map(p => p.map(v=>v.toFixed(1)).join(',')).join(' ');
+    svgContent = `<polygon points="${poly}" fill="${color}" fill-opacity="0.28" stroke="${color}" stroke-width="1.4"></polygon>`;
   } else {
     const pts = vals.map((v,i) => {
       const x = pad + i * step;
@@ -1453,7 +1516,7 @@ function openDetail(periode,kategori,kelompok,sub){
     </div>` : ''}
 
     <div class="ai-insight-box">
-      <div class="ai-insight-title">✨ Data Insight</div>
+      <div class="ai-insight-title">✨ AI Insight</div>
       <div class="ai-insight-content drawer-narrative" id="drawerNarrative">Memuat analisis…</div>
     </div>
 
@@ -1527,8 +1590,54 @@ function triggerJPGDownload(inst, name){
   }, 'image/jpeg', 1.0);
 }
 function downloadChartJPG(){ triggerJPGDownload(chartInstance, currentSeriesKey ? currentSeriesKey.sub : 'grafik'); }
-function downloadCompChartJPG(){ triggerJPGDownload(chartInstance, currentCompKey ? currentCompKey.label : 'komposisi'); }
-function downloadCompareChartJPG(){ triggerJPGDownload(compareChart, 'perbandingan_indikator'); }
+function exportSvgAsJPG(svgEl, name){
+  if(!svgEl){ alert('Grafik belum siap.'); return; }
+  const xml = new XMLSerializer().serializeToString(svgEl);
+  const svg64 = btoa(unescape(encodeURIComponent(xml)));
+  const image64 = 'data:image/svg+xml;base64,' + svg64;
+  const img = new Image();
+  img.onload = function(){
+    const vb = svgEl.viewBox && svgEl.viewBox.baseVal;
+    const w = (vb && vb.width) || svgEl.clientWidth || 600;
+    const h = (vb && vb.height) || svgEl.clientHeight || 320;
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0,0,w,h);
+    ctx.drawImage(img, 0, 0, w, h);
+    canvas.toBlob(function(blob){
+      if(!blob){ alert('Gagal membuat gambar.'); return; }
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${(name||'grafik').replace(/[^a-z0-9]+/gi,'_')}.jpg`;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(()=>URL.revokeObjectURL(url), 1000);
+    }, 'image/jpeg', 1.0);
+  };
+  img.onerror = function(){ alert('Gagal membuat gambar dari grafik.'); };
+  img.src = image64;
+}
+
+function downloadCompChartJPG(){
+  if(compCurrentChartType === 'treemap'){
+    const svgEl = document.getElementById('compTreemapSvg');
+    exportSvgAsJPG(svgEl, currentCompKey ? currentCompKey.label : 'komposisi');
+    return;
+  }
+  triggerJPGDownload(chartInstance, currentCompKey ? currentCompKey.label : 'komposisi');
+}
+function downloadCompareChartJPG(){
+  if(compareChartType === 'surface'){
+    alert('Unduh JPG belum didukung untuk tampilan Surface (Heatmap). Pilih tampilan grafik lain untuk mengunduh, atau gunakan tombol Excel pada tabel data.');
+    return;
+  }
+  triggerJPGDownload(compareChart, 'perbandingan_indikator');
+}
 
 async function exportStyledExcel(filename, sheetName, header, rows){
   if(typeof ExcelJS === 'undefined'){ alert('Gagal memuat library Excel. Coba refresh halaman.'); return; }
@@ -1611,6 +1720,7 @@ function openCompositionDetail(periode,kategori,kelompok,label,segs){
   if(!segs || segs.length < 2) return;
   currentCompKey = {periode,kategori,kelompok,label};
   currentSeriesKey = null;
+  compCurrentChartType = 'stacked-bar';
 
   let allEntries = [];
   segs.forEach(s=>{ allEntries = allEntries.concat(subObj[s]); });
@@ -1636,12 +1746,19 @@ function openCompositionDetail(periode,kategori,kelompok,label,segs){
         <button data-range="5">5 Terakhir</button>
         <button data-range="3">3 Terakhir</button>
       </div>
+      <div class="ctrl-item" style="margin-left:auto;"><label>Tampilan</label><select id="compChartType">
+        <option value="stacked-bar">Stacked Bar</option>
+        <option value="donut">Donut</option>
+        <option value="sunburst">Sunburst</option>
+        <option value="treemap">Treemap</option>
+      </select></div>
     </div>
 
     <div class="chart-box-wrap">
       <button class="dl-btn" id="dlCompChart" title="Unduh grafik sebagai JPG">⬇ JPG</button>
-      <div class="chart-box" style="height:320px;"><canvas id="compDetailChart"></canvas></div>
+      <div class="chart-box" id="compChartBox" style="height:320px;"><canvas id="compDetailChart"></canvas></div>
     </div>
+    <div class="comp-chart-note" id="compChartNote"></div>
 
     <div class="comp-legend" id="compLegendFull" style="margin-top:14px;"></div>
 
@@ -1652,7 +1769,7 @@ function openCompositionDetail(periode,kategori,kelompok,label,segs){
     </div>` : ''}
 
     <div class="ai-insight-box">
-      <div class="ai-insight-title">✨ Data Insight</div>
+      <div class="ai-insight-title">✨ AI Insight</div>
       <div class="ai-insight-content drawer-narrative" id="compDrawerNarrative">Memuat analisis…</div>
     </div>
 
@@ -1693,6 +1810,13 @@ function openCompositionDetail(periode,kategori,kelompok,label,segs){
   document.getElementById('dlCompChart').onclick = downloadCompChartJPG;
   document.getElementById('dlCompExcel').onclick = ()=>downloadCompositionExcel(subObj, segs);
   document.getElementById('overlay').classList.add('show');
+
+  const chartTypeSel = drawer.querySelector('#compChartType');
+  chartTypeSel.value = compCurrentChartType;
+  chartTypeSel.onchange = ()=>{
+    compCurrentChartType = chartTypeSel.value;
+    refreshCompositionDetail(subObj, segs, parseInt(fromSel.value), parseInt(toSel.value));
+  };
 
   refreshCompositionDetail(subObj, segs, years[0], years[years.length-1]);
 }
@@ -1739,7 +1863,108 @@ function buildCompositionInsight(label, segs, bySegSK, sortedSK, skMap){
     html += ` Sepanjang rentang ini, <b>${escapeHtml(bestSeg)}</b> mencatat kenaikan paling besar (${bestChange>0?'+':''}${fmtNum(bestChange)}${satuan}), sementara <b>${escapeHtml(worstSeg)}</b> mencatat perubahan paling rendah/menurun (${worstChange>0?'+':''}${fmtNum(worstChange)}${satuan}).`;
   }
 
+  if(firstSK !== lastSK){
+    const domValFirst = bySegSK[domSeg][firstSK];
+    if(domValFirst !== undefined && firstTotal > 0){
+      const domShareFirst = domValFirst/firstTotal*100;
+      const shareDiff = domShare - domShareFirst;
+      if(Math.abs(shareDiff) >= 1){
+        html += ` Porsi <b>${escapeHtml(domSeg)}</b> terhadap total gabungan ${shareDiff>0?'membesar':'mengecil'} dari sekitar ${domShareFirst.toFixed(1)}% menjadi ${domShare.toFixed(1)}%, menandakan komposisi ${shareDiff>0?'makin terkonsentrasi pada komponen ini':'makin merata antar komponen'}.`;
+      }
+    }
+  }
+
+  if(segs.length >= 2 && sortedSK.length >= 3){
+    let sameDirCount = 0, comparableMoves = 0;
+    for(let i=1;i<sortedSK.length;i++){
+      const skPrev = sortedSK[i-1], skCur = sortedSK[i];
+      let totalPrev = 0, totalCur = 0, valid = true;
+      segs.forEach(s=>{
+        const p = bySegSK[s][skPrev], c = bySegSK[s][skCur];
+        if(p === undefined || c === undefined) valid = false;
+      });
+      if(!valid) continue;
+      segs.forEach(s=>{ totalPrev += bySegSK[s][skPrev]; totalCur += bySegSK[s][skCur]; });
+      const totalDir = totalCur - totalPrev;
+      segs.forEach(s=>{
+        const segDir = bySegSK[s][skCur] - bySegSK[s][skPrev];
+        comparableMoves++;
+        if((segDir >= 0 && totalDir >= 0) || (segDir < 0 && totalDir < 0)) sameDirCount++;
+      });
+    }
+    if(comparableMoves > 0){
+      const syncPct = (sameDirCount/comparableMoves*100);
+      let syncWord = 'cenderung bergerak searah dengan tren total gabungan (sinkron)';
+      if(syncPct < 55) syncWord = 'cukup sering bergerak berlawanan arah satu sama lain (tidak sinkron)';
+      else if(syncPct < 75) syncWord = 'kadang bergerak berbeda arah antar komponen';
+      html += ` Antar komponen, pergerakan tahun-ke-tahun ${syncWord} (±${syncPct.toFixed(0)}% pergerakan searah dengan total).`;
+    }
+  }
+
   return html;
+}
+
+function buildTreemapLayout(items, x, y, w, h){
+  if(items.length === 0) return [];
+  if(items.length === 1){
+    return [Object.assign({}, items[0], {x,y,w,h})];
+  }
+  const total = items.reduce((s,it)=>s+it.value,0) || 1;
+  let cum = 0, splitIdx = 1;
+  for(let i=0;i<items.length;i++){
+    cum += items[i].value;
+    if(cum >= total/2){ splitIdx = i+1; break; }
+  }
+  splitIdx = Math.max(1, Math.min(items.length-1, splitIdx));
+  const groupA = items.slice(0, splitIdx);
+  const groupB = items.slice(splitIdx);
+  const sumA = groupA.reduce((s,it)=>s+it.value,0);
+  const fracA = sumA/total;
+  let rects = [];
+  if(w >= h){
+    const wA = w*fracA;
+    rects = rects.concat(buildTreemapLayout(groupA, x, y, wA, h));
+    rects = rects.concat(buildTreemapLayout(groupB, x+wA, y, w-wA, h));
+  }else{
+    const hA = h*fracA;
+    rects = rects.concat(buildTreemapLayout(groupA, x, y, w, hA));
+    rects = rects.concat(buildTreemapLayout(groupB, x, y+hA, w, h-hA));
+  }
+  return rects;
+}
+
+function buildTreemapSVG(segs, bySegSK, lastSK){
+  const items = segs.map((s,i)=>({
+    name: s,
+    value: bySegSK[s][lastSK] || 0,
+    color: COMPARE_COLORS[i % COMPARE_COLORS.length]
+  })).filter(it=>it.value > 0);
+
+  if(items.length === 0){
+    return '<div style="padding:20px;font-size:13px;color:var(--brown-mid);">Tidak ada data pada periode ini.</div>';
+  }
+
+  items.sort((a,b)=>b.value-a.value);
+  const total = items.reduce((s,it)=>s+it.value,0) || 1;
+  const W = 600, H = 320;
+  const rects = buildTreemapLayout(items, 0, 0, W, H);
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" id="compTreemapSvg" style="width:100%;height:320px;display:block;background:#fff;">`;
+  rects.forEach(r=>{
+    const rw = Math.max(0, r.w - 3);
+    const rh = Math.max(0, r.h - 3);
+    const pct = (r.value/total*100).toFixed(1);
+    svg += `<rect x="${r.x.toFixed(1)}" y="${r.y.toFixed(1)}" width="${rw.toFixed(1)}" height="${rh.toFixed(1)}" fill="${r.color}" rx="5"><title>${escapeHtml(r.name)}: ${fmtNum(r.value)} (${pct}%)</title></rect>`;
+    if(r.w > 70 && r.h > 34){
+      const shortName = r.name.length > 24 ? r.name.slice(0,22)+'…' : r.name;
+      svg += `<text x="${(r.x+9).toFixed(1)}" y="${(r.y+19).toFixed(1)}" font-size="11" font-family="Inter,sans-serif" fill="#fff" font-weight="700">${escapeHtml(shortName)}</text>`;
+      svg += `<text x="${(r.x+9).toFixed(1)}" y="${(r.y+36).toFixed(1)}" font-size="13" font-family="Inter,sans-serif" fill="#fff" font-weight="700">${fmtNum(r.value)}</text>`;
+    }else if(r.w > 34 && r.h > 20){
+      svg += `<text x="${(r.x+r.w/2).toFixed(1)}" y="${(r.y+r.h/2+4).toFixed(1)}" font-size="10" font-family="Inter,sans-serif" fill="#fff" font-weight="700" text-anchor="middle">${pct}%</text>`;
+    }
+  });
+  svg += `</svg>`;
+  return svg;
 }
 
 function refreshCompositionDetail(subObj, segs, fromYear, toYear){
@@ -1777,31 +2002,102 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
     narrEl.innerHTML = buildCompositionInsight(currentCompKey ? currentCompKey.label : '', segs, bySegSK, sortedSK, skMap);
   }
 
-  const canvasEl = document.getElementById('compDetailChart');
-  if(typeof Chart === 'undefined'){
-    canvasEl.parentElement.innerHTML = '<div style="padding:20px;font-size:13px;color:var(--brown-mid);">Grafik gagal dimuat (library Chart.js tidak tersedia). Coba refresh halaman.</div>';
+  const canvasBox = document.getElementById('compChartBox');
+  const noteEl = document.getElementById('compChartNote');
+  const lastLabel = skMap.get(lastSK) || '';
+
+  if(compCurrentChartType === 'treemap'){
+    if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
+    canvasBox.innerHTML = buildTreemapSVG(segs, bySegSK, lastSK);
+    noteEl.innerHTML = `Menampilkan komposisi pada periode <b>${escapeHtml(lastLabel)}</b> (snapshot periode terakhir dalam rentang terpilih). Luas kotak proporsional terhadap nilai masing-masing komponen.`;
   }else{
-    const ctx = canvasEl.getContext('2d');
-    if(chartInstance) chartInstance.destroy();
-    chartInstance = new Chart(ctx, {
-      type:'bar',
-      data:{ labels, datasets },
-      options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        plugins:{
-          legend:{ display:false },
-          tooltip:{
-            mode:'index', intersect:false,
-            callbacks:{ label:(c)=>`${c.dataset.label}: ${fmtNum(c.parsed.y)}` }
+    if(!document.getElementById('compDetailChart')){
+      canvasBox.innerHTML = '<canvas id="compDetailChart"></canvas>';
+    }
+    const canvasEl = document.getElementById('compDetailChart');
+    if(typeof Chart === 'undefined'){
+      canvasEl.parentElement.innerHTML = '<div style="padding:20px;font-size:13px;color:var(--brown-mid);">Grafik gagal dimuat (library Chart.js tidak tersedia). Coba refresh halaman.</div>';
+    }else{
+      const ctx = canvasEl.getContext('2d');
+      if(chartInstance) chartInstance.destroy();
+
+      if(compCurrentChartType === 'donut'){
+        noteEl.innerHTML = `Menampilkan komposisi pada periode <b>${escapeHtml(lastLabel)}</b> (snapshot periode terakhir dalam rentang terpilih).`;
+        chartInstance = new Chart(ctx, {
+          type:'doughnut',
+          data:{
+            labels: segs,
+            datasets:[{
+              data: segs.map(s=> bySegSK[s][lastSK] || 0),
+              backgroundColor: segs.map((_,i)=>COMPARE_COLORS[i % COMPARE_COLORS.length]),
+              borderColor:'#fff', borderWidth:2
+            }]
+          },
+          options:{
+            responsive:true, maintainAspectRatio:false,
+            plugins:{
+              legend:{ display:false },
+              tooltip:{ callbacks:{ label:(c)=>`${c.label}: ${fmtNum(c.parsed)}` } }
+            }
           }
-        },
-        scales:{
-          x:{ stacked:true, grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
-          y:{ stacked:true, grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } }
-        }
+        });
+      }else if(compCurrentChartType === 'sunburst'){
+        noteEl.innerHTML = `Cincin dalam = total gabungan, cincin luar = rincian komponen, pada periode <b>${escapeHtml(lastLabel)}</b>.`;
+        const totalSum = segs.reduce((s,seg)=> s + (bySegSK[seg][lastSK] || 0), 0);
+        chartInstance = new Chart(ctx, {
+          type:'doughnut',
+          data:{
+            labels: segs,
+            datasets:[
+              {
+                data: segs.map(s=> bySegSK[s][lastSK] || 0),
+                backgroundColor: segs.map((_,i)=>COMPARE_COLORS[i % COMPARE_COLORS.length]),
+                borderColor:'#fff', borderWidth:2, weight:1
+              },
+              {
+                data:[totalSum],
+                backgroundColor:[currentCompKey ? getGroupColor(currentCompKey.kategori, currentCompKey.kelompok) : '#FF9644'],
+                borderColor:'#fff', borderWidth:2, weight:0.55
+              }
+            ]
+          },
+          options:{
+            responsive:true, maintainAspectRatio:false,
+            plugins:{
+              legend:{ display:false },
+              tooltip:{
+                callbacks:{
+                  label:(c)=> c.datasetIndex === 1
+                    ? `Total ${currentCompKey ? escapeHtml(currentCompKey.label) : ''}: ${fmtNum(totalSum)}`
+                    : `${segs[c.dataIndex]}: ${fmtNum(c.parsed)}`
+                }
+              }
+            }
+          }
+        });
+      }else{
+        noteEl.innerHTML = '';
+        chartInstance = new Chart(ctx, {
+          type:'bar',
+          data:{ labels, datasets },
+          options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            plugins:{
+              legend:{ display:false },
+              tooltip:{
+                mode:'index', intersect:false,
+                callbacks:{ label:(c)=>`${c.dataset.label}: ${fmtNum(c.parsed.y)}` }
+              }
+            },
+            scales:{
+              x:{ stacked:true, grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
+              y:{ stacked:true, grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } }
+            }
+          }
+        });
       }
-    });
+    }
   }
 
   let theadCells = `<th>Periode</th>` + segs.map(s=>`<th>${escapeHtml(s)}</th>`).join('') + `<th>Total</th>`;
@@ -1900,6 +2196,10 @@ function renderCompareView(){
           <option value="bubble-ts">Bubble Time Series</option>
           <option value="pure-bubble">Bubble Murni</option>
           <option value="slope">Slope (Awal vs Akhir)</option>
+          <option value="waterfall">Waterfall (Bridge)</option>
+          <option value="funnel">Funnel (Ranking)</option>
+          <option value="surface">Surface (Heatmap)</option>
+          <option value="radar">Radar</option>
         </select></div>
         <label class="cmp-normalize"><input type="checkbox" id="cmpNormalize"> Indeks (awal = 100)</label>
         <button class="cmp-clear" id="cmpClear">Hapus pilihan</button>
@@ -1917,7 +2217,7 @@ function renderCompareView(){
           
           <div class="cmp-info-grid" id="cmpInfoGrid" style="display:none;">
             <div class="ai-insight-box">
-              <div class="ai-insight-title">✨ Data dan Tren Insights</div>
+              <div class="ai-insight-title">✨ AI Insights & Analisis Mendalam Tren</div>
               <div class="ai-insight-content" id="aiInsightText">Pilih indikator untuk melihat analisis.</div>
             </div>
             <div class="compare-defs-box">
@@ -2018,6 +2318,202 @@ function updatePickerColors(){
   });
 }
 
+function computeSeriesAnalysis(keys){
+  const list = [];
+  keys.forEach(k=>{
+    const info = compareIndex[k];
+    const filteredEntries = info.entries.filter(e => e.tahun >= compareFrom && e.tahun <= compareTo);
+    if(filteredEntries.length === 0) return;
+    let maxObj = filteredEntries[0], minObj = filteredEntries[0];
+    filteredEntries.forEach(e=>{
+      if(e.data > maxObj.data) maxObj = e;
+      if(e.data < minObj.data) minObj = e;
+    });
+    const firstVal = filteredEntries[0].data;
+    const lastVal = filteredEntries[filteredEntries.length-1].data;
+    const diff = lastVal - firstVal;
+    const pct = firstVal !== 0 ? (diff/firstVal)*100 : 0;
+    const spanYears = (compareTo - compareFrom) || 1;
+    const cagr = firstVal > 0 ? (Math.pow(lastVal/firstVal, 1/spanYears)-1)*100 : 0;
+    list.push({
+      name: info.sub, first:firstVal, last:lastVal, pct, cagr,
+      max:maxObj.data, maxLabel:periodLabel(maxObj),
+      min:minObj.data, minLabel:periodLabel(minObj),
+      unit: SATUAN[info.sub] || '',
+      rawValues: filteredEntries.map(e=>e.data)
+    });
+  });
+  return list;
+}
+
+function renderCompareWaterfallChart(keys, seriesAnalysisData){
+  if(compareChart){ compareChart.destroy(); compareChart = null; }
+  const ctx = document.getElementById('compareChart').getContext('2d');
+
+  const wfLabels = seriesAnalysisData.map(d=>d.name);
+  let running = 0;
+  const wfData = seriesAnalysisData.map(d=>{
+    const delta = d.last - d.first;
+    const bar = [running, running + delta];
+    running += delta;
+    return bar;
+  });
+  wfLabels.push('Total');
+  wfData.push([0, running]);
+  const colors = seriesAnalysisData.map(d=>{
+    const delta = d.last - d.first;
+    return delta >= 0 ? hexToRgba('#4E7D5A',0.82) : hexToRgba('#A63A50',0.82);
+  });
+  colors.push(hexToRgba('#8C6BAF',0.85));
+
+  compareChart = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: wfLabels, datasets:[{ data: wfData, backgroundColor: colors, borderWidth:0, borderRadius:3, maxBarThickness:56 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label:(c)=>{
+          const v = c.raw;
+          return `Perubahan: ${v[1]>=v[0]?'+':''}${fmtNum(v[1]-v[0])}`;
+        }}}
+      },
+      scales:{
+        x:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } },
+        y:{ grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } }
+      }
+    }
+  });
+}
+
+function renderCompareFunnelChart(keys, seriesAnalysisData){
+  if(compareChart){ compareChart.destroy(); compareChart = null; }
+  const ctx = document.getElementById('compareChart').getContext('2d');
+
+  const sorted = seriesAnalysisData.slice().sort((a,b)=>b.last-a.last);
+  const fnLabels = sorted.map(d=>d.name);
+  const fnData = sorted.map(d=>d.last);
+  const colors = sorted.map((_,i)=>COMPARE_COLORS[i % COMPARE_COLORS.length]);
+
+  compareChart = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: fnLabels, datasets:[{ data: fnData, backgroundColor: colors, borderWidth:0, borderRadius:4, maxBarThickness:34 }] },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label:(c)=>`${fmtNum(c.parsed.x)}` } }
+      },
+      scales:{
+        x:{ grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
+        y:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } }
+      }
+    }
+  });
+}
+
+function renderCompareRadarChart(keys){
+  if(compareChart){ compareChart.destroy(); compareChart = null; }
+  const ctx = document.getElementById('compareChart').getContext('2d');
+
+  const uniqueLabelsMap = new Map();
+  keys.forEach(k=>{
+    compareIndex[k].entries.forEach(e=>{
+      if(e.tahun >= compareFrom && e.tahun <= compareTo) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+    });
+  });
+  const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
+  const labels = sortedKeys.map(sk=>uniqueLabelsMap.get(sk));
+
+  const datasets = keys.map((k,i)=>{
+    const info = compareIndex[k];
+    const bySort = {};
+    info.entries.forEach(e=>{ bySort[sortKey(e)] = e.data; });
+    let values = sortedKeys.map(sk=> bySort.hasOwnProperty(sk) ? bySort[sk] : null);
+    if(normalizeCompare){
+      const base = values.find(v=>v!==null && v!==undefined && v!==0);
+      if(base){ values = values.map(v=>(v===null||v===undefined) ? null : (v/base*100)); }
+    }
+    const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+    return {
+      label: info.sub,
+      data: values,
+      borderColor: color,
+      backgroundColor: hexToRgba(color, 0.18),
+      pointBackgroundColor: color,
+      pointRadius: 3,
+      borderWidth: 2,
+      spanGaps: true
+    };
+  });
+
+  compareChart = new Chart(ctx, {
+    type:'radar',
+    data:{ labels, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ position:'bottom', labels:{ color:'#562F00', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } }
+      },
+      scales:{
+        r:{
+          grid:{ color:'#F2DEB8' },
+          angleLines:{ color:'#F2DEB8' },
+          pointLabels:{ color:'#8A5A24', font:{family:'Inter', size:10.5} },
+          ticks:{ color:'#8A5A24', backdropColor:'transparent', font:{family:'Inter', size:9.5} }
+        }
+      }
+    }
+  });
+}
+
+function buildCompareSurfaceGrid(keys){
+  const uniqueLabelsMap = new Map();
+  keys.forEach(k=>{
+    compareIndex[k].entries.forEach(e=>{
+      if(e.tahun >= compareFrom && e.tahun <= compareTo) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+    });
+  });
+  const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
+  const colLabels = sortedKeys.map(sk=>uniqueLabelsMap.get(sk));
+
+  if(sortedKeys.length === 0){
+    return '<div style="padding:20px;font-size:13px;color:var(--brown-mid);">Tidak ada data pada rentang ini.</div>';
+  }
+
+  let html = '<div style="overflow-x:auto;"><table class="surface-grid"><thead><tr><th></th>';
+  colLabels.forEach(l=>{ html += `<th>${escapeHtml(l)}</th>`; });
+  html += '</tr></thead><tbody>';
+
+  keys.forEach(k=>{
+    const info = compareIndex[k];
+    const bySort = {};
+    info.entries.forEach(e=>{ bySort[sortKey(e)] = e.data; });
+    const vals = sortedKeys.map(sk=> bySort.hasOwnProperty(sk) ? bySort[sk] : null);
+    const numeric = vals.filter(v=>v!==null);
+    const minV = numeric.length ? Math.min(...numeric) : 0;
+    const maxV = numeric.length ? Math.max(...numeric) : 1;
+    const rangeV = (maxV-minV) || 1;
+    const color = COMPARE_COLORS[keys.indexOf(k) % COMPARE_COLORS.length];
+
+    html += `<tr><td class="surface-row-label" title="${escapeHtml(info.sub)}">${escapeHtml(info.sub)}</td>`;
+    vals.forEach(v=>{
+      if(v === null){
+        html += `<td class="surface-cell" style="background:#F5EEDB;"></td>`;
+      }else{
+        const norm = (v-minV)/rangeV;
+        const op = (0.15 + norm*0.75).toFixed(2);
+        html += `<td class="surface-cell" style="background:${hexToRgba(color,op)};" title="${escapeHtml(info.sub)}: ${fmtNum(v)}">${fmtNum(v)}</td>`;
+      }
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div><div class="comp-chart-note">Warna dinormalisasi per baris (per indikator) agar variasi tiap indikator tetap terlihat meski skalanya berbeda.</div>';
+  return html;
+}
+
 function renderCompareChart(){
   const wrap = document.getElementById('cmpChartWrap');
   const empty = document.getElementById('cmpEmpty');
@@ -2039,8 +2535,39 @@ function renderCompareChart(){
     document.getElementById('cmpChartBox').innerHTML = '<div style="padding:20px;font-size:13px;color:var(--brown-mid);">Grafik gagal dimuat (library Chart.js tidak tersedia). Coba refresh halaman.</div>';
     return;
   }
+  if(!document.getElementById('compareChart') && compareChartType !== 'surface'){
+    document.getElementById('cmpChartBox').innerHTML = '<canvas id="compareChart"></canvas>';
+  }
+
+  const seriesAnalysisData = computeSeriesAnalysis(keys);
+
+  if(compareChartType === 'surface'){
+    if(compareChart){ compareChart.destroy(); compareChart = null; }
+    document.getElementById('cmpChartBox').innerHTML = buildCompareSurfaceGrid(keys);
+    generateAdvancedAIInsight(seriesAnalysisData);
+    renderCompareDefinitions(keys);
+    return;
+  }
   if(!document.getElementById('compareChart')){
     document.getElementById('cmpChartBox').innerHTML = '<canvas id="compareChart"></canvas>';
+  }
+  if(compareChartType === 'waterfall'){
+    renderCompareWaterfallChart(keys, seriesAnalysisData);
+    generateAdvancedAIInsight(seriesAnalysisData);
+    renderCompareDefinitions(keys);
+    return;
+  }
+  if(compareChartType === 'funnel'){
+    renderCompareFunnelChart(keys, seriesAnalysisData);
+    generateAdvancedAIInsight(seriesAnalysisData);
+    renderCompareDefinitions(keys);
+    return;
+  }
+  if(compareChartType === 'radar'){
+    renderCompareRadarChart(keys);
+    generateAdvancedAIInsight(seriesAnalysisData);
+    renderCompareDefinitions(keys);
+    return;
   }
 
   const uniqueLabelsMap = new Map();
@@ -2054,7 +2581,6 @@ function renderCompareChart(){
   const isSlope = compareChartType === 'slope';
   const chartLabels = (isSlope && labels.length >= 2) ? [labels[0], labels[labels.length-1]] : labels;
 
-  const seriesAnalysisData = [];
   const datasets = [];
 
   keys.forEach((k,i)=>{
@@ -2062,36 +2588,6 @@ function renderCompareChart(){
     const bySort = {};
     info.entries.forEach(e=>{ bySort[sortKey(e)] = e.data; });
     let values = sortedKeys.map(sk=> bySort.hasOwnProperty(sk) ? bySort[sk] : null);
-    
-    const filteredEntries = info.entries.filter(e => e.tahun >= compareFrom && e.tahun <= compareTo);
-    if(filteredEntries.length > 0){
-      let maxObj = filteredEntries[0];
-      let minObj = filteredEntries[0];
-      filteredEntries.forEach(e => {
-        if(e.data > maxObj.data) maxObj = e;
-        if(e.data < minObj.data) minObj = e;
-      });
-
-      const firstVal = filteredEntries[0].data;
-      const lastVal = filteredEntries[filteredEntries.length - 1].data;
-      const diff = lastVal - firstVal;
-      const pct = firstVal !== 0 ? (diff / firstVal) * 100 : 0;
-      const spanYears = (compareTo - compareFrom) || 1;
-      const cagr = firstVal > 0 ? (Math.pow(lastVal / firstVal, 1 / spanYears) - 1) * 100 : 0;
-
-      seriesAnalysisData.push({
-        name: info.sub,
-        first: firstVal,
-        last: lastVal,
-        pct: pct,
-        cagr: cagr,
-        max: maxObj.data,
-        maxLabel: periodLabel(maxObj),
-        min: minObj.data,
-        minLabel: periodLabel(minObj),
-        unit: SATUAN[info.sub] || ''
-      });
-    }
 
     if(normalizeCompare){
       const base = values.find(v=>v!==null && v!==undefined && v!==0);
@@ -2230,6 +2726,25 @@ function getCompareTypeStyle(type, color){
   }
 }
 
+function pearsonCorrelation(a, b){
+  const pairs = [];
+  for(let i=0;i<a.length && i<b.length;i++){
+    if(a[i]!==null && a[i]!==undefined && b[i]!==null && b[i]!==undefined) pairs.push([a[i],b[i]]);
+  }
+  if(pairs.length < 3) return null;
+  const n = pairs.length;
+  const meanA = pairs.reduce((s,p)=>s+p[0],0)/n;
+  const meanB = pairs.reduce((s,p)=>s+p[1],0)/n;
+  let cov = 0, varA = 0, varB = 0;
+  pairs.forEach(p=>{
+    cov += (p[0]-meanA)*(p[1]-meanB);
+    varA += Math.pow(p[0]-meanA,2);
+    varB += Math.pow(p[1]-meanB,2);
+  });
+  if(varA === 0 || varB === 0) return null;
+  return cov / Math.sqrt(varA*varB);
+}
+
 function generateAdvancedAIInsight(dataList){
   const textEl = document.getElementById('aiInsightText');
   if(!textEl) return;
@@ -2249,11 +2764,55 @@ function generateAdvancedAIInsight(dataList){
     html += `• <b>${escapeHtml(item.name)}</b>: <span style="${warnaArah}font-weight:700;">${arah}</span> sebesar <b>${item.pct > 0 ? '+' : ''}${item.pct.toFixed(1)}%</b> secara kumulatif (Laju rata-rata tahunan/CAGR: <b>${item.cagr > 0 ? '+' : ''}${item.cagr.toFixed(2)}%/tahun</b>). Nilai tertinggi tercatat pada <b>${item.maxLabel}</b> (${fmtNum(item.max)} ${item.unit}), sementara titik terendahnya berada di <b>${item.minLabel}</b> (${fmtNum(item.min)} ${item.unit}).<br>`;
   });
 
+  if(dataList.some(d=>d.rawValues && d.rawValues.filter(v=>v!==null&&v!==undefined).length >= 3)){
+    html += `<span class="insight-section-title" style="margin-top:14px;">📈 Volatilitas Tiap Indikator</span>`;
+    const volList = dataList.map(item=>{
+      const vals = (item.rawValues||[]).filter(v=>v!==null && v!==undefined);
+      if(vals.length < 3) return {name:item.name, cv:null};
+      const mean = vals.reduce((s,v)=>s+v,0)/vals.length;
+      const variance = vals.reduce((s,v)=>s+Math.pow(v-mean,2),0)/vals.length;
+      const cv = mean !== 0 ? Math.abs(Math.sqrt(variance)/mean*100) : 0;
+      return {name:item.name, cv};
+    }).filter(v=>v.cv !== null);
+    volList.sort((a,b)=>b.cv-a.cv);
+    if(volList.length > 0){
+      html += volList.map(v=>{
+        let w = 'stabil';
+        if(v.cv >= 25) w = 'cukup fluktuatif';
+        else if(v.cv >= 10) w = 'sedikit berfluktuasi';
+        return `• <b>${escapeHtml(v.name)}</b>: ${w} (CV ≈ ${v.cv.toFixed(1)}%)`;
+      }).join('<br>') + '<br>';
+    }
+  }
+
+  if(dataList.length >= 2){
+    const corrPairs = [];
+    for(let i=0;i<dataList.length;i++){
+      for(let j=i+1;j<dataList.length;j++){
+        const r = pearsonCorrelation(dataList[i].rawValues||[], dataList[j].rawValues||[]);
+        if(r !== null) corrPairs.push({a:dataList[i].name, b:dataList[j].name, r});
+      }
+    }
+    if(corrPairs.length > 0){
+      corrPairs.sort((x,y)=>Math.abs(y.r)-Math.abs(x.r));
+      html += `<span class="insight-section-title" style="margin-top:14px;">🔗 Korelasi Antar Indikator</span>`;
+      corrPairs.slice(0,4).forEach(p=>{
+        let word = 'nyaris tidak berkorelasi';
+        let cls = 'trend-flat';
+        if(p.r >= 0.7){ word = 'bergerak searah dengan kuat'; cls='trend-up'; }
+        else if(p.r >= 0.3){ word = 'cenderung bergerak searah'; cls='trend-up'; }
+        else if(p.r <= -0.7){ word = 'bergerak berlawanan arah dengan kuat (trade-off)'; cls='trend-down'; }
+        else if(p.r <= -0.3){ word = 'cenderung bergerak berlawanan arah'; cls='trend-down'; }
+        html += `• <b>${escapeHtml(p.a)}</b> vs <b>${escapeHtml(p.b)}</b>: <span class="${cls}" style="font-weight:700;">${word}</span> (r = ${p.r.toFixed(2)})<br>`;
+      });
+    }
+  }
+
   html += `<span class="insight-section-title" style="margin-top:14px;">🔍 Catatan Komparasi & Rekomendasi Analisis</span>`;
   if(dataList.length === 1){
     html += `Anda sedang memantau satu indikator tunggal. Tambahkan indikator pembanding lain di panel sebelah kiri untuk melihat pola korelasi atau divergensi antar variabel.`;
   } else {
-    html += `Dengan membandingkan <b>${dataList.length} indikator terpilih</b>, Anda dapat mengamati apakah pergerakan variabel-variabel ini saling sejalan (sinkron) atau bergerak secara berlawanan (trade-off).`;
+    html += `Dengan membandingkan <b>${dataList.length} indikator terpilih</b>, Anda dapat mengamati apakah pergerakan variabel-variabel ini saling sejalan (sinkron) atau bergerak secara berlawanan (trade-off). Perhatikan bahwa korelasi statistik di atas tidak selalu menunjukkan hubungan sebab-akibat.`;
   }
 
   textEl.innerHTML = html;
@@ -2292,6 +2851,9 @@ function buildSeriesInsight(filtered, indikator){
     sum += e.data;
   });
   const avg = sum / filtered.length;
+  const variance = filtered.reduce((s,e)=>s + Math.pow(e.data-avg,2), 0) / filtered.length;
+  const stdev = Math.sqrt(variance);
+  const cv = avg !== 0 ? Math.abs(stdev/avg*100) : 0;
 
   let trendWord = 'relatif stabil dibandingkan', trendClass = 'trend-flat';
   if(last.data > first.data){ trendWord = 'meningkat dibandingkan'; trendClass = 'trend-up'; }
@@ -2308,6 +2870,40 @@ function buildSeriesInsight(filtered, indikator){
   }
 
   html += ` Sepanjang rentang ini, nilai tertinggi tercatat pada <b>${periodLabel(maxObj)}</b> (${fmtNum(maxObj.data)}${satuan}) dan terendah pada <b>${periodLabel(minObj)}</b> (${fmtNum(minObj.data)}${satuan}), dengan rata-rata sekitar <b>${fmtNum(avg)}${satuan}</b>.`;
+
+  if(filtered.length >= 3){
+    let volWord = 'cenderung stabil dari tahun ke tahun';
+    if(cv >= 25) volWord = 'cukup fluktuatif dari tahun ke tahun';
+    else if(cv >= 10) volWord = 'sedikit berfluktuasi dari tahun ke tahun';
+    html += ` Secara sebaran, nilai indikator ini ${volWord} (koefisien variasi sekitar ${cv.toFixed(1)}%, simpangan baku ±${fmtNum(stdev)}${satuan}).`;
+  }
+
+  if(filtered.length >= 3){
+    let upCount = 0, downCount = 0, flatCount = 0;
+    for(let i=1;i<filtered.length;i++){
+      const d = filtered[i].data - filtered[i-1].data;
+      if(d > 0) upCount++; else if(d < 0) downCount++; else flatCount++;
+    }
+    let streak = 1, streakDir = null;
+    for(let i=filtered.length-1;i>0;i--){
+      const d = filtered[i].data - filtered[i-1].data;
+      const dir = d > 0 ? 'up' : (d < 0 ? 'down' : 'flat');
+      if(streakDir === null){ streakDir = dir; if(dir==='flat') break; }
+      else if(dir === streakDir){ streak++; } else break;
+    }
+    const totalMoves = upCount + downCount + flatCount;
+    html += ` Dari ${totalMoves} pergerakan antar periode, tercatat <b>${upCount} kali naik</b> dan <b>${downCount} kali turun</b>`;
+    if(streak >= 2 && (streakDir === 'up' || streakDir === 'down')){
+      html += `, dengan tren <b>${streakDir==='up'?'kenaikan':'penurunan'} beruntun ${streak} periode terakhir</b>`;
+    }
+    html += '.';
+
+    if(filtered.length >= 2){
+      const lastYoY = filtered[filtered.length-1].data - filtered[filtered.length-2].data;
+      const lastYoYPct = filtered[filtered.length-2].data !== 0 ? (lastYoY/filtered[filtered.length-2].data*100) : 0;
+      html += ` Perubahan periode terakhir (<b>${periodLabel(filtered[filtered.length-2])}</b> → <b>${periodLabel(filtered[filtered.length-1])}</b>) sebesar <b>${lastYoY>0?'+':''}${fmtNum(lastYoY)}${satuan}</b> (${lastYoYPct>0?'+':''}${lastYoYPct.toFixed(1)}%).`;
+    }
+  }
 
   return html;
 }
@@ -2362,9 +2958,23 @@ function refreshDetail(entries, fromYear, toYear){
   const isScatter = currentDetailChartType === 'scatter';
   const isStepped = currentDetailChartType === 'stepped-area';
   const isDashed = currentDetailChartType === 'dashed-area';
+  const isWaterfall = currentDetailChartType === 'waterfall';
+  const isFunnel = currentDetailChartType === 'funnel';
+  const isSurface = currentDetailChartType === 'surface';
+  const isRadar = currentDetailChartType === 'radar';
 
+  let chartLabelsFinal = labels;
   let datasets = [];
-  if (isLollipop) {
+  if (isRadar) {
+    datasets = [{
+      data: values,
+      borderColor: accent,
+      backgroundColor: hexToRgba(accent, 0.25),
+      pointBackgroundColor: accent,
+      pointRadius: 3,
+      borderWidth: 2
+    }];
+  } else if (isLollipop) {
     datasets = [
       {
         type: 'bar',
@@ -2456,6 +3066,46 @@ function refreshDetail(entries, fromYear, toYear){
       showLine: false,
       fill: false
     }];
+  } else if (isWaterfall) {
+    const wfData = values.map((v,i)=>{
+      const base = i===0 ? 0 : values[i-1];
+      return [Math.min(base,v), Math.max(base,v)];
+    });
+    const wfColors = values.map((v,i)=>{
+      if(i===0) return hexToRgba(accent, 0.8);
+      return v >= values[i-1] ? hexToRgba('#4E7D5A', 0.82) : hexToRgba('#A63A50', 0.82);
+    });
+    datasets = [{
+      data: wfData,
+      backgroundColor: wfColors,
+      borderWidth: 0,
+      borderRadius: 3,
+      maxBarThickness: 36
+    }];
+  } else if (isFunnel) {
+    const idxSorted = values.map((v,i)=>i).sort((a,b)=>values[b]-values[a]);
+    const sortedVals = idxSorted.map(i=>values[i]);
+    chartLabelsFinal = idxSorted.map(i=>labels[i]);
+    datasets = [{
+      data: sortedVals,
+      backgroundColor: hexToRgba(accent, 0.75),
+      borderColor: accent,
+      borderWidth: 1,
+      borderRadius: 4,
+      maxBarThickness: 34
+    }];
+  } else if (isSurface) {
+    const minV = Math.min(...values), maxV = Math.max(...values);
+    const rangeV = (maxV - minV) || 1;
+    datasets = [{
+      data: values,
+      backgroundColor: values.map(v => hexToRgba(accent, 0.22 + 0.68 * ((v - minV) / rangeV))),
+      borderWidth: 0,
+      borderRadius: 2,
+      maxBarThickness: 40,
+      categoryPercentage: 1.0,
+      barPercentage: 1.0
+    }];
   } else {
     const gradient = ctx.createLinearGradient(0,0,0,260);
     gradient.addColorStop(0, hexToRgba(accent, 0.35));
@@ -2475,19 +3125,34 @@ function refreshDetail(entries, fromYear, toYear){
     }];
   }
 
+  const topIsBar = isBar || isWaterfall || isFunnel || isSurface;
+
   chartInstance = new Chart(ctx, {
-    type: isBar ? 'bar' : 'line',
-    data:{ labels, datasets },
-    options:{
+    type: isRadar ? 'radar' : (topIsBar ? 'bar' : 'line'),
+    data:{ labels: chartLabelsFinal, datasets },
+    options: isRadar ? {
       responsive:true,
       maintainAspectRatio:false,
       plugins:{ legend:{display:false} },
       scales:{
+        r:{
+          grid:{ color:'#F2DEB8' },
+          angleLines:{ color:'#F2DEB8' },
+          pointLabels:{ color:'#8A5A24', font:{family:'Inter', size:10.5} },
+          ticks:{ color:'#8A5A24', backdropColor:'transparent', font:{family:'Inter', size:9.5} }
+        }
+      }
+    } : {
+      responsive:true,
+      maintainAspectRatio:false,
+      indexAxis: isFunnel ? 'y' : 'x',
+      plugins:{ legend:{display:false} },
+      scales:{
         x:{ 
-          grid:{display:false}, 
+          grid:{display: isFunnel ? true : false, color:'#F2DEB8'}, 
           ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } 
         },
-        y:{ grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } }
+        y:{ grid:{color: isFunnel ? '#fff' : '#F2DEB8', display: !isFunnel || true}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } }
       }
     }
   });
