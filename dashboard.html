@@ -802,7 +802,13 @@ const CHART_STYLE_OPTIONS = [
   {value:'waterfall', label:'Waterfall'},
   {value:'funnel', label:'Funnel'},
   {value:'surface', label:'Surface (Heatmap)'},
-  {value:'radar', label:'Radar'}
+  {value:'radar', label:'Radar'},
+  {value:'polar-area', label:'Polar Area'},
+  {value:'diverging-bar', label:'Diverging Bar'},
+  {value:'combo', label:'Combo Bar+Garis'},
+  {value:'pareto', label:'Pareto'},
+  {value:'stacked-area', label:'Stacked Area'},
+  {value:'stream', label:'Stream'}
 ];
 
 function chartStyleKey(kategori, kelompok, sub){
@@ -1245,6 +1251,85 @@ function makeSparkline(entries, color, type){
     });
     const poly = pts.map(p => p.map(v=>v.toFixed(1)).join(',')).join(' ');
     svgContent = `<polygon points="${poly}" fill="${color}" fill-opacity="0.28" stroke="${color}" stroke-width="1.4"></polygon>`;
+  } else if (type === 'polar-area') {
+    const cx = h / 2 + 6, cy = h / 2, rMax = h / 2 - 2;
+    const n = vals.length;
+    const slice = (Math.PI * 2) / n;
+    svgContent = vals.map((v, i) => {
+      const norm = range > 0 ? (v - min) / range : 0.5;
+      const rad = 0.3 + norm * (rMax - 1);
+      const a0 = i * slice - Math.PI / 2;
+      const a1 = a0 + slice;
+      const x0 = cx + Math.cos(a0) * rad, y0 = cy + Math.sin(a0) * rad;
+      const x1 = cx + Math.cos(a1) * rad, y1 = cy + Math.sin(a1) * rad;
+      return `<path d="M${cx},${cy} L${x0.toFixed(1)},${y0.toFixed(1)} A${rad.toFixed(1)},${rad.toFixed(1)} 0 0 1 ${x1.toFixed(1)},${y1.toFixed(1)} Z" fill="${color}" fill-opacity="${(0.3+0.5*norm).toFixed(2)}" stroke="#fff" stroke-width="0.5"></path>`;
+    }).join('');
+  } else if (type === 'diverging-bar') {
+    const avg = vals.reduce((s,v)=>s+v,0)/vals.length;
+    const zeroY = h - pad - ((avg - min) / range) * (h - pad * 2);
+    const barW = Math.max(3, (w - pad * 2) / vals.length * 0.55);
+    svgContent = vals.map((v, i) => {
+      const x = pad + i * step - barW / 2;
+      const y = h - pad - ((v - min) / range) * (h - pad * 2);
+      const isUp = v >= avg;
+      const yTop = isUp ? y : zeroY;
+      const barH = Math.max(1.5, Math.abs(zeroY - y));
+      return `<rect x="${x.toFixed(1)}" y="${yTop.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" fill="${isUp ? '#4E7D5A' : '#A63A50'}" rx="1"></rect>`;
+    }).join('') + `<line x1="${pad}" y1="${zeroY.toFixed(1)}" x2="${w-pad}" y2="${zeroY.toFixed(1)}" stroke="#8A5A24" stroke-width="0.7" stroke-dasharray="2,2"></line>`;
+  } else if (type === 'combo') {
+    const barW = Math.max(3, (w - pad * 2) / vals.length * 0.55);
+    const bars = vals.map((v, i) => {
+      const x = pad + i * step - barW / 2;
+      const y = h - pad - ((v - min) / range) * (h - pad * 2);
+      const barH = h - pad - y;
+      return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" fill="${color}" opacity="0.45" rx="1"></rect>`;
+    }).join('');
+    let running = 0;
+    const cumLine = vals.map((v,i)=>{
+      running += v;
+      const avgSoFar = running/(i+1);
+      const x = pad + i * step;
+      const y = h - pad - ((avgSoFar - min) / range) * (h - pad * 2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+    svgContent = bars + `<polyline points="${cumLine}" fill="none" stroke="${color}" stroke-width="1.6"></polyline>`;
+  } else if (type === 'pareto') {
+    const idxSorted = vals.map((v,i)=>i).sort((a,b)=>vals[b]-vals[a]);
+    const barW = Math.max(3, (w - pad * 2) / vals.length * 0.6);
+    const total = vals.reduce((s,v)=>s+v,0) || 1;
+    let cum = 0;
+    const bars = idxSorted.map((origI, rank) => {
+      const v = vals[origI];
+      const x = pad + rank * step - barW/2 + step/2 - step/2;
+      const xPos = pad + rank * (w - pad*2)/vals.length;
+      const y = h - pad - ((v - min) / range) * (h - pad * 2);
+      const barH = h - pad - y;
+      return `<rect x="${xPos.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" fill="${color}" opacity="0.55" rx="1"></rect>`;
+    }).join('');
+    const cumPts = idxSorted.map((origI, rank) => {
+      cum += vals[origI];
+      const pct = cum/total;
+      const xPos = pad + rank * (w - pad*2)/vals.length + (w-pad*2)/vals.length/2;
+      const y = h - pad - pct * (h - pad*2);
+      return `${xPos.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+    svgContent = bars + `<polyline points="${cumPts}" fill="none" stroke="#562F00" stroke-width="1.4"></polyline>`;
+  } else if (type === 'stream') {
+    const midY = h / 2;
+    const scaleY = range > 0 ? (h - pad*2) / 2 / (range/2) : 1;
+    const topPts = vals.map((v, i) => {
+      const x = pad + i * step;
+      const halfV = ((v - min) - range/2) * scaleY * 0.5;
+      return [x, midY - Math.abs(halfV) - 2];
+    });
+    const botPts = vals.map((v, i) => {
+      const x = pad + i * step;
+      const halfV = ((v - min) - range/2) * scaleY * 0.5;
+      return [x, midY + Math.abs(halfV) + 2];
+    });
+    const pathPts = topPts.concat(botPts.slice().reverse());
+    const d = pathPts.map((p,idx)=> (idx===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ') + ' Z';
+    svgContent = `<path d="${d}" fill="${color}" fill-opacity="0.5" stroke="${color}" stroke-width="1"></path>`;
   } else {
     const pts = vals.map((v,i) => {
       const x = pad + i * step;
@@ -1629,6 +1714,26 @@ function downloadCompChartJPG(){
     exportSvgAsJPG(svgEl, currentCompKey ? currentCompKey.label : 'komposisi');
     return;
   }
+  if(compCurrentChartType === 'waffle'){
+    const svgEl = document.getElementById('compWaffleSvg');
+    exportSvgAsJPG(svgEl, currentCompKey ? currentCompKey.label : 'komposisi');
+    return;
+  }
+  if(compCurrentChartType === 'dumbbell'){
+    const svgEl = document.getElementById('compDumbbellSvg');
+    exportSvgAsJPG(svgEl, currentCompKey ? currentCompKey.label : 'komposisi');
+    return;
+  }
+  if(compCurrentChartType === 'stream'){
+    const svgEl = document.getElementById('compStreamSvg');
+    exportSvgAsJPG(svgEl, currentCompKey ? currentCompKey.label : 'komposisi');
+    return;
+  }
+  if(compCurrentChartType === 'marimekko'){
+    const svgEl = document.getElementById('compMarimekkoSvg');
+    exportSvgAsJPG(svgEl, currentCompKey ? currentCompKey.label : 'komposisi');
+    return;
+  }
   triggerJPGDownload(chartInstance, currentCompKey ? currentCompKey.label : 'komposisi');
 }
 function downloadCompareChartJPG(){
@@ -1751,6 +1856,13 @@ function openCompositionDetail(periode,kategori,kelompok,label,segs){
         <option value="donut">Donut</option>
         <option value="sunburst">Sunburst</option>
         <option value="treemap">Treemap</option>
+        <option value="polar-area">Polar Area</option>
+        <option value="pareto">Pareto</option>
+        <option value="waffle">Waffle</option>
+        <option value="dumbbell">Dumbbell</option>
+        <option value="stacked-area">Stacked Area</option>
+        <option value="stream">Stream</option>
+        <option value="marimekko">Marimekko</option>
       </select></div>
     </div>
 
@@ -1967,6 +2079,164 @@ function buildTreemapSVG(segs, bySegSK, lastSK){
   return svg;
 }
 
+function buildWaffleSVG(segs, bySegSK, lastSK){
+  const items = segs.map((s,i)=>({
+    name: s,
+    value: bySegSK[s][lastSK] || 0,
+    color: COMPARE_COLORS[i % COMPARE_COLORS.length]
+  })).filter(it=>it.value > 0);
+
+  if(items.length === 0){
+    return '<div style="padding:20px;font-size:13px;color:var(--brown-mid);">Tidak ada data pada periode ini.</div>';
+  }
+
+  const total = items.reduce((s,it)=>s+it.value,0) || 1;
+  const rawCounts = items.map(it => (it.value/total)*100);
+  const counts = rawCounts.map(c => Math.floor(c));
+  let remainder = 100 - counts.reduce((s,c)=>s+c,0);
+  const order = rawCounts.map((c,i)=>({i, frac:c-Math.floor(c)})).sort((a,b)=>b.frac-a.frac);
+  for(let k=0;k<remainder;k++){ counts[order[k % order.length].i]++; }
+
+  const cellSeq = [];
+  counts.forEach((c,i)=>{ for(let k=0;k<c;k++) cellSeq.push(items[i]); });
+  while(cellSeq.length < 100 && items.length>0) cellSeq.push(items[items.length-1]);
+
+  const cols = 10, gap = 3, size = 26;
+  const W = cols*(size+gap)-gap, H = 10*(size+gap)-gap;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" id="compWaffleSvg" style="width:100%;height:320px;display:block;">`;
+  cellSeq.slice(0,100).forEach((item, idx)=>{
+    const col = idx % cols, row = Math.floor(idx/cols);
+    const x = col*(size+gap), y = row*(size+gap);
+    svg += `<rect x="${x}" y="${y}" width="${size}" height="${size}" rx="4" fill="${item.color}"><title>${escapeHtml(item.name)}: ${fmtNum(item.value)}</title></rect>`;
+  });
+  svg += `</svg>`;
+  return svg;
+}
+
+function buildDumbbellSVG(segs, bySegSK, sortedSK, skMap){
+  if(sortedSK.length === 0){
+    return '<div style="padding:20px;font-size:13px;color:var(--brown-mid);">Tidak ada data pada periode ini.</div>';
+  }
+  const W = 600, rowH = 30, padTop = 16, padBottom = 24, padLeft = 90, padRight = 20;
+  const H = padTop + sortedSK.length*rowH + padBottom;
+
+  let globalMin = Infinity, globalMax = -Infinity;
+  sortedSK.forEach(sk=>{
+    segs.forEach(s=>{
+      const v = bySegSK[s][sk];
+      if(v !== undefined){ globalMin = Math.min(globalMin, v); globalMax = Math.max(globalMax, v); }
+    });
+  });
+  if(!isFinite(globalMin)) { globalMin = 0; globalMax = 1; }
+  const rangeV = (globalMax-globalMin) || 1;
+  const plotW = W - padLeft - padRight;
+  const xOf = (v)=> padLeft + ((v-globalMin)/rangeV) * plotW;
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" id="compDumbbellSvg" style="width:100%;height:${Math.min(H,340)}px;display:block;">`;
+
+  sortedSK.forEach((sk, rowIdx)=>{
+    const y = padTop + rowIdx*rowH + rowH/2;
+    const pts = segs.map((s,i)=>({ v: bySegSK[s][sk], color: COMPARE_COLORS[i % COMPARE_COLORS.length], name:s }))
+      .filter(p=>p.v !== undefined);
+    if(pts.length === 0) return;
+    const minP = pts.reduce((a,b)=> a.v<b.v?a:b);
+    const maxP = pts.reduce((a,b)=> a.v>b.v?a:b);
+
+    svg += `<text x="8" y="${(y+4).toFixed(1)}" font-size="10.5" font-family="Inter,sans-serif" fill="#8A5A24">${escapeHtml(skMap.get(sk)||'')}</text>`;
+    if(pts.length > 1){
+      svg += `<line x1="${xOf(minP.v).toFixed(1)}" y1="${y.toFixed(1)}" x2="${xOf(maxP.v).toFixed(1)}" y2="${y.toFixed(1)}" stroke="#D8A15B" stroke-width="2.5"></line>`;
+    }
+    pts.forEach(p=>{
+      svg += `<circle cx="${xOf(p.v).toFixed(1)}" cy="${y.toFixed(1)}" r="6" fill="${p.color}" stroke="#fff" stroke-width="1.5"><title>${escapeHtml(p.name)}: ${fmtNum(p.v)}</title></circle>`;
+    });
+  });
+
+  svg += `</svg>`;
+  return svg;
+}
+
+function buildStreamSVG(segs, bySegSK, sortedSK, skMap){
+  if(sortedSK.length === 0){
+    return '<div style="padding:20px;font-size:13px;color:var(--brown-mid);">Tidak ada data pada periode ini.</div>';
+  }
+  const W = 600, H = 300, padLeft = 10, padRight = 10, padTop = 16, padBottom = 26;
+  const plotW = W - padLeft - padRight, plotH = H - padTop - padBottom;
+  const n = sortedSK.length;
+  const centerY = padTop + plotH / 2;
+
+  let maxTotal = 0;
+  sortedSK.forEach(sk=>{
+    const total = segs.reduce((s,seg)=>s+(bySegSK[seg][sk]||0),0);
+    if(total > maxTotal) maxTotal = total;
+  });
+  if(maxTotal === 0) maxTotal = 1;
+  const scaleY = (plotH * 0.92 / 2) / (maxTotal / 2);
+  const xAt = i => padLeft + (n<=1 ? plotW/2 : (i/(n-1))*plotW);
+
+  const running = sortedSK.map(sk=>{
+    const total = segs.reduce((s,seg)=>s+(bySegSK[seg][sk]||0),0);
+    return -total/2;
+  });
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" id="compStreamSvg" style="width:100%;height:320px;display:block;">`;
+  segs.forEach((seg,i)=>{
+    const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+    const topPts = [], botPts = [];
+    sortedSK.forEach((sk,ti)=>{
+      const v = bySegSK[seg][sk] || 0;
+      const bot = running[ti];
+      const top = bot + v;
+      running[ti] = top;
+      topPts.push([xAt(ti), centerY - top*scaleY]);
+      botPts.push([xAt(ti), centerY - bot*scaleY]);
+    });
+    const pathPts = topPts.concat(botPts.slice().reverse());
+    const d = pathPts.map((p,idx)=> (idx===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ') + ' Z';
+    svg += `<path d="${d}" fill="${color}" fill-opacity="0.85" stroke="#fff" stroke-width="0.6"><title>${escapeHtml(seg)}</title></path>`;
+  });
+
+  const labelStep = Math.max(1, Math.ceil(n/8));
+  sortedSK.forEach((sk,ti)=>{
+    if(ti % labelStep === 0 || ti === n-1){
+      svg += `<text x="${xAt(ti).toFixed(1)}" y="${(H-6).toFixed(1)}" font-size="9" text-anchor="middle" fill="#8A5A24">${escapeHtml(skMap.get(sk)||'')}</text>`;
+    }
+  });
+  svg += `</svg>`;
+  return svg;
+}
+
+function buildMarimekkoSVG(segs, bySegSK, sortedSK, skMap){
+  if(sortedSK.length === 0){
+    return '<div style="padding:20px;font-size:13px;color:var(--brown-mid);">Tidak ada data pada periode ini.</div>';
+  }
+  const W = 600, H = 300, padTop = 10, padBottom = 30, padLeft = 4, padRight = 4;
+  const plotW = W - padLeft - padRight, plotH = H - padTop - padBottom;
+
+  const periodTotals = sortedSK.map(sk => segs.reduce((s,seg)=> s + (bySegSK[seg][sk]||0), 0));
+  const grandTotal = periodTotals.reduce((s,v)=>s+v,0) || 1;
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" id="compMarimekkoSvg" style="width:100%;height:320px;display:block;">`;
+  let xCursor = padLeft;
+  sortedSK.forEach((sk, si)=>{
+    const total = periodTotals[si] || 0;
+    const colW = grandTotal > 0 ? (total/grandTotal) * plotW : plotW/sortedSK.length;
+    let yCursor = padTop;
+    segs.forEach((seg,i)=>{
+      const v = bySegSK[seg][sk] || 0;
+      const shareH = total > 0 ? (v/total) * plotH : 0;
+      const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+      svg += `<rect x="${xCursor.toFixed(1)}" y="${yCursor.toFixed(1)}" width="${Math.max(0,colW-1.5).toFixed(1)}" height="${Math.max(0,shareH-1).toFixed(1)}" fill="${color}"><title>${escapeHtml(seg)} (${escapeHtml(skMap.get(sk)||'')}): ${fmtNum(v)}</title></rect>`;
+      yCursor += shareH;
+    });
+    if(colW > 20){
+      svg += `<text x="${(xCursor+colW/2).toFixed(1)}" y="${(H-12).toFixed(1)}" font-size="9" text-anchor="middle" fill="#8A5A24">${escapeHtml(skMap.get(sk)||'')}</text>`;
+    }
+    xCursor += colW;
+  });
+  svg += `</svg>`;
+  return svg;
+}
+
 function refreshCompositionDetail(subObj, segs, fromYear, toYear){
   const skMap = new Map();
   segs.forEach(s=>{
@@ -2010,6 +2280,22 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
     if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
     canvasBox.innerHTML = buildTreemapSVG(segs, bySegSK, lastSK);
     noteEl.innerHTML = `Menampilkan komposisi pada periode <b>${escapeHtml(lastLabel)}</b> (snapshot periode terakhir dalam rentang terpilih). Luas kotak proporsional terhadap nilai masing-masing komponen.`;
+  }else if(compCurrentChartType === 'waffle'){
+    if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
+    canvasBox.innerHTML = buildWaffleSVG(segs, bySegSK, lastSK);
+    noteEl.innerHTML = `Menampilkan porsi tiap komponen pada periode <b>${escapeHtml(lastLabel)}</b> sebagai 100 kotak — tiap kotak mewakili sekitar 1% dari total gabungan.`;
+  }else if(compCurrentChartType === 'dumbbell'){
+    if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
+    canvasBox.innerHTML = buildDumbbellSVG(segs, bySegSK, sortedSK, skMap);
+    noteEl.innerHTML = `Tiap baris tahun menampilkan sebaran nilai antar komponen — titik terhubung menunjukkan rentang dari nilai terendah ke tertinggi pada tahun tersebut.`;
+  }else if(compCurrentChartType === 'stream'){
+    if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
+    canvasBox.innerHTML = buildStreamSVG(segs, bySegSK, sortedSK, skMap);
+    noteEl.innerHTML = `Menampilkan alur tiap komponen sepanjang waktu, disusun simetris di sekitar garis tengah (ThemeRiver style). Lebar tiap pita sebanding dengan nilai komponen pada tahun tersebut.`;
+  }else if(compCurrentChartType === 'marimekko'){
+    if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
+    canvasBox.innerHTML = buildMarimekkoSVG(segs, bySegSK, sortedSK, skMap);
+    noteEl.innerHTML = `Lebar tiap kolom sebanding dengan total gabungan pada tahun tersebut (relatif terhadap total seluruh tahun), tinggi tiap segmen menunjukkan porsi komponen dalam tahun itu.`;
   }else{
     if(!document.getElementById('compDetailChart')){
       canvasBox.innerHTML = '<canvas id="compDetailChart"></canvas>';
@@ -2021,7 +2307,54 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
       const ctx = canvasEl.getContext('2d');
       if(chartInstance) chartInstance.destroy();
 
-      if(compCurrentChartType === 'donut'){
+      if(compCurrentChartType === 'polar-area'){
+        noteEl.innerHTML = `Menampilkan komposisi pada periode <b>${escapeHtml(lastLabel)}</b> (snapshot periode terakhir dalam rentang terpilih).`;
+        chartInstance = new Chart(ctx, {
+          type:'polarArea',
+          data:{
+            labels: segs,
+            datasets:[{
+              data: segs.map(s=> bySegSK[s][lastSK] || 0),
+              backgroundColor: segs.map((_,i)=>hexToRgba(COMPARE_COLORS[i % COMPARE_COLORS.length], 0.65)),
+              borderColor:'#fff', borderWidth:1.5
+            }]
+          },
+          options:{
+            responsive:true, maintainAspectRatio:false,
+            plugins:{
+              legend:{ display:false },
+              tooltip:{ callbacks:{ label:(c)=>`${c.label}: ${fmtNum(c.parsed.r ?? c.parsed)}` } }
+            },
+            scales:{
+              r:{ grid:{color:'#F2DEB8'}, angleLines:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', backdropColor:'transparent', font:{family:'Inter', size:9.5} } }
+            }
+          }
+        });
+      }else if(compCurrentChartType === 'pareto'){
+        const items = segs.map(s=>({ name:s, value: bySegSK[s][lastSK] || 0 })).sort((a,b)=>b.value-a.value);
+        const total = items.reduce((s,it)=>s+it.value,0) || 1;
+        let cum = 0;
+        const cumPct = items.map(it=>{ cum += it.value; return cum/total*100; });
+        noteEl.innerHTML = `Komponen diurutkan dari terbesar ke terkecil pada periode <b>${escapeHtml(lastLabel)}</b>, garis menunjukkan persentase kumulatif terhadap total gabungan.`;
+        chartInstance = new Chart(ctx, {
+          data:{
+            labels: items.map(it=>it.name),
+            datasets:[
+              { type:'bar', data: items.map(it=>it.value), backgroundColor: items.map((_,i)=>COMPARE_COLORS[i % COMPARE_COLORS.length]), borderWidth:0, borderRadius:4, maxBarThickness:44, yAxisID:'y', order:2 },
+              { type:'line', data: cumPct, borderColor:'#562F00', backgroundColor:'#562F00', borderWidth:2.2, pointRadius:4, tension:0, fill:false, yAxisID:'y1', order:1 }
+            ]
+          },
+          options:{
+            responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{ display:false } },
+            scales:{
+              x:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } },
+              y:{ type:'linear', position:'left', grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
+              y1:{ type:'linear', position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11}, callback:(v)=>v+'%' } }
+            }
+          }
+        });
+      }else if(compCurrentChartType === 'donut'){
         noteEl.innerHTML = `Menampilkan komposisi pada periode <b>${escapeHtml(lastLabel)}</b> (snapshot periode terakhir dalam rentang terpilih).`;
         chartInstance = new Chart(ctx, {
           type:'doughnut',
@@ -2072,6 +2405,29 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
                     : `${segs[c.dataIndex]}: ${fmtNum(c.parsed)}`
                 }
               }
+            }
+          }
+        });
+      }else if(compCurrentChartType === 'stacked-area'){
+        noteEl.innerHTML = '';
+        const areaDatasets = segs.map((s,i)=>{
+          const data = sortedSK.map(sk=> bySegSK[s].hasOwnProperty(sk) ? bySegSK[s][sk] : null);
+          const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+          return { label:s, data, borderColor:color, backgroundColor: hexToRgba(color,0.55), fill:true, tension:0, pointRadius:0, stack:'comp' };
+        });
+        chartInstance = new Chart(ctx, {
+          type:'line',
+          data:{ labels, datasets: areaDatasets },
+          options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            plugins:{
+              legend:{ display:false },
+              tooltip:{ mode:'index', intersect:false, callbacks:{ label:(c)=>`${c.dataset.label}: ${fmtNum(c.parsed.y)}` } }
+            },
+            scales:{
+              x:{ stacked:true, grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
+              y:{ stacked:true, grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } }
             }
           }
         });
@@ -2200,6 +2556,14 @@ function renderCompareView(){
           <option value="funnel">Funnel (Ranking)</option>
           <option value="surface">Surface (Heatmap)</option>
           <option value="radar">Radar</option>
+          <option value="polar-area">Polar Area</option>
+          <option value="diverging-bar">Diverging Bar</option>
+          <option value="combo">Combo Bar+Garis</option>
+          <option value="pareto">Pareto</option>
+          <option value="bump">Bump (Ranking)</option>
+          <option value="stacked-area">Stacked Area</option>
+          <option value="stream">Stream</option>
+          <option value="marimekko">Marimekko</option>
         </select></div>
         <label class="cmp-normalize"><input type="checkbox" id="cmpNormalize"> Indeks (awal = 100)</label>
         <button class="cmp-clear" id="cmpClear">Hapus pilihan</button>
@@ -2468,6 +2832,158 @@ function renderCompareRadarChart(keys){
   });
 }
 
+function renderComparePolarArea(keys, seriesAnalysisData){
+  if(compareChart){ compareChart.destroy(); compareChart = null; }
+  const ctx = document.getElementById('compareChart').getContext('2d');
+  const paLabels = seriesAnalysisData.map(d=>d.name);
+  const paData = seriesAnalysisData.map(d=>d.last);
+  const colors = seriesAnalysisData.map((_,i)=>hexToRgba(COMPARE_COLORS[i % COMPARE_COLORS.length], 0.65));
+
+  compareChart = new Chart(ctx, {
+    type:'polarArea',
+    data:{ labels: paLabels, datasets:[{ data: paData, backgroundColor: colors, borderColor:'#fff', borderWidth:1.5 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ position:'bottom', labels:{ color:'#562F00', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } },
+        tooltip:{ callbacks:{ label:(c)=>`${c.label}: ${fmtNum(c.parsed.r ?? c.parsed)}` } }
+      },
+      scales:{
+        r:{
+          grid:{ color:'#F2DEB8' },
+          angleLines:{ color:'#F2DEB8' },
+          ticks:{ color:'#8A5A24', backdropColor:'transparent', font:{family:'Inter', size:9.5} }
+        }
+      }
+    }
+  });
+}
+
+function renderCompareDivergingBar(keys, seriesAnalysisData){
+  if(compareChart){ compareChart.destroy(); compareChart = null; }
+  const ctx = document.getElementById('compareChart').getContext('2d');
+  const dbLabels = seriesAnalysisData.map(d=>d.name);
+  const dbData = seriesAnalysisData.map(d=>d.pct);
+  const colors = seriesAnalysisData.map(d=> d.pct >= 0 ? hexToRgba('#4E7D5A',0.8) : hexToRgba('#A63A50',0.8));
+
+  compareChart = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: dbLabels, datasets:[{ data: dbData, backgroundColor: colors, borderWidth:0, borderRadius:4, maxBarThickness:44 }] },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label:(c)=>`${c.parsed.x>0?'+':''}${c.parsed.x.toFixed(1)}% (kumulatif)` } }
+      },
+      scales:{
+        x:{ grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11}, callback:(v)=>v+'%' } },
+        y:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } }
+      }
+    }
+  });
+}
+
+function renderComparePareto(keys, seriesAnalysisData){
+  if(compareChart){ compareChart.destroy(); compareChart = null; }
+  const ctx = document.getElementById('compareChart').getContext('2d');
+  const sorted = seriesAnalysisData.slice().sort((a,b)=>b.last-a.last);
+  const pLabels = sorted.map(d=>d.name);
+  const pData = sorted.map(d=>d.last);
+  const total = pData.reduce((s,v)=>s+v,0) || 1;
+  let cum = 0;
+  const cumPct = pData.map(v=>{ cum += v; return cum/total*100; });
+  const colors = sorted.map((_,i)=>COMPARE_COLORS[i % COMPARE_COLORS.length]);
+
+  compareChart = new Chart(ctx, {
+    data:{
+      labels: pLabels,
+      datasets:[
+        { type:'bar', data: pData, backgroundColor: colors, borderWidth:0, borderRadius:4, maxBarThickness:44, yAxisID:'y', order:2 },
+        { type:'line', data: cumPct, borderColor:'#562F00', backgroundColor:'#562F00', borderWidth:2.2, pointRadius:4, tension:0, fill:false, yAxisID:'y1', order:1 }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } },
+        y:{ type:'linear', position:'left', grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
+        y1:{ type:'linear', position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11}, callback:(v)=>v+'%' } }
+      }
+    }
+  });
+}
+
+function renderCompareBump(keys){
+  if(compareChart){ compareChart.destroy(); compareChart = null; }
+  const ctx = document.getElementById('compareChart').getContext('2d');
+
+  const uniqueLabelsMap = new Map();
+  keys.forEach(k=>{
+    compareIndex[k].entries.forEach(e=>{
+      if(e.tahun >= compareFrom && e.tahun <= compareTo) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+    });
+  });
+  const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
+  const labels = sortedKeys.map(sk=>uniqueLabelsMap.get(sk));
+
+  const valuesByKey = keys.map(k=>{
+    const info = compareIndex[k];
+    const bySort = {};
+    info.entries.forEach(e=>{ bySort[sortKey(e)] = e.data; });
+    return sortedKeys.map(sk=> bySort.hasOwnProperty(sk) ? bySort[sk] : null);
+  });
+
+  const ranksByKey = keys.map(()=>[]);
+  sortedKeys.forEach((sk,colIdx)=>{
+    const colVals = valuesByKey.map((vals,ki)=>({ ki, v: vals[colIdx] })).filter(x=>x.v !== null);
+    colVals.sort((a,b)=>b.v-a.v);
+    colVals.forEach((x,rank)=>{ ranksByKey[x.ki][colIdx] = rank+1; });
+    valuesByKey.forEach((vals,ki)=>{ if(vals[colIdx]===null) ranksByKey[ki][colIdx] = null; });
+  });
+
+  const datasets = keys.map((k,i)=>{
+    const info = compareIndex[k];
+    const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+    return {
+      label: info.sub,
+      data: ranksByKey[i],
+      borderColor: color,
+      backgroundColor: color,
+      pointBackgroundColor: color,
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      borderWidth: 2.5,
+      tension: 0,
+      fill: false,
+      spanGaps: true
+    };
+  });
+
+  compareChart = new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ position:'bottom', labels:{ color:'#562F00', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } },
+        tooltip:{ callbacks:{ label:(c)=>`${c.dataset.label}: Peringkat ${c.parsed.y}` } }
+      },
+      scales:{
+        x:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
+        y:{
+          reverse:true,
+          min:1,
+          max: keys.length,
+          ticks:{ stepSize:1, color:'#8A5A24', font:{family:'Inter', size:11} },
+          grid:{color:'#F2DEB8'}
+        }
+      }
+    }
+  });
+}
+
 function buildCompareSurfaceGrid(keys){
   const uniqueLabelsMap = new Map();
   keys.forEach(k=>{
@@ -2514,6 +3030,134 @@ function buildCompareSurfaceGrid(keys){
   return html;
 }
 
+function buildCompareStreamSVG(keys){
+  const uniqueLabelsMap = new Map();
+  keys.forEach(k=>{
+    compareIndex[k].entries.forEach(e=>{
+      if(e.tahun >= compareFrom && e.tahun <= compareTo) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+    });
+  });
+  const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
+  if(sortedKeys.length === 0){
+    return '<div style="padding:20px;font-size:13px;color:var(--brown-mid);">Tidak ada data pada rentang ini.</div>';
+  }
+
+  const valuesByKey = keys.map(k=>{
+    const info = compareIndex[k];
+    const bySort = {};
+    info.entries.forEach(e=>{ bySort[sortKey(e)] = e.data; });
+    return sortedKeys.map(sk=> bySort.hasOwnProperty(sk) ? bySort[sk] : 0);
+  });
+
+  const W = 600, H = 300, padLeft = 10, padRight = 10, padTop = 16, padBottom = 26;
+  const plotW = W - padLeft - padRight, plotH = H - padTop - padBottom;
+  const n = sortedKeys.length;
+  const centerY = padTop + plotH / 2;
+
+  let maxTotal = 0;
+  sortedKeys.forEach((sk,ti)=>{
+    const total = valuesByKey.reduce((s,vals)=>s+(vals[ti]||0),0);
+    if(total > maxTotal) maxTotal = total;
+  });
+  if(maxTotal === 0) maxTotal = 1;
+  const scaleY = (plotH * 0.92 / 2) / (maxTotal / 2);
+  const xAt = i => padLeft + (n<=1 ? plotW/2 : (i/(n-1))*plotW);
+
+  const running = sortedKeys.map((sk,ti)=>{
+    const total = valuesByKey.reduce((s,vals)=>s+(vals[ti]||0),0);
+    return -total/2;
+  });
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" id="cmpStreamSvg" style="width:100%;height:340px;display:block;">`;
+  keys.forEach((k,i)=>{
+    const info = compareIndex[k];
+    const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+    const topPts = [], botPts = [];
+    sortedKeys.forEach((sk,ti)=>{
+      const v = valuesByKey[i][ti] || 0;
+      const bot = running[ti];
+      const top = bot + v;
+      running[ti] = top;
+      topPts.push([xAt(ti), centerY - top*scaleY]);
+      botPts.push([xAt(ti), centerY - bot*scaleY]);
+    });
+    const pathPts = topPts.concat(botPts.slice().reverse());
+    const d = pathPts.map((p,idx)=> (idx===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ') + ' Z';
+    svg += `<path d="${d}" fill="${color}" fill-opacity="0.85" stroke="#fff" stroke-width="0.6"><title>${escapeHtml(info.sub)}</title></path>`;
+  });
+
+  const labelStep = Math.max(1, Math.ceil(n/8));
+  sortedKeys.forEach((sk,ti)=>{
+    if(ti % labelStep === 0 || ti === n-1){
+      svg += `<text x="${xAt(ti).toFixed(1)}" y="${(H-6).toFixed(1)}" font-size="9" text-anchor="middle" fill="#8A5A24">${escapeHtml(uniqueLabelsMap.get(sk)||'')}</text>`;
+    }
+  });
+  svg += `</svg>`;
+
+  const legend = keys.map((k,i)=>{
+    const info = compareIndex[k];
+    const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+    return `<div class="comp-legend-item"><span class="dot" style="background:${color}"></span>${escapeHtml(info.sub)}</div>`;
+  }).join('');
+
+  return svg + `<div class="comp-legend" style="margin-top:10px;">${legend}</div><div class="comp-chart-note">Menampilkan alur tiap indikator sepanjang waktu, disusun simetris di sekitar garis tengah (ThemeRiver style). Perhatikan bahwa penjumlahan lintas indikator hanya bermakna jika satuannya sama.</div>`;
+}
+
+function buildCompareMarimekkoSVG(keys){
+  const uniqueLabelsMap = new Map();
+  keys.forEach(k=>{
+    compareIndex[k].entries.forEach(e=>{
+      if(e.tahun >= compareFrom && e.tahun <= compareTo) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+    });
+  });
+  const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
+  if(sortedKeys.length === 0){
+    return '<div style="padding:20px;font-size:13px;color:var(--brown-mid);">Tidak ada data pada rentang ini.</div>';
+  }
+
+  const valuesByKey = keys.map(k=>{
+    const info = compareIndex[k];
+    const bySort = {};
+    info.entries.forEach(e=>{ bySort[sortKey(e)] = e.data; });
+    return sortedKeys.map(sk=> bySort.hasOwnProperty(sk) ? bySort[sk] : 0);
+  });
+
+  const W = 600, H = 300, padTop = 10, padBottom = 30, padLeft = 4, padRight = 4;
+  const plotW = W - padLeft - padRight, plotH = H - padTop - padBottom;
+
+  const periodTotals = sortedKeys.map((sk,ti)=> valuesByKey.reduce((s,vals)=> s + Math.max(0,vals[ti]||0), 0));
+  const grandTotal = periodTotals.reduce((s,v)=>s+v,0) || 1;
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" id="cmpMarimekkoSvg" style="width:100%;height:340px;display:block;">`;
+  let xCursor = padLeft;
+  sortedKeys.forEach((sk, si)=>{
+    const total = periodTotals[si] || 0;
+    const colW = grandTotal > 0 ? (total/grandTotal) * plotW : plotW/sortedKeys.length;
+    let yCursor = padTop;
+    keys.forEach((k,i)=>{
+      const info = compareIndex[k];
+      const v = Math.max(0, valuesByKey[i][si] || 0);
+      const shareH = total > 0 ? (v/total) * plotH : 0;
+      const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+      svg += `<rect x="${xCursor.toFixed(1)}" y="${yCursor.toFixed(1)}" width="${Math.max(0,colW-1.5).toFixed(1)}" height="${Math.max(0,shareH-1).toFixed(1)}" fill="${color}"><title>${escapeHtml(info.sub)} (${escapeHtml(uniqueLabelsMap.get(sk)||'')}): ${fmtNum(v)}</title></rect>`;
+      yCursor += shareH;
+    });
+    if(colW > 20){
+      svg += `<text x="${(xCursor+colW/2).toFixed(1)}" y="${(H-12).toFixed(1)}" font-size="9" text-anchor="middle" fill="#8A5A24">${escapeHtml(uniqueLabelsMap.get(sk)||'')}</text>`;
+    }
+    xCursor += colW;
+  });
+  svg += `</svg>`;
+
+  const legend = keys.map((k,i)=>{
+    const info = compareIndex[k];
+    const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+    return `<div class="comp-legend-item"><span class="dot" style="background:${color}"></span>${escapeHtml(info.sub)}</div>`;
+  }).join('');
+
+  return svg + `<div class="comp-legend" style="margin-top:10px;">${legend}</div><div class="comp-chart-note">Lebar tiap kolom sebanding dengan total gabungan seluruh indikator pada tahun tersebut (relatif terhadap total seluruh tahun); tinggi tiap segmen menunjukkan porsi indikator dalam tahun itu. Bermakna optimal jika satuan antar indikator sebanding.</div>`;
+}
+
 function renderCompareChart(){
   const wrap = document.getElementById('cmpChartWrap');
   const empty = document.getElementById('cmpEmpty');
@@ -2535,7 +3179,7 @@ function renderCompareChart(){
     document.getElementById('cmpChartBox').innerHTML = '<div style="padding:20px;font-size:13px;color:var(--brown-mid);">Grafik gagal dimuat (library Chart.js tidak tersedia). Coba refresh halaman.</div>';
     return;
   }
-  if(!document.getElementById('compareChart') && compareChartType !== 'surface'){
+  if(!document.getElementById('compareChart') && compareChartType !== 'surface' && compareChartType !== 'stream' && compareChartType !== 'marimekko'){
     document.getElementById('cmpChartBox').innerHTML = '<canvas id="compareChart"></canvas>';
   }
 
@@ -2544,6 +3188,20 @@ function renderCompareChart(){
   if(compareChartType === 'surface'){
     if(compareChart){ compareChart.destroy(); compareChart = null; }
     document.getElementById('cmpChartBox').innerHTML = buildCompareSurfaceGrid(keys);
+    generateAdvancedAIInsight(seriesAnalysisData);
+    renderCompareDefinitions(keys);
+    return;
+  }
+  if(compareChartType === 'stream'){
+    if(compareChart){ compareChart.destroy(); compareChart = null; }
+    document.getElementById('cmpChartBox').innerHTML = buildCompareStreamSVG(keys);
+    generateAdvancedAIInsight(seriesAnalysisData);
+    renderCompareDefinitions(keys);
+    return;
+  }
+  if(compareChartType === 'marimekko'){
+    if(compareChart){ compareChart.destroy(); compareChart = null; }
+    document.getElementById('cmpChartBox').innerHTML = buildCompareMarimekkoSVG(keys);
     generateAdvancedAIInsight(seriesAnalysisData);
     renderCompareDefinitions(keys);
     return;
@@ -2565,6 +3223,30 @@ function renderCompareChart(){
   }
   if(compareChartType === 'radar'){
     renderCompareRadarChart(keys);
+    generateAdvancedAIInsight(seriesAnalysisData);
+    renderCompareDefinitions(keys);
+    return;
+  }
+  if(compareChartType === 'polar-area'){
+    renderComparePolarArea(keys, seriesAnalysisData);
+    generateAdvancedAIInsight(seriesAnalysisData);
+    renderCompareDefinitions(keys);
+    return;
+  }
+  if(compareChartType === 'diverging-bar'){
+    renderCompareDivergingBar(keys, seriesAnalysisData);
+    generateAdvancedAIInsight(seriesAnalysisData);
+    renderCompareDefinitions(keys);
+    return;
+  }
+  if(compareChartType === 'pareto'){
+    renderComparePareto(keys, seriesAnalysisData);
+    generateAdvancedAIInsight(seriesAnalysisData);
+    renderCompareDefinitions(keys);
+    return;
+  }
+  if(compareChartType === 'bump'){
+    renderCompareBump(keys);
     generateAdvancedAIInsight(seriesAnalysisData);
     renderCompareDefinitions(keys);
     return;
@@ -2597,7 +3279,7 @@ function renderCompareChart(){
     }
     
     const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
-    const yAxisID = (!normalizeCompare && keys.length > 1 && i % 2 === 1) ? 'y1' : 'y';
+    const yAxisID = (compareChartType !== 'stacked-area' && !normalizeCompare && keys.length > 1 && i % 2 === 1) ? 'y1' : 'y';
 
     if(compareChartType === 'lollipop'){
       datasets.push({
@@ -2648,6 +3330,18 @@ function renderCompareChart(){
         pointBackgroundColor:color, pointRadius:5, pointHoverRadius:7, borderWidth:3, tension:0,
         fill:false, yAxisID
       });
+    }else if(compareChartType === 'combo'){
+      if(i === 0){
+        datasets.push({
+          type:'bar', label:info.sub, data:values, backgroundColor: hexToRgba(color,0.5),
+          borderWidth:0, borderRadius:3, maxBarThickness:32, yAxisID, order:2
+        });
+      }else{
+        datasets.push({
+          type:'line', label:info.sub, data:values, borderColor:color, backgroundColor:color,
+          pointRadius:3, pointHoverRadius:5, borderWidth:2.2, tension:0.22, fill:false, yAxisID, order:1, spanGaps:true
+        });
+      }
     }else{
       const style = getCompareTypeStyle(compareChartType, color);
       datasets.push(Object.assign({ label:info.sub, data:values, borderColor:color, yAxisID, spanGaps:true }, style));
@@ -2655,7 +3349,7 @@ function renderCompareChart(){
   });
 
   const hasY1 = !normalizeCompare && keys.length > 1 && keys.some((_, i) => i % 2 === 1);
-  const topType = (compareChartType === 'bar' || compareChartType === 'rounded-bar' || compareChartType === 'lollipop') ? 'bar' : 'line';
+  const topType = (compareChartType === 'bar' || compareChartType === 'rounded-bar' || compareChartType === 'lollipop' || compareChartType === 'combo') ? 'bar' : 'line';
 
   const ctx = document.getElementById('compareChart').getContext('2d');
   if(compareChart) compareChart.destroy();
@@ -2681,11 +3375,12 @@ function renderCompareChart(){
         }
       },
       scales:{
-        x:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
+        x:{ stacked: compareChartType==='stacked-area', grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
         y:{
           type: 'linear',
           display: true,
           position: 'left',
+          stacked: compareChartType==='stacked-area',
           grid:{color:'#F2DEB8'},
           ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} }
         },
@@ -2720,6 +3415,8 @@ function getCompareTypeStyle(type, color){
       return { type:'line', backgroundColor: 'transparent', fill:false, borderDash:[6,4], tension:0, borderWidth:2.2, pointRadius:2, pointHoverRadius:5 };
     case 'scatter':
       return { type:'line', backgroundColor: color, fill:false, showLine:false, borderWidth:0, pointRadius:4, pointHoverRadius:6 };
+    case 'stacked-area':
+      return { type:'line', backgroundColor: hexToRgba(color,0.55), fill:true, tension:0, pointRadius:0, borderWidth:1.5, stack:'cmp' };
     case 'line':
     default:
       return { type:'line', backgroundColor: color, fill:false, tension:0.22, borderWidth:2.2, pointRadius:3, pointHoverRadius:5 };
@@ -2962,6 +3659,11 @@ function refreshDetail(entries, fromYear, toYear){
   const isFunnel = currentDetailChartType === 'funnel';
   const isSurface = currentDetailChartType === 'surface';
   const isRadar = currentDetailChartType === 'radar';
+  const isPolarArea = currentDetailChartType === 'polar-area';
+  const isDivergingBar = currentDetailChartType === 'diverging-bar';
+  const isCombo = currentDetailChartType === 'combo';
+  const isPareto = currentDetailChartType === 'pareto';
+  const isStream = currentDetailChartType === 'stream';
 
   let chartLabelsFinal = labels;
   let datasets = [];
@@ -2974,6 +3676,41 @@ function refreshDetail(entries, fromYear, toYear){
       pointRadius: 3,
       borderWidth: 2
     }];
+  } else if (isPolarArea) {
+    datasets = [{
+      data: values,
+      backgroundColor: values.map((_,i)=>hexToRgba(COMPARE_COLORS[i % COMPARE_COLORS.length], 0.65)),
+      borderColor: '#fff',
+      borderWidth: 1.5
+    }];
+  } else if (isDivergingBar) {
+    const avg = values.reduce((s,v)=>s+v,0)/values.length;
+    datasets = [{
+      data: values.map(v=>v-avg),
+      backgroundColor: values.map(v=> v>=avg ? hexToRgba('#4E7D5A',0.8) : hexToRgba('#A63A50',0.8)),
+      borderWidth: 0,
+      borderRadius: 3,
+      maxBarThickness: 34,
+      _baseline: avg
+    }];
+  } else if (isCombo) {
+    let running = 0;
+    const movingAvg = values.map((v,i)=>{ running += v; return running/(i+1); });
+    datasets = [
+      { type:'bar', data: values, backgroundColor: hexToRgba(accent,0.45), borderWidth:0, borderRadius:3, maxBarThickness:32, order:2 },
+      { type:'line', data: movingAvg, borderColor:'#562F00', backgroundColor:'#562F00', borderWidth:2, pointRadius:2, tension:0.25, fill:false, order:1 }
+    ];
+  } else if (isPareto) {
+    const idxSorted = values.map((v,i)=>i).sort((a,b)=>values[b]-values[a]);
+    const sortedVals = idxSorted.map(i=>values[i]);
+    chartLabelsFinal = idxSorted.map(i=>labels[i]);
+    const total = sortedVals.reduce((s,v)=>s+v,0) || 1;
+    let cum = 0;
+    const cumPct = sortedVals.map(v=>{ cum += v; return (cum/total*100); });
+    datasets = [
+      { type:'bar', data: sortedVals, backgroundColor: hexToRgba(accent,0.6), borderWidth:0, borderRadius:3, maxBarThickness:34, yAxisID:'y', order:2 },
+      { type:'line', data: cumPct, borderColor:'#562F00', backgroundColor:'#562F00', borderWidth:2, pointRadius:3, tension:0, fill:false, yAxisID:'y1', order:1 }
+    ];
   } else if (isLollipop) {
     datasets = [
       {
@@ -3106,6 +3843,11 @@ function refreshDetail(entries, fromYear, toYear){
       categoryPercentage: 1.0,
       barPercentage: 1.0
     }];
+  } else if (isStream) {
+    datasets = [
+      { data: values.map(v=>-v/2), borderColor:'transparent', backgroundColor:'transparent', pointRadius:0, fill:false, order:2 },
+      { data: values.map(v=>v/2), borderColor:accent, backgroundColor:hexToRgba(accent,0.55), pointRadius:0, borderWidth:1.5, fill:'-1', tension:0.35, order:1 }
+    ];
   } else {
     const gradient = ctx.createLinearGradient(0,0,0,260);
     gradient.addColorStop(0, hexToRgba(accent, 0.35));
@@ -3125,10 +3867,10 @@ function refreshDetail(entries, fromYear, toYear){
     }];
   }
 
-  const topIsBar = isBar || isWaterfall || isFunnel || isSurface;
+  const topIsBar = isBar || isWaterfall || isFunnel || isSurface || isDivergingBar || isPareto || (isCombo);
 
   chartInstance = new Chart(ctx, {
-    type: isRadar ? 'radar' : (topIsBar ? 'bar' : 'line'),
+    type: isRadar ? 'radar' : (isPolarArea ? 'polarArea' : (topIsBar ? 'bar' : 'line')),
     data:{ labels: chartLabelsFinal, datasets },
     options: isRadar ? {
       responsive:true,
@@ -3142,6 +3884,27 @@ function refreshDetail(entries, fromYear, toYear){
           ticks:{ color:'#8A5A24', backdropColor:'transparent', font:{family:'Inter', size:9.5} }
         }
       }
+    } : isPolarArea ? {
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{
+        r:{
+          grid:{ color:'#F2DEB8' },
+          angleLines:{ color:'#F2DEB8' },
+          pointLabels:{ color:'#8A5A24', font:{family:'Inter', size:10.5} },
+          ticks:{ color:'#8A5A24', backdropColor:'transparent', font:{family:'Inter', size:9.5} }
+        }
+      }
+    } : isPareto ? {
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{
+        x:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } },
+        y:{ type:'linear', position:'left', grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
+        y1:{ type:'linear', position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11}, callback:(v)=>v+'%' } }
+      }
     } : {
       responsive:true,
       maintainAspectRatio:false,
@@ -3152,7 +3915,7 @@ function refreshDetail(entries, fromYear, toYear){
           grid:{display: isFunnel ? true : false, color:'#F2DEB8'}, 
           ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } 
         },
-        y:{ grid:{color: isFunnel ? '#fff' : '#F2DEB8', display: !isFunnel || true}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } }
+        y:{ grid:{color: isFunnel ? '#fff' : '#F2DEB8', display: (!isFunnel || true) && !isStream}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11}, display: !isStream } }
       }
     }
   });
