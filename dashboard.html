@@ -716,6 +716,29 @@
     .drawer{ padding:18px 16px 36px; }
     .drawer-stats{ grid-template-columns:1fr 1fr; }
   }
+
+  /* ===== Site Footer ===== */
+  .site-footer{
+    margin-top:44px;
+    background: linear-gradient(135deg, var(--brown) 0%, #7a4310 55%, var(--orange) 130%);
+    border-radius:20px 20px 0 0;
+    padding:30px 28px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+  }
+  .footer-social-title{ font-size:11.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--cream); }
+  .footer-social-icons{ display:flex; gap:12px; }
+  .footer-social-icons a{
+    width:40px; height:40px; border-radius:50%;
+    background:#fff;
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .15s, box-shadow .15s;
+    box-shadow:0 2px 8px rgba(0,0,0,0.18);
+  }
+  .footer-social-icons a:hover{ transform:translateY(-3px); box-shadow:0 5px 14px rgba(0,0,0,0.28); }
+  .footer-social-icons svg{ width:20px; height:20px; display:block; }
 </style>
 </head>
 <body>
@@ -744,9 +767,45 @@
       <div class="state-msg" id="stateMsg"><span class="spinner"></span>Memuat data dari Google Sheets…</div>
     </main>
   </div>
-
-  <div class="footer-note">Badan Pusat Statistik Kabupaten Klungkung</div>
 </div>
+
+<footer class="site-footer">
+  <div class="footer-social-title">Ikuti Kami</div>
+  <div class="footer-social-icons">
+    <a href="https://www.facebook.com/bpskabklungkung/" target="_blank" rel="noopener" aria-label="Facebook">
+      <svg viewBox="0 0 24 24"><path fill="#1877F2" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.234 2.686.234v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+    </a>
+    <a href="https://www.instagram.com/bps_klungkung/" target="_blank" rel="noopener" aria-label="Instagram">
+      <svg viewBox="0 0 24 24">
+        <defs>
+          <linearGradient id="igGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#FFDD55"/>
+            <stop offset="35%" stop-color="#FF543E"/>
+            <stop offset="70%" stop-color="#C837AB"/>
+            <stop offset="100%" stop-color="#5B51D8"/>
+          </linearGradient>
+        </defs>
+        <rect width="24" height="24" rx="6.5" fill="url(#igGrad)"/>
+        <rect x="6" y="6" width="12" height="12" rx="4" fill="none" stroke="#fff" stroke-width="1.6"/>
+        <circle cx="12" cy="12" r="3.1" fill="none" stroke="#fff" stroke-width="1.6"/>
+        <circle cx="17" cy="7" r="1.05" fill="#fff"/>
+      </svg>
+    </a>
+    <a href="https://www.twitter.com/bps_statistics" target="_blank" rel="noopener" aria-label="Twitter">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#000"/><path fill="#fff" d="M13.35 11.05 19.2 4.3h-1.39l-5.08 5.86L8.67 4.3H3.6l6.14 8.94L3.6 19.7h1.39l5.37-6.19 4.29 6.19h5.07l-6.37-8.65Zm-1.9 2.19-.62-.89L5.9 5.35h2.13l4 5.72.62.89 5.2 7.44h-2.13l-4.27-6.16Z"/></svg>
+    </a>
+    <a href="https://www.youtube.com/@bpskabupatenklungkung47" target="_blank" rel="noopener" aria-label="YouTube">
+      <svg viewBox="0 0 24 24"><rect width="24" height="24" rx="7" fill="#FF0000"/><path fill="#fff" d="M9.5 8.5v7l6-3.5-6-3.5Z"/></svg>
+    </a>
+    <a href="https://klungkungkab.bps.go.id" target="_blank" rel="noopener" aria-label="Website BPS Klungkung">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--orange-deep)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9.5"></circle>
+        <line x1="2.5" y1="12" x2="21.5" y2="12"></line>
+        <path d="M12 2.5a15 15 0 0 1 3.7 9.5 15 15 0 0 1-3.7 9.5 15 15 0 0 1-3.7-9.5A15 15 0 0 1 12 2.5z"></path>
+      </svg>
+    </a>
+  </div>
+</footer>
 
 <div class="overlay" id="overlay">
   <div class="drawer" id="drawer"></div>
