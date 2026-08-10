@@ -2612,18 +2612,23 @@ function renderCompareView(){
           <option value="rounded-bar">Batang Bulat</option>
           <option value="stacked-bar">Stacked Bar</option>
           <option value="stacked-bar-100">Stacked Bar 100%</option>
+          <option value="bullet">Bullet Chart</option>
           <option value="stepped-area">Tangga</option>
           <option value="dashed-area">Putus-putus</option>
           <option value="scatter">Sebar (Scatter)</option>
+          <option value="categorical-scatter">Sebar Kategorikal</option>
+          <option value="dot-plot">Dot Plot</option>
           <option value="lollipop">Lollipop</option>
           <option value="bubble-ts">Bubble Time Series</option>
           <option value="pure-bubble">Bubble Murni</option>
           <option value="slope">Slope (Awal vs Akhir)</option>
+          <option value="range-plot">Range Plot</option>
           <option value="waterfall">Waterfall (Bridge)</option>
           <option value="funnel">Funnel (Ranking)</option>
           <option value="surface">Surface (Heatmap)</option>
           <option value="radar">Radar</option>
           <option value="polar-area">Polar Area</option>
+          <option value="radial-bar">Radial Bar</option>
           <option value="diverging-bar">Diverging Bar</option>
           <option value="combo">Combo Bar+Garis</option>
           <option value="pareto">Pareto</option>
@@ -3225,6 +3230,325 @@ function buildCompareMarimekkoSVG(keys){
   return svg + `<div class="comp-legend" style="margin-top:10px;">${legend}</div><div class="comp-chart-note">Lebar tiap kolom sebanding dengan total gabungan seluruh indikator pada tahun tersebut (relatif terhadap total seluruh tahun); tinggi tiap segmen menunjukkan porsi indikator dalam tahun itu. Bermakna optimal jika satuan antar indikator sebanding.</div>`;
 }
 
+function renderCompareCategoricalScatter(keys, seriesAnalysisData){
+  if(compareChart){ compareChart.destroy(); compareChart = null; }
+  const ctx = document.getElementById('compareChart').getContext('2d');
+
+  const uniqueLabelsMap = new Map();
+  keys.forEach(k=>{
+    compareIndex[k].entries.forEach(e=>{
+      if(e.tahun >= compareFrom && e.tahun <= compareTo) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+    });
+  });
+  const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
+  const periodLabels = sortedKeys.map(sk=>uniqueLabelsMap.get(sk));
+  const keyLabels = keys.map(k=>compareIndex[k].sub);
+
+  let allVals = [];
+  const valuesByKey = keys.map(k=>{
+    const info = compareIndex[k];
+    const bySort = {};
+    info.entries.forEach(e=>{ bySort[sortKey(e)] = e.data; });
+    const vals = sortedKeys.map(sk=> bySort.hasOwnProperty(sk) ? bySort[sk] : null);
+    vals.forEach(v=>{ if(v!==null && v!==undefined) allVals.push(v); });
+    return vals;
+  });
+  const minV = allVals.length ? Math.min(...allVals) : 0;
+  const maxV = allVals.length ? Math.max(...allVals) : 1;
+  const rangeV = (maxV-minV) || 1;
+
+  const datasets = keys.map((k,i)=>{
+    const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+    const data = [];
+    sortedKeys.forEach((sk,ti)=>{
+      const v = valuesByKey[i][ti];
+      if(v===null || v===undefined) return;
+      const norm = (v-minV)/rangeV;
+      data.push({ x: periodLabels[ti], y: keyLabels[i], r: 6 + norm*15, _raw: v });
+    });
+    return {
+      label: keyLabels[i],
+      data,
+      backgroundColor: hexToRgba(color,0.65),
+      borderColor: color,
+      borderWidth: 1.5
+    };
+  });
+
+  compareChart = new Chart(ctx, {
+    type:'bubble',
+    data:{ datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ position:'bottom', labels:{ color:'#562F00', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } },
+        tooltip:{ callbacks:{ label:(c)=> `${c.raw.y} · ${c.raw.x}: ${fmtNum(c.raw._raw)}` } }
+      },
+      scales:{
+        x:{ type:'category', labels: periodLabels, offset:true, grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
+        y:{ type:'category', labels: keyLabels, offset:true, grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } }
+      }
+    }
+  });
+}
+
+function renderCompareDotPlot(keys, seriesAnalysisData){
+  if(compareChart){ compareChart.destroy(); compareChart = null; }
+  const ctx = document.getElementById('compareChart').getContext('2d');
+
+  const uniqueLabelsMap = new Map();
+  keys.forEach(k=>{
+    compareIndex[k].entries.forEach(e=>{
+      if(e.tahun >= compareFrom && e.tahun <= compareTo) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+    });
+  });
+  const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
+  const periodLabels = sortedKeys.map(sk=>uniqueLabelsMap.get(sk));
+  const keyLabels = keys.map(k=>compareIndex[k].sub);
+
+  const valuesByKey = keys.map(k=>{
+    const info = compareIndex[k];
+    const bySort = {};
+    info.entries.forEach(e=>{ bySort[sortKey(e)] = e.data; });
+    return sortedKeys.map(sk=> bySort.hasOwnProperty(sk) ? bySort[sk] : null);
+  });
+
+  const datasets = keys.map((k,i)=>{
+    const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+    const data = [];
+    sortedKeys.forEach((sk,ti)=>{
+      const v = valuesByKey[i][ti];
+      if(v===null || v===undefined) return;
+      data.push({ x: v, y: keyLabels[i], _period: periodLabels[ti] });
+    });
+    return {
+      label: keyLabels[i],
+      data,
+      backgroundColor: hexToRgba(color,0.85),
+      borderColor: color,
+      pointRadius: 5.5,
+      pointHoverRadius: 7.5,
+      pointBorderWidth: 1.5,
+      showLine: false
+    };
+  });
+
+  compareChart = new Chart(ctx, {
+    type:'scatter',
+    data:{ datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label:(c)=> `${c.raw.y} · ${c.raw._period}: ${fmtNum(c.raw.x)}` } }
+      },
+      scales:{
+        x:{ grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
+        y:{ type:'category', labels: keyLabels, offset:true, grid:{ display:true, color:'#F2DEB8' }, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } }
+      }
+    }
+  });
+}
+
+function renderCompareRangePlot(keys, seriesAnalysisData){
+  if(compareChart){ compareChart.destroy(); compareChart = null; }
+  const ctx = document.getElementById('compareChart').getContext('2d');
+
+  const uniqueLabelsMap = new Map();
+  keys.forEach(k=>{
+    compareIndex[k].entries.forEach(e=>{
+      if(e.tahun >= compareFrom && e.tahun <= compareTo) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+    });
+  });
+  const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
+  const periodLabels = sortedKeys.map(sk=>uniqueLabelsMap.get(sk));
+
+  const rows = keys.map((k,i)=>{
+    const info = compareIndex[k];
+    const bySort = {};
+    info.entries.forEach(e=>{ bySort[sortKey(e)] = e.data; });
+    const vals = sortedKeys.map(sk=> bySort.hasOwnProperty(sk) ? bySort[sk] : null).filter(v=>v!==null && v!==undefined);
+    const first = vals.length ? vals[0] : 0;
+    const last = vals.length ? vals[vals.length-1] : 0;
+    const naik = last >= first;
+    return { label: info.sub, first, last, naik, color: COMPARE_COLORS[i % COMPARE_COLORS.length] };
+  });
+
+  const fromLabel = periodLabels[0] || '';
+  const toLabel = periodLabels[periodLabels.length-1] || '';
+
+  compareChart = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: rows.map(r=>r.label),
+      datasets:[{
+        label:'Rentang nilai',
+        data: rows.map(r=> [Math.min(r.first,r.last), Math.max(r.first,r.last)]),
+        backgroundColor: rows.map(r=> hexToRgba(r.naik ? '#4E7D5A' : '#A63A50', 0.75)),
+        borderRadius: 4,
+        borderSkipped: false,
+        barThickness: 18
+      }]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:false },
+        tooltip:{
+          callbacks:{
+            label:(c)=>{
+              const r = rows[c.dataIndex];
+              const delta = r.last - r.first;
+              return `${fromLabel}: ${fmtNum(r.first)} → ${toLabel}: ${fmtNum(r.last)} (${delta>=0?'+':''}${fmtNum(delta)})`;
+            }
+          }
+        }
+      },
+      scales:{
+        x:{ grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
+        y:{ grid:{display:false}, ticks:{ color:'#562F00', font:{family:'Inter', size:11} } }
+      }
+    }
+  });
+}
+
+function buildCompareRadialBarSVG(keys){
+  const uniqueLabelsMap = new Map();
+  keys.forEach(k=>{
+    compareIndex[k].entries.forEach(e=>{
+      if(e.tahun >= compareFrom && e.tahun <= compareTo) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+    });
+  });
+  const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
+  if(sortedKeys.length === 0){
+    return '<div style="padding:20px;font-size:13px;color:var(--brown-mid);">Tidak ada data pada rentang ini.</div>';
+  }
+
+  const valuesByKey = keys.map(k=>{
+    const info = compareIndex[k];
+    const bySort = {};
+    info.entries.forEach(e=>{ bySort[sortKey(e)] = e.data; });
+    return sortedKeys.map(sk=> bySort.hasOwnProperty(sk) ? bySort[sk] : null);
+  });
+
+  let allVals = [];
+  valuesByKey.forEach(arr=> arr.forEach(v=>{ if(v!==null && v!==undefined) allVals.push(v); }));
+  const maxV = allVals.length ? Math.max(...allVals) : 1;
+
+  const W = 460, H = 460;
+  const cx = W/2, cy = H/2;
+  const rInner = 34, rOuter = Math.min(W,H)/2 - 46;
+  const n = sortedKeys.length;
+  const anglePer = (2*Math.PI) / n;
+  const gapAngle = anglePer * 0.18;
+  const barAngle = (anglePer - gapAngle) / keys.length;
+
+  function polar(r, a){
+    return [cx + r*Math.cos(a - Math.PI/2), cy + r*Math.sin(a - Math.PI/2)];
+  }
+  function arcPath(r0, r1, a0, a1){
+    const [x0a,y0a] = polar(r0,a0);
+    const [x1a,y1a] = polar(r1,a0);
+    const [x1b,y1b] = polar(r1,a1);
+    const [x0b,y0b] = polar(r0,a1);
+    const large = (a1-a0) > Math.PI ? 1 : 0;
+    return `M${x0a.toFixed(1)},${y0a.toFixed(1)} L${x1a.toFixed(1)},${y1a.toFixed(1)} A${r1.toFixed(1)},${r1.toFixed(1)} 0 ${large} 1 ${x1b.toFixed(1)},${y1b.toFixed(1)} L${x0b.toFixed(1)},${y0b.toFixed(1)} A${r0.toFixed(1)},${r0.toFixed(1)} 0 ${large} 0 ${x0a.toFixed(1)},${y0a.toFixed(1)} Z`;
+  }
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:460px;height:auto;display:block;margin:0 auto;">`;
+
+  [0.25,0.5,0.75,1].forEach(f=>{
+    svg += `<circle cx="${cx}" cy="${cy}" r="${(rInner + f*(rOuter-rInner)).toFixed(1)}" fill="none" stroke="#F2DEB8" stroke-width="1"></circle>`;
+  });
+
+  sortedKeys.forEach((sk, ti)=>{
+    const a0 = ti*anglePer;
+    keys.forEach((k,ki)=>{
+      const v = valuesByKey[ki][ti];
+      if(v===null || v===undefined) return;
+      const color = COMPARE_COLORS[ki % COMPARE_COLORS.length];
+      const frac = maxV>0 ? Math.max(0,v)/maxV : 0;
+      const r1 = rInner + frac*(rOuter-rInner);
+      const segA0 = a0 + ki*barAngle;
+      const segA1 = segA0 + barAngle*0.86;
+      svg += `<path d="${arcPath(rInner,r1,segA0,segA1)}" fill="${color}"><title>${escapeHtml(compareIndex[k].sub)} · ${escapeHtml(uniqueLabelsMap.get(sk)||'')}: ${fmtNum(v)}</title></path>`;
+    });
+    const labelA = a0 + anglePer/2;
+    const [lx,ly] = polar(rOuter+16, labelA);
+    svg += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="9.5" text-anchor="middle" dominant-baseline="middle" fill="#8A5A24">${escapeHtml(uniqueLabelsMap.get(sk)||'')}</text>`;
+  });
+
+  svg += `</svg>`;
+
+  const legend = keys.map((k,i)=>{
+    const info = compareIndex[k];
+    const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+    return `<div class="comp-legend-item"><span class="dot" style="background:${color}"></span>${escapeHtml(info.sub)}</div>`;
+  }).join('');
+
+  return svg + `<div class="comp-legend" style="margin-top:10px;">${legend}</div><div class="comp-chart-note">Setiap sektor melingkar mewakili satu periode; panjang batang radial dari pusat sebanding dengan nilai indikator (dinormalisasi terhadap nilai maksimum di antara seluruh indikator terpilih).</div>`;
+}
+
+function buildCompareBulletSVG(keys){
+  const uniqueLabelsMap = new Map();
+  keys.forEach(k=>{
+    compareIndex[k].entries.forEach(e=>{
+      if(e.tahun >= compareFrom && e.tahun <= compareTo) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+    });
+  });
+  const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
+  if(sortedKeys.length === 0){
+    return '<div style="padding:20px;font-size:13px;color:var(--brown-mid);">Tidak ada data pada rentang ini.</div>';
+  }
+
+  const rows = keys.map((k,i)=>{
+    const info = compareIndex[k];
+    const bySort = {};
+    info.entries.forEach(e=>{ bySort[sortKey(e)] = e.data; });
+    const vals = sortedKeys.map(sk=> bySort.hasOwnProperty(sk) ? bySort[sk] : null).filter(v=>v!==null && v!==undefined);
+    const latest = vals.length ? vals[vals.length-1] : 0;
+    const target = vals.length > 1 ? vals[vals.length-2] : latest;
+    const minV = vals.length ? Math.min(0, ...vals) : 0;
+    const maxV = vals.length ? Math.max(...vals) : 1;
+    const avgV = vals.length ? vals.reduce((s,v)=>s+v,0)/vals.length : 0;
+    return { label: info.sub, latest, target, minV, maxV: (maxV||1), avgV, color: COMPARE_COLORS[i % COMPARE_COLORS.length] };
+  });
+
+  const W = 640;
+  const rowH = 54;
+  const H = rows.length * rowH + 16;
+  const padLeft = 152, padRight = 30;
+  const plotW = W - padLeft - padRight;
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:${Math.min(H,440)}px;display:block;">`;
+
+  rows.forEach((r, i)=>{
+    const y0 = 12 + i*rowH;
+    const gMin = r.minV;
+    const gMax = r.maxV === gMin ? gMin+1 : r.maxV;
+    const scale = plotW / (gMax-gMin);
+    const xAt = v => padLeft + (v-gMin)*scale;
+
+    const bandY = y0 + 8, bandH = 22;
+    svg += `<rect x="${xAt(gMin).toFixed(1)}" y="${bandY}" width="${Math.max(0,xAt(r.avgV)-xAt(gMin)).toFixed(1)}" height="${bandH}" fill="#F2DEB8"></rect>`;
+    svg += `<rect x="${xAt(r.avgV).toFixed(1)}" y="${bandY}" width="${Math.max(0,xAt(gMax)-xAt(r.avgV)).toFixed(1)}" height="${bandH}" fill="#EACB8E"></rect>`;
+
+    const barY = bandY + bandH/2 - 5;
+    svg += `<rect x="${xAt(gMin).toFixed(1)}" y="${barY}" width="${Math.max(0,xAt(r.latest)-xAt(gMin)).toFixed(1)}" height="10" fill="${r.color}"><title>${escapeHtml(r.label)}: ${fmtNum(r.latest)}</title></rect>`;
+
+    const tx = xAt(r.target).toFixed(1);
+    svg += `<line x1="${tx}" y1="${bandY-4}" x2="${tx}" y2="${bandY+bandH+4}" stroke="#562F00" stroke-width="2.5"><title>Periode sebelumnya: ${fmtNum(r.target)}</title></line>`;
+
+    const shortLabel = r.label.length > 24 ? r.label.slice(0,22)+'…' : r.label;
+    svg += `<text x="${padLeft-10}" y="${(bandY+bandH/2+4).toFixed(1)}" font-size="10.5" text-anchor="end" fill="#562F00">${escapeHtml(shortLabel)}</text>`;
+  });
+
+  svg += `</svg>`;
+
+  return svg + `<div class="comp-chart-note">Bar berwarna = nilai periode terakhir dalam rentang yang dipilih. Garis tegak gelap = nilai periode sebelumnya (pembanding/target). Pita latar menunjukkan rentang minimum–rata-rata–maksimum historis pada rentang tersebut.</div>`;
+}
+
 function renderCompareChart(){
   const wrap = document.getElementById('cmpChartWrap');
   const empty = document.getElementById('cmpEmpty');
@@ -3246,7 +3570,7 @@ function renderCompareChart(){
     document.getElementById('cmpChartBox').innerHTML = '<div style="padding:20px;font-size:13px;color:var(--brown-mid);">Grafik gagal dimuat (library Chart.js tidak tersedia). Coba refresh halaman.</div>';
     return;
   }
-  if(!document.getElementById('compareChart') && compareChartType !== 'surface' && compareChartType !== 'stream' && compareChartType !== 'marimekko'){
+  if(!document.getElementById('compareChart') && compareChartType !== 'surface' && compareChartType !== 'stream' && compareChartType !== 'marimekko' && compareChartType !== 'radial-bar' && compareChartType !== 'bullet'){
     document.getElementById('cmpChartBox').innerHTML = '<canvas id="compareChart"></canvas>';
   }
 
@@ -3279,6 +3603,24 @@ function renderCompareChart(){
     renderCompareDefinitions(keys);
     return;
   }
+  if(compareChartType === 'radial-bar'){
+    if(compareChart){ compareChart.destroy(); compareChart = null; }
+    const box = document.getElementById('cmpChartBox');
+    box.style.height = 'auto';
+    box.innerHTML = buildCompareRadialBarSVG(keys);
+    generateAdvancedAIInsight(seriesAnalysisData);
+    renderCompareDefinitions(keys);
+    return;
+  }
+  if(compareChartType === 'bullet'){
+    if(compareChart){ compareChart.destroy(); compareChart = null; }
+    const box = document.getElementById('cmpChartBox');
+    box.style.height = 'auto';
+    box.innerHTML = buildCompareBulletSVG(keys);
+    generateAdvancedAIInsight(seriesAnalysisData);
+    renderCompareDefinitions(keys);
+    return;
+  }
   if(!document.getElementById('compareChart')){
     document.getElementById('cmpChartBox').innerHTML = '<canvas id="compareChart"></canvas>';
   }
@@ -3303,6 +3645,24 @@ function renderCompareChart(){
   }
   if(compareChartType === 'polar-area'){
     renderComparePolarArea(keys, seriesAnalysisData);
+    generateAdvancedAIInsight(seriesAnalysisData);
+    renderCompareDefinitions(keys);
+    return;
+  }
+  if(compareChartType === 'categorical-scatter'){
+    renderCompareCategoricalScatter(keys, seriesAnalysisData);
+    generateAdvancedAIInsight(seriesAnalysisData);
+    renderCompareDefinitions(keys);
+    return;
+  }
+  if(compareChartType === 'dot-plot'){
+    renderCompareDotPlot(keys, seriesAnalysisData);
+    generateAdvancedAIInsight(seriesAnalysisData);
+    renderCompareDefinitions(keys);
+    return;
+  }
+  if(compareChartType === 'range-plot'){
+    renderCompareRangePlot(keys, seriesAnalysisData);
     generateAdvancedAIInsight(seriesAnalysisData);
     renderCompareDefinitions(keys);
     return;
