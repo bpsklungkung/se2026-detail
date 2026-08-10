@@ -1660,7 +1660,7 @@ function openDetail(periode,kategori,kelompok,sub){
     </div>` : ''}
 
     <div class="ai-insight-box">
-      <div class="ai-insight-title">✨ AI Insight</div>
+      <div class="ai-insight-title">✨ Data Insight</div>
       <div class="ai-insight-content drawer-narrative" id="drawerNarrative">Memuat analisis…</div>
     </div>
 
@@ -1798,6 +1798,22 @@ function downloadCompChartJPG(){
 function downloadCompareChartJPG(){
   if(compareChartType === 'surface'){
     alert('Unduh JPG belum didukung untuk tampilan Surface (Heatmap). Pilih tampilan grafik lain untuk mengunduh, atau gunakan tombol Excel pada tabel data.');
+    return;
+  }
+  if(compareChartType === 'stream'){
+    exportSvgAsJPG(document.getElementById('cmpStreamSvg'), 'perbandingan_indikator');
+    return;
+  }
+  if(compareChartType === 'marimekko'){
+    exportSvgAsJPG(document.getElementById('cmpMarimekkoSvg'), 'perbandingan_indikator');
+    return;
+  }
+  if(compareChartType === 'radial-bar'){
+    exportSvgAsJPG(document.getElementById('cmpRadialBarSvg'), 'perbandingan_indikator');
+    return;
+  }
+  if(compareChartType === 'bullet'){
+    exportSvgAsJPG(document.getElementById('cmpBulletSvg'), 'perbandingan_indikator');
     return;
   }
   triggerJPGDownload(compareChart, 'perbandingan_indikator');
@@ -2653,7 +2669,7 @@ function renderCompareView(){
           
           <div class="cmp-info-grid" id="cmpInfoGrid" style="display:none;">
             <div class="ai-insight-box">
-              <div class="ai-insight-title">✨ AI Insights & Analisis Mendalam Tren</div>
+              <div class="ai-insight-title">✨ Data Insight</div>
               <div class="ai-insight-content" id="aiInsightText">Pilih indikator untuk melihat analisis.</div>
             </div>
             <div class="compare-defs-box">
@@ -3456,7 +3472,7 @@ function buildCompareRadialBarSVG(keys){
     return `M${x0a.toFixed(1)},${y0a.toFixed(1)} L${x1a.toFixed(1)},${y1a.toFixed(1)} A${r1.toFixed(1)},${r1.toFixed(1)} 0 ${large} 1 ${x1b.toFixed(1)},${y1b.toFixed(1)} L${x0b.toFixed(1)},${y0b.toFixed(1)} A${r0.toFixed(1)},${r0.toFixed(1)} 0 ${large} 0 ${x0a.toFixed(1)},${y0a.toFixed(1)} Z`;
   }
 
-  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:460px;height:auto;display:block;margin:0 auto;">`;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" id="cmpRadialBarSvg" style="width:100%;max-width:460px;height:auto;display:block;margin:0 auto;">`;
 
   [0.25,0.5,0.75,1].forEach(f=>{
     svg += `<circle cx="${cx}" cy="${cy}" r="${(rInner + f*(rOuter-rInner)).toFixed(1)}" fill="none" stroke="#F2DEB8" stroke-width="1"></circle>`;
@@ -3521,7 +3537,7 @@ function buildCompareBulletSVG(keys){
   const padLeft = 152, padRight = 30;
   const plotW = W - padLeft - padRight;
 
-  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:${Math.min(H,440)}px;display:block;">`;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" id="cmpBulletSvg" style="width:100%;height:${Math.min(H,440)}px;display:block;">`;
 
   rows.forEach((r, i)=>{
     const y0 = 12 + i*rowH;
