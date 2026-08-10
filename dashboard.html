@@ -2610,6 +2610,8 @@ function renderCompareView(){
           <option value="spline">Kurva Halus</option>
           <option value="bar">Batang</option>
           <option value="rounded-bar">Batang Bulat</option>
+          <option value="stacked-bar">Stacked Bar</option>
+          <option value="stacked-bar-100">Stacked Bar 100%</option>
           <option value="stepped-area">Tangga</option>
           <option value="dashed-area">Putus-putus</option>
           <option value="scatter">Sebar (Scatter)</option>
@@ -3337,13 +3339,33 @@ function renderCompareChart(){
 
   const datasets = [];
 
+  let stackTotals = null;
+  if(compareChartType === 'stacked-bar-100'){
+    const rawMatrix = keys.map(k=>{
+      const info = compareIndex[k];
+      const bySort = {};
+      info.entries.forEach(e=>{ bySort[sortKey(e)] = e.data; });
+      return sortedKeys.map(sk=> bySort.hasOwnProperty(sk) ? bySort[sk] : null);
+    });
+    stackTotals = sortedKeys.map((_,j)=> rawMatrix.reduce((sum,arr)=>{
+      const v = arr[j];
+      return sum + (v!==null && v!==undefined ? v : 0);
+    }, 0));
+  }
+
   keys.forEach((k,i)=>{
     const info = compareIndex[k];
     const bySort = {};
     info.entries.forEach(e=>{ bySort[sortKey(e)] = e.data; });
     let values = sortedKeys.map(sk=> bySort.hasOwnProperty(sk) ? bySort[sk] : null);
 
-    if(normalizeCompare){
+    if(compareChartType === 'stacked-bar-100' && stackTotals){
+      values = values.map((v,j)=>{
+        if(v===null || v===undefined) return null;
+        const total = stackTotals[j];
+        return total ? (v/total*100) : 0;
+      });
+    }else if(normalizeCompare){
       const base = values.find(v=>v!==null && v!==undefined && v!==0);
       if(base){
         values = values.map(v=>(v===null||v===undefined) ? null : (v/base*100));
@@ -3351,7 +3373,8 @@ function renderCompareChart(){
     }
     
     const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
-    const yAxisID = (compareChartType !== 'stacked-area' && !normalizeCompare && keys.length > 1 && i % 2 === 1) ? 'y1' : 'y';
+    const isStackedType = compareChartType === 'stacked-area' || compareChartType === 'stacked-bar' || compareChartType === 'stacked-bar-100';
+    const yAxisID = (!isStackedType && !normalizeCompare && keys.length > 1 && i % 2 === 1) ? 'y1' : 'y';
 
     if(compareChartType === 'lollipop'){
       datasets.push({
@@ -3420,8 +3443,9 @@ function renderCompareChart(){
     }
   });
 
-  const hasY1 = !normalizeCompare && keys.length > 1 && keys.some((_, i) => i % 2 === 1);
-  const topType = (compareChartType === 'bar' || compareChartType === 'rounded-bar' || compareChartType === 'lollipop' || compareChartType === 'combo') ? 'bar' : 'line';
+  const isStackedType = compareChartType === 'stacked-area' || compareChartType === 'stacked-bar' || compareChartType === 'stacked-bar-100';
+  const hasY1 = !isStackedType && !normalizeCompare && keys.length > 1 && keys.some((_, i) => i % 2 === 1);
+  const topType = (compareChartType === 'bar' || compareChartType === 'rounded-bar' || compareChartType === 'lollipop' || compareChartType === 'combo' || compareChartType === 'stacked-bar' || compareChartType === 'stacked-bar-100') ? 'bar' : 'line';
 
   const ctx = document.getElementById('compareChart').getContext('2d');
   if(compareChart) compareChart.destroy();
@@ -3442,19 +3466,25 @@ function renderCompareChart(){
         },
         tooltip:{
           callbacks:{
-            label: (c)=> `${c.dataset.label} (${c.dataset.yAxisID === 'y1' ? 'Kanan' : 'Kiri'}): ${normalizeCompare ? c.parsed.y.toFixed(1) : fmtNum(c.parsed.y)}${normalizeCompare?' idx':''}`
+            label: (c)=> compareChartType === 'stacked-bar-100'
+              ? `${c.dataset.label}: ${c.parsed.y===null? '-' : c.parsed.y.toFixed(1)}%`
+              : `${c.dataset.label} (${c.dataset.yAxisID === 'y1' ? 'Kanan' : 'Kiri'}): ${normalizeCompare ? c.parsed.y.toFixed(1) : fmtNum(c.parsed.y)}${normalizeCompare?' idx':''}`
           }
         }
       },
       scales:{
-        x:{ stacked: compareChartType==='stacked-area', grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
+        x:{ stacked: isStackedType, grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
         y:{
           type: 'linear',
           display: true,
           position: 'left',
-          stacked: compareChartType==='stacked-area',
+          stacked: isStackedType,
+          max: compareChartType==='stacked-bar-100' ? 100 : undefined,
           grid:{color:'#F2DEB8'},
-          ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} }
+          ticks:{
+            color:'#8A5A24', font:{family:'Inter', size:11},
+            callback: compareChartType==='stacked-bar-100' ? (v)=> v+'%' : undefined
+          }
         },
         y1:{
           type: 'linear',
@@ -3489,6 +3519,10 @@ function getCompareTypeStyle(type, color){
       return { type:'line', backgroundColor: color, fill:false, showLine:false, borderWidth:0, pointRadius:4, pointHoverRadius:6 };
     case 'stacked-area':
       return { type:'line', backgroundColor: hexToRgba(color,0.55), fill:true, tension:0, pointRadius:0, borderWidth:1.5, stack:'cmp' };
+    case 'stacked-bar':
+      return { type:'bar', backgroundColor: hexToRgba(color,0.78), borderRadius:0, borderWidth:0, stack:'cmp' };
+    case 'stacked-bar-100':
+      return { type:'bar', backgroundColor: hexToRgba(color,0.78), borderRadius:0, borderWidth:0, stack:'cmp' };
     case 'line':
     default:
       return { type:'line', backgroundColor: color, fill:false, tension:0.22, borderWidth:2.2, pointRadius:3, pointHoverRadius:5 };
