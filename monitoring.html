@@ -195,6 +195,16 @@
     font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:var(--brown-soft);
     text-transform:none;letter-spacing:0;
   }
+  .map-legend{
+    display:flex;flex-wrap:wrap;gap:10px 14px;margin-bottom:8px;
+  }
+  .legend-item{
+    display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--brown-soft);
+    font-weight:600;
+  }
+  .legend-dot{
+    width:9px;height:9px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 1px rgba(0,0,0,.15) inset;
+  }
   #map{
     width:100%;height:300px;border-radius:12px;border:1px solid var(--line);
     background:var(--cream);
@@ -327,6 +337,18 @@
         <label for="fPml">PML</label>
         <select id="fPml"><option value="">Semua PML</option></select>
       </div>
+      <div class="field">
+        <label for="fVerif">Verifikasi</label>
+        <select id="fVerif">
+          <option value="">Semua Verifikasi</option>
+          <option value="dalam">Ditemukan dalam SLS</option>
+          <option value="luar">Ditemukan di luar SLS</option>
+          <option value="tidak">Tidak Ditemukan</option>
+          <option value="ganda">Ganda</option>
+          <option value="tutup">Tutup</option>
+          <option value="__belum">Belum Diverifikasi</option>
+        </select>
+      </div>
     </div>
     <div class="search-row">
       <div class="field">
@@ -340,6 +362,14 @@
     <div class="map-panel-title">
       Peta Sebaran Usaha
       <span class="map-count" id="mapCount"></span>
+    </div>
+    <div class="map-legend">
+      <span class="legend-item"><span class="legend-dot" style="background:#9c8b76"></span>Belum diverifikasi</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#22c55e"></span>Dalam SLS</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#3b82f6"></span>Luar SLS</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#ef4444"></span>Tidak Ditemukan</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#eab308"></span>Ganda</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#f97316"></span>Tutup</span>
     </div>
     <div id="map"></div>
     <div class="map-empty-note" id="mapEmptyNote" style="display:none;">Tidak ada titik koordinat untuk ditampilkan pada filter saat ini.</div>
@@ -445,7 +475,7 @@ const SUPERVISOR_NAMES = [
 
 let RAW_ROWS = [];       // normalized data records
 let statusCache = {};    // rowId -> { Status, Supervisor, Keterangan, "Waktu Update" }
-let state = { kecamatan:"", desa:"", sls:"", ppl:"", pml:"", search:"" };
+let state = { kecamatan:"", desa:"", sls:"", ppl:"", pml:"", verif:"", search:"" };
 let statusSort = 0; // 0=default, 1=asc, -1=desc
 let currentPage = 1;
 let pageSize = 10;
@@ -502,6 +532,7 @@ const els = {
   sls: document.getElementById('fSls'),
   ppl: document.getElementById('fPpl'),
   pml: document.getElementById('fPml'),
+  verif: document.getElementById('fVerif'),
   search: document.getElementById('fSearch'),
   tbody: document.getElementById('tbody'),
   statsRow: document.getElementById('statsRow'),
@@ -626,6 +657,13 @@ function uniqueSorted(arr){
 }
 
 // compute rows matching all filters EXCEPT the one named `except`
+function verifMatches(r){
+  if(!state.verif) return true;
+  const cur = statusCache[r.rowId] ? statusCache[r.rowId].Status : '';
+  if(state.verif === '__belum') return !cur;
+  return cur === state.verif;
+}
+
 function filteredExcept(except){
   return RAW_ROWS.filter(r=>{
     if(except!=='kecamatan' && state.kecamatan && r.kecamatan !== state.kecamatan) return false;
@@ -633,6 +671,7 @@ function filteredExcept(except){
     if(except!=='sls' && state.sls && r.sls !== state.sls) return false;
     if(except!=='ppl' && state.ppl && r.ppl !== state.ppl) return false;
     if(except!=='pml' && state.pml && r.pml !== state.pml) return false;
+    if(!verifMatches(r)) return false;
     return true;
   });
 }
@@ -678,6 +717,57 @@ function renderStats(rows){
   `;
 }
 
+// Wilayah (Kecamatan/Desa/SLS) yang dipilih dipakai untuk menentukan area zoom peta,
+// terlepas dari filter PPL/PML/pencarian yang mungkin mempersempit titik yang tampil.
+// Kalau titik pada level paling detail (mis. SLS) tidak punya koordinat valid,
+// turun ke level yang lebih luas (Desa, lalu Kecamatan) supaya peta tetap zoom ke wilayah tsb.
+function getAreaBoundsPoints(){
+  const matchLevel = (level)=> RAW_ROWS.filter(r=>{
+    if(level>=1 && state.kecamatan && r.kecamatan !== state.kecamatan) return false;
+    if(level>=2 && state.desa && r.desa !== state.desa) return false;
+    if(level>=3 && state.sls && r.sls !== state.sls) return false;
+    return true;
+  }).filter(hasValidCoords);
+
+  if(state.sls){
+    let pts = matchLevel(3); if(pts.length) return pts;
+    pts = matchLevel(2); if(pts.length) return pts;
+    return matchLevel(1);
+  }
+  if(state.desa){
+    let pts = matchLevel(2); if(pts.length) return pts;
+    return matchLevel(1);
+  }
+  if(state.kecamatan){
+    return matchLevel(1);
+  }
+  return null; // tidak ada filter wilayah aktif -> peta mengikuti titik yang tampil seperti biasa
+}
+
+// Warna marker peta mengikuti hasil Verifikasi (kolom Verifikasi pada tabel).
+// Titik yang belum diverifikasi memakai warna netral (abu-coklat) sampai tabelnya diupdate.
+const VERIF_MARKER_COLORS = {
+  dalam: '#22c55e', // Ditemukan dalam SLS -> Hijau
+  luar:  '#3b82f6', // Ditemukan di luar SLS -> Biru
+  tidak: '#ef4444', // Tidak Ditemukan -> Merah
+  ganda: '#eab308', // Ganda -> Kuning
+  tutup: '#f97316', // Tutup -> Oranye
+};
+const DEFAULT_MARKER_COLOR = '#9c8b76'; // Belum diverifikasi
+
+function getMarkerColor(rowId){
+  const v = statusCache[rowId] ? statusCache[rowId].Status : '';
+  return VERIF_MARKER_COLORS[v] || DEFAULT_MARKER_COLOR;
+}
+
+// Dipanggil setelah verifikasi berhasil disimpan, supaya marker di peta langsung
+// berubah warna tanpa perlu me-render ulang seluruh peta (agar posisi/zoom tak berubah).
+function updateMarkerColorForRow(rowId){
+  const marker = markersByRowId[rowId];
+  if(!marker) return;
+  marker.setStyle({ fillColor: getMarkerColor(rowId) });
+}
+
 let markersByRowId = {};
 
 function renderMap(rows){
@@ -690,18 +780,14 @@ function renderMap(rows){
     : '';
   document.getElementById('mapEmptyNote').style.display = withCoords.length ? 'none' : 'block';
 
-  if(withCoords.length === 0){ return; }
-
   const shown = withCoords.slice(0, MAX_MARKERS);
-  const bounds = [];
-
   shown.forEach(r=>{
     const lat = parseCoord(r.lat), lng = parseCoord(r.long);
     const marker = L.circleMarker([lat, lng], {
       radius: 6,
       color: '#562F00',
       weight: 1,
-      fillColor: '#FF9644',
+      fillColor: getMarkerColor(r.rowId),
       fillOpacity: 0.9
     });
     const link = buildMapsLink(r);
@@ -714,14 +800,19 @@ function renderMap(rows){
     marker.on('click', ()=> highlightTableRow(r.rowId));
     marker.addTo(markerLayer);
     markersByRowId[r.rowId] = marker;
-    bounds.push([lat, lng]);
   });
 
-  if(bounds.length === 1){
-    map.setView(bounds[0], 15);
-  }else if(bounds.length > 1){
-    map.fitBounds(bounds, { padding:[24,24], maxZoom:16 });
+  // Zoom peta ke wilayah terpilih (Kecamatan/Desa/SLS), bukan sekadar ke titik yang tersisa setelah semua filter.
+  const areaPoints = getAreaBoundsPoints();
+  const boundsSource = (areaPoints && areaPoints.length) ? areaPoints : withCoords;
+  const boundsCoords = boundsSource.slice(0, MAX_MARKERS).map(r=>[parseCoord(r.lat), parseCoord(r.long)]);
+
+  if(boundsCoords.length === 1){
+    map.setView(boundsCoords[0], 15);
+  }else if(boundsCoords.length > 1){
+    map.fitBounds(boundsCoords, { padding:[30,30], maxZoom:16 });
   }
+  // boundsCoords.length === 0 -> tidak ada koordinat valid sama sekali untuk wilayah ini, peta tetap di posisi terakhir
 }
 
 // Klik marker di peta -> pindah ke halaman yang tepat, lalu scroll & sorot baris di tabel
@@ -866,10 +957,12 @@ function wireEvents(){
   els.sls.addEventListener('change', e=>{ state.sls = e.target.value; currentPage=1; renderAll(); });
   els.ppl.addEventListener('change', e=>{ state.ppl = e.target.value; currentPage=1; renderAll(); });
   els.pml.addEventListener('change', e=>{ state.pml = e.target.value; currentPage=1; renderAll(); });
+  els.verif.addEventListener('change', e=>{ state.verif = e.target.value; currentPage=1; renderAll(); });
   els.search.addEventListener('input', e=>{ state.search = e.target.value; currentPage=1; renderTable(); });
   els.resetBtn.addEventListener('click', ()=>{
-    state = { kecamatan:"", desa:"", sls:"", ppl:"", pml:"", search:"" };
+    state = { kecamatan:"", desa:"", sls:"", ppl:"", pml:"", verif:"", search:"" };
     els.search.value = "";
+    els.verif.value = "";
     currentPage = 1;
     renderAll();
   });
@@ -1023,6 +1116,7 @@ document.getElementById('step2Save').addEventListener('click', async ()=>{
 
     const badgeEl = document.querySelector(`[data-badge-for="${CSS.escape(pendingVerif.rowId)}"]`);
     if(badgeEl) badgeEl.innerHTML = statusBadgeHtml(pendingVerif.rowId);
+    updateMarkerColorForRow(pendingVerif.rowId);
 
     showToast('Verifikasi tersimpan.');
     closeModals(false);
