@@ -338,6 +338,15 @@
         <select id="fPml"><option value="">Semua PML</option></select>
       </div>
       <div class="field">
+        <label for="fStatus">Status</label>
+        <select id="fStatus">
+          <option value="">Semua Status</option>
+          <option value="Tidak Ditemukan">Tidak Ditemukan</option>
+          <option value="Tutup">Tutup</option>
+          <option value="Ganda">Ganda</option>
+        </select>
+      </div>
+      <div class="field">
         <label for="fVerif">Verifikasi</label>
         <select id="fVerif">
           <option value="">Semua Verifikasi</option>
@@ -475,7 +484,7 @@ const SUPERVISOR_NAMES = [
 
 let RAW_ROWS = [];       // normalized data records
 let statusCache = {};    // rowId -> { Status, Supervisor, Keterangan, "Waktu Update" }
-let state = { kecamatan:"", desa:"", sls:"", ppl:"", pml:"", verif:"", search:"" };
+let state = { kecamatan:"", desa:"", sls:"", ppl:"", pml:"", verif:"", status:"", search:"" };
 let statusSort = 0; // 0=default, 1=asc, -1=desc
 let currentPage = 1;
 let pageSize = 10;
@@ -518,13 +527,13 @@ function toggleStatusSort(){
 
 // ---- Leaflet map setup ----
 const KLUNGKUNG_CENTER = [-8.535, 115.40];
-const map = L.map('map', { scrollWheelZoom:false }).setView(KLUNGKUNG_CENTER, 11);
+const map = L.map('map', { scrollWheelZoom:false, preferCanvas:true }).setView(KLUNGKUNG_CENTER, 11);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
   attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 const markerLayer = L.layerGroup().addTo(map);
-const MAX_MARKERS = 1200; // safety cap for very large filtered sets
+const MAX_MARKERS = 20000; // dengan canvas renderer, ribuan titik masih ringan; ini hanya jaga-jaga kalau data membengkak drastis
 
 const els = {
   kecamatan: document.getElementById('fKecamatan'),
@@ -532,6 +541,7 @@ const els = {
   sls: document.getElementById('fSls'),
   ppl: document.getElementById('fPpl'),
   pml: document.getElementById('fPml'),
+  status: document.getElementById('fStatus'),
   verif: document.getElementById('fVerif'),
   search: document.getElementById('fSearch'),
   tbody: document.getElementById('tbody'),
@@ -664,6 +674,11 @@ function verifMatches(r){
   return cur === state.verif;
 }
 
+function statusMatches(r){
+  if(!state.status) return true;
+  return (r.statusLabel||'') === state.status;
+}
+
 function filteredExcept(except){
   return RAW_ROWS.filter(r=>{
     if(except!=='kecamatan' && state.kecamatan && r.kecamatan !== state.kecamatan) return false;
@@ -672,6 +687,7 @@ function filteredExcept(except){
     if(except!=='ppl' && state.ppl && r.ppl !== state.ppl) return false;
     if(except!=='pml' && state.pml && r.pml !== state.pml) return false;
     if(!verifMatches(r)) return false;
+    if(!statusMatches(r)) return false;
     return true;
   });
 }
@@ -776,7 +792,7 @@ function renderMap(rows){
   const withCoords = rows.filter(hasValidCoords);
 
   document.getElementById('mapCount').textContent = withCoords.length
-    ? `${withCoords.length.toLocaleString('id')} titik ditampilkan`
+    ? `${withCoords.length.toLocaleString('id')} titik ditampilkan${withCoords.length > MAX_MARKERS ? ` (menampilkan ${MAX_MARKERS.toLocaleString('id')} pertama)` : ''}`
     : '';
   document.getElementById('mapEmptyNote').style.display = withCoords.length ? 'none' : 'block';
 
@@ -803,9 +819,10 @@ function renderMap(rows){
   });
 
   // Zoom peta ke wilayah terpilih (Kecamatan/Desa/SLS), bukan sekadar ke titik yang tersisa setelah semua filter.
+  // Bounds dihitung dari SEMUA titik yang relevan (tidak dipotong MAX_MARKERS), supaya zoom selalu mencakup seluruh wilayah.
   const areaPoints = getAreaBoundsPoints();
   const boundsSource = (areaPoints && areaPoints.length) ? areaPoints : withCoords;
-  const boundsCoords = boundsSource.slice(0, MAX_MARKERS).map(r=>[parseCoord(r.lat), parseCoord(r.long)]);
+  const boundsCoords = boundsSource.map(r=>[parseCoord(r.lat), parseCoord(r.long)]);
 
   if(boundsCoords.length === 1){
     map.setView(boundsCoords[0], 15);
@@ -957,12 +974,14 @@ function wireEvents(){
   els.sls.addEventListener('change', e=>{ state.sls = e.target.value; currentPage=1; renderAll(); });
   els.ppl.addEventListener('change', e=>{ state.ppl = e.target.value; currentPage=1; renderAll(); });
   els.pml.addEventListener('change', e=>{ state.pml = e.target.value; currentPage=1; renderAll(); });
+  els.status.addEventListener('change', e=>{ state.status = e.target.value; currentPage=1; renderAll(); });
   els.verif.addEventListener('change', e=>{ state.verif = e.target.value; currentPage=1; renderAll(); });
   els.search.addEventListener('input', e=>{ state.search = e.target.value; currentPage=1; renderTable(); });
   els.resetBtn.addEventListener('click', ()=>{
-    state = { kecamatan:"", desa:"", sls:"", ppl:"", pml:"", verif:"", search:"" };
+    state = { kecamatan:"", desa:"", sls:"", ppl:"", pml:"", verif:"", status:"", search:"" };
     els.search.value = "";
     els.verif.value = "";
+    els.status.value = "";
     currentPage = 1;
     renderAll();
   });
