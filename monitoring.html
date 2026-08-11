@@ -114,6 +114,12 @@
   }
   tbody tr:nth-child(even){background:#FFFBF0;}
   tbody tr:hover{background:#FFF1DC;}
+  tbody tr[data-rowid]{cursor:pointer;}
+  tbody tr.row-flash{background:#FFE1B0 !important;transition:background .3s ease;}
+  tbody tr.row-flash td{position:relative;}
+  tbody tr.row-flash td:first-child::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--orange,#FF9644);
+  }
   td.usaha{font-weight:600;}
   td.alamat{color:var(--brown-soft);max-width:340px;}
   .loc-btn{
@@ -334,9 +340,9 @@
     <h3 class="modal-title">Nama PJ</h3>
     <div class="modal-sub" id="step1Recap"></div>
     <label for="inpSupervisor">Nama PJ</label>
-    <input type="text" id="inpSupervisor" list="pmlList" placeholder="Ketik atau pilih nama pengawas…" autocomplete="off">
+    <input type="text" id="inpSupervisor" list="pmlList" placeholder="Ketik atau pilih nama pj…" autocomplete="off">
     <datalist id="pmlList"></datalist>
-    <div class="modal-error" id="step1Error">Nama pengawas wajib diisi.</div>
+    <div class="modal-error" id="step1Error">Nama pj wajib diisi.</div>
     <div class="modal-actions">
       <button class="btn-secondary" id="step1Cancel">Batal</button>
       <button class="btn-primary" id="step1Next">Lanjut →</button>
@@ -587,8 +593,11 @@ function renderStats(rows){
   `;
 }
 
+let markersByRowId = {};
+
 function renderMap(rows){
   markerLayer.clearLayers();
+  markersByRowId = {};
   const withCoords = rows.filter(hasValidCoords);
 
   document.getElementById('mapCount').textContent = withCoords.length
@@ -617,7 +626,9 @@ function renderMap(rows){
       <div class="popup-sub" style="margin:4px 0 6px;">${escapeHtml(r.alamat)}</div>
       ${link ? `<a class="popup-link" href="${escapeAttr(link)}" target="_blank" rel="noopener">Buka di Google Maps →</a>` : ''}
     `);
+    marker.on('click', ()=> highlightTableRow(r.rowId));
     marker.addTo(markerLayer);
+    markersByRowId[r.rowId] = marker;
     bounds.push([lat, lng]);
   });
 
@@ -626,6 +637,26 @@ function renderMap(rows){
   }else if(bounds.length > 1){
     map.fitBounds(bounds, { padding:[24,24], maxZoom:16 });
   }
+}
+
+// Klik marker di peta -> scroll & sorot baris yang sesuai di tabel
+function highlightTableRow(rowId){
+  const tr = document.querySelector(`tr[data-rowid="${CSS.escape(rowId)}"]`);
+  if(!tr) return;
+  tr.scrollIntoView({ behavior:'smooth', block:'center' });
+  document.querySelectorAll('tbody tr.row-flash').forEach(el=>el.classList.remove('row-flash'));
+  tr.classList.add('row-flash');
+  setTimeout(()=> tr.classList.remove('row-flash'), 1800);
+}
+
+// Klik baris tabel -> pan peta ke titik & buka popup marker yang sesuai
+function onTableRowClick(e, rowId){
+  if(e.target.closest('select, a, button, .verif-select, .verif-status-display')) return;
+  const marker = markersByRowId[rowId];
+  if(!marker) return; // baris ini tidak punya titik koordinat di peta
+  document.getElementById('map').scrollIntoView({ behavior:'smooth', block:'center' });
+  map.setView(marker.getLatLng(), 16, { animate:true });
+  setTimeout(()=> marker.openPopup(), 350);
 }
 
 function statusBadgeHtml(rowId){
@@ -684,7 +715,7 @@ function renderTable(){
     const statusCell = r.statusLabel
       ? `<span class="verif-badge ${r.statusBadge}">${escapeHtml(r.statusLabel)}</span>`
       : `<span class="loc-none">–</span>`;
-    return `<tr>
+    return `<tr data-rowid="${escapeAttr(r.rowId)}" onclick="onTableRowClick(event,'${escapeAttr(r.rowId)}')">
       <td>${escapeHtml(r.kecamatan)}</td>
       <td>${escapeHtml(r.desa)}</td>
       <td>${escapeHtml(r.sls)}</td>
