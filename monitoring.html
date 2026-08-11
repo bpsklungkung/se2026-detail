@@ -56,7 +56,6 @@
   }
   .refresh-info button:hover{background:#3d2200;}
 
-  /* Marker cluster — mengikuti palet brand, gantikan style default plugin */
   .marker-cluster-brand{
     background:rgba(255,150,68,0.22);
   }
@@ -71,7 +70,6 @@
   .marker-cluster-brand.cluster-md div{ background:var(--orange); }
   .marker-cluster-brand.cluster-sm div{ background:#ffb066; }
 
-  /* Titik usaha individual — pakai divIcon (bukan circleMarker) supaya kompatibel dengan cluster plugin */
   .usaha-dot-icon{ background:transparent; border:none; }
   .usaha-dot{
     display:block;width:13px;height:13px;border-radius:50%;
@@ -142,6 +140,7 @@
   .pg-nav button:hover:not(:disabled){background:#FFE1B0;}
   .pg-nav button:disabled{opacity:.4;cursor:not-allowed;}
   .pg-page{font-size:12.5px;color:var(--brown);font-weight:600;white-space:nowrap;}
+  
   table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;}
   thead th{
     position:sticky;top:0;z-index:2;background:var(--brown);color:var(--peach);
@@ -152,6 +151,7 @@
   thead th.sortable:hover{background:#4a2800;}
   thead th.sortable .sort-arrow{display:inline-block;margin-left:4px;opacity:.5;font-size:10px;}
   thead th.sortable.sort-active .sort-arrow{opacity:1;}
+  
   #dataTable thead th:nth-child(1){width:10%;}
   #dataTable thead th:nth-child(2){width:9%;}
   #dataTable thead th:nth-child(3){width:9%;}
@@ -160,17 +160,20 @@
   #dataTable thead th:nth-child(6){width:9%;}
   #dataTable thead th:nth-child(7){width:9%;}
   #dataTable thead th:nth-child(8){width:17%;}
+  
+  /* Perbaikan teks memanjang ke bawah (word-break) tanpa terpotong (ellipsis) */
   tbody td{
     padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--brown);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:0;
+    word-break: break-word; /* Teks dibiarkan utuh ke bawah jika lebih dari 1 baris */
   }
-  /* Kolom Status, Lokasi, Verifikasi berisi badge/tombol/dropdown, bukan teks panjang -> tidak perlu ellipsis */
   tbody td:nth-child(6), tbody td:nth-child(7), tbody td:nth-child(8){
     overflow:visible;text-overflow:clip;
   }
+  
   tbody tr:nth-child(even){background:#FFFBF0;}
   tbody tr:hover{background:#FFF1DC;}
   tbody tr[data-rowid]{cursor:pointer;}
+  
   @keyframes rowFlashPulse{
     0%{background:#FF9644;}
     100%{background:#FFD9A8;}
@@ -251,7 +254,6 @@
     text-align:center;color:var(--brown-soft);font-size:12.5px;padding:8px 0 2px;
   }
 
-  /* Verifikasi column */
   .verif-select{
     padding:7px 8px;border-radius:8px;border:1.5px solid var(--line);
     background:var(--cream);color:var(--brown);font-family:'Inter',sans-serif;font-size:12px;
@@ -268,7 +270,6 @@
   .badge-tutup{background:#E7E2DA;color:#5c5346;}
   .verif-meta{font-size:10.5px;color:#b9a892;margin-top:3px;}
 
-  /* Modal */
   .modal-overlay{
     position:fixed;inset:0;background:rgba(86,47,0,0.45);
     display:none;align-items:center;justify-content:center;z-index:50;padding:20px;
@@ -437,14 +438,14 @@
       <table id="dataTable">
         <thead>
           <tr>
-            <th>Kecamatan</th>
-            <th>Desa</th>
-            <th>SLS</th>
-            <th>Nama Usaha</th>
-            <th>Alamat</th>
-            <th class="sortable" id="thStatus" onclick="toggleStatusSort()">Status<span class="sort-arrow" id="statusSortArrow">↕</span></th>
+            <th class="sortable" id="th_kecamatan" onclick="toggleSort('kecamatan')">Kecamatan<span class="sort-arrow">↕</span></th>
+            <th class="sortable" id="th_desa" onclick="toggleSort('desa')">Desa<span class="sort-arrow">↕</span></th>
+            <th class="sortable" id="th_sls" onclick="toggleSort('sls')">SLS<span class="sort-arrow">↕</span></th>
+            <th class="sortable" id="th_nama_usaha" onclick="toggleSort('nama_usaha')">Nama Usaha<span class="sort-arrow">↕</span></th>
+            <th class="sortable" id="th_alamat" onclick="toggleSort('alamat')">Alamat<span class="sort-arrow">↕</span></th>
+            <th class="sortable" id="th_statusLabel" onclick="toggleSort('statusLabel')">Status<span class="sort-arrow">↕</span></th>
             <th>Lokasi</th>
-            <th>Verifikasi</th>
+            <th class="sortable" id="th_verif" onclick="toggleSort('verif')">Verifikasi<span class="sort-arrow">↕</span></th>
           </tr>
         </thead>
         <tbody id="tbody">
@@ -459,7 +460,6 @@
   <footer class="credit">Dashboard internal BPS Kabupaten Klungkung · Data ditarik langsung dari Google Sheets</footer>
 </div>
 
-<!-- Modal Langkah 1: Nama Pengawas -->
 <div class="modal-overlay" id="modalStep1">
   <div class="modal-box">
     <div class="modal-eyebrow">Langkah 1 dari 2</div>
@@ -476,7 +476,6 @@
   </div>
 </div>
 
-<!-- Modal Langkah 2: Keterangan -->
 <div class="modal-overlay" id="modalStep2">
   <div class="modal-box">
     <div class="modal-eyebrow">Langkah 2 dari 2</div>
@@ -495,8 +494,6 @@
 
 <script>
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjZVP8j4iGViq2ufQ_0g9Ls_--N0PrL7AhcJhzdW05PhYEPEfZiXmO5Hnh-aqYwNYlsdMk_dwK808e/pub?output=csv";
-
-// ⚠️ GANTI dengan URL Web App Apps Script kamu setelah deploy (lihat StatusUsahaAPI.gs)
 const STATUS_API_URL = "https://script.google.com/macros/s/AKfycbz3PZWjLg5VvcyVz7Sl3ysCZkp_6sW5P6NyVXBEzzCXiAazT4zUqIHYL_FhJJTxvNRA/exec";
 
 const STATUS_OPTIONS = [
@@ -513,26 +510,72 @@ const SUPERVISOR_NAMES = [
   "Budi Okta","Bajra","Agung Dharma","Sudiasa","Komang Ari"
 ];
 
-let RAW_ROWS = [];       // normalized data records
-let statusCache = {};    // rowId -> { Status, Supervisor, Keterangan, "Waktu Update" }
+let RAW_ROWS = [];
+let statusCache = {};
 let state = { kecamatan:"", desa:"", sls:"", ppl:"", pml:"", verif:"", status:"", search:"" };
-let statusSort = 0; // 0=default, 1=asc, -1=desc
+
+// VARIABEL UNTUK MULTI-SORTING
+let sortCol = '';
+let sortDir = 0; // 0=default, 1=asc, -1=desc
+
 let currentPage = 1;
 let pageSize = 10;
-let lastFilteredRows = []; // hasil filter terakhir (sebelum sort/pagination) -> dipakai peta & statistik
-let lastSortedRows = [];   // hasil filter+sort terakhir (sebelum dipotong per halaman) -> dipakai tabel & highlight
+let lastFilteredRows = [];
+let lastSortedRows = [];
 
 function computeSortedRows(rows){
-  if(statusSort === 0) return rows;
+  if(sortDir === 0 || !sortCol) return rows;
   return [...rows].sort((a,b)=>{
-    const sa = (a.statusLabel||'').toLowerCase();
-    const sb = (b.statusLabel||'').toLowerCase();
+    let valA = a[sortCol];
+    let valB = b[sortCol];
+
+    // Jika yang di-sort adalah kolom verifikasi, ambil data dari statusCache
+    if(sortCol === 'verif'){
+      valA = statusCache[a.rowId] ? statusCache[a.rowId].Status : '';
+      valB = statusCache[b.rowId] ? statusCache[b.rowId].Status : '';
+    }
+
+    let sa = (valA||'').toString().toLowerCase();
+    let sb = (valB||'').toString().toLowerCase();
+
     if(!sa && !sb) return 0;
-    if(!sa) return 1;   // baris tanpa status selalu di bawah
+    if(!sa) return 1;
     if(!sb) return -1;
-    return statusSort * sa.localeCompare(sb,'id');
+    return sortDir * sa.localeCompare(sb,'id');
   });
 }
+
+function toggleSort(col){
+  if(sortCol === col){
+    sortDir = sortDir === 1 ? -1 : (sortDir === -1 ? 0 : 1);
+    if(sortDir === 0) sortCol = '';
+  }else{
+    sortCol = col;
+    sortDir = 1;
+  }
+
+  // Reset semua ikon panah
+  document.querySelectorAll('thead th.sortable').forEach(th=>{
+    th.classList.remove('sort-active');
+    const arrow = th.querySelector('.sort-arrow');
+    if(arrow) arrow.textContent = '↕';
+  });
+
+  // Set ikon aktif
+  if(sortDir !== 0){
+    const th = document.getElementById('th_' + col);
+    if(th){
+      th.classList.add('sort-active');
+      const arrow = th.querySelector('.sort-arrow');
+      if(arrow) arrow.textContent = sortDir === 1 ? '▲' : '▼';
+    }
+  }
+
+  currentPage = 1;
+  lastSortedRows = computeSortedRows(lastFilteredRows);
+  renderTableBody();
+}
+
 
 function onPageSizeChange(val){
   pageSize = parseInt(val, 10) || 10;
@@ -545,22 +588,11 @@ function goToPage(p){
   renderTableBody();
 }
 
-function toggleStatusSort(){
-  statusSort = statusSort === 0 ? 1 : (statusSort === 1 ? -1 : 0);
-  const th = document.getElementById('thStatus');
-  const arrow = document.getElementById('statusSortArrow');
-  th.classList.toggle('sort-active', statusSort !== 0);
-  arrow.textContent = statusSort === 1 ? '▲' : (statusSort === -1 ? '▼' : '↕');
-  currentPage = 1;
-  lastSortedRows = computeSortedRows(lastFilteredRows);
-  renderTableBody();
-}
 
 // ---- Leaflet map setup ----
 const KLUNGKUNG_CENTER = [-8.535, 115.40];
 const map = L.map('map', { scrollWheelZoom:false, preferCanvas:true }).setView(KLUNGKUNG_CENTER, 11);
 
-// Beberapa pilihan basemap gratis (tanpa API key/billing) — bisa dipilih via ikon layer di pojok kanan atas peta.
 const baseOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
   attribution: '&copy; OpenStreetMap contributors'
@@ -575,21 +607,19 @@ const baseSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/s
   attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics'
 });
 
-baseVoyager.addTo(map); // default: mirip gaya Google Maps (jalan & label jelas)
+baseVoyager.addTo(map);
 
 L.control.layers({
   'Jalan (mirip Google Maps)': baseVoyager,
   'Jalan (OpenStreetMap)': baseOSM,
   'Citra Satelit': baseSatellite
 }, null, { position: 'topright', collapsed: true }).addTo(map);
-// Marker cluster: mengelompokkan titik yang berdekatan jadi satu bulatan (bukan menyembunyikan/menyampel data).
-// Ini yang bikin tampilan awal (zoom kabupaten) rapi & cepat, tanpa kehilangan satu titik pun — semua tetap
-// bisa dilihat dengan zoom in / klik cluster untuk pecah ("spiderfy") ke titik individual.
+
 const markerLayer = L.markerClusterGroup({
   maxClusterRadius: 55,
   spiderfyOnMaxZoom: true,
   showCoverageOnHover: false,
-  chunkedLoading: true,       // render bertahap per batch supaya thread utama tidak macet saat titik ribuan
+  chunkedLoading: true,
   iconCreateFunction: function(cluster){
     const count = cluster.getChildCount();
     const size = count < 10 ? 'cluster-sm' : (count < 50 ? 'cluster-md' : 'cluster-lg');
@@ -600,7 +630,7 @@ const markerLayer = L.markerClusterGroup({
     });
   }
 }).addTo(map);
-const MAX_MARKERS = 20000; // dengan canvas renderer, ribuan titik masih ringan; ini hanya jaga-jaga kalau data membengkak drastis
+const MAX_MARKERS = 20000; 
 
 const els = {
   kecamatan: document.getElementById('fKecamatan'),
@@ -621,7 +651,6 @@ const els = {
 function norm(s){ return (s===undefined||s===null) ? "" : String(s).trim(); }
 function upperKey(s){ return norm(s).toUpperCase().replace(/\s+/g,' '); }
 
-// Map a raw header cell to a canonical field key
 function classifyHeader(h){
   const H = upperKey(h);
   if(!H) return null;
@@ -637,15 +666,12 @@ function classifyHeader(h){
   if(H === 'LONG' || H.includes('LONGITUDE') || H.includes('LONG ')) return 'long';
   if(H.includes('LOKASI') || H.includes('MAPS') || H.includes('LINK')) return 'lokasi';
   if(H === 'ID' || H.includes('ID USAHA') || H.includes('IDSBR') || H.includes('NUP') || H.includes('KODE USAHA')) return 'id';
-  // Kolom status dari pivot sumber (kode 1 menandakan status tsb berlaku pada baris tsb)
   if(H.includes('TUTUP')) return 'status_tutup';
   if(H.includes('GANDA')) return 'status_ganda';
-  if(H.includes('DITEM')) return 'status_tidak'; // menampung header terpotong spt "AK DITEMUI" / "...DAK DITEM"
+  if(H.includes('DITEM')) return 'status_tidak'; 
   return null;
 }
 
-// Build a stable unique key per row: prefer an explicit ID column (from kolom A / ID-like column)
-// if the sheet has one; otherwise fall back to a composite key built from identifying fields.
 function buildRowId(rec){
   if(rec.id) return upperKey(rec.id);
   return [rec.kecamatan, rec.desa, rec.sls, rec.subsls, rec.nama_usaha]
@@ -654,7 +680,6 @@ function buildRowId(rec){
 }
 
 function parseRawToRecords(rows){
-  // rows: array of arrays (raw csv rows), find the header row (contains KECAMATAN)
   let headerRowIdx = -1;
   for(let i=0;i<rows.length;i++){
     const rowUpper = rows[i].map(upperKey);
@@ -663,7 +688,7 @@ function parseRawToRecords(rows){
   if(headerRowIdx === -1) throw new Error('Header kolom KECAMATAN tidak ditemukan pada data.');
 
   const headerRow = rows[headerRowIdx];
-  const colMap = {}; // colIndex -> field key
+  const colMap = {}; 
   headerRow.forEach((h, idx)=>{
     const key = classifyHeader(h);
     if(key && !(key in Object.values(colMap))) colMap[idx] = key;
@@ -681,22 +706,18 @@ function parseRawToRecords(rows){
       rec[colMap[idx]] = norm(r[idx]);
     });
 
-    // skip stray sub-header rows (e.g. "AK DITEMUI", "3. TUTUP")
     const kecVal = upperKey(rec.kecamatan);
     if(kecVal.includes('DITEMUI') || kecVal.includes('TUTUP') || kecVal.includes('GANDA')) continue;
 
-    // forward-fill grouped/merged cells
     if(rec.kecamatan) lastKec = rec.kecamatan; else rec.kecamatan = lastKec;
     if(rec.desa) lastDesa = rec.desa; else rec.desa = lastDesa;
     if(rec.sls) lastSls = rec.sls; else rec.sls = lastSls;
 
-    // turunkan label Status yang bisa dibaca dari kolom pivot berkode 1/0
     if(norm(rec.status_tidak) === '1'){ rec.statusLabel = 'Tidak Ditemukan'; rec.statusBadge = 'badge-tidak'; }
     else if(norm(rec.status_tutup) === '1'){ rec.statusLabel = 'Tutup'; rec.statusBadge = 'badge-tutup'; }
     else if(norm(rec.status_ganda) === '1'){ rec.statusLabel = 'Ganda'; rec.statusBadge = 'badge-ganda'; }
     else { rec.statusLabel = ''; rec.statusBadge = ''; }
 
-    // must have a business name to count as a real data row
     if(!rec.nama_usaha) continue;
 
     rec.rowId = buildRowId(rec);
@@ -709,16 +730,16 @@ function parseCoord(v){
   if(v===undefined || v===null) return NaN;
   const s = String(v).trim();
   if(s === '') return NaN;
-  return parseFloat(s.replace(',', '.')); // dukung format koma desimal
+  return parseFloat(s.replace(',', '.'));
 }
 
 function hasValidCoords(rec){
   const lat = parseCoord(rec.lat);
   const lng = parseCoord(rec.long);
-  if(isNaN(lat) || isNaN(lng)) return false;           // kosong / tidak lengkap
-  if(lat < -90 || lat > 90) return false;                // di luar rentang latitude
-  if(lng < -180 || lng > 180) return false;              // di luar rentang longitude
-  if(lat === 0 && lng === 0) return false;                // titik default/kosong (0,0)
+  if(isNaN(lat) || isNaN(lng)) return false;           
+  if(lat < -90 || lat > 90) return false;                
+  if(lng < -180 || lng > 180) return false;              
+  if(lat === 0 && lng === 0) return false;                
   return true;
 }
 
@@ -733,7 +754,6 @@ function uniqueSorted(arr){
   return [...new Set(arr.filter(v=>v))].sort((a,b)=>a.localeCompare(b,'id'));
 }
 
-// compute rows matching all filters EXCEPT the one named `except`
 function verifMatches(r){
   if(!state.verif) return true;
   const cur = statusCache[r.rowId] ? statusCache[r.rowId].Status : '';
@@ -800,10 +820,6 @@ function renderStats(rows){
   `;
 }
 
-// Wilayah (Kecamatan/Desa/SLS) yang dipilih dipakai untuk menentukan area zoom peta,
-// terlepas dari filter PPL/PML/pencarian yang mungkin mempersempit titik yang tampil.
-// Kalau titik pada level paling detail (mis. SLS) tidak punya koordinat valid,
-// turun ke level yang lebih luas (Desa, lalu Kecamatan) supaya peta tetap zoom ke wilayah tsb.
 function getAreaBoundsPoints(){
   const matchLevel = (level)=> RAW_ROWS.filter(r=>{
     if(level>=1 && state.kecamatan && r.kecamatan !== state.kecamatan) return false;
@@ -824,26 +840,24 @@ function getAreaBoundsPoints(){
   if(state.kecamatan){
     return matchLevel(1);
   }
-  return null; // tidak ada filter wilayah aktif -> peta mengikuti titik yang tampil seperti biasa
+  return null; 
 }
 
-// Warna marker peta mengikuti hasil Verifikasi (kolom Verifikasi pada tabel).
-// Titik yang belum diverifikasi memakai warna netral (abu-coklat) sampai tabelnya diupdate.
+
 const VERIF_MARKER_COLORS = {
-  dalam: '#22c55e', // Ditemukan dalam SLS -> Hijau
-  luar:  '#3b82f6', // Ditemukan di luar SLS -> Biru
-  tidak: '#ef4444', // Tidak Ditemukan -> Merah
-  ganda: '#eab308', // Ganda -> Kuning
-  tutup: '#f97316', // Tutup -> Oranye
+  dalam: '#22c55e', 
+  luar:  '#3b82f6', 
+  tidak: '#ef4444', 
+  ganda: '#eab308', 
+  tutup: '#f97316', 
 };
-const DEFAULT_MARKER_COLOR = '#9c8b76'; // Belum diverifikasi
+const DEFAULT_MARKER_COLOR = '#9c8b76'; 
 
 function getMarkerColor(rowId){
   const v = statusCache[rowId] ? statusCache[rowId].Status : '';
   return VERIF_MARKER_COLORS[v] || DEFAULT_MARKER_COLOR;
 }
 
-// divIcon bulat kecil (pengganti circleMarker) — dipakai supaya titik kompatibel dengan Leaflet.markercluster
 function makeDotIcon(color){
   return L.divIcon({
     className: 'usaha-dot-icon',
@@ -854,8 +868,7 @@ function makeDotIcon(color){
   });
 }
 
-// Dipanggil setelah verifikasi berhasil disimpan, supaya marker di peta langsung
-// berubah warna tanpa perlu me-render ulang seluruh peta (agar posisi/zoom tak berubah).
+
 function updateMarkerColorForRow(rowId){
   const marker = markersByRowId[rowId];
   if(!marker) return;
@@ -892,8 +905,6 @@ function renderMap(rows){
     markersByRowId[r.rowId] = marker;
   });
 
-  // Zoom peta ke wilayah terpilih (Kecamatan/Desa/SLS), bukan sekadar ke titik yang tersisa setelah semua filter.
-  // Bounds dihitung dari SEMUA titik yang relevan (tidak dipotong MAX_MARKERS), supaya zoom selalu mencakup seluruh wilayah.
   const areaPoints = getAreaBoundsPoints();
   const boundsSource = (areaPoints && areaPoints.length) ? areaPoints : withCoords;
   const boundsCoords = boundsSource.map(r=>[parseCoord(r.lat), parseCoord(r.long)]);
@@ -903,19 +914,17 @@ function renderMap(rows){
   }else if(boundsCoords.length > 1){
     map.fitBounds(boundsCoords, { padding:[30,30], maxZoom:16 });
   }
-  // boundsCoords.length === 0 -> tidak ada koordinat valid sama sekali untuk wilayah ini, peta tetap di posisi terakhir
 }
 
-// Klik marker di peta -> pindah ke halaman yang tepat, lalu scroll & sorot baris di tabel
 function highlightTableRow(rowId){
   const idx = lastSortedRows.findIndex(r=>r.rowId===rowId);
-  if(idx === -1) return; // baris tidak ada pada hasil filter saat ini (kemungkinan tersembunyi oleh filter aktif)
+  if(idx === -1) return; 
 
   const targetPage = Math.floor(idx / pageSize) + 1;
   const needsPageChange = targetPage !== currentPage;
   if(needsPageChange){
     currentPage = targetPage;
-    renderTableBody(); // hanya render ulang tabel, peta tidak disentuh
+    renderTableBody(); 
   }
 
   const doHighlight = ()=>{
@@ -927,18 +936,25 @@ function highlightTableRow(rowId){
     setTimeout(()=> tr.classList.remove('row-flash'), 2600);
   };
 
-  // beri jeda sedikit setelah render ulang tabel (ganti halaman) agar DOM sudah siap
   if(needsPageChange){ setTimeout(doHighlight, 50); } else { doHighlight(); }
 }
 
-// Klik baris tabel -> pan peta ke titik & buka popup marker yang sesuai
+// -------------------------------------------------------------
+// FUNGSI INI YANG DIUBAH AGAR MEMECAH CLUSTER SAAT BARIS DIKLIK
+// -------------------------------------------------------------
 function onTableRowClick(e, rowId){
   if(e.target.closest('select, a, button, .verif-select, .verif-status-display')) return;
+  
   const marker = markersByRowId[rowId];
-  if(!marker) return; // baris ini tidak punya titik koordinat di peta
+  if(!marker) return; 
+  
+  // Geser layar ke arah peta
   document.getElementById('map').scrollIntoView({ behavior:'smooth', block:'center' });
-  map.setView(marker.getLatLng(), 16, { animate:true });
-  setTimeout(()=> marker.openPopup(), 350);
+  
+  // Memaksa plugin MarkerCluster untuk memecah cluster dan men-zoom ke titik
+  markerLayer.zoomToShowLayer(marker, function() {
+    marker.openPopup();
+  });
 }
 
 function statusBadgeHtml(rowId){
@@ -1101,7 +1117,7 @@ function showError(msg){
   </div></td></tr>`;
 }
 
-// ---------------- Verifikasi workflow (modal + Apps Script backend) ----------------
+// ---------------- Verifikasi workflow ----------------
 
 const verifModalEls = {
   step1: document.getElementById('modalStep1'),
@@ -1115,7 +1131,7 @@ const verifModalEls = {
   toast: document.getElementById('toast'),
 };
 
-let pendingVerif = null; // { rowId, statusValue, statusLabel, selectEl, prevValue }
+let pendingVerif = null; 
 
 function statusLabelFor(value){
   const opt = STATUS_OPTIONS.find(o=>o.value===value);
@@ -1194,7 +1210,7 @@ document.getElementById('step2Save').addEventListener('click', async ()=>{
     }
     const res = await fetch(STATUS_API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // hindari CORS preflight ke Apps Script
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload)
     });
     const json = await res.json();
@@ -1221,14 +1237,12 @@ document.getElementById('step2Save').addEventListener('click', async ()=>{
   }
 });
 
-// close modal on backdrop click
 [verifModalEls.step1, verifModalEls.step2].forEach(overlay=>{
   overlay.addEventListener('click', e=>{
     if(e.target === overlay) closeModals(true);
   });
 });
 
-// event delegation: any .verif-select change opens the workflow
 els.tbody.addEventListener('change', e=>{
   if(!e.target.classList.contains('verif-select')) return;
   const rowId = e.target.getAttribute('data-row-id');
