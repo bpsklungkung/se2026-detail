@@ -99,6 +99,24 @@
     box-shadow:var(--shadow);overflow:hidden;
   }
   .table-scroll{max-height:640px;overflow:auto;}
+  .table-pagination-bar{
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+    padding:10px 14px;border-bottom:1px solid var(--line);background:#FFFBF0;
+  }
+  .pg-size{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--brown-soft);}
+  .pg-size select{
+    padding:5px 8px;border:1px solid var(--line);border-radius:8px;font-size:12.5px;
+    background:var(--white);color:var(--brown);cursor:pointer;
+  }
+  .pg-info{font-size:12.5px;color:var(--brown-soft);}
+  .pg-nav{display:flex;align-items:center;gap:10px;}
+  .pg-nav button{
+    padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--white);
+    color:var(--brown);font-size:12.5px;font-weight:600;cursor:pointer;transition:background .15s;
+  }
+  .pg-nav button:hover:not(:disabled){background:#FFE1B0;}
+  .pg-nav button:disabled{opacity:.4;cursor:not-allowed;}
+  .pg-page{font-size:12.5px;color:var(--brown);font-weight:600;white-space:nowrap;}
   table{width:100%;border-collapse:collapse;font-size:13px;}
   thead th{
     position:sticky;top:0;z-index:2;background:var(--brown);color:var(--peach);
@@ -307,6 +325,23 @@
   </div>
 
   <div class="table-wrap">
+    <div class="table-pagination-bar">
+      <div class="pg-size">
+        <label for="fPageSize">Tampilkan</label>
+        <select id="fPageSize" onchange="onPageSizeChange(this.value)">
+          <option value="10">10</option>
+          <option value="15">15</option>
+          <option value="25">25</option>
+        </select>
+        <span>baris</span>
+      </div>
+      <div class="pg-info" id="pgInfo"></div>
+      <div class="pg-nav">
+        <button type="button" id="pgPrev" onclick="goToPage(currentPage-1)">‹ Sebelumnya</button>
+        <span class="pg-page" id="pgPageLabel"></span>
+        <button type="button" id="pgNext" onclick="goToPage(currentPage+1)">Berikutnya ›</button>
+      </div>
+    </div>
     <div class="table-scroll">
       <table id="dataTable">
         <thead>
@@ -391,6 +426,19 @@ let RAW_ROWS = [];       // normalized data records
 let statusCache = {};    // rowId -> { Status, Supervisor, Keterangan, "Waktu Update" }
 let state = { kecamatan:"", desa:"", sls:"", ppl:"", pml:"", search:"" };
 let statusSort = 0; // 0=default, 1=asc, -1=desc
+let currentPage = 1;
+let pageSize = 10;
+
+function onPageSizeChange(val){
+  pageSize = parseInt(val, 10) || 10;
+  currentPage = 1;
+  renderTable();
+}
+
+function goToPage(p){
+  currentPage = p;
+  renderTable();
+}
 
 function toggleStatusSort(){
   statusSort = statusSort === 0 ? 1 : (statusSort === 1 ? -1 : 0);
@@ -398,6 +446,7 @@ function toggleStatusSort(){
   const arrow = document.getElementById('statusSortArrow');
   th.classList.toggle('sort-active', statusSort !== 0);
   arrow.textContent = statusSort === 1 ? '▲' : (statusSort === -1 ? '▼' : '↕');
+  currentPage = 1;
   renderTable();
 }
 
@@ -701,11 +750,16 @@ function renderTable(){
 
   if(rows.length === 0){
     els.tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">Tidak ada usaha yang cocok dengan filter saat ini.</div></td></tr>`;
+    renderPaginationBar(0, 0);
     return;
   }
 
-  const MAX_RENDER = 2000; // safety cap for very large sheets
-  const shown = rows.slice(0, MAX_RENDER);
+  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+  if(currentPage > totalPages) currentPage = totalPages;
+  if(currentPage < 1) currentPage = 1;
+
+  const startIdx = (currentPage - 1) * pageSize;
+  const shown = rows.slice(startIdx, startIdx + pageSize);
 
   els.tbody.innerHTML = shown.map(r=>{
     const link = buildMapsLink(r);
@@ -727,11 +781,31 @@ function renderTable(){
     </tr>`;
   }).join('');
 
-  if(rows.length > MAX_RENDER){
-    els.tbody.innerHTML += `<tr><td colspan="8" style="text-align:center;color:var(--brown-soft);padding:14px;">
-      Menampilkan ${MAX_RENDER.toLocaleString('id')} dari ${rows.length.toLocaleString('id')} baris. Persempit filter untuk melihat sisanya.
-    </td></tr>`;
+  renderPaginationBar(rows.length, totalPages);
+}
+
+function renderPaginationBar(totalRows, totalPages){
+  const pgInfo = document.getElementById('pgInfo');
+  const pgPageLabel = document.getElementById('pgPageLabel');
+  const pgPrev = document.getElementById('pgPrev');
+  const pgNext = document.getElementById('pgNext');
+  const fPageSize = document.getElementById('fPageSize');
+  if(fPageSize) fPageSize.value = String(pageSize);
+
+  if(totalRows === 0){
+    pgInfo.textContent = 'Tidak ada data';
+    pgPageLabel.textContent = '';
+    pgPrev.disabled = true;
+    pgNext.disabled = true;
+    return;
   }
+
+  const startIdx = (currentPage - 1) * pageSize + 1;
+  const endIdx = Math.min(currentPage * pageSize, totalRows);
+  pgInfo.textContent = `Menampilkan ${startIdx.toLocaleString('id')}–${endIdx.toLocaleString('id')} dari ${totalRows.toLocaleString('id')} baris`;
+  pgPageLabel.textContent = `Halaman ${currentPage} / ${totalPages}`;
+  pgPrev.disabled = currentPage <= 1;
+  pgNext.disabled = currentPage >= totalPages;
 }
 
 function renderAll(){
@@ -740,15 +814,16 @@ function renderAll(){
 }
 
 function wireEvents(){
-  els.kecamatan.addEventListener('change', e=>{ state.kecamatan = e.target.value; state.desa=""; state.sls=""; renderAll(); });
-  els.desa.addEventListener('change', e=>{ state.desa = e.target.value; state.sls=""; renderAll(); });
-  els.sls.addEventListener('change', e=>{ state.sls = e.target.value; renderAll(); });
-  els.ppl.addEventListener('change', e=>{ state.ppl = e.target.value; renderAll(); });
-  els.pml.addEventListener('change', e=>{ state.pml = e.target.value; renderAll(); });
-  els.search.addEventListener('input', e=>{ state.search = e.target.value; renderTable(); });
+  els.kecamatan.addEventListener('change', e=>{ state.kecamatan = e.target.value; state.desa=""; state.sls=""; currentPage=1; renderAll(); });
+  els.desa.addEventListener('change', e=>{ state.desa = e.target.value; state.sls=""; currentPage=1; renderAll(); });
+  els.sls.addEventListener('change', e=>{ state.sls = e.target.value; currentPage=1; renderAll(); });
+  els.ppl.addEventListener('change', e=>{ state.ppl = e.target.value; currentPage=1; renderAll(); });
+  els.pml.addEventListener('change', e=>{ state.pml = e.target.value; currentPage=1; renderAll(); });
+  els.search.addEventListener('input', e=>{ state.search = e.target.value; currentPage=1; renderTable(); });
   els.resetBtn.addEventListener('click', ()=>{
     state = { kecamatan:"", desa:"", sls:"", ppl:"", pml:"", search:"" };
     els.search.value = "";
+    currentPage = 1;
     renderAll();
   });
   els.refreshBtn.addEventListener('click', loadData);
