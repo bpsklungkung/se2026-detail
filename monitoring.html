@@ -117,7 +117,7 @@
   .pg-nav button:hover:not(:disabled){background:#FFE1B0;}
   .pg-nav button:disabled{opacity:.4;cursor:not-allowed;}
   .pg-page{font-size:12.5px;color:var(--brown);font-weight:600;white-space:nowrap;}
-  table{width:100%;border-collapse:collapse;font-size:13px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;}
   thead th{
     position:sticky;top:0;z-index:2;background:var(--brown);color:var(--peach);
     text-align:left;padding:11px 12px;font-size:11.5px;text-transform:uppercase;
@@ -127,8 +127,21 @@
   thead th.sortable:hover{background:#4a2800;}
   thead th.sortable .sort-arrow{display:inline-block;margin-left:4px;opacity:.5;font-size:10px;}
   thead th.sortable.sort-active .sort-arrow{opacity:1;}
+  #dataTable thead th:nth-child(1){width:10%;}
+  #dataTable thead th:nth-child(2){width:9%;}
+  #dataTable thead th:nth-child(3){width:9%;}
+  #dataTable thead th:nth-child(4){width:18%;}
+  #dataTable thead th:nth-child(5){width:19%;}
+  #dataTable thead th:nth-child(6){width:9%;}
+  #dataTable thead th:nth-child(7){width:9%;}
+  #dataTable thead th:nth-child(8){width:17%;}
   tbody td{
-    padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--brown);
+    padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--brown);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:0;
+  }
+  /* Kolom Status, Lokasi, Verifikasi berisi badge/tombol/dropdown, bukan teks panjang -> tidak perlu ellipsis */
+  tbody td:nth-child(6), tbody td:nth-child(7), tbody td:nth-child(8){
+    overflow:visible;text-overflow:clip;
   }
   tbody tr:nth-child(even){background:#FFFBF0;}
   tbody tr:hover{background:#FFF1DC;}
@@ -147,7 +160,7 @@
     content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--orange,#FF9644);
   }
   td.usaha{font-weight:600;}
-  td.alamat{color:var(--brown-soft);max-width:340px;}
+  td.alamat{color:var(--brown-soft);}
   .loc-btn{
     display:inline-flex;align-items:center;gap:5px;background:var(--orange);color:#fff;
     text-decoration:none;font-size:12px;font-weight:700;padding:6px 10px;border-radius:20px;
@@ -425,9 +438,9 @@ const STATUS_OPTIONS = [
 ];
 
 const SUPERVISOR_NAMES = [
-  "Zidan","Herlinda","Permana","Sutama","Purnami","Made Sukma","Asya","Indri",
-  "Budiriani","Rosma","Eka","Yoga","Avelia","Monic","Suparta","Halim",
-  "Budi Okta","Bajra","Agung Dharma","Sudiasa","Komang Ari","Agung Dirga"
+  "Zidan","Herlinda","Permana","Sutama","Purnami","Sukma","Asya","Indri",
+  "Budiriani","Rosma","Eka","Yoga","Ave","Monic","Suparta","Halim",
+  "Budi Okta","Bajra","Agung Dharma","Sudiasa","Komang Ari"
 ];
 
 let RAW_ROWS = [];       // normalized data records
@@ -804,11 +817,11 @@ function renderTableBody(){
       ? `<span class="verif-badge ${r.statusBadge}">${escapeHtml(r.statusLabel)}</span>`
       : `<span class="loc-none">–</span>`;
     return `<tr data-rowid="${escapeAttr(r.rowId)}" onclick="onTableRowClick(event,'${escapeAttr(r.rowId)}')">
-      <td>${escapeHtml(r.kecamatan)}</td>
-      <td>${escapeHtml(r.desa)}</td>
-      <td>${escapeHtml(r.sls)}</td>
-      <td class="usaha">${escapeHtml(r.nama_usaha)}</td>
-      <td class="alamat">${escapeHtml(r.alamat)}</td>
+      <td title="${escapeAttr(r.kecamatan)}">${escapeHtml(r.kecamatan)}</td>
+      <td title="${escapeAttr(r.desa)}">${escapeHtml(r.desa)}</td>
+      <td title="${escapeAttr(r.sls)}">${escapeHtml(r.sls)}</td>
+      <td class="usaha" title="${escapeAttr(r.nama_usaha)}">${escapeHtml(r.nama_usaha)}</td>
+      <td class="alamat" title="${escapeAttr(r.alamat)}">${escapeHtml(r.alamat)}</td>
       <td>${statusCell}</td>
       <td>${locCell}</td>
       <td>${verifCellHtml(r.rowId)}</td>
