@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monitoring Listing Usaha — BPS Klungkung</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root{
+    --cream:#FFFDF1;
+    --peach:#FFCE99;
+    --orange:#FF9644;
+    --brown:#562F00;
+    --brown-soft:#8a5a22;
+    --line:#EBD9BC;
+    --white:#FFFFFF;
+    --ok:#3f8a5b;
+    --shadow: 0 6px 18px rgba(86,47,0,0.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--brown);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+  }
+  .wrap{max-width:1280px;margin:0 auto;padding:28px 24px 60px;}
+
+  header.top{
+    display:flex;align-items:flex-end;justify-content:space-between;gap:20px;
+    flex-wrap:wrap;
+    padding-bottom:20px;border-bottom:2px solid var(--line);margin-bottom:22px;
+  }
+  .eyebrow{
+    font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--orange);font-weight:700;margin-bottom:6px;
+  }
+  h1{
+    font-family:'Fraunces',serif;font-weight:600;font-size:clamp(26px,3.4vw,38px);
+    margin:0;line-height:1.05;color:var(--brown);
+  }
+  .sub{color:var(--brown-soft);font-size:14px;margin-top:6px;}
+  .refresh-info{font-size:12.5px;color:var(--brown-soft);text-align:right;}
+  .refresh-info button{
+    margin-top:6px;background:var(--brown);color:var(--cream);border:none;
+    padding:7px 14px;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .refresh-info button:hover{background:#3d2200;}
+
+  .stats{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:12px;margin-bottom:22px;
+  }
+  .stat-card{
+    background:var(--white);border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;box-shadow:var(--shadow);
+  }
+  .stat-num{font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:var(--orange);}
+  .stat-label{font-size:12px;color:var(--brown-soft);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+
+  .panel{
+    background:var(--white);border:1px solid var(--line);border-radius:16px;
+    box-shadow:var(--shadow);padding:20px 20px 16px;margin-bottom:20px;
+  }
+  .panel-title{
+    font-family:'Fraunces',serif;font-size:16px;font-weight:600;margin:0 0 14px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .reset-btn{
+    font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;color:var(--orange);
+    background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:6px;
+  }
+  .reset-btn:hover{background:#FFF3E4;}
+
+  .filters-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;
+  }
+  .field label{
+    display:block;font-size:11.5px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.05em;color:var(--brown-soft);margin-bottom:5px;
+  }
+  select, input[type=text]{
+    width:100%;padding:9px 10px;border-radius:9px;border:1.5px solid var(--line);
+    background:var(--cream);color:var(--brown);font-family:'Inter',sans-serif;font-size:13.5px;
+    outline:none;transition:border-color .15s;
+  }
+  select:focus, input[type=text]:focus{border-color:var(--orange);}
+  .search-row{margin-top:14px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;}
+  .search-row .field{flex:1;min-width:220px;}
+
+  .table-wrap{
+    background:var(--white);border:1px solid var(--line);border-radius:16px;
+    box-shadow:var(--shadow);overflow:hidden;
+  }
+  .table-scroll{max-height:640px;overflow:auto;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{
+    position:sticky;top:0;z-index:2;background:var(--brown);color:var(--peach);
+    text-align:left;padding:11px 12px;font-size:11.5px;text-transform:uppercase;
+    letter-spacing:.05em;font-weight:700;white-space:nowrap;
+  }
+  tbody td{
+    padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--brown);
+  }
+  tbody tr:nth-child(even){background:#FFFBF0;}
+  tbody tr:hover{background:#FFF1DC;}
+  td.usaha{font-weight:600;}
+  td.alamat{color:var(--brown-soft);max-width:340px;}
+  .loc-btn{
+    display:inline-flex;align-items:center;gap:5px;background:var(--orange);color:#fff;
+    text-decoration:none;font-size:12px;font-weight:700;padding:6px 10px;border-radius:20px;
+    white-space:nowrap;
+  }
+  .loc-btn:hover{background:#e5772a;}
+  .loc-none{color:#b9a892;font-size:12px;font-style:italic;}
+
+  .empty-state, .loading-state, .error-state{
+    padding:60px 20px;text-align:center;color:var(--brown-soft);
+  }
+  .error-state{color:#a94433;}
+  .spinner{
+    width:34px;height:34px;border-radius:50%;border:3px solid var(--line);
+    border-top-color:var(--orange);margin:0 auto 14px;animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  footer.credit{
+    text-align:center;color:var(--brown-soft);font-size:12px;margin-top:26px;
+  }
+
+  .map-panel{
+    background:var(--white);border:1px solid var(--line);border-radius:16px;
+    box-shadow:var(--shadow);padding:16px 16px 12px;margin-bottom:20px;
+  }
+  .map-panel-title{
+    font-family:'Fraunces',serif;font-size:16px;font-weight:600;margin:0 0 12px;
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  }
+  .map-count{
+    font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:var(--brown-soft);
+    text-transform:none;letter-spacing:0;
+  }
+  #map{
+    width:100%;height:420px;border-radius:12px;border:1px solid var(--line);
+    background:var(--cream);
+  }
+  .leaflet-popup-content-wrapper{
+    background:var(--white);color:var(--brown);border-radius:10px;font-family:'Inter',sans-serif;
+  }
+  .leaflet-popup-content{font-size:12.5px;margin:10px 12px;line-height:1.5;}
+  .popup-title{font-weight:700;font-size:13px;margin-bottom:3px;}
+  .popup-sub{color:var(--brown-soft);font-size:11.5px;}
+  .popup-link{color:var(--orange);font-weight:700;text-decoration:none;font-size:12px;}
+  .map-empty-note{
+    text-align:center;color:var(--brown-soft);font-size:12.5px;padding:8px 0 2px;
+  }
+
+  /* Verifikasi column */
+  .verif-select{
+    padding:7px 8px;border-radius:8px;border:1.5px solid var(--line);
+    background:var(--cream);color:var(--brown);font-family:'Inter',sans-serif;font-size:12px;
+    min-width:170px;
+  }
+  .verif-badge{
+    display:inline-block;margin-top:5px;font-size:11px;font-weight:700;
+    padding:3px 8px;border-radius:20px;white-space:nowrap;
+  }
+  .badge-dalam{background:#E4F3E9;color:var(--ok);}
+  .badge-luar{background:#FFF0DE;color:#b3651a;}
+  .badge-tidak{background:#FBE6E2;color:#a94433;}
+  .badge-ganda{background:#EDE4F7;color:#6b3fa0;}
+  .badge-tutup{background:#E7E2DA;color:#5c5346;}
+  .verif-meta{font-size:10.5px;color:#b9a892;margin-top:3px;}
+
+  /* Modal */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(86,47,0,0.45);
+    display:none;align-items:center;justify-content:center;z-index:50;padding:20px;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal-box{
+    background:var(--white);border-radius:16px;max-width:420px;width:100%;
+    padding:22px 22px 18px;box-shadow:0 12px 40px rgba(86,47,0,0.25);
+  }
+  .modal-eyebrow{
+    font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);
+    font-weight:700;margin-bottom:4px;
+  }
+  .modal-title{font-family:'Fraunces',serif;font-size:19px;font-weight:600;margin:0 0 4px;}
+  .modal-sub{font-size:12.5px;color:var(--brown-soft);margin-bottom:16px;}
+  .modal-box label{
+    display:block;font-size:11.5px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.05em;color:var(--brown-soft);margin-bottom:5px;margin-top:12px;
+  }
+  .modal-box input[type=text], .modal-box textarea{
+    width:100%;padding:9px 10px;border-radius:9px;border:1.5px solid var(--line);
+    background:var(--cream);color:var(--brown);font-family:'Inter',sans-serif;font-size:13.5px;
+    outline:none;
+  }
+  .modal-box textarea{resize:vertical;min-height:80px;}
+  .modal-box input:focus, .modal-box textarea:focus{border-color:var(--orange);}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+  .btn-secondary{
+    background:none;border:1.5px solid var(--line);color:var(--brown-soft);
+    padding:9px 16px;border-radius:9px;font-weight:600;font-size:13px;cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .btn-primary{
+    background:var(--orange);border:none;color:#fff;
+    padding:9px 18px;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .btn-primary:hover{background:#e5772a;}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+  .modal-error{color:#a94433;font-size:12px;margin-top:10px;display:none;}
+
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--brown);color:var(--cream);padding:11px 20px;border-radius:30px;
+    font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.25);
+    z-index:60;opacity:0;pointer-events:none;transition:opacity .25s, transform .25s;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px);}
+
+  @media (max-width:640px){
+    .wrap{padding:18px 14px 40px;}
+    .refresh-info{text-align:left;}
+    header.top{flex-direction:column;align-items:flex-start;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <div class="eyebrow">BPS Kabupaten Klungkung</div>
+      <h1>Monitoring Listing Usaha</h1>
+      <div class="sub">Rekap usaha hasil pencacahan per Kecamatan, Desa, dan SLS</div>
+    </div>
+    <div class="refresh-info">
+      <div id="lastUpdated">Memuat data…</div>
+      <button id="refreshBtn">↻ Muat ulang data</button>
+    </div>
+  </header>
+
+  <div class="map-panel">
+    <div class="map-panel-title">
+      Peta Sebaran Usaha
+      <span class="map-count" id="mapCount"></span>
+    </div>
+    <div id="map"></div>
+    <div class="map-empty-note" id="mapEmptyNote" style="display:none;">Tidak ada titik koordinat untuk ditampilkan pada filter saat ini.</div>
+  </div>
+
+  <div class="stats" id="statsRow"></div>
+
+  <div class="panel">
+    <div class="panel-title">
+      Filter Data
+      <button class="reset-btn" id="resetBtn">Reset semua filter</button>
+    </div>
+    <div class="filters-grid">
+      <div class="field">
+        <label for="fKecamatan">Kecamatan</label>
+        <select id="fKecamatan"><option value="">Semua Kecamatan</option></select>
+      </div>
+      <div class="field">
+        <label for="fDesa">Desa</label>
+        <select id="fDesa"><option value="">Semua Desa</option></select>
+      </div>
+      <div class="field">
+        <label for="fSls">SLS</label>
+        <select id="fSls"><option value="">Semua SLS</option></select>
+      </div>
+      <div class="field">
+        <label for="fPpl">PPL</label>
+        <select id="fPpl"><option value="">Semua PPL</option></select>
+      </div>
+      <div class="field">
+        <label for="fPml">PML</label>
+        <select id="fPml"><option value="">Semua PML</option></select>
+      </div>
+    </div>
+    <div class="search-row">
+      <div class="field">
+        <label for="fSearch">Cari Nama Usaha / Alamat</label>
+        <input type="text" id="fSearch" placeholder="Ketik kata kunci…">
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th>Kecamatan</th>
+            <th>Desa</th>
+            <th>SLS</th>
+            <th>Nama Usaha</th>
+            <th>Alamat</th>
+            <th>Status</th>
+            <th>Lokasi</th>
+            <th>Verifikasi</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="8">
+            <div class="loading-state"><div class="spinner"></div>Memuat data usaha…</div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer class="credit">Dashboard internal BPS Kabupaten Klungkung · Data ditarik langsung dari Google Sheets</footer>
+</div>
+
+<!-- Modal Langkah 1: Nama Pengawas -->
+<div class="modal-overlay" id="modalStep1">
+  <div class="modal-box">
+    <div class="modal-eyebrow">Langkah 1 dari 2</div>
+    <h3 class="modal-title">Nama Pengawas</h3>
+    <div class="modal-sub" id="step1Recap"></div>
+    <label for="inpSupervisor">Nama Pengawas (PML)</label>
+    <input type="text" id="inpSupervisor" list="pmlList" placeholder="Ketik atau pilih nama pengawas…" autocomplete="off">
+    <datalist id="pmlList"></datalist>
+    <div class="modal-error" id="step1Error">Nama pengawas wajib diisi.</div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="step1Cancel">Batal</button>
+      <button class="btn-primary" id="step1Next">Lanjut →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Langkah 2: Keterangan -->
+<div class="modal-overlay" id="modalStep2">
+  <div class="modal-box">
+    <div class="modal-eyebrow">Langkah 2 dari 2</div>
+    <h3 class="modal-title">Keterangan</h3>
+    <div class="modal-sub" id="step2Recap"></div>
+    <label for="inpKeterangan">Keterangan tambahan (opsional)</label>
+    <textarea id="inpKeterangan" placeholder="Contoh: usaha pindah lokasi, sudah tutup permanen, dsb."></textarea>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="step2Back">← Kembali</button>
+      <button class="btn-primary" id="step2Save">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjZVP8j4iGViq2ufQ_0g9Ls_--N0PrL7AhcJhzdW05PhYEPEfZiXmO5Hnh-aqYwNYlsdMk_dwK808e/pub?output=csv";
+
+// ⚠️ GANTI dengan URL Web App Apps Script kamu setelah deploy (lihat StatusUsahaAPI.gs)
+const STATUS_API_URL = "https://script.google.com/macros/s/AKfycbz3PZWjLg5VvcyVz7Sl3ysCZkp_6sW5P6NyVXBEzzCXiAazT4zUqIHYL_FhJJTxvNRA/exec";
+
+const STATUS_OPTIONS = [
+  { value: "dalam", label: "Ditemukan dalam SLS", badge: "badge-dalam" },
+  { value: "luar",  label: "Ditemukan di luar SLS", badge: "badge-luar" },
+  { value: "tidak", label: "Tidak Ditemukan", badge: "badge-tidak" },
+  { value: "ganda", label: "Ganda", badge: "badge-ganda" },
+  { value: "tutup", label: "Tutup", badge: "badge-tutup" },
+];
+
+const SUPERVISOR_NAMES = [
+  "Zidan","Herlinda","Permana","Sutama","Purnami","Sukma","Asya","Indri",
+  "Budiriani","Rosma","Eka","Yoga","Ave","Monic","Suparta","Halim",
+  "Budi Okta","Bajra","Agung Dharma","Sudiasa","Komang Ari"
+];
+
+let RAW_ROWS = [];       // normalized data records
+let statusCache = {};    // rowId -> { Status, Supervisor, Keterangan, "Waktu Update" }
+let state = { kecamatan:"", desa:"", sls:"", ppl:"", pml:"", search:"" };
+
+// ---- Leaflet map setup ----
+const KLUNGKUNG_CENTER = [-8.535, 115.40];
+const map = L.map('map', { scrollWheelZoom:false }).setView(KLUNGKUNG_CENTER, 11);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+const markerLayer = L.layerGroup().addTo(map);
+const MAX_MARKERS = 1200; // safety cap for very large filtered sets
+
+const els = {
+  kecamatan: document.getElementById('fKecamatan'),
+  desa: document.getElementById('fDesa'),
+  sls: document.getElementById('fSls'),
+  ppl: document.getElementById('fPpl'),
+  pml: document.getElementById('fPml'),
+  search: document.getElementById('fSearch'),
+  tbody: document.getElementById('tbody'),
+  statsRow: document.getElementById('statsRow'),
+  lastUpdated: document.getElementById('lastUpdated'),
+  refreshBtn: document.getElementById('refreshBtn'),
+  resetBtn: document.getElementById('resetBtn'),
+};
+
+function norm(s){ return (s===undefined||s===null) ? "" : String(s).trim(); }
+function upperKey(s){ return norm(s).toUpperCase().replace(/\s+/g,' '); }
+
+// Map a raw header cell to a canonical field key
+function classifyHeader(h){
+  const H = upperKey(h);
+  if(!H) return null;
+  if(H.includes('SUBSLS') || H.includes('SUB SLS')) return 'subsls';
+  if(H.includes('KECAMATAN')) return 'kecamatan';
+  if(H.includes('DESA') || H.includes('KELURAHAN')) return 'desa';
+  if(H.includes('SLS')) return 'sls';
+  if(H.includes('PML')) return 'pml';
+  if(H.includes('PPL')) return 'ppl';
+  if(H.includes('NAMA USAHA') || H.includes('NAMAUSAHA')) return 'nama_usaha';
+  if(H.includes('ALAMAT')) return 'alamat';
+  if(H === 'LAT' || H.includes('LATITUDE') || H.includes('LAT ')) return 'lat';
+  if(H === 'LONG' || H.includes('LONGITUDE') || H.includes('LONG ')) return 'long';
+  if(H.includes('LOKASI') || H.includes('MAPS') || H.includes('LINK')) return 'lokasi';
+  if(H === 'ID' || H.includes('ID USAHA') || H.includes('IDSBR') || H.includes('NUP') || H.includes('KODE USAHA')) return 'id';
+  // Kolom status dari pivot sumber (kode 1 menandakan status tsb berlaku pada baris tsb)
+  if(H.includes('TUTUP')) return 'status_tutup';
+  if(H.includes('GANDA')) return 'status_ganda';
+  if(H.includes('DITEM')) return 'status_tidak'; // menampung header terpotong spt "AK DITEMUI" / "...DAK DITEM"
+  return null;
+}
+
+// Build a stable unique key per row: prefer an explicit ID column (from kolom A / ID-like column)
+// if the sheet has one; otherwise fall back to a composite key built from identifying fields.
+function buildRowId(rec){
+  if(rec.id) return upperKey(rec.id);
+  return [rec.kecamatan, rec.desa, rec.sls, rec.subsls, rec.nama_usaha]
+    .map(v => upperKey(v || ''))
+    .join('|');
+}
+
+function parseRawToRecords(rows){
+  // rows: array of arrays (raw csv rows), find the header row (contains KECAMATAN)
+  let headerRowIdx = -1;
+  for(let i=0;i<rows.length;i++){
+    const rowUpper = rows[i].map(upperKey);
+    if(rowUpper.includes('KECAMATAN')){ headerRowIdx = i; break; }
+  }
+  if(headerRowIdx === -1) throw new Error('Header kolom KECAMATAN tidak ditemukan pada data.');
+
+  const headerRow = rows[headerRowIdx];
+  const colMap = {}; // colIndex -> field key
+  headerRow.forEach((h, idx)=>{
+    const key = classifyHeader(h);
+    if(key && !(key in Object.values(colMap))) colMap[idx] = key;
+  });
+
+  const records = [];
+  let lastKec = "", lastDesa = "", lastSls = "";
+
+  for(let i=headerRowIdx+1;i<rows.length;i++){
+    const r = rows[i];
+    if(!r || r.every(c => norm(c)==="")) continue;
+
+    const rec = {};
+    Object.keys(colMap).forEach(idx=>{
+      rec[colMap[idx]] = norm(r[idx]);
+    });
+
+    // skip stray sub-header rows (e.g. "AK DITEMUI", "3. TUTUP")
+    const kecVal = upperKey(rec.kecamatan);
+    if(kecVal.includes('DITEMUI') || kecVal.includes('TUTUP') || kecVal.includes('GANDA')) continue;
+
+    // forward-fill grouped/merged cells
+    if(rec.kecamatan) lastKec = rec.kecamatan; else rec.kecamatan = lastKec;
+    if(rec.desa) lastDesa = rec.desa; else rec.desa = lastDesa;
+    if(rec.sls) lastSls = rec.sls; else rec.sls = lastSls;
+
+    // turunkan label Status yang bisa dibaca dari kolom pivot berkode 1/0
+    if(norm(rec.status_tidak) === '1'){ rec.statusLabel = 'Tidak Ditemukan'; rec.statusBadge = 'badge-tidak'; }
+    else if(norm(rec.status_tutup) === '1'){ rec.statusLabel = 'Tutup'; rec.statusBadge = 'badge-tutup'; }
+    else if(norm(rec.status_ganda) === '1'){ rec.statusLabel = 'Ganda'; rec.statusBadge = 'badge-ganda'; }
+    else { rec.statusLabel = ''; rec.statusBadge = ''; }
+
+    // must have a business name to count as a real data row
+    if(!rec.nama_usaha) continue;
+
+    rec.rowId = buildRowId(rec);
+    records.push(rec);
+  }
+  return records;
+}
+
+function parseCoord(v){
+  if(v===undefined || v===null) return NaN;
+  const s = String(v).trim();
+  if(s === '') return NaN;
+  return parseFloat(s.replace(',', '.')); // dukung format koma desimal
+}
+
+function hasValidCoords(rec){
+  const lat = parseCoord(rec.lat);
+  const lng = parseCoord(rec.long);
+  if(isNaN(lat) || isNaN(lng)) return false;           // kosong / tidak lengkap
+  if(lat < -90 || lat > 90) return false;                // di luar rentang latitude
+  if(lng < -180 || lng > 180) return false;              // di luar rentang longitude
+  if(lat === 0 && lng === 0) return false;                // titik default/kosong (0,0)
+  return true;
+}
+
+function buildMapsLink(rec){
+  const lok = norm(rec.lokasi);
+  if(lok && /^https?:\/\//i.test(lok)) return lok;
+  if(!hasValidCoords(rec)) return null;
+  return `https://www.google.com/maps?q=${parseCoord(rec.lat)},${parseCoord(rec.long)}`;
+}
+
+function uniqueSorted(arr){
+  return [...new Set(arr.filter(v=>v))].sort((a,b)=>a.localeCompare(b,'id'));
+}
+
+// compute rows matching all filters EXCEPT the one named `except`
+function filteredExcept(except){
+  return RAW_ROWS.filter(r=>{
+    if(except!=='kecamatan' && state.kecamatan && r.kecamatan !== state.kecamatan) return false;
+    if(except!=='desa' && state.desa && r.desa !== state.desa) return false;
+    if(except!=='sls' && state.sls && r.sls !== state.sls) return false;
+    if(except!=='ppl' && state.ppl && r.ppl !== state.ppl) return false;
+    if(except!=='pml' && state.pml && r.pml !== state.pml) return false;
+    return true;
+  });
+}
+
+function fullyFiltered(){
+  const q = state.search.trim().toLowerCase();
+  return filteredExcept(null).filter(r=>{
+    if(!q) return true;
+    return (r.nama_usaha||'').toLowerCase().includes(q) || (r.alamat||'').toLowerCase().includes(q);
+  });
+}
+
+function fillSelect(selectEl, options, currentValue, placeholder){
+  const prev = selectEl.value;
+  selectEl.innerHTML = `<option value="">${placeholder}</option>` +
+    options.map(o=>`<option value="${escapeAttr(o)}">${escapeHtml(o)}</option>`).join('');
+  selectEl.value = options.includes(currentValue) ? currentValue : "";
+}
+
+function escapeHtml(s){
+  return norm(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function escapeAttr(s){ return escapeHtml(s).replace(/"/g,'&quot;'); }
+
+function renderFilters(){
+  fillSelect(els.kecamatan, uniqueSorted(filteredExcept('kecamatan').map(r=>r.kecamatan)), state.kecamatan, 'Semua Kecamatan');
+  fillSelect(els.desa, uniqueSorted(filteredExcept('desa').map(r=>r.desa)), state.desa, 'Semua Desa');
+  fillSelect(els.sls, uniqueSorted(filteredExcept('sls').map(r=>r.sls)), state.sls, 'Semua SLS');
+  fillSelect(els.ppl, uniqueSorted(filteredExcept('ppl').map(r=>r.ppl)), state.ppl, 'Semua PPL');
+  fillSelect(els.pml, uniqueSorted(filteredExcept('pml').map(r=>r.pml)), state.pml, 'Semua PML');
+}
+
+function renderStats(rows){
+  const totalUsaha = rows.length;
+  const totalDesa = uniqueSorted(rows.map(r=>r.kecamatan+'|'+r.desa)).length;
+  const totalSls = uniqueSorted(rows.map(r=>r.kecamatan+'|'+r.desa+'|'+r.sls)).length;
+  const totalPpl = uniqueSorted(rows.map(r=>r.ppl)).length;
+  els.statsRow.innerHTML = `
+    <div class="stat-card"><div class="stat-num">${totalUsaha.toLocaleString('id')}</div><div class="stat-label">Usaha ditampilkan</div></div>
+    <div class="stat-card"><div class="stat-num">${totalDesa.toLocaleString('id')}</div><div class="stat-label">Desa terlibat</div></div>
+    <div class="stat-card"><div class="stat-num">${totalSls.toLocaleString('id')}</div><div class="stat-label">SLS terlibat</div></div>
+    <div class="stat-card"><div class="stat-num">${totalPpl.toLocaleString('id')}</div><div class="stat-label">PPL terlibat</div></div>
+  `;
+}
+
+function renderMap(rows){
+  markerLayer.clearLayers();
+  const withCoords = rows.filter(hasValidCoords);
+
+  document.getElementById('mapCount').textContent = withCoords.length
+    ? `${withCoords.length.toLocaleString('id')} titik ditampilkan`
+    : '';
+  document.getElementById('mapEmptyNote').style.display = withCoords.length ? 'none' : 'block';
+
+  if(withCoords.length === 0){ return; }
+
+  const shown = withCoords.slice(0, MAX_MARKERS);
+  const bounds = [];
+
+  shown.forEach(r=>{
+    const lat = parseCoord(r.lat), lng = parseCoord(r.long);
+    const marker = L.circleMarker([lat, lng], {
+      radius: 6,
+      color: '#562F00',
+      weight: 1,
+      fillColor: '#FF9644',
+      fillOpacity: 0.9
+    });
+    const link = buildMapsLink(r);
+    marker.bindPopup(`
+      <div class="popup-title">${escapeHtml(r.nama_usaha)}</div>
+      <div class="popup-sub">${escapeHtml(r.kecamatan)} · ${escapeHtml(r.desa)} · SLS ${escapeHtml(r.sls)}</div>
+      <div class="popup-sub" style="margin:4px 0 6px;">${escapeHtml(r.alamat)}</div>
+      ${link ? `<a class="popup-link" href="${escapeAttr(link)}" target="_blank" rel="noopener">Buka di Google Maps →</a>` : ''}
+    `);
+    marker.addTo(markerLayer);
+    bounds.push([lat, lng]);
+  });
+
+  if(bounds.length === 1){
+    map.setView(bounds[0], 15);
+  }else if(bounds.length > 1){
+    map.fitBounds(bounds, { padding:[24,24], maxZoom:16 });
+  }
+}
+
+function statusBadgeHtml(rowId){
+  const rec = statusCache[rowId];
+  if(!rec || !rec.Status) return '';
+  const opt = STATUS_OPTIONS.find(o=>o.value===rec.Status || o.label===rec.Status);
+  const label = opt ? opt.label : rec.Status;
+  const cls = opt ? opt.badge : 'badge-dalam';
+  const who = rec.Supervisor ? `Pengawas: ${escapeHtml(rec.Supervisor)}` : '';
+  return `<span class="verif-badge ${cls}">${escapeHtml(label)}</span>${who ? `<div class="verif-meta">${who}</div>` : ''}`;
+}
+
+function verifCellHtml(rowId){
+  const current = statusCache[rowId] ? statusCache[rowId].Status : '';
+  const opts = STATUS_OPTIONS.map(o=>
+    `<option value="${o.value}" ${o.value===current?'selected':''}>${o.label}</option>`
+  ).join('');
+  return `
+    <select class="verif-select" data-row-id="${escapeAttr(rowId)}">
+      <option value="">Pilih status…</option>
+      ${opts}
+    </select>
+    <div class="verif-status-display" data-badge-for="${escapeAttr(rowId)}">${statusBadgeHtml(rowId)}</div>
+  `;
+}
+
+function renderTable(){
+  const rows = fullyFiltered();
+  renderStats(rows);
+  renderMap(rows);
+
+  if(rows.length === 0){
+    els.tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">Tidak ada usaha yang cocok dengan filter saat ini.</div></td></tr>`;
+    return;
+  }
+
+  const MAX_RENDER = 2000; // safety cap for very large sheets
+  const shown = rows.slice(0, MAX_RENDER);
+
+  els.tbody.innerHTML = shown.map(r=>{
+    const link = buildMapsLink(r);
+    const locCell = link
+      ? `<a class="loc-btn" href="${escapeAttr(link)}" target="_blank" rel="noopener">📍 Lihat Peta</a>`
+      : `<span class="loc-none">Tidak ada titik</span>`;
+    const statusCell = r.statusLabel
+      ? `<span class="verif-badge ${r.statusBadge}">${escapeHtml(r.statusLabel)}</span>`
+      : `<span class="loc-none">–</span>`;
+    return `<tr>
+      <td>${escapeHtml(r.kecamatan)}</td>
+      <td>${escapeHtml(r.desa)}</td>
+      <td>${escapeHtml(r.sls)}</td>
+      <td class="usaha">${escapeHtml(r.nama_usaha)}</td>
+      <td class="alamat">${escapeHtml(r.alamat)}</td>
+      <td>${statusCell}</td>
+      <td>${locCell}</td>
+      <td>${verifCellHtml(r.rowId)}</td>
+    </tr>`;
+  }).join('');
+
+  if(rows.length > MAX_RENDER){
+    els.tbody.innerHTML += `<tr><td colspan="8" style="text-align:center;color:var(--brown-soft);padding:14px;">
+      Menampilkan ${MAX_RENDER.toLocaleString('id')} dari ${rows.length.toLocaleString('id')} baris. Persempit filter untuk melihat sisanya.
+    </td></tr>`;
+  }
+}
+
+function renderAll(){
+  renderFilters();
+  renderTable();
+}
+
+function wireEvents(){
+  els.kecamatan.addEventListener('change', e=>{ state.kecamatan = e.target.value; state.desa=""; state.sls=""; renderAll(); });
+  els.desa.addEventListener('change', e=>{ state.desa = e.target.value; state.sls=""; renderAll(); });
+  els.sls.addEventListener('change', e=>{ state.sls = e.target.value; renderAll(); });
+  els.ppl.addEventListener('change', e=>{ state.ppl = e.target.value; renderAll(); });
+  els.pml.addEventListener('change', e=>{ state.pml = e.target.value; renderAll(); });
+  els.search.addEventListener('input', e=>{ state.search = e.target.value; renderTable(); });
+  els.resetBtn.addEventListener('click', ()=>{
+    state = { kecamatan:"", desa:"", sls:"", ppl:"", pml:"", search:"" };
+    els.search.value = "";
+    renderAll();
+  });
+  els.refreshBtn.addEventListener('click', loadData);
+}
+
+function loadData(){
+  els.lastUpdated.textContent = "Memuat data…";
+  els.tbody.innerHTML = `<tr><td colspan="8"><div class="loading-state"><div class="spinner"></div>Memuat data usaha…</div></td></tr>`;
+
+  const statusPromise = loadStatusCache();
+  const csvPromise = new Promise((resolve, reject)=>{
+    Papa.parse(CSV_URL, {
+      download: true,
+      skipEmptyLines: 'greedy',
+      complete: results => resolve(results.data),
+      error: err => reject(err)
+    });
+  });
+
+  Promise.all([statusPromise, csvPromise]).then(([, csvRows])=>{
+    try{
+      RAW_ROWS = parseRawToRecords(csvRows);
+      if(RAW_ROWS.length === 0){
+        throw new Error('Tidak ada baris data usaha yang terbaca dari sheet.');
+      }
+      els.lastUpdated.textContent = "Data dimuat: " + new Date().toLocaleString('id-ID');
+      renderAll();
+    }catch(err){
+      showError(err.message);
+    }
+  }).catch(err=>{
+    showError(err.message || 'Gagal mengambil data CSV.');
+  });
+}
+
+function showError(msg){
+  els.lastUpdated.textContent = "Gagal memuat data";
+  els.statsRow.innerHTML = '';
+  els.tbody.innerHTML = `<tr><td colspan="8"><div class="error-state">
+    ⚠️ ${escapeHtml(msg)}<br><br>
+    Coba klik "Muat ulang data", atau pastikan link Google Sheets masih dipublikasikan (File → Share → Publish to web).
+  </div></td></tr>`;
+}
+
+// ---------------- Verifikasi workflow (modal + Apps Script backend) ----------------
+
+const verifModalEls = {
+  step1: document.getElementById('modalStep1'),
+  step2: document.getElementById('modalStep2'),
+  step1Recap: document.getElementById('step1Recap'),
+  step2Recap: document.getElementById('step2Recap'),
+  inpSupervisor: document.getElementById('inpSupervisor'),
+  inpKeterangan: document.getElementById('inpKeterangan'),
+  step1Error: document.getElementById('step1Error'),
+  pmlList: document.getElementById('pmlList'),
+  toast: document.getElementById('toast'),
+};
+
+let pendingVerif = null; // { rowId, statusValue, statusLabel, selectEl, prevValue }
+
+function statusLabelFor(value){
+  const opt = STATUS_OPTIONS.find(o=>o.value===value);
+  return opt ? opt.label : value;
+}
+
+function openStep1(rowId, statusValue, selectEl){
+  const rec = RAW_ROWS.find(r=>r.rowId===rowId);
+  pendingVerif = {
+    rowId, statusValue,
+    statusLabel: statusLabelFor(statusValue),
+    selectEl,
+    prevValue: statusCache[rowId] ? statusCache[rowId].Status : "",
+    rec
+  };
+  verifModalEls.step1Recap.textContent = rec
+    ? `${rec.nama_usaha} — Status: ${pendingVerif.statusLabel}`
+    : `Status: ${pendingVerif.statusLabel}`;
+  verifModalEls.inpSupervisor.value = statusCache[rowId] ? (statusCache[rowId].Supervisor || '') : '';
+  verifModalEls.step1Error.style.display = 'none';
+  verifModalEls.pmlList.innerHTML = SUPERVISOR_NAMES.map(p=>`<option value="${escapeAttr(p)}">`).join('');
+  verifModalEls.step1.classList.add('open');
+  setTimeout(()=>verifModalEls.inpSupervisor.focus(), 50);
+}
+
+function closeModals(revert){
+  verifModalEls.step1.classList.remove('open');
+  verifModalEls.step2.classList.remove('open');
+  if(revert && pendingVerif && pendingVerif.selectEl){
+    pendingVerif.selectEl.value = pendingVerif.prevValue || "";
+  }
+  pendingVerif = null;
+}
+
+document.getElementById('step1Cancel').addEventListener('click', ()=>closeModals(true));
+document.getElementById('step1Next').addEventListener('click', ()=>{
+  const name = verifModalEls.inpSupervisor.value.trim();
+  if(!name){
+    verifModalEls.step1Error.style.display = 'block';
+    return;
+  }
+  pendingVerif.supervisor = name;
+  verifModalEls.step2Recap.textContent = `${pendingVerif.rec ? pendingVerif.rec.nama_usaha : ''} — ${pendingVerif.statusLabel} · Pengawas: ${name}`;
+  verifModalEls.inpKeterangan.value = pendingVerif.rowId in statusCache ? (statusCache[pendingVerif.rowId].Keterangan || '') : '';
+  verifModalEls.step1.classList.remove('open');
+  verifModalEls.step2.classList.add('open');
+  setTimeout(()=>verifModalEls.inpKeterangan.focus(), 50);
+});
+
+document.getElementById('step2Back').addEventListener('click', ()=>{
+  verifModalEls.step2.classList.remove('open');
+  verifModalEls.step1.classList.add('open');
+});
+
+document.getElementById('step2Save').addEventListener('click', async ()=>{
+  if(!pendingVerif) return;
+  const saveBtn = document.getElementById('step2Save');
+  const keterangan = verifModalEls.inpKeterangan.value.trim();
+  const payload = {
+    id: pendingVerif.rowId,
+    status: pendingVerif.statusValue,
+    supervisor: pendingVerif.supervisor,
+    keterangan,
+    kecamatan: pendingVerif.rec ? pendingVerif.rec.kecamatan : '',
+    desa: pendingVerif.rec ? pendingVerif.rec.desa : '',
+    sls: pendingVerif.rec ? pendingVerif.rec.sls : '',
+    nama_usaha: pendingVerif.rec ? pendingVerif.rec.nama_usaha : '',
+  };
+
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Menyimpan…';
+
+  try{
+    if(!STATUS_API_URL || STATUS_API_URL.includes('PASTE_URL')){
+      throw new Error('URL Apps Script belum diatur. Lihat komentar STATUS_API_URL pada kode.');
+    }
+    const res = await fetch(STATUS_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // hindari CORS preflight ke Apps Script
+      body: JSON.stringify(payload)
+    });
+    const json = await res.json();
+    if(!json.ok) throw new Error(json.error || 'Gagal menyimpan ke server.');
+
+    statusCache[pendingVerif.rowId] = {
+      Status: pendingVerif.statusValue,
+      Supervisor: pendingVerif.supervisor,
+      Keterangan: keterangan,
+      "Waktu Update": new Date().toISOString()
+    };
+
+    const badgeEl = document.querySelector(`[data-badge-for="${CSS.escape(pendingVerif.rowId)}"]`);
+    if(badgeEl) badgeEl.innerHTML = statusBadgeHtml(pendingVerif.rowId);
+
+    showToast('Verifikasi tersimpan.');
+    closeModals(false);
+  }catch(err){
+    showToast('Gagal menyimpan: ' + err.message, true);
+  }finally{
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Simpan';
+  }
+});
+
+// close modal on backdrop click
+[verifModalEls.step1, verifModalEls.step2].forEach(overlay=>{
+  overlay.addEventListener('click', e=>{
+    if(e.target === overlay) closeModals(true);
+  });
+});
+
+// event delegation: any .verif-select change opens the workflow
+els.tbody.addEventListener('change', e=>{
+  if(!e.target.classList.contains('verif-select')) return;
+  const rowId = e.target.getAttribute('data-row-id');
+  const value = e.target.value;
+  if(!value) return;
+  openStep1(rowId, value, e.target);
+});
+
+let toastTimer = null;
+function showToast(msg, isError){
+  verifModalEls.toast.textContent = msg;
+  verifModalEls.toast.style.background = isError ? '#a94433' : 'var(--brown)';
+  verifModalEls.toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>verifModalEls.toast.classList.remove('show'), 3200);
+}
+
+async function loadStatusCache(){
+  if(!STATUS_API_URL || STATUS_API_URL.includes('PASTE_URL')) return;
+  try{
+    const res = await fetch(STATUS_API_URL, { method:'GET' });
+    const json = await res.json();
+    if(json.ok && json.data) statusCache = json.data;
+  }catch(err){
+    console.warn('Tidak bisa memuat status verifikasi:', err.message);
+  }
+}
+
+window.addEventListener('resize', ()=> map.invalidateSize());
+
+wireEvents();
+loadData();
+setTimeout(()=> map.invalidateSize(), 300);
+</script>
+</body>
+</html>
