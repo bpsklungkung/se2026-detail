@@ -7,8 +7,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
 <style>
   :root{
     --cream:#FFFDF1;
@@ -52,6 +55,28 @@
     font-family:'Inter',sans-serif;
   }
   .refresh-info button:hover{background:#3d2200;}
+
+  /* Marker cluster — mengikuti palet brand, gantikan style default plugin */
+  .marker-cluster-brand{
+    background:rgba(255,150,68,0.22);
+  }
+  .marker-cluster-brand div{
+    width:34px;height:34px;margin-left:3px;margin-top:3px;
+    background:var(--orange);color:#fff;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Inter',sans-serif;font-weight:700;font-size:12.5px;
+    box-shadow:0 2px 8px rgba(86,47,0,0.25);
+  }
+  .marker-cluster-brand.cluster-lg div{ background:var(--brown); }
+  .marker-cluster-brand.cluster-md div{ background:var(--orange); }
+  .marker-cluster-brand.cluster-sm div{ background:#ffb066; }
+
+  /* Titik usaha individual — pakai divIcon (bukan circleMarker) supaya kompatibel dengan cluster plugin */
+  .usaha-dot-icon{ background:transparent; border:none; }
+  .usaha-dot{
+    display:block;width:13px;height:13px;border-radius:50%;
+    border:1.5px solid #562F00;box-shadow:0 1px 3px rgba(86,47,0,0.35);
+  }
 
   .stats{
     display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
@@ -532,7 +557,24 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
   attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
-const markerLayer = L.layerGroup().addTo(map);
+// Marker cluster: mengelompokkan titik yang berdekatan jadi satu bulatan (bukan menyembunyikan/menyampel data).
+// Ini yang bikin tampilan awal (zoom kabupaten) rapi & cepat, tanpa kehilangan satu titik pun — semua tetap
+// bisa dilihat dengan zoom in / klik cluster untuk pecah ("spiderfy") ke titik individual.
+const markerLayer = L.markerClusterGroup({
+  maxClusterRadius: 55,
+  spiderfyOnMaxZoom: true,
+  showCoverageOnHover: false,
+  chunkedLoading: true,       // render bertahap per batch supaya thread utama tidak macet saat titik ribuan
+  iconCreateFunction: function(cluster){
+    const count = cluster.getChildCount();
+    const size = count < 10 ? 'cluster-sm' : (count < 50 ? 'cluster-md' : 'cluster-lg');
+    return L.divIcon({
+      html: `<div>${count}</div>`,
+      className: `marker-cluster-brand ${size}`,
+      iconSize: L.point(40, 40)
+    });
+  }
+}).addTo(map);
 const MAX_MARKERS = 20000; // dengan canvas renderer, ribuan titik masih ringan; ini hanya jaga-jaga kalau data membengkak drastis
 
 const els = {
@@ -776,12 +818,23 @@ function getMarkerColor(rowId){
   return VERIF_MARKER_COLORS[v] || DEFAULT_MARKER_COLOR;
 }
 
+// divIcon bulat kecil (pengganti circleMarker) — dipakai supaya titik kompatibel dengan Leaflet.markercluster
+function makeDotIcon(color){
+  return L.divIcon({
+    className: 'usaha-dot-icon',
+    html: `<span class="usaha-dot" style="background:${color}"></span>`,
+    iconSize: [13, 13],
+    iconAnchor: [6, 6],
+    popupAnchor: [0, -6]
+  });
+}
+
 // Dipanggil setelah verifikasi berhasil disimpan, supaya marker di peta langsung
 // berubah warna tanpa perlu me-render ulang seluruh peta (agar posisi/zoom tak berubah).
 function updateMarkerColorForRow(rowId){
   const marker = markersByRowId[rowId];
   if(!marker) return;
-  marker.setStyle({ fillColor: getMarkerColor(rowId) });
+  marker.setIcon(makeDotIcon(getMarkerColor(rowId)));
 }
 
 let markersByRowId = {};
@@ -799,12 +852,8 @@ function renderMap(rows){
   const shown = withCoords.slice(0, MAX_MARKERS);
   shown.forEach(r=>{
     const lat = parseCoord(r.lat), lng = parseCoord(r.long);
-    const marker = L.circleMarker([lat, lng], {
-      radius: 6,
-      color: '#562F00',
-      weight: 1,
-      fillColor: getMarkerColor(r.rowId),
-      fillOpacity: 0.9
+    const marker = L.marker([lat, lng], {
+      icon: makeDotIcon(getMarkerColor(r.rowId))
     });
     const link = buildMapsLink(r);
     marker.bindPopup(`
