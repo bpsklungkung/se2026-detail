@@ -29,12 +29,12 @@
     font-family:'Inter',sans-serif;
     min-height:100vh;
   }
-  .wrap{max-width:1280px;margin:0 auto;padding:28px 24px 60px;}
+  .wrap{max-width:1280px;margin:0 auto;padding:20px 24px 40px;}
 
   header.top{
     display:flex;align-items:flex-end;justify-content:space-between;gap:20px;
     flex-wrap:wrap;
-    padding-bottom:20px;border-bottom:2px solid var(--line);margin-bottom:22px;
+    padding-bottom:14px;border-bottom:2px solid var(--line);margin-bottom:14px;
   }
   .eyebrow{
     font-size:12px;letter-spacing:.14em;text-transform:uppercase;
@@ -55,21 +55,21 @@
 
   .stats{
     display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-    gap:12px;margin-bottom:22px;
+    gap:10px;margin-bottom:14px;
   }
   .stat-card{
     background:var(--white);border:1px solid var(--line);border-radius:12px;
-    padding:14px 16px;box-shadow:var(--shadow);
+    padding:11px 16px;box-shadow:var(--shadow);
   }
-  .stat-num{font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:var(--orange);}
-  .stat-label{font-size:12px;color:var(--brown-soft);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+  .stat-num{font-family:'Fraunces',serif;font-size:24px;font-weight:700;color:var(--orange);}
+  .stat-label{font-size:11.5px;color:var(--brown-soft);text-transform:uppercase;letter-spacing:.06em;margin-top:1px;}
 
   .panel{
     background:var(--white);border:1px solid var(--line);border-radius:16px;
-    box-shadow:var(--shadow);padding:20px 20px 16px;margin-bottom:20px;
+    box-shadow:var(--shadow);padding:14px 20px 12px;margin-bottom:14px;
   }
   .panel-title{
-    font-family:'Fraunces',serif;font-size:16px;font-weight:600;margin:0 0 14px;
+    font-family:'Fraunces',serif;font-size:15px;font-weight:600;margin:0 0 10px;
     display:flex;align-items:center;justify-content:space-between;
   }
   .reset-btn{
@@ -79,19 +79,19 @@
   .reset-btn:hover{background:#FFF3E4;}
 
   .filters-grid{
-    display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;
   }
   .field label{
-    display:block;font-size:11.5px;font-weight:700;text-transform:uppercase;
-    letter-spacing:.05em;color:var(--brown-soft);margin-bottom:5px;
+    display:block;font-size:11px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.05em;color:var(--brown-soft);margin-bottom:4px;
   }
   select, input[type=text]{
-    width:100%;padding:9px 10px;border-radius:9px;border:1.5px solid var(--line);
+    width:100%;padding:8px 10px;border-radius:9px;border:1.5px solid var(--line);
     background:var(--cream);color:var(--brown);font-family:'Inter',sans-serif;font-size:13.5px;
     outline:none;transition:border-color .15s;
   }
   select:focus, input[type=text]:focus{border-color:var(--orange);}
-  .search-row{margin-top:14px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;}
+  .search-row{margin-top:10px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;}
   .search-row .field{flex:1;min-width:220px;}
 
   .table-wrap{
@@ -133,10 +133,18 @@
   tbody tr:nth-child(even){background:#FFFBF0;}
   tbody tr:hover{background:#FFF1DC;}
   tbody tr[data-rowid]{cursor:pointer;}
-  tbody tr.row-flash{background:#FFE1B0 !important;transition:background .3s ease;}
-  tbody tr.row-flash td{position:relative;}
+  @keyframes rowFlashPulse{
+    0%{background:#FF9644;}
+    100%{background:#FFD9A8;}
+  }
+  tbody tr.row-flash{
+    background:#FFD9A8 !important;
+    animation:rowFlashPulse .6s ease-out 2;
+    box-shadow:inset 0 0 0 2px var(--orange,#FF9644);
+  }
+  tbody tr.row-flash td{position:relative;font-weight:700;color:#4a2800;}
   tbody tr.row-flash td:first-child::before{
-    content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--orange,#FF9644);
+    content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--orange,#FF9644);
   }
   td.usaha{font-weight:600;}
   td.alamat{color:var(--brown-soft);max-width:340px;}
@@ -164,10 +172,10 @@
 
   .map-panel{
     background:var(--white);border:1px solid var(--line);border-radius:16px;
-    box-shadow:var(--shadow);padding:16px 16px 12px;margin-bottom:20px;
+    box-shadow:var(--shadow);padding:12px 16px 10px;margin-bottom:14px;
   }
   .map-panel-title{
-    font-family:'Fraunces',serif;font-size:16px;font-weight:600;margin:0 0 12px;
+    font-family:'Fraunces',serif;font-size:15px;font-weight:600;margin:0 0 8px;
     display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
   }
   .map-count{
@@ -175,7 +183,7 @@
     text-transform:none;letter-spacing:0;
   }
   #map{
-    width:100%;height:420px;border-radius:12px;border:1px solid var(--line);
+    width:100%;height:300px;border-radius:12px;border:1px solid var(--line);
     background:var(--cream);
   }
   .leaflet-popup-content-wrapper{
@@ -278,15 +286,6 @@
     </div>
   </header>
 
-  <div class="map-panel">
-    <div class="map-panel-title">
-      Peta Sebaran Usaha
-      <span class="map-count" id="mapCount"></span>
-    </div>
-    <div id="map"></div>
-    <div class="map-empty-note" id="mapEmptyNote" style="display:none;">Tidak ada titik koordinat untuk ditampilkan pada filter saat ini.</div>
-  </div>
-
   <div class="stats" id="statsRow"></div>
 
   <div class="panel">
@@ -322,6 +321,15 @@
         <input type="text" id="fSearch" placeholder="Ketik kata kunci…">
       </div>
     </div>
+  </div>
+
+  <div class="map-panel">
+    <div class="map-panel-title">
+      Peta Sebaran Usaha
+      <span class="map-count" id="mapCount"></span>
+    </div>
+    <div id="map"></div>
+    <div class="map-empty-note" id="mapEmptyNote" style="display:none;">Tidak ada titik koordinat untuk ditampilkan pada filter saat ini.</div>
   </div>
 
   <div class="table-wrap">
@@ -428,16 +436,30 @@ let state = { kecamatan:"", desa:"", sls:"", ppl:"", pml:"", search:"" };
 let statusSort = 0; // 0=default, 1=asc, -1=desc
 let currentPage = 1;
 let pageSize = 10;
+let lastFilteredRows = []; // hasil filter terakhir (sebelum sort/pagination) -> dipakai peta & statistik
+let lastSortedRows = [];   // hasil filter+sort terakhir (sebelum dipotong per halaman) -> dipakai tabel & highlight
+
+function computeSortedRows(rows){
+  if(statusSort === 0) return rows;
+  return [...rows].sort((a,b)=>{
+    const sa = (a.statusLabel||'').toLowerCase();
+    const sb = (b.statusLabel||'').toLowerCase();
+    if(!sa && !sb) return 0;
+    if(!sa) return 1;   // baris tanpa status selalu di bawah
+    if(!sb) return -1;
+    return statusSort * sa.localeCompare(sb,'id');
+  });
+}
 
 function onPageSizeChange(val){
   pageSize = parseInt(val, 10) || 10;
   currentPage = 1;
-  renderTable();
+  renderTableBody();
 }
 
 function goToPage(p){
   currentPage = p;
-  renderTable();
+  renderTableBody();
 }
 
 function toggleStatusSort(){
@@ -447,7 +469,8 @@ function toggleStatusSort(){
   th.classList.toggle('sort-active', statusSort !== 0);
   arrow.textContent = statusSort === 1 ? '▲' : (statusSort === -1 ? '▼' : '↕');
   currentPage = 1;
-  renderTable();
+  lastSortedRows = computeSortedRows(lastFilteredRows);
+  renderTableBody();
 }
 
 // ---- Leaflet map setup ----
@@ -688,14 +711,29 @@ function renderMap(rows){
   }
 }
 
-// Klik marker di peta -> scroll & sorot baris yang sesuai di tabel
+// Klik marker di peta -> pindah ke halaman yang tepat, lalu scroll & sorot baris di tabel
 function highlightTableRow(rowId){
-  const tr = document.querySelector(`tr[data-rowid="${CSS.escape(rowId)}"]`);
-  if(!tr) return;
-  tr.scrollIntoView({ behavior:'smooth', block:'center' });
-  document.querySelectorAll('tbody tr.row-flash').forEach(el=>el.classList.remove('row-flash'));
-  tr.classList.add('row-flash');
-  setTimeout(()=> tr.classList.remove('row-flash'), 1800);
+  const idx = lastSortedRows.findIndex(r=>r.rowId===rowId);
+  if(idx === -1) return; // baris tidak ada pada hasil filter saat ini (kemungkinan tersembunyi oleh filter aktif)
+
+  const targetPage = Math.floor(idx / pageSize) + 1;
+  const needsPageChange = targetPage !== currentPage;
+  if(needsPageChange){
+    currentPage = targetPage;
+    renderTableBody(); // hanya render ulang tabel, peta tidak disentuh
+  }
+
+  const doHighlight = ()=>{
+    const tr = document.querySelector(`tr[data-rowid="${CSS.escape(rowId)}"]`);
+    if(!tr) return;
+    tr.scrollIntoView({ behavior:'smooth', block:'center' });
+    document.querySelectorAll('tbody tr.row-flash').forEach(el=>el.classList.remove('row-flash'));
+    tr.classList.add('row-flash');
+    setTimeout(()=> tr.classList.remove('row-flash'), 2600);
+  };
+
+  // beri jeda sedikit setelah render ulang tabel (ganti halaman) agar DOM sudah siap
+  if(needsPageChange){ setTimeout(doHighlight, 50); } else { doHighlight(); }
 }
 
 // Klik baris tabel -> pan peta ke titik & buka popup marker yang sesuai
@@ -733,20 +771,16 @@ function verifCellHtml(rowId){
 }
 
 function renderTable(){
-  let rows = fullyFiltered();
+  const rows = fullyFiltered();
+  lastFilteredRows = rows;
   renderStats(rows);
   renderMap(rows);
+  lastSortedRows = computeSortedRows(rows);
+  renderTableBody();
+}
 
-  if(statusSort !== 0){
-    rows = [...rows].sort((a,b)=>{
-      const sa = (a.statusLabel||'').toLowerCase();
-      const sb = (b.statusLabel||'').toLowerCase();
-      if(!sa && !sb) return 0;
-      if(!sa) return 1;   // baris tanpa status selalu di bawah
-      if(!sb) return -1;
-      return statusSort * sa.localeCompare(sb,'id');
-    });
-  }
+function renderTableBody(){
+  const rows = lastSortedRows;
 
   if(rows.length === 0){
     els.tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">Tidak ada usaha yang cocok dengan filter saat ini.</div></td></tr>`;
