@@ -105,6 +105,10 @@
     text-align:left;padding:11px 12px;font-size:11.5px;text-transform:uppercase;
     letter-spacing:.05em;font-weight:700;white-space:nowrap;
   }
+  thead th.sortable{cursor:pointer;user-select:none;}
+  thead th.sortable:hover{background:#4a2800;}
+  thead th.sortable .sort-arrow{display:inline-block;margin-left:4px;opacity:.5;font-size:10px;}
+  thead th.sortable.sort-active .sort-arrow{opacity:1;}
   tbody td{
     padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--brown);
   }
@@ -306,7 +310,7 @@
             <th>SLS</th>
             <th>Nama Usaha</th>
             <th>Alamat</th>
-            <th>Status</th>
+            <th class="sortable" id="thStatus" onclick="toggleStatusSort()">Status<span class="sort-arrow" id="statusSortArrow">↕</span></th>
             <th>Lokasi</th>
             <th>Verifikasi</th>
           </tr>
@@ -327,9 +331,9 @@
 <div class="modal-overlay" id="modalStep1">
   <div class="modal-box">
     <div class="modal-eyebrow">Langkah 1 dari 2</div>
-    <h3 class="modal-title">Nama Pengawas</h3>
+    <h3 class="modal-title">Nama PJ</h3>
     <div class="modal-sub" id="step1Recap"></div>
-    <label for="inpSupervisor">Nama Pengawas (PML)</label>
+    <label for="inpSupervisor">Nama PJ</label>
     <input type="text" id="inpSupervisor" list="pmlList" placeholder="Ketik atau pilih nama pengawas…" autocomplete="off">
     <datalist id="pmlList"></datalist>
     <div class="modal-error" id="step1Error">Nama pengawas wajib diisi.</div>
@@ -380,6 +384,16 @@ const SUPERVISOR_NAMES = [
 let RAW_ROWS = [];       // normalized data records
 let statusCache = {};    // rowId -> { Status, Supervisor, Keterangan, "Waktu Update" }
 let state = { kecamatan:"", desa:"", sls:"", ppl:"", pml:"", search:"" };
+let statusSort = 0; // 0=default, 1=asc, -1=desc
+
+function toggleStatusSort(){
+  statusSort = statusSort === 0 ? 1 : (statusSort === 1 ? -1 : 0);
+  const th = document.getElementById('thStatus');
+  const arrow = document.getElementById('statusSortArrow');
+  th.classList.toggle('sort-active', statusSort !== 0);
+  arrow.textContent = statusSort === 1 ? '▲' : (statusSort === -1 ? '▼' : '↕');
+  renderTable();
+}
 
 // ---- Leaflet map setup ----
 const KLUNGKUNG_CENTER = [-8.535, 115.40];
@@ -639,9 +653,20 @@ function verifCellHtml(rowId){
 }
 
 function renderTable(){
-  const rows = fullyFiltered();
+  let rows = fullyFiltered();
   renderStats(rows);
   renderMap(rows);
+
+  if(statusSort !== 0){
+    rows = [...rows].sort((a,b)=>{
+      const sa = (a.statusLabel||'').toLowerCase();
+      const sb = (b.statusLabel||'').toLowerCase();
+      if(!sa && !sb) return 0;
+      if(!sa) return 1;   // baris tanpa status selalu di bawah
+      if(!sb) return -1;
+      return statusSort * sa.localeCompare(sb,'id');
+    });
+  }
 
   if(rows.length === 0){
     els.tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">Tidak ada usaha yang cocok dengan filter saat ini.</div></td></tr>`;
