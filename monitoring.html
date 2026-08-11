@@ -238,6 +238,12 @@
     background:var(--white);color:var(--brown);border-radius:10px;font-family:'Inter',sans-serif;
   }
   .leaflet-popup-content{font-size:12.5px;margin:10px 12px;line-height:1.5;}
+  .leaflet-control-layers{
+    border-radius:10px!important;border:1px solid var(--line)!important;
+    box-shadow:var(--shadow)!important;font-family:'Inter',sans-serif;
+  }
+  .leaflet-control-layers-toggle{border-radius:10px!important;}
+  .leaflet-control-layers label{font-size:12.5px;color:var(--brown);padding:2px 0;}
   .popup-title{font-weight:700;font-size:13px;margin-bottom:3px;}
   .popup-sub{color:var(--brown-soft);font-size:11.5px;}
   .popup-link{color:var(--orange);font-weight:700;text-decoration:none;font-size:12px;}
@@ -553,10 +559,29 @@ function toggleStatusSort(){
 // ---- Leaflet map setup ----
 const KLUNGKUNG_CENTER = [-8.535, 115.40];
 const map = L.map('map', { scrollWheelZoom:false, preferCanvas:true }).setView(KLUNGKUNG_CENTER, 11);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+
+// Beberapa pilihan basemap gratis (tanpa API key/billing) — bisa dipilih via ikon layer di pojok kanan atas peta.
+const baseOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
   attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+});
+const baseVoyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+  maxZoom: 20,
+  subdomains: 'abcd',
+  attribution: '&copy; OpenStreetMap contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+});
+const baseSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom: 19,
+  attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics'
+});
+
+baseVoyager.addTo(map); // default: mirip gaya Google Maps (jalan & label jelas)
+
+L.control.layers({
+  'Jalan (mirip Google Maps)': baseVoyager,
+  'Jalan (OpenStreetMap)': baseOSM,
+  'Citra Satelit': baseSatellite
+}, null, { position: 'topright', collapsed: true }).addTo(map);
 // Marker cluster: mengelompokkan titik yang berdekatan jadi satu bulatan (bukan menyembunyikan/menyampel data).
 // Ini yang bikin tampilan awal (zoom kabupaten) rapi & cepat, tanpa kehilangan satu titik pun — semua tetap
 // bisa dilihat dengan zoom in / klik cluster untuk pecah ("spiderfy") ke titik individual.
