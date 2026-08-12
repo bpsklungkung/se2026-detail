@@ -4635,13 +4635,17 @@ function renderCompareDefinitions(keys){
   const listEl = document.getElementById('compareDefsList');
   if(!listEl) return;
 
+  // Definisi indikator sama saja lintas Kabupaten, jadi cukup ditampilkan SEKALI per
+  // nama indikator asli (rawSub) — tidak perlu diulang per Kabupaten (mis. "— Bangli",
+  // "— Badung", dst) walau grafiknya sendiri tetap membandingkan per Kabupaten.
+  const seen = new Set();
   let html = '';
   keys.forEach(k=>{
     const info = compareIndex[k];
-    // Cari definisi pakai nama indikator ASLI (rawSub), bukan label tampilan yang sudah
-    // ditambahi " — Nama Kabupaten" — supaya cocok dengan kolom Definisi di sumber data.
+    if(seen.has(info.rawSub)) return;
+    seen.add(info.rawSub);
     const def = DEFINISI[info.rawSub] || 'Belum ada deskripsi definisi untuk indikator ini.';
-    html += `<div class="def-item"><b>${escapeHtml(info.sub)}:</b> ${escapeHtml(def)}</div>`;
+    html += `<div class="def-item"><b>${escapeHtml(info.rawSub)}:</b> ${escapeHtml(def)}</div>`;
   });
   listEl.innerHTML = html;
 }
