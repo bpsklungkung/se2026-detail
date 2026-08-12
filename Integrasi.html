@@ -4638,7 +4638,9 @@ function renderCompareDefinitions(keys){
   let html = '';
   keys.forEach(k=>{
     const info = compareIndex[k];
-    const def = DEFINISI[info.sub] || 'Belum ada deskripsi definisi untuk indikator ini.';
+    // Cari definisi pakai nama indikator ASLI (rawSub), bukan label tampilan yang sudah
+    // ditambahi " — Nama Kabupaten" — supaya cocok dengan kolom Definisi di sumber data.
+    const def = DEFINISI[info.rawSub] || 'Belum ada deskripsi definisi untuk indikator ini.';
     html += `<div class="def-item"><b>${escapeHtml(info.sub)}:</b> ${escapeHtml(def)}</div>`;
   });
   listEl.innerHTML = html;
