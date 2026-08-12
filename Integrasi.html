@@ -949,7 +949,11 @@ let compareTo = null;
 let normalizeCompare = false;
 let compareChart = null;
 let compareChartType = 'line';
-const COMPARE_COLORS = ['#FF9644','#4E7D5A','#A63A50','#3E6E8E','#8C6BAF','#B98B27','#562F00','#5C8C8C'];
+const COMPARE_COLORS = [
+  '#FF9644','#4E7D5A','#A63A50','#3E6E8E','#8C6BAF','#B98B27','#562F00','#5C8C8C',
+  '#D9776B','#7FA650','#C0588B','#4F7FBF','#E0B23D','#6E4A9E','#3F9E7A','#B4562F',
+  '#517C9E','#9C6644','#5B8A72','#C24444'
+];
 
 const KATEGORI_PALETTE = ['#FF6B6B','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#FF9644','#008080','#4C5C7D','#C1440E'];
 let GROUP_COLOR_MAP = {};
@@ -3366,9 +3370,9 @@ function renderComparePicker(){
     cb.onchange = ()=>{
       const key = decodeURIComponent(cb.dataset.key);
       if(cb.checked){
-        if(compareSelected.size >= 8){
+        if(compareSelected.size >= 20){
           cb.checked = false;
-          alert('Maksimal 8 indikator sekaligus supaya grafik tetap mudah dibaca.');
+          alert('Maksimal 20 indikator sekaligus supaya grafik tetap bisa dibaca.');
           return;
         }
         compareSelected.add(key);
