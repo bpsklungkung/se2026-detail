@@ -175,17 +175,17 @@
   .kel-filter-item input{ accent-color:var(--orange); cursor:pointer; flex-shrink:0; }
 
   /* ===== Kabupaten filter dropdown ===== */
-  .kab-filter-bar{ margin:0 0 10px; position:relative; z-index:6; display:flex; }
   .kab-dropdown{ position:relative; display:inline-block; }
   .kab-dropdown-btn{
-    display:flex; align-items:center; gap:8px;
-    background:var(--white); border:1px solid var(--peach-soft);
-    border-radius:12px; box-shadow:var(--shadow);
-    padding:9px 14px; font-family:'Inter',sans-serif; font-weight:600;
+    display:flex; align-items:center; gap:7px;
+    background:var(--cream); border:1px solid transparent;
+    border-radius:10px;
+    padding:8px 12px; font-family:'Inter',sans-serif; font-weight:600;
     font-size:12.5px; color:var(--brown); cursor:pointer;
-    max-width:360px;
+    max-width:220px;
   }
-  .kab-dropdown-btn:hover{ border-color:var(--orange); }
+  .kab-dropdown-btn:hover{ border-color:var(--orange); background:var(--peach-soft); }
+  .kab-dropdown.open .kab-dropdown-btn{ border-color:var(--orange); background:var(--peach-soft); }
   .kab-dropdown-btn svg{ flex-shrink:0; }
   .kab-dropdown-btn .kab-dropdown-label{
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
@@ -279,6 +279,20 @@
     flex-shrink:0; font-size:10px; text-transform:uppercase; letter-spacing:.04em;
     font-weight:800; color:#fff; background:var(--orange-deep);
     padding:3px 8px; border-radius:999px;
+  }
+
+  .cmp-kab-warning{
+    display:none;
+    align-items:flex-start; gap:8px;
+    font-size:12px; font-weight:600; color:#8a3b1f;
+    background:#fdecdf; border:1px solid #f0b98a;
+    border-radius:10px; padding:8px 12px; margin-bottom:12px;
+  }
+  .cmp-kab-warning.show{ display:flex; }
+  .cmp-kab-warning .tag{
+    flex-shrink:0; font-size:10px; text-transform:uppercase; letter-spacing:.04em;
+    font-weight:800; color:#fff; background:#c2571f;
+    padding:3px 8px; border-radius:999px; margin-top:1px;
   }
 
   .compare-controls{
@@ -847,7 +861,6 @@
 </div>
 
 <div class="page-wrap">
-  <div class="kab-filter-bar" id="kabFilterBar"></div>
   <div class="tabbar" id="tabs"></div>
 
   <div class="content-row">
@@ -1416,6 +1429,17 @@ function computeHeroStats(){
 function renderTabs(){
   const tabsEl = document.getElementById('tabs');
   tabsEl.innerHTML = '';
+
+  if(KABUPATEN_LIST.length > 1){
+    const kabWrap = document.createElement('div');
+    kabWrap.id = 'kabFilterBar';
+    tabsEl.appendChild(kabWrap);
+
+    const kabSep = document.createElement('span');
+    kabSep.className = 'tab-sep';
+    tabsEl.appendChild(kabSep);
+  }
+
   STORE.__order.forEach(p=>{
     const btn = document.createElement('button');
     btn.className = 'tab' + (!compareMode && p===activePeriode?' active':'');
@@ -1433,6 +1457,8 @@ function renderTabs(){
   cmpBtn.textContent = '⇄ Bandingkan';
   cmpBtn.onclick = ()=>{ compareMode = true; renderTabs(); renderCompareView(); };
   tabsEl.appendChild(cmpBtn);
+
+  renderKabupatenFilter();
 }
 
 function makeSparkline(entries, color, type){
@@ -3052,6 +3078,11 @@ function renderCompareView(){
   if(!comparePeriode || !periodeOptions.includes(comparePeriode)) comparePeriode = periodeOptions[0];
   compareIndex = buildCompareIndex(comparePeriode, kabList);
 
+  // Diagnostik: kabupaten yang dipilih di filter atas tapi TIDAK muncul di picker/grafik,
+  // beserta alasannya — supaya tidak menghilang diam-diam tanpa penjelasan.
+  const missingNoData = Array.from(compareKabupatenSelected).filter(k=>!STORE_ALL[k]);
+  const missingNoPeriode = Array.from(compareKabupatenSelected).filter(k=>STORE_ALL[k] && !STORE_ALL[k][comparePeriode]);
+
   // Buang indikator terpilih yang sudah tidak ada di kombinasi Kabupaten/Kategori/Kelompok/Sub
   // untuk pilihan Kabupaten & Periode yang aktif saat ini.
   Array.from(compareSelected).forEach(k=>{
@@ -3072,6 +3103,7 @@ function renderCompareView(){
         <p>Pilih satu atau beberapa Kabupaten/Kota dan beberapa indikator dari periode yang sama untuk melihat trennya berdampingan dalam satu grafik.</p>
       </div>
       <div class="cmp-mode-hint" id="cmpModeHint"></div>
+      <div class="cmp-kab-warning" id="cmpKabWarning"></div>
       <div class="compare-controls">
         <div class="ctrl-item"><label>Kabupaten</label><div id="cmpKabFilter"></div></div>
         <div class="ctrl-item"><label>Periode</label><select id="cmpPeriode"></select></div>
@@ -3131,6 +3163,24 @@ function renderCompareView(){
 
   renderChartTypeOptions();
   document.getElementById('cmpChartType').onchange = (e)=>{ compareChartType = e.target.value; renderCompareChart(); };
+
+  const kabWarnEl = document.getElementById('cmpKabWarning');
+  if(kabWarnEl){
+    const msgs = [];
+    if(missingNoPeriode.length){
+      msgs.push(`${missingNoPeriode.join(', ')} tidak punya data untuk periode "${comparePeriode}" yang sedang dipilih — coba ganti Periode di atas.`);
+    }
+    if(missingNoData.length){
+      msgs.push(`${missingNoData.join(', ')} tidak ditemukan sama sekali di data (kemungkinan ejaan Kabupaten berbeda di sheet).`);
+    }
+    if(msgs.length){
+      kabWarnEl.classList.add('show');
+      kabWarnEl.innerHTML = `<span class="tag">Perlu dicek</span><span>${msgs.join(' ')}</span>`;
+    } else {
+      kabWarnEl.classList.remove('show');
+      kabWarnEl.innerHTML = '';
+    }
+  }
 
   document.getElementById('cmpNormalize').checked = normalizeCompare;
   document.getElementById('cmpNormalize').onchange = (e)=>{ normalizeCompare = e.target.checked; renderCompareChart(); };
