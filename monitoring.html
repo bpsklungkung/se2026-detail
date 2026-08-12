@@ -437,14 +437,14 @@
       <table id="dataTable">
         <thead>
           <tr>
-            <th>Kecamatan</th>
-            <th>Desa</th>
-            <th>SLS</th>
-            <th>Nama Usaha</th>
-            <th>Alamat</th>
-            <th class="sortable" id="thStatus" onclick="toggleStatusSort()">Status<span class="sort-arrow" id="statusSortArrow">↕</span></th>
-            <th>Lokasi</th>
-            <th>Verifikasi</th>
+            <th class="sortable" onclick="handleSort('kecamatan')">Kecamatan<span class="sort-arrow" id="sort-kecamatan">↕</span></th>
+            <th class="sortable" onclick="handleSort('desa')">Desa<span class="sort-arrow" id="sort-desa">↕</span></th>
+            <th class="sortable" onclick="handleSort('sls')">SLS<span class="sort-arrow" id="sort-sls">↕</span></th>
+            <th class="sortable" onclick="handleSort('nama_usaha')">Nama Usaha<span class="sort-arrow" id="sort-nama_usaha">↕</span></th>
+            <th class="sortable" onclick="handleSort('alamat')">Alamat<span class="sort-arrow" id="sort-alamat">↕</span></th>
+            <th class="sortable" onclick="handleSort('statusLabel')">Status<span class="sort-arrow" id="sort-statusLabel">↕</span></th>
+            <th class="sortable" onclick="handleSort('lokasi')">Lokasi<span class="sort-arrow" id="sort-lokasi">↕</span></th>
+            <th class="sortable" onclick="handleSort('verifikasi')">Verifikasi<span class="sort-arrow" id="sort-verifikasi">↕</span></th>
           </tr>
         </thead>
         <tbody id="tbody">
@@ -515,22 +515,63 @@ const SUPERVISOR_NAMES = [
 let RAW_ROWS = [];       
 let statusCache = {};    
 let state = { kecamatan:"", desa:"", sls:"", ppl:"", pml:"", verif:"", status:"", search:"" };
-let statusSort = 0; 
+
+let currentSortColumn = null;
+let currentSortDirection = 0; // 0: none, 1: asc, -1: desc
+
 let currentPage = 1;
 let pageSize = 10;
 let lastFilteredRows = []; 
 let lastSortedRows = [];   
 
 function computeSortedRows(rows){
-  if(statusSort === 0) return rows;
+  if(!currentSortColumn || currentSortDirection === 0) return rows;
   return [...rows].sort((a,b)=>{
-    const sa = (a.statusLabel||'').toLowerCase();
-    const sb = (b.statusLabel||'').toLowerCase();
-    if(!sa && !sb) return 0;
-    if(!sa) return 1;   
-    if(!sb) return -1;
-    return statusSort * sa.localeCompare(sb,'id');
+    let valA = "", valB = "";
+    
+    if(currentSortColumn === 'verifikasi'){
+      valA = (statusCache[a.rowId] ? statusCache[a.rowId].Status : '').toLowerCase();
+      valB = (statusCache[b.rowId] ? statusCache[b.rowId].Status : '').toLowerCase();
+    } else {
+      valA = (a[currentSortColumn] || '').toString().toLowerCase();
+      valB = (b[currentSortColumn] || '').toString().toLowerCase();
+    }
+
+    if(valA < valB) return -1 * currentSortDirection;
+    if(valA > valB) return 1 * currentSortDirection;
+    return 0;
   });
+}
+
+function handleSort(columnKey){
+  if(currentSortColumn === columnKey){
+    if(currentSortDirection === 0) currentSortDirection = 1;
+    else if(currentSortDirection === 1) currentSortDirection = -1;
+    else { currentSortDirection = 0; currentSortColumn = null; }
+  } else {
+    currentSortColumn = columnKey;
+    currentSortDirection = 1;
+  }
+
+  // Reset all arrow visuals
+  ['kecamatan', 'desa', 'sls', 'nama_usaha', 'alamat', 'statusLabel', 'lokasi', 'verifikasi'].forEach(col => {
+    const th = document.getElementById(`sort-${col}`).parentElement;
+    const arrow = document.getElementById(`sort-${col}`);
+    th.classList.remove('sort-active');
+    arrow.textContent = '↕';
+  });
+
+  // Apply active arrow visual if sorting is active
+  if(currentSortColumn && currentSortDirection !== 0){
+    const activeTh = document.getElementById(`sort-${currentSortColumn}`).parentElement;
+    const activeArrow = document.getElementById(`sort-${currentSortColumn}`);
+    activeTh.classList.add('sort-active');
+    activeArrow.textContent = currentSortDirection === 1 ? '▲' : '▼';
+  }
+
+  currentPage = 1;
+  lastSortedRows = computeSortedRows(lastFilteredRows);
+  renderTableBody();
 }
 
 function onPageSizeChange(val){
@@ -541,17 +582,6 @@ function onPageSizeChange(val){
 
 function goToPage(p){
   currentPage = p;
-  renderTableBody();
-}
-
-function toggleStatusSort(){
-  statusSort = statusSort === 0 ? 1 : (statusSort === 1 ? -1 : 0);
-  const th = document.getElementById('thStatus');
-  const arrow = document.getElementById('statusSortArrow');
-  th.classList.toggle('sort-active', statusSort !== 0);
-  arrow.textContent = statusSort === 1 ? '▲' : (statusSort === -1 ? '▼' : '↕');
-  currentPage = 1;
-  lastSortedRows = computeSortedRows(lastFilteredRows);
   renderTableBody();
 }
 
@@ -931,14 +961,12 @@ function highlightTableRow(rowId){
   if(needsPageChange){ setTimeout(doHighlight, 50); } else { doHighlight(); }
 }
 
-// ⬇️ PERBAIKAN UTAMA DI SINI: Menggunakan `markerLayer.zoomToShowLayer` agar titik keluar dari kluster
 function onTableRowClick(e, rowId){
   if(e.target.closest('select, a, button, .verif-select, .verif-status-display')) return;
   const marker = markersByRowId[rowId];
   if(!marker) return; 
   document.getElementById('map').scrollIntoView({ behavior:'smooth', block:'center' });
   
-  // Method khusus MarkerCluster untuk otomatis uncluster & zoom ke titik individu
   markerLayer.zoomToShowLayer(marker, () => {
     marker.openPopup();
   });
