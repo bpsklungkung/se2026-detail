@@ -56,6 +56,7 @@
   }
   .refresh-info button:hover{background:#3d2200;}
 
+  /* Marker cluster — mengikuti palet brand, gantikan style default plugin */
   .marker-cluster-brand{
     background:rgba(255,150,68,0.22);
   }
@@ -70,6 +71,7 @@
   .marker-cluster-brand.cluster-md div{ background:var(--orange); }
   .marker-cluster-brand.cluster-sm div{ background:#ffb066; }
 
+  /* Titik usaha individual — pakai divIcon (bukan circleMarker) supaya kompatibel dengan cluster plugin */
   .usaha-dot-icon{ background:transparent; border:none; }
   .usaha-dot{
     display:block;width:13px;height:13px;border-radius:50%;
@@ -140,18 +142,16 @@
   .pg-nav button:hover:not(:disabled){background:#FFE1B0;}
   .pg-nav button:disabled{opacity:.4;cursor:not-allowed;}
   .pg-page{font-size:12.5px;color:var(--brown);font-weight:600;white-space:nowrap;}
-  
-  table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;}
+  table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;}
   thead th{
     position:sticky;top:0;z-index:2;background:var(--brown);color:var(--peach);
-    text-align:left;padding:11px 12px;font-size:11.5px;text-transform:uppercase;
+    text-align:left;padding:11px 12px;font-size:11px;text-transform:uppercase;
     letter-spacing:.05em;font-weight:700;white-space:nowrap;
   }
   thead th.sortable{cursor:pointer;user-select:none;}
   thead th.sortable:hover{background:#4a2800;}
   thead th.sortable .sort-arrow{display:inline-block;margin-left:4px;opacity:.5;font-size:10px;}
   thead th.sortable.sort-active .sort-arrow{opacity:1;}
-  
   #dataTable thead th:nth-child(1){width:10%;}
   #dataTable thead th:nth-child(2){width:9%;}
   #dataTable thead th:nth-child(3){width:9%;}
@@ -160,20 +160,17 @@
   #dataTable thead th:nth-child(6){width:9%;}
   #dataTable thead th:nth-child(7){width:9%;}
   #dataTable thead th:nth-child(8){width:17%;}
-  
-  /* Perbaikan teks memanjang ke bawah (word-break) tanpa terpotong (ellipsis) */
   tbody td{
-    padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--brown);
-    word-break: break-word; /* Teks dibiarkan utuh ke bawah jika lebih dari 1 baris */
+    padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--brown);
+    line-height:1.35;
+    white-space:normal;word-break:normal;overflow-wrap:break-word;
   }
   tbody td:nth-child(6), tbody td:nth-child(7), tbody td:nth-child(8){
     overflow:visible;text-overflow:clip;
   }
-  
   tbody tr:nth-child(even){background:#FFFBF0;}
   tbody tr:hover{background:#FFF1DC;}
   tbody tr[data-rowid]{cursor:pointer;}
-  
   @keyframes rowFlashPulse{
     0%{background:#FF9644;}
     100%{background:#FFD9A8;}
@@ -254,6 +251,7 @@
     text-align:center;color:var(--brown-soft);font-size:12.5px;padding:8px 0 2px;
   }
 
+  /* Verifikasi column */
   .verif-select{
     padding:7px 8px;border-radius:8px;border:1.5px solid var(--line);
     background:var(--cream);color:var(--brown);font-family:'Inter',sans-serif;font-size:12px;
@@ -270,6 +268,7 @@
   .badge-tutup{background:#E7E2DA;color:#5c5346;}
   .verif-meta{font-size:10.5px;color:#b9a892;margin-top:3px;}
 
+  /* Modal */
   .modal-overlay{
     position:fixed;inset:0;background:rgba(86,47,0,0.45);
     display:none;align-items:center;justify-content:center;z-index:50;padding:20px;
@@ -438,14 +437,14 @@
       <table id="dataTable">
         <thead>
           <tr>
-            <th class="sortable" id="th_kecamatan" onclick="toggleSort('kecamatan')">Kecamatan<span class="sort-arrow">↕</span></th>
-            <th class="sortable" id="th_desa" onclick="toggleSort('desa')">Desa<span class="sort-arrow">↕</span></th>
-            <th class="sortable" id="th_sls" onclick="toggleSort('sls')">SLS<span class="sort-arrow">↕</span></th>
-            <th class="sortable" id="th_nama_usaha" onclick="toggleSort('nama_usaha')">Nama Usaha<span class="sort-arrow">↕</span></th>
-            <th class="sortable" id="th_alamat" onclick="toggleSort('alamat')">Alamat<span class="sort-arrow">↕</span></th>
-            <th class="sortable" id="th_statusLabel" onclick="toggleSort('statusLabel')">Status<span class="sort-arrow">↕</span></th>
+            <th>Kecamatan</th>
+            <th>Desa</th>
+            <th>SLS</th>
+            <th>Nama Usaha</th>
+            <th>Alamat</th>
+            <th class="sortable" id="thStatus" onclick="toggleStatusSort()">Status<span class="sort-arrow" id="statusSortArrow">↕</span></th>
             <th>Lokasi</th>
-            <th class="sortable" id="th_verif" onclick="toggleSort('verif')">Verifikasi<span class="sort-arrow">↕</span></th>
+            <th>Verifikasi</th>
           </tr>
         </thead>
         <tbody id="tbody">
@@ -460,6 +459,7 @@
   <footer class="credit">Dashboard internal BPS Kabupaten Klungkung · Data ditarik langsung dari Google Sheets</footer>
 </div>
 
+<!-- Modal Langkah 1: Nama Pengawas -->
 <div class="modal-overlay" id="modalStep1">
   <div class="modal-box">
     <div class="modal-eyebrow">Langkah 1 dari 2</div>
@@ -476,6 +476,7 @@
   </div>
 </div>
 
+<!-- Modal Langkah 2: Keterangan -->
 <div class="modal-overlay" id="modalStep2">
   <div class="modal-box">
     <div class="modal-eyebrow">Langkah 2 dari 2</div>
@@ -494,6 +495,7 @@
 
 <script>
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjZVP8j4iGViq2ufQ_0g9Ls_--N0PrL7AhcJhzdW05PhYEPEfZiXmO5Hnh-aqYwNYlsdMk_dwK808e/pub?output=csv";
+
 const STATUS_API_URL = "https://script.google.com/macros/s/AKfycbz3PZWjLg5VvcyVz7Sl3ysCZkp_6sW5P6NyVXBEzzCXiAazT4zUqIHYL_FhJJTxvNRA/exec";
 
 const STATUS_OPTIONS = [
@@ -510,72 +512,26 @@ const SUPERVISOR_NAMES = [
   "Budi Okta","Bajra","Agung Dharma","Sudiasa","Komang Ari"
 ];
 
-let RAW_ROWS = [];
-let statusCache = {};
+let RAW_ROWS = [];       
+let statusCache = {};    
 let state = { kecamatan:"", desa:"", sls:"", ppl:"", pml:"", verif:"", status:"", search:"" };
-
-// VARIABEL UNTUK MULTI-SORTING
-let sortCol = '';
-let sortDir = 0; // 0=default, 1=asc, -1=desc
-
+let statusSort = 0; 
 let currentPage = 1;
 let pageSize = 10;
-let lastFilteredRows = [];
-let lastSortedRows = [];
+let lastFilteredRows = []; 
+let lastSortedRows = [];   
 
 function computeSortedRows(rows){
-  if(sortDir === 0 || !sortCol) return rows;
+  if(statusSort === 0) return rows;
   return [...rows].sort((a,b)=>{
-    let valA = a[sortCol];
-    let valB = b[sortCol];
-
-    // Jika yang di-sort adalah kolom verifikasi, ambil data dari statusCache
-    if(sortCol === 'verif'){
-      valA = statusCache[a.rowId] ? statusCache[a.rowId].Status : '';
-      valB = statusCache[b.rowId] ? statusCache[b.rowId].Status : '';
-    }
-
-    let sa = (valA||'').toString().toLowerCase();
-    let sb = (valB||'').toString().toLowerCase();
-
+    const sa = (a.statusLabel||'').toLowerCase();
+    const sb = (b.statusLabel||'').toLowerCase();
     if(!sa && !sb) return 0;
-    if(!sa) return 1;
+    if(!sa) return 1;   
     if(!sb) return -1;
-    return sortDir * sa.localeCompare(sb,'id');
+    return statusSort * sa.localeCompare(sb,'id');
   });
 }
-
-function toggleSort(col){
-  if(sortCol === col){
-    sortDir = sortDir === 1 ? -1 : (sortDir === -1 ? 0 : 1);
-    if(sortDir === 0) sortCol = '';
-  }else{
-    sortCol = col;
-    sortDir = 1;
-  }
-
-  // Reset semua ikon panah
-  document.querySelectorAll('thead th.sortable').forEach(th=>{
-    th.classList.remove('sort-active');
-    const arrow = th.querySelector('.sort-arrow');
-    if(arrow) arrow.textContent = '↕';
-  });
-
-  // Set ikon aktif
-  if(sortDir !== 0){
-    const th = document.getElementById('th_' + col);
-    if(th){
-      th.classList.add('sort-active');
-      const arrow = th.querySelector('.sort-arrow');
-      if(arrow) arrow.textContent = sortDir === 1 ? '▲' : '▼';
-    }
-  }
-
-  currentPage = 1;
-  lastSortedRows = computeSortedRows(lastFilteredRows);
-  renderTableBody();
-}
-
 
 function onPageSizeChange(val){
   pageSize = parseInt(val, 10) || 10;
@@ -588,8 +544,17 @@ function goToPage(p){
   renderTableBody();
 }
 
+function toggleStatusSort(){
+  statusSort = statusSort === 0 ? 1 : (statusSort === 1 ? -1 : 0);
+  const th = document.getElementById('thStatus');
+  const arrow = document.getElementById('statusSortArrow');
+  th.classList.toggle('sort-active', statusSort !== 0);
+  arrow.textContent = statusSort === 1 ? '▲' : (statusSort === -1 ? '▼' : '↕');
+  currentPage = 1;
+  lastSortedRows = computeSortedRows(lastFilteredRows);
+  renderTableBody();
+}
 
-// ---- Leaflet map setup ----
 const KLUNGKUNG_CENTER = [-8.535, 115.40];
 const map = L.map('map', { scrollWheelZoom:false, preferCanvas:true }).setView(KLUNGKUNG_CENTER, 11);
 
@@ -619,7 +584,7 @@ const markerLayer = L.markerClusterGroup({
   maxClusterRadius: 55,
   spiderfyOnMaxZoom: true,
   showCoverageOnHover: false,
-  chunkedLoading: true,
+  chunkedLoading: true,       
   iconCreateFunction: function(cluster){
     const count = cluster.getChildCount();
     const size = count < 10 ? 'cluster-sm' : (count < 50 ? 'cluster-md' : 'cluster-lg');
@@ -720,6 +685,14 @@ function parseRawToRecords(rows){
 
     if(!rec.nama_usaha) continue;
 
+    if(!hasValidCoords(rec)){
+      const extracted = extractLatLngFromLokasi(rec.lokasi);
+      if(extracted){
+        rec.lat = String(extracted.lat);
+        rec.long = String(extracted.lng);
+      }
+    }
+
     rec.rowId = buildRowId(rec);
     records.push(rec);
   }
@@ -730,7 +703,28 @@ function parseCoord(v){
   if(v===undefined || v===null) return NaN;
   const s = String(v).trim();
   if(s === '') return NaN;
-  return parseFloat(s.replace(',', '.'));
+  return parseFloat(s.replace(',', '.')); 
+}
+
+function extractLatLngFromLokasi(lokasi){
+  const s = norm(lokasi);
+  if(!s) return null;
+
+  const plain = s.match(/^(-?\d{1,3}(?:[.,]\d+)?)\s*,\s*(-?\d{1,3}(?:[.,]\d+)?)$/);
+  if(plain){
+    const lat = parseCoord(plain[1]), lng = parseCoord(plain[2]);
+    if(!isNaN(lat) && !isNaN(lng)) return { lat, lng };
+  }
+
+  if(/^https?:\/\//i.test(s)){
+    let m = s.match(/[?&](?:q|ll|query)=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/i);
+    if(!m) m = s.match(/@(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/);
+    if(m){
+      const lat = parseFloat(m[1]), lng = parseFloat(m[2]);
+      if(!isNaN(lat) && !isNaN(lng)) return { lat, lng };
+    }
+  }
+  return null;
 }
 
 function hasValidCoords(rec){
@@ -843,7 +837,6 @@ function getAreaBoundsPoints(){
   return null; 
 }
 
-
 const VERIF_MARKER_COLORS = {
   dalam: '#22c55e', 
   luar:  '#3b82f6', 
@@ -867,7 +860,6 @@ function makeDotIcon(color){
     popupAnchor: [0, -6]
   });
 }
-
 
 function updateMarkerColorForRow(rowId){
   const marker = markersByRowId[rowId];
@@ -939,20 +931,15 @@ function highlightTableRow(rowId){
   if(needsPageChange){ setTimeout(doHighlight, 50); } else { doHighlight(); }
 }
 
-// -------------------------------------------------------------
-// FUNGSI INI YANG DIUBAH AGAR MEMECAH CLUSTER SAAT BARIS DIKLIK
-// -------------------------------------------------------------
+// ⬇️ PERBAIKAN UTAMA DI SINI: Menggunakan `markerLayer.zoomToShowLayer` agar titik keluar dari kluster
 function onTableRowClick(e, rowId){
   if(e.target.closest('select, a, button, .verif-select, .verif-status-display')) return;
-  
   const marker = markersByRowId[rowId];
   if(!marker) return; 
-  
-  // Geser layar ke arah peta
   document.getElementById('map').scrollIntoView({ behavior:'smooth', block:'center' });
   
-  // Memaksa plugin MarkerCluster untuk memecah cluster dan men-zoom ke titik
-  markerLayer.zoomToShowLayer(marker, function() {
+  // Method khusus MarkerCluster untuk otomatis uncluster & zoom ke titik individu
+  markerLayer.zoomToShowLayer(marker, () => {
     marker.openPopup();
   });
 }
@@ -1117,8 +1104,6 @@ function showError(msg){
   </div></td></tr>`;
 }
 
-// ---------------- Verifikasi workflow ----------------
-
 const verifModalEls = {
   step1: document.getElementById('modalStep1'),
   step2: document.getElementById('modalStep2'),
@@ -1206,11 +1191,11 @@ document.getElementById('step2Save').addEventListener('click', async ()=>{
 
   try{
     if(!STATUS_API_URL || STATUS_API_URL.includes('PASTE_URL')){
-      throw new Error('URL Apps Script belum diatur. Lihat komentar STATUS_API_URL pada kode.');
+      throw new Error('URL Apps Script belum diatur.');
     }
     const res = await fetch(STATUS_API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
       body: JSON.stringify(payload)
     });
     const json = await res.json();
