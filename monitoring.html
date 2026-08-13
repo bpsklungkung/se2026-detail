@@ -56,7 +56,7 @@
   }
   .refresh-info button:hover{background:#3d2200;}
 
-  /* Marker cluster — mengikuti palet brand, gantikan style default plugin */
+  /* Marker cluster */
   .marker-cluster-brand{
     background:rgba(255,150,68,0.22);
   }
@@ -71,7 +71,7 @@
   .marker-cluster-brand.cluster-md div{ background:var(--orange); }
   .marker-cluster-brand.cluster-sm div{ background:#ffb066; }
 
-  /* Titik usaha individual — pakai divIcon (bukan circleMarker) supaya kompatibel dengan cluster plugin */
+  /* Titik usaha individual */
   .usaha-dot-icon{ background:transparent; border:none; }
   .usaha-dot{
     display:block;width:13px;height:13px;border-radius:50%;
@@ -277,10 +277,10 @@
   .btn-cek-serupa:hover{background:var(--orange);}
   .btn-cek-serupa:disabled{opacity:.35;cursor:not-allowed;}
 
-  /* Modal */
+  /* Modal - PERBAIKAN Z-INDEX (1050 agar di atas peta Leaflet) */
   .modal-overlay{
     position:fixed;inset:0;background:rgba(86,47,0,0.45);
-    display:none;align-items:center;justify-content:center;z-index:50;padding:20px;
+    display:none;align-items:center;justify-content:center;z-index:1050;padding:20px;
   }
   .modal-overlay.open{display:flex;}
   .modal-box{
@@ -290,15 +290,15 @@
   }
   .modal-box-wide{max-width:540px;}
 
-  /* Panel "Cek Serupa" — geser dari kanan, tidak menutupi tabel/peta */
+  /* Panel "Cek Serupa" - PERBAIKAN Z-INDEX (1049 & 1050 agar di atas peta Leaflet) */
   .similar-panel-overlay{
-    position:fixed;inset:0;background:transparent;display:none;z-index:49;
+    position:fixed;inset:0;background:transparent;display:none;z-index:1049;
   }
   .similar-panel-overlay.open{display:block;}
   .similar-panel{
     position:fixed;top:0;right:0;height:100vh;width:420px;max-width:92vw;
     background:var(--white);box-shadow:-10px 0 34px rgba(86,47,0,0.28);
-    z-index:50;transform:translateX(100%);transition:transform .28s ease;
+    z-index:1050;transform:translateX(100%);transition:transform .28s ease;
     display:flex;flex-direction:column;
   }
   .similar-panel.open{transform:translateX(0);}
@@ -369,11 +369,12 @@
   .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
   .modal-error{color:#a94433;font-size:12px;margin-top:10px;display:none;}
 
+  /* PERBAIKAN Z-INDEX (1060 agar di atas semuanya) */
   .toast{
     position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
     background:var(--brown);color:var(--cream);padding:11px 20px;border-radius:30px;
     font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.25);
-    z-index:60;opacity:0;pointer-events:none;transition:opacity .25s, transform .25s;
+    z-index:1060;opacity:0;pointer-events:none;transition:opacity .25s, transform .25s;
   }
   .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px);}
 
@@ -860,7 +861,6 @@ function buildFoundIndex(records){
   });
 }
 
-/* ---- Fuzzy matching utilities untuk "Cek Serupa" ---- */
 function normalizeName(s){
   return upperKey(s).replace(/[^A-Z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
 }
@@ -905,15 +905,13 @@ function similarityScore(nameA, nameB){
 
 const SIMILAR_MIN_SCORE = 0.42;
 const SIMILAR_MAX_RESULTS = 25;
-// Kata sambung/terlalu pendek & generik ini diabaikan sebagai "kata cocok" tunggal,
-// biar nggak numpuk hasil cuma gara-gara kata umum (NI, I, DI, dsb).
 const TOKEN_STOPWORDS = new Set(['DI','KE','NI','NY','I','DAN','THE','NG']);
 
 function hasMeaningfulCommonToken(tokensA, tokensB){
   const setB = new Set(tokensB);
   for(const t of tokensA){
-    if(t.length < 3) continue;           // kata terlalu pendek, skip
-    if(TOKEN_STOPWORDS.has(t)) continue; // kata sambung umum, skip
+    if(t.length < 3) continue;           
+    if(TOKEN_STOPWORDS.has(t)) continue; 
     if(setB.has(t)) return true;
   }
   return false;
@@ -937,7 +935,6 @@ function findSimilarUsaha(rec, level){
       const sameToken = hasMeaningfulCommonToken(targetTokens, cTokens);
       return { rec: c, score, sameToken };
     })
-    // Longgar: masuk kalau skor keseluruhan cukup TINGGI, ATAU ada minimal 1 kata yang sama persis.
     .filter(s => s.sameToken || s.score >= SIMILAR_MIN_SCORE)
     .sort((a,b) => b.score - a.score)
     .slice(0, SIMILAR_MAX_RESULTS);
@@ -1176,7 +1173,9 @@ function highlightTableRow(rowId){
 }
 
 function onTableRowClick(e, rowId){
-  if(e.target.closest('select, a, button, .verif-select, .verif-status-display')) return;
+  // PERBAIKAN: Kecualikan klik yang terjadi di sel (<td>) bagian kolom tindakan untuk mencegah scroll & fokus map otomatis.
+  if(e.target.closest('select, a, button, .verif-select, .verif-status-display, td:nth-child(7), td:nth-child(8), td:nth-child(9)')) return;
+  
   const marker = markersByRowId[rowId];
   if(!marker) return; 
   document.getElementById('map').scrollIntoView({ behavior:'smooth', block:'center' });
@@ -1322,8 +1321,7 @@ function loadData(){
       error: err => reject(err)
     });
   });
-  // Data usaha yang sudah "ditemukan" (listing SE2026), dipakai untuk fitur Cek Serupa.
-  // Dibuat non-blocking: kalau gagal/link belum diisi, dashboard utama tetap jalan.
+  
   const foundCsvPromise = new Promise((resolve)=>{
     if(!CSV_URL_FOUND || CSV_URL_FOUND.indexOf('GANTI_DENGAN_LINK') === 0){
       resolve([]);
