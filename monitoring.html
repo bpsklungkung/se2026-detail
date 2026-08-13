@@ -85,6 +85,16 @@
   }
   .subsls-label::before{ display:none; }
 
+  /* Marker A/B buat perbandingan 2 titik di panel "Cek Serupa" */
+  .compare-dot-icon{ background:transparent; border:none; }
+  .compare-dot{
+    display:flex;align-items:center;justify-content:center;
+    width:28px;height:28px;border-radius:50%;color:#fff;font-weight:800;font-size:13px;
+    font-family:'Inter',sans-serif;box-shadow:0 2px 8px rgba(86,47,0,0.35);border:2px solid #fff;
+  }
+  .compare-dot-a{ background:#a94433; }
+  .compare-dot-b{ background:#2f8a52; }
+
   /* Titik usaha individual — pakai divIcon (bukan circleMarker) supaya kompatibel dengan cluster plugin */
   .usaha-dot-icon{ background:transparent; border:none; }
   .usaha-dot{
@@ -342,7 +352,9 @@
   .similar-item{
     position:relative;border:1.5px solid var(--line);border-radius:10px;
     padding:9px 64px 9px 11px;background:var(--cream);
+    cursor:pointer;transition:border-color .15s, background .15s;
   }
+  .similar-item:hover{border-color:var(--orange);background:var(--peach);}
   .similar-item-name{font-weight:700;font-size:12.5px;color:var(--brown);word-break:break-word;}
   .similar-item-meta{font-size:11px;color:var(--brown-soft);margin-top:2px;word-break:break-word;}
   .similar-score{
@@ -635,6 +647,7 @@ let foundIndexBySls = {};
 let foundIndexByDesa = {};
 let currentSimilarRowId = null;
 let currentSimilarLevel = 'sls';
+let currentSimilarMatches = [];
 let state = { kecamatan:"", desa:"", sls:"", ppl:"", pml:"", verif:"", status:"", search:"" };
 
 let currentSortColumn = null;
@@ -788,6 +801,9 @@ const markerLayer = L.markerClusterGroup({
   }
 }).addTo(map);
 const MAX_MARKERS = 20000; 
+
+// Layer khusus buat nampilin 2 titik perbandingan (dari panel "Cek Serupa")
+const compareLayer = L.layerGroup().addTo(map);
 
 const els = {
   kecamatan: document.getElementById('fKecamatan'),
@@ -1476,6 +1492,7 @@ function showError(msg){
 function openSimilarPopup(e, rowId){
   if(e) e.stopPropagation();
   closeModals(true); // biar nggak numpuk sama panel verifikasi
+  compareLayer.clearLayers(); // bersihin titik A/B dari usaha yang dicek sebelumnya
   currentSimilarRowId = rowId;
   currentSimilarLevel = 'sls';
   document.querySelectorAll('#similarModal .lvl-btn').forEach(b=>{
@@ -1528,13 +1545,14 @@ function renderSimilarList(){
   }
 
   const matches = findSimilarUsaha(rec, currentSimilarLevel);
+  currentSimilarMatches = matches;
   if(matches.length === 0){
     const lvlLabel = currentSimilarLevel === 'desa' ? 'Desa' : 'SLS';
     listEl.innerHTML = `<div class="similar-empty">Tidak ditemukan usaha/keluarga mirip di level ${lvlLabel} ini.</div>`;
     return;
   }
 
-  listEl.innerHTML = matches.map(m=>{
+  listEl.innerHTML = matches.map((m, idx)=>{
     const pct = Math.round(m.score * 100);
     const scoreClass = pct >= 70 ? 'similar-score hi' : 'similar-score';
     const metaParts = [m.rec.sls, m.rec.desa].filter(Boolean).map(escapeHtml).join(', ');
@@ -1543,13 +1561,60 @@ function renderSimilarList(){
     const distTag = distText
       ? `<span class="similar-tag similar-tag-dist">📍 ${distText} dari lokasi ini</span>`
       : `<span class="similar-tag similar-tag-dist muted">Koordinat tidak lengkap</span>`;
-    return `<div class="similar-item">
+    return `<div class="similar-item" onclick="showSimilarOnMap(${idx})" title="Klik buat lihat 2 titik ini di peta">
       <span class="${scoreClass}">${pct}%</span>
       <div class="similar-item-name">${escapeHtml(m.rec.nama_usaha)}</div>
       <div class="similar-item-meta">${metaParts}${m.rec.alamat ? ' · ' + escapeHtml(m.rec.alamat) : ''}</div>
       <div class="similar-tags-row">${tokenTag}${distTag}</div>
     </div>`;
   }).join('');
+}
+
+function showSimilarOnMap(idx){
+  const m = currentSimilarMatches[idx];
+  const rec = RAW_ROWS.find(r => r.rowId === currentSimilarRowId);
+  if(!m || !rec) return;
+
+  if(!hasValidCoords(rec) || !hasValidCoords(m.rec)){
+    showToast('Koordinat salah satu titik tidak lengkap, tidak bisa ditampilkan di peta.', true);
+    return;
+  }
+
+  const aLat = parseCoord(rec.lat), aLng = parseCoord(rec.long);
+  const bLat = parseCoord(m.rec.lat), bLng = parseCoord(m.rec.long);
+
+  compareLayer.clearLayers();
+
+  const iconA = L.divIcon({
+    className:'compare-dot-icon',
+    html:'<span class="compare-dot compare-dot-a">A</span>',
+    iconSize:[28,28], iconAnchor:[14,14]
+  });
+  const iconB = L.divIcon({
+    className:'compare-dot-icon',
+    html:'<span class="compare-dot compare-dot-b">B</span>',
+    iconSize:[28,28], iconAnchor:[14,14]
+  });
+
+  const markerA = L.marker([aLat, aLng], { icon: iconA }).bindPopup(
+    `<div class="popup-title">A · ${escapeHtml(rec.nama_usaha)}</div>
+     <div class="popup-sub">Usaha bermasalah (tabel Monitoring) · ${escapeHtml(rec.statusLabel || '-')}</div>`
+  );
+  const markerB = L.marker([bLat, bLng], { icon: iconB }).bindPopup(
+    `<div class="popup-title">B · ${escapeHtml(m.rec.nama_usaha)}</div>
+     <div class="popup-sub">Kandidat mirip (listing SE2026)</div>`
+  );
+  const line = L.polyline([[aLat, aLng], [bLat, bLng]], {
+    color:'#FF9644', weight:2.5, opacity:0.85, dashArray:'6,7'
+  });
+
+  line.addTo(compareLayer);
+  markerA.addTo(compareLayer);
+  markerB.addTo(compareLayer);
+
+  document.getElementById('map').scrollIntoView({ behavior:'smooth', block:'center' });
+  map.fitBounds([[aLat, aLng], [bLat, bLng]], { padding:[70,70], maxZoom:17 });
+  setTimeout(()=> markerA.openPopup(), 400);
 }
 
 const verifModalEls = {
