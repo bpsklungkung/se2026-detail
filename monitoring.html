@@ -142,32 +142,34 @@
   .pg-nav button:hover:not(:disabled){background:#FFE1B0;}
   .pg-nav button:disabled{opacity:.4;cursor:not-allowed;}
   .pg-page{font-size:12.5px;color:var(--brown);font-weight:600;white-space:nowrap;}
-  table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;}
+  table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;}
   thead th{
     position:sticky;top:0;z-index:2;background:var(--brown);color:var(--peach);
-    text-align:left;padding:11px 12px;font-size:11px;text-transform:uppercase;
-    letter-spacing:.05em;font-weight:700;white-space:nowrap;
+    text-align:left;padding:9px 8px;font-size:10px;text-transform:uppercase;
+    letter-spacing:.03em;font-weight:700;white-space:normal;line-height:1.25;
   }
   thead th.sortable{cursor:pointer;user-select:none;}
   thead th.sortable:hover{background:#4a2800;}
   thead th.sortable .sort-arrow{display:inline-block;margin-left:4px;opacity:.5;font-size:10px;}
   thead th.sortable.sort-active .sort-arrow{opacity:1;}
-  #dataTable thead th:nth-child(1){width:10%;}
-  #dataTable thead th:nth-child(2){width:9%;}
-  #dataTable thead th:nth-child(3){width:9%;}
-  #dataTable thead th:nth-child(4){width:18%;}
-  #dataTable thead th:nth-child(5){width:19%;}
+  #dataTable thead th:nth-child(1){width:9%;}
+  #dataTable thead th:nth-child(2){width:8%;}
+  #dataTable thead th:nth-child(3){width:8%;}
+  #dataTable thead th:nth-child(4){width:17%;}
+  #dataTable thead th:nth-child(5){width:17%;}
   #dataTable thead th:nth-child(6){width:9%;}
-  #dataTable thead th:nth-child(7){width:9%;}
-  #dataTable thead th:nth-child(8){width:17%;}
+  #dataTable thead th:nth-child(7){width:7%;}
+  #dataTable thead th:nth-child(8){width:9%;}
+  #dataTable thead th:nth-child(9){width:16%;}
   tbody td{
-    padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--brown);
+    padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--brown);
     line-height:1.35;
     white-space:normal;word-break:normal;overflow-wrap:break-word;
   }
-  tbody td:nth-child(6), tbody td:nth-child(7), tbody td:nth-child(8){
+  tbody td:nth-child(6), tbody td:nth-child(7), tbody td:nth-child(8), tbody td:nth-child(9){
     overflow:visible;text-overflow:clip;
   }
+  tbody td:nth-child(7){text-align:center;}
   tbody tr:nth-child(even){background:#FFFBF0;}
   tbody tr:hover{background:#FFF1DC;}
   tbody tr[data-rowid]{cursor:pointer;}
@@ -268,6 +270,13 @@
   .badge-tutup{background:#E7E2DA;color:#5c5346;}
   .verif-meta{font-size:10.5px;color:#b9a892;margin-top:3px;}
 
+  .btn-cek-serupa{
+    background:var(--peach);border:none;border-radius:8px;padding:6px 10px;
+    cursor:pointer;font-size:14px;line-height:1;transition:background .15s;
+  }
+  .btn-cek-serupa:hover{background:var(--orange);}
+  .btn-cek-serupa:disabled{opacity:.35;cursor:not-allowed;}
+
   /* Modal */
   .modal-overlay{
     position:fixed;inset:0;background:rgba(86,47,0,0.45);
@@ -277,13 +286,63 @@
   .modal-box{
     background:var(--white);border-radius:16px;max-width:420px;width:100%;
     padding:22px 22px 18px;box-shadow:0 12px 40px rgba(86,47,0,0.25);
+    max-height:88vh;overflow-y:auto;
   }
+  .modal-box-wide{max-width:540px;}
+
+  /* Panel "Cek Serupa" — geser dari kanan, tidak menutupi tabel/peta */
+  .similar-panel-overlay{
+    position:fixed;inset:0;background:transparent;display:none;z-index:49;
+  }
+  .similar-panel-overlay.open{display:block;}
+  .similar-panel{
+    position:fixed;top:0;right:0;height:100vh;width:420px;max-width:92vw;
+    background:var(--white);box-shadow:-10px 0 34px rgba(86,47,0,0.28);
+    z-index:50;transform:translateX(100%);transition:transform .28s ease;
+    display:flex;flex-direction:column;
+  }
+  .similar-panel.open{transform:translateX(0);}
+  .similar-panel-header{
+    position:relative;padding:22px 44px 16px 20px;border-bottom:1px solid var(--line);flex-shrink:0;
+  }
+  .similar-panel-close{
+    position:absolute;top:16px;right:14px;background:var(--cream);border:1.5px solid var(--line);
+    border-radius:50%;width:30px;height:30px;font-size:14px;color:var(--brown-soft);
+    cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;
+  }
+  .similar-panel-close:hover{background:var(--peach);color:var(--brown);}
+  .similar-panel-body{padding:16px 20px 24px;overflow-y:auto;flex:1;}
+
+  .similar-level-toggle{display:flex;gap:8px;margin-top:14px;}
+  .lvl-btn{
+    flex:1;padding:8px 10px;border-radius:9px;border:1.5px solid var(--line);
+    background:var(--cream);color:var(--brown-soft);font-size:12.5px;font-weight:700;
+    cursor:pointer;transition:.15s;
+  }
+  .lvl-btn.active{background:var(--orange);border-color:var(--orange);color:#fff;}
+  .similar-list{display:flex;flex-direction:column;gap:8px;}
+  .similar-item{
+    position:relative;border:1.5px solid var(--line);border-radius:10px;
+    padding:9px 64px 9px 11px;background:var(--cream);
+  }
+  .similar-item-name{font-weight:700;font-size:12.5px;color:var(--brown);word-break:break-word;}
+  .similar-item-meta{font-size:11px;color:var(--brown-soft);margin-top:2px;word-break:break-word;}
+  .similar-score{
+    position:absolute;top:9px;right:10px;font-size:11px;font-weight:700;
+    padding:2px 9px;border-radius:20px;background:var(--peach);color:var(--brown);white-space:nowrap;
+  }
+  .similar-score.hi{background:var(--orange);color:#fff;}
+  .similar-tag{
+    display:inline-block;margin-top:5px;font-size:10px;font-weight:700;
+    padding:2px 8px;border-radius:20px;background:#E4F3E9;color:var(--ok,#2f8a52);
+  }
+  .similar-empty, .similar-loading{text-align:center;color:var(--brown-soft);font-size:13px;padding:22px 0;}
   .modal-eyebrow{
     font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);
     font-weight:700;margin-bottom:4px;
   }
-  .modal-title{font-family:'Fraunces',serif;font-size:19px;font-weight:600;margin:0 0 4px;}
-  .modal-sub{font-size:12.5px;color:var(--brown-soft);margin-bottom:16px;}
+  .modal-title{font-family:'Fraunces',serif;font-size:16px;font-weight:600;margin:0 0 4px;line-height:1.3;word-break:break-word;}
+  .modal-sub{font-size:12px;color:var(--brown-soft);margin-bottom:16px;word-break:break-word;}
   .modal-box label{
     display:block;font-size:11.5px;font-weight:700;text-transform:uppercase;
     letter-spacing:.05em;color:var(--brown-soft);margin-bottom:5px;margin-top:12px;
@@ -443,12 +502,13 @@
             <th class="sortable" onclick="handleSort('nama_usaha')">Nama Usaha<span class="sort-arrow" id="sort-nama_usaha">↕</span></th>
             <th class="sortable" onclick="handleSort('alamat')">Alamat<span class="sort-arrow" id="sort-alamat">↕</span></th>
             <th class="sortable" onclick="handleSort('statusLabel')">Status<span class="sort-arrow" id="sort-statusLabel">↕</span></th>
+            <th>Cek Serupa</th>
             <th class="sortable" onclick="handleSort('lokasi')">Lokasi<span class="sort-arrow" id="sort-lokasi">↕</span></th>
             <th class="sortable" onclick="handleSort('verifikasi')">Verifikasi<span class="sort-arrow" id="sort-verifikasi">↕</span></th>
           </tr>
         </thead>
         <tbody id="tbody">
-          <tr><td colspan="8">
+          <tr><td colspan="9">
             <div class="loading-state"><div class="spinner"></div>Memuat data usaha…</div>
           </td></tr>
         </tbody>
@@ -491,10 +551,31 @@
   </div>
 </div>
 
+<!-- Panel Cek Usaha Mirip (sidebar dari kanan) -->
+<div class="similar-panel-overlay" id="similarPanelOverlay" onclick="closeSimilarModal()"></div>
+<aside class="similar-panel" id="similarModal">
+  <div class="similar-panel-header">
+    <button type="button" class="similar-panel-close" onclick="closeSimilarModal()" aria-label="Tutup">✕</button>
+    <div class="modal-eyebrow">Cek Usaha / Keluarga Mirip</div>
+    <h3 class="modal-title" id="similarModalTitle">—</h3>
+    <div class="modal-sub" id="similarModalSub"></div>
+    <div class="similar-level-toggle">
+      <button type="button" class="lvl-btn" data-level="sls" onclick="switchSimilarLevel('sls')">Level SLS</button>
+      <button type="button" class="lvl-btn" data-level="desa" onclick="switchSimilarLevel('desa')">Level Desa</button>
+    </div>
+  </div>
+  <div class="similar-panel-body">
+    <div class="similar-list" id="similarList"></div>
+  </div>
+</aside>
+
 <div class="toast" id="toast"></div>
 
 <script>
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjZVP8j4iGViq2ufQ_0g9Ls_--N0PrL7AhcJhzdW05PhYEPEfZiXmO5Hnh-aqYwNYlsdMk_dwK808e/pub?output=csv";
+
+// Data usaha yang sudah ditemukan (listing SE2026) - untuk fitur "Cek Serupa"
+const CSV_URL_FOUND = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjZVP8j4iGViq2ufQ_0g9Ls_--N0PrL7AhcJhzdW05PhYEPEfZiXmO5Hnh-aqYwNYlsdMk_dwK808e/pub?gid=833809701&single=true&output=csv";
 
 const STATUS_API_URL = "https://script.google.com/macros/s/AKfycbz3PZWjLg5VvcyVz7Sl3ysCZkp_6sW5P6NyVXBEzzCXiAazT4zUqIHYL_FhJJTxvNRA/exec";
 
@@ -514,6 +595,12 @@ const SUPERVISOR_NAMES = [
 
 let RAW_ROWS = [];       
 let statusCache = {};    
+
+let FOUND_RECORDS = [];
+let foundIndexBySls = {};
+let foundIndexByDesa = {};
+let currentSimilarRowId = null;
+let currentSimilarLevel = 'sls';
 let state = { kecamatan:"", desa:"", sls:"", ppl:"", pml:"", verif:"", status:"", search:"" };
 
 let currentSortColumn = null;
@@ -727,6 +814,133 @@ function parseRawToRecords(rows){
     records.push(rec);
   }
   return records;
+}
+
+function parseFoundRecords(rows){
+  if(!rows || rows.length === 0) return [];
+
+  let headerRowIdx = -1;
+  for(let i=0;i<rows.length;i++){
+    const rowUpper = rows[i].map(upperKey);
+    if(rowUpper.includes('KECAMATAN')){ headerRowIdx = i; break; }
+  }
+  if(headerRowIdx === -1) return [];
+
+  const headerRow = rows[headerRowIdx];
+  const colMap = {};
+  headerRow.forEach((h, idx)=>{
+    const key = classifyHeader(h);
+    if(key) colMap[idx] = key;
+  });
+
+  const records = [];
+  for(let i=headerRowIdx+1;i<rows.length;i++){
+    const r = rows[i];
+    if(!r || r.every(c => norm(c)==="")) continue;
+
+    const rec = {};
+    Object.keys(colMap).forEach(idx=>{
+      rec[colMap[idx]] = norm(r[idx]);
+    });
+
+    if(!rec.nama_usaha || !rec.kecamatan || !rec.desa || !rec.sls) continue;
+    records.push(rec);
+  }
+  return records;
+}
+
+function buildFoundIndex(records){
+  foundIndexBySls = {};
+  foundIndexByDesa = {};
+  records.forEach(rec=>{
+    const slsKey = [upperKey(rec.kecamatan), upperKey(rec.desa), upperKey(rec.sls)].join('|');
+    const desaKey = [upperKey(rec.kecamatan), upperKey(rec.desa)].join('|');
+    (foundIndexBySls[slsKey] = foundIndexBySls[slsKey] || []).push(rec);
+    (foundIndexByDesa[desaKey] = foundIndexByDesa[desaKey] || []).push(rec);
+  });
+}
+
+/* ---- Fuzzy matching utilities untuk "Cek Serupa" ---- */
+function normalizeName(s){
+  return upperKey(s).replace(/[^A-Z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+}
+function tokenizeName(s){
+  return normalizeName(s).split(' ').filter(Boolean);
+}
+function jaccardScore(tokensA, tokensB){
+  const setA = new Set(tokensA), setB = new Set(tokensB);
+  if(setA.size === 0 && setB.size === 0) return 0;
+  let inter = 0;
+  setA.forEach(t=>{ if(setB.has(t)) inter++; });
+  const union = new Set([...setA, ...setB]).size;
+  return union === 0 ? 0 : inter / union;
+}
+function levenshteinDistance(a, b){
+  const m = a.length, n = b.length;
+  if(m === 0) return n;
+  if(n === 0) return m;
+  let prev = new Array(n + 1);
+  for(let j=0;j<=n;j++) prev[j] = j;
+  for(let i=1;i<=m;i++){
+    const cur = [i];
+    for(let j=1;j<=n;j++){
+      const cost = a[i-1] === b[j-1] ? 0 : 1;
+      cur[j] = Math.min(prev[j] + 1, cur[j-1] + 1, prev[j-1] + cost);
+    }
+    prev = cur;
+  }
+  return prev[n];
+}
+function levenshteinRatio(a, b){
+  const maxLen = Math.max(a.length, b.length);
+  if(maxLen === 0) return 1;
+  return 1 - (levenshteinDistance(a, b) / maxLen);
+}
+function similarityScore(nameA, nameB){
+  const normA = normalizeName(nameA), normB = normalizeName(nameB);
+  const lev = levenshteinRatio(normA, normB);
+  const jac = jaccardScore(tokenizeName(normA), tokenizeName(normB));
+  return (0.55 * lev) + (0.45 * jac);
+}
+
+const SIMILAR_MIN_SCORE = 0.42;
+const SIMILAR_MAX_RESULTS = 25;
+// Kata sambung/terlalu pendek & generik ini diabaikan sebagai "kata cocok" tunggal,
+// biar nggak numpuk hasil cuma gara-gara kata umum (NI, I, DI, dsb).
+const TOKEN_STOPWORDS = new Set(['DI','KE','NI','NY','I','DAN','THE','NG']);
+
+function hasMeaningfulCommonToken(tokensA, tokensB){
+  const setB = new Set(tokensB);
+  for(const t of tokensA){
+    if(t.length < 3) continue;           // kata terlalu pendek, skip
+    if(TOKEN_STOPWORDS.has(t)) continue; // kata sambung umum, skip
+    if(setB.has(t)) return true;
+  }
+  return false;
+}
+
+function findSimilarUsaha(rec, level){
+  if(!rec) return [];
+  let candidates = [];
+  if(level === 'desa'){
+    const key = [upperKey(rec.kecamatan), upperKey(rec.desa)].join('|');
+    candidates = foundIndexByDesa[key] || [];
+  }else{
+    const key = [upperKey(rec.kecamatan), upperKey(rec.desa), upperKey(rec.sls)].join('|');
+    candidates = foundIndexBySls[key] || [];
+  }
+  const targetTokens = tokenizeName(rec.nama_usaha);
+  return candidates
+    .map(c => {
+      const cTokens = tokenizeName(c.nama_usaha);
+      const score = similarityScore(rec.nama_usaha, c.nama_usaha);
+      const sameToken = hasMeaningfulCommonToken(targetTokens, cTokens);
+      return { rec: c, score, sameToken };
+    })
+    // Longgar: masuk kalau skor keseluruhan cukup TINGGI, ATAU ada minimal 1 kata yang sama persis.
+    .filter(s => s.sameToken || s.score >= SIMILAR_MIN_SCORE)
+    .sort((a,b) => b.score - a.score)
+    .slice(0, SIMILAR_MAX_RESULTS);
 }
 
 function parseCoord(v){
@@ -1009,7 +1223,7 @@ function renderTableBody(){
   const rows = lastSortedRows;
 
   if(rows.length === 0){
-    els.tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">Tidak ada usaha yang cocok dengan filter saat ini.</div></td></tr>`;
+    els.tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state">Tidak ada usaha yang cocok dengan filter saat ini.</div></td></tr>`;
     renderPaginationBar(0, 0);
     return;
   }
@@ -1029,6 +1243,7 @@ function renderTableBody(){
     const statusCell = r.statusLabel
       ? `<span class="verif-badge ${r.statusBadge}">${escapeHtml(r.statusLabel)}</span>`
       : `<span class="loc-none">–</span>`;
+    const cekSerupaCell = `<button type="button" class="btn-cek-serupa" onclick="openSimilarPopup(event,'${escapeAttr(r.rowId)}')" title="Cek usaha/keluarga mirip di wilayah ini">🔍</button>`;
     return `<tr data-rowid="${escapeAttr(r.rowId)}" onclick="onTableRowClick(event,'${escapeAttr(r.rowId)}')">
       <td title="${escapeAttr(r.kecamatan)}">${escapeHtml(r.kecamatan)}</td>
       <td title="${escapeAttr(r.desa)}">${escapeHtml(r.desa)}</td>
@@ -1036,6 +1251,7 @@ function renderTableBody(){
       <td class="usaha" title="${escapeAttr(r.nama_usaha)}">${escapeHtml(r.nama_usaha)}</td>
       <td class="alamat" title="${escapeAttr(r.alamat)}">${escapeHtml(r.alamat)}</td>
       <td>${statusCell}</td>
+      <td>${cekSerupaCell}</td>
       <td>${locCell}</td>
       <td>${verifCellHtml(r.rowId)}</td>
     </tr>`;
@@ -1095,7 +1311,7 @@ function wireEvents(){
 
 function loadData(){
   els.lastUpdated.textContent = "Memuat data…";
-  els.tbody.innerHTML = `<tr><td colspan="8"><div class="loading-state"><div class="spinner"></div>Memuat data usaha…</div></td></tr>`;
+  els.tbody.innerHTML = `<tr><td colspan="9"><div class="loading-state"><div class="spinner"></div>Memuat data usaha…</div></td></tr>`;
 
   const statusPromise = loadStatusCache();
   const csvPromise = new Promise((resolve, reject)=>{
@@ -1106,13 +1322,37 @@ function loadData(){
       error: err => reject(err)
     });
   });
+  // Data usaha yang sudah "ditemukan" (listing SE2026), dipakai untuk fitur Cek Serupa.
+  // Dibuat non-blocking: kalau gagal/link belum diisi, dashboard utama tetap jalan.
+  const foundCsvPromise = new Promise((resolve)=>{
+    if(!CSV_URL_FOUND || CSV_URL_FOUND.indexOf('GANTI_DENGAN_LINK') === 0){
+      resolve([]);
+      return;
+    }
+    Papa.parse(CSV_URL_FOUND, {
+      download: true,
+      skipEmptyLines: 'greedy',
+      complete: results => resolve(results.data),
+      error: err => { console.warn('Gagal memuat data usaha ditemukan:', err); resolve([]); }
+    });
+  });
 
-  Promise.all([statusPromise, csvPromise]).then(([, csvRows])=>{
+  Promise.all([statusPromise, csvPromise, foundCsvPromise]).then(([, csvRows, foundRows])=>{
     try{
       RAW_ROWS = parseRawToRecords(csvRows);
       if(RAW_ROWS.length === 0){
         throw new Error('Tidak ada baris data usaha yang terbaca dari sheet.');
       }
+
+      try{
+        FOUND_RECORDS = parseFoundRecords(foundRows);
+        buildFoundIndex(FOUND_RECORDS);
+      }catch(errFound){
+        console.warn('Gagal memproses data usaha ditemukan:', errFound);
+        FOUND_RECORDS = [];
+        buildFoundIndex([]);
+      }
+
       els.lastUpdated.textContent = "Data dimuat: " + new Date().toLocaleString('id-ID');
       renderAll();
     }catch(err){
@@ -1126,10 +1366,79 @@ function loadData(){
 function showError(msg){
   els.lastUpdated.textContent = "Gagal memuat data";
   els.statsRow.innerHTML = '';
-  els.tbody.innerHTML = `<tr><td colspan="8"><div class="error-state">
+  els.tbody.innerHTML = `<tr><td colspan="9"><div class="error-state">
     ⚠️ ${escapeHtml(msg)}<br><br>
     Coba klik "Muat ulang data", atau pastikan link Google Sheets masih dipublikasikan (File → Share → Publish to web).
   </div></td></tr>`;
+}
+
+/* ---- Panel "Cek Serupa" ---- */
+function openSimilarPopup(e, rowId){
+  if(e) e.stopPropagation();
+  currentSimilarRowId = rowId;
+  currentSimilarLevel = 'sls';
+  document.querySelectorAll('#similarModal .lvl-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.level === 'sls');
+  });
+  renderSimilarList();
+  document.getElementById('similarModal').classList.add('open');
+  document.getElementById('similarPanelOverlay').classList.add('open');
+}
+
+function closeSimilarModal(){
+  document.getElementById('similarModal').classList.remove('open');
+  document.getElementById('similarPanelOverlay').classList.remove('open');
+  currentSimilarRowId = null;
+}
+
+function switchSimilarLevel(level){
+  currentSimilarLevel = level;
+  document.querySelectorAll('#similarModal .lvl-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.level === level);
+  });
+  renderSimilarList();
+}
+
+function renderSimilarList(){
+  const titleEl = document.getElementById('similarModalTitle');
+  const subEl = document.getElementById('similarModalSub');
+  const listEl = document.getElementById('similarList');
+
+  const rec = RAW_ROWS.find(r => r.rowId === currentSimilarRowId);
+  if(!rec){
+    titleEl.textContent = '—';
+    subEl.textContent = '';
+    listEl.innerHTML = '';
+    return;
+  }
+
+  titleEl.textContent = rec.nama_usaha;
+  subEl.textContent = `${rec.sls}, ${rec.desa}, ${rec.kecamatan}`;
+
+  if(FOUND_RECORDS.length === 0){
+    listEl.innerHTML = `<div class="similar-empty">Data usaha yang ditemukan (listing SE2026) belum tersedia/belum dimuat. Pastikan sheet sudah dipublikasikan dan link CSV_URL_FOUND sudah benar.</div>`;
+    return;
+  }
+
+  const matches = findSimilarUsaha(rec, currentSimilarLevel);
+  if(matches.length === 0){
+    const lvlLabel = currentSimilarLevel === 'desa' ? 'Desa' : 'SLS';
+    listEl.innerHTML = `<div class="similar-empty">Tidak ditemukan usaha/keluarga mirip di level ${lvlLabel} ini.</div>`;
+    return;
+  }
+
+  listEl.innerHTML = matches.map(m=>{
+    const pct = Math.round(m.score * 100);
+    const scoreClass = pct >= 70 ? 'similar-score hi' : 'similar-score';
+    const metaParts = [m.rec.sls, m.rec.desa].filter(Boolean).map(escapeHtml).join(', ');
+    const tokenTag = m.sameToken ? `<span class="similar-tag">Ada kata sama</span>` : '';
+    return `<div class="similar-item">
+      <span class="${scoreClass}">${pct}%</span>
+      <div class="similar-item-name">${escapeHtml(m.rec.nama_usaha)}</div>
+      <div class="similar-item-meta">${metaParts}${m.rec.alamat ? ' · ' + escapeHtml(m.rec.alamat) : ''}</div>
+      ${tokenTag}
+    </div>`;
+  }).join('');
 }
 
 const verifModalEls = {
