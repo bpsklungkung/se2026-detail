@@ -350,10 +350,13 @@
     padding:2px 9px;border-radius:20px;background:var(--peach);color:var(--brown);white-space:nowrap;
   }
   .similar-score.hi{background:var(--orange);color:#fff;}
+  .similar-tags-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
   .similar-tag{
-    display:inline-block;margin-top:5px;font-size:10px;font-weight:700;
+    display:inline-block;font-size:10px;font-weight:700;
     padding:2px 8px;border-radius:20px;background:#E4F3E9;color:var(--ok,#2f8a52);
   }
+  .similar-tag-dist{background:var(--peach);color:var(--brown);}
+  .similar-tag-dist.muted{background:var(--line);color:var(--brown-soft);font-weight:600;}
   .similar-empty, .similar-loading{text-align:center;color:var(--brown-soft);font-size:13px;padding:22px 0;}
   .modal-eyebrow{
     font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);
@@ -704,7 +707,7 @@ function goToPage(p){
 }
 
 const KLUNGKUNG_CENTER = [-8.535, 115.40];
-const map = L.map('map', { scrollWheelZoom:false, preferCanvas:true }).setView(KLUNGKUNG_CENTER, 11);
+const map = L.map('map', { scrollWheelZoom:true, preferCanvas:true }).setView(KLUNGKUNG_CENTER, 11);
 
 const baseOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
@@ -1497,6 +1500,12 @@ function switchSimilarLevel(level){
   renderSimilarList();
 }
 
+function formatDistance(m){
+  if(m === null || m === undefined || isNaN(m)) return null;
+  if(m < 1000) return `${Math.round(m)} m`;
+  return `${(m/1000).toFixed(1)} km`;
+}
+
 function renderSimilarList(){
   const titleEl = document.getElementById('similarModalTitle');
   const subEl = document.getElementById('similarModalSub');
@@ -1530,11 +1539,15 @@ function renderSimilarList(){
     const scoreClass = pct >= 70 ? 'similar-score hi' : 'similar-score';
     const metaParts = [m.rec.sls, m.rec.desa].filter(Boolean).map(escapeHtml).join(', ');
     const tokenTag = m.sameToken ? `<span class="similar-tag">Ada kata sama</span>` : '';
+    const distText = formatDistance(m.distanceM);
+    const distTag = distText
+      ? `<span class="similar-tag similar-tag-dist">📍 ${distText} dari lokasi ini</span>`
+      : `<span class="similar-tag similar-tag-dist muted">Koordinat tidak lengkap</span>`;
     return `<div class="similar-item">
       <span class="${scoreClass}">${pct}%</span>
       <div class="similar-item-name">${escapeHtml(m.rec.nama_usaha)}</div>
       <div class="similar-item-meta">${metaParts}${m.rec.alamat ? ' · ' + escapeHtml(m.rec.alamat) : ''}</div>
-      ${tokenTag}
+      <div class="similar-tags-row">${tokenTag}${distTag}</div>
     </div>`;
   }).join('');
 }
