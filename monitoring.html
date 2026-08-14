@@ -304,7 +304,7 @@
   /* Modal */
   .modal-overlay{
     position:fixed;inset:0;background:rgba(86,47,0,0.45);
-    display:none;align-items:center;justify-content:center;z-index:50;padding:20px;
+    display:none;align-items:center;justify-content:center;z-index:3000;padding:20px;
   }
   .modal-overlay.open{display:flex;}
   .modal-box{
@@ -314,15 +314,17 @@
   }
   .modal-box-wide{max-width:540px;}
 
-  /* Panel "Cek Serupa" — geser dari kanan, tidak menutupi tabel/peta */
+  /* Panel "Cek Serupa" — geser dari kanan, tidak menutupi tabel/peta.
+     z-index dibuat jauh di atas kontrol bawaan Leaflet (z-index:1000) biar
+     di semua browser/perangkat panelnya nggak ketiban peta/kontrolnya. */
   .side-panel-overlay{
-    position:fixed;inset:0;background:transparent;display:none;z-index:49;
+    position:fixed;inset:0;background:transparent;display:none;z-index:3000;
   }
   .side-panel-overlay.open{display:block;}
   .side-panel{
     position:fixed;top:0;right:0;height:100vh;width:420px;max-width:92vw;
     background:var(--white);box-shadow:-10px 0 34px rgba(86,47,0,0.28);
-    z-index:50;transform:translateX(100%);transition:transform .28s ease;
+    z-index:3001;transform:translateX(100%);transition:transform .28s ease;
     display:flex;flex-direction:column;
   }
   .side-panel.open{transform:translateX(0);}
@@ -408,7 +410,7 @@
     position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
     background:var(--brown);color:var(--cream);padding:11px 20px;border-radius:30px;
     font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.25);
-    z-index:60;opacity:0;pointer-events:none;transition:opacity .25s, transform .25s;
+    z-index:3100;opacity:0;pointer-events:none;transition:opacity .25s, transform .25s;
   }
   .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px);}
 
@@ -562,14 +564,14 @@
   <div class="side-panel-header">
     <button type="button" class="side-panel-close" onclick="closeModals(true)" aria-label="Tutup">✕</button>
     <div class="modal-eyebrow">Langkah 1 dari 2</div>
-    <h3 class="modal-title">Nama PJ/Operator</h3>
+    <h3 class="modal-title">Nama PJ</h3>
     <div class="modal-sub" id="step1Recap"></div>
   </div>
   <div class="side-panel-body">
-    <label for="inpSupervisor">Nama PJ/Operator</label>
-    <input type="text" id="inpSupervisor" list="pmlList" placeholder="Ketik atau pilih nama PJ/Operator…" autocomplete="off">
+    <label for="inpSupervisor">Nama PJ</label>
+    <input type="text" id="inpSupervisor" list="pmlList" placeholder="Ketik atau pilih nama pj…" autocomplete="off">
     <datalist id="pmlList"></datalist>
-    <div class="modal-error" id="step1Error">Nama PJ/Operator wajib diisi.</div>
+    <div class="modal-error" id="step1Error">Nama pj wajib diisi.</div>
   </div>
   <div class="side-panel-footer">
     <button class="btn-secondary" id="step1Cancel">Batal</button>
@@ -636,7 +638,7 @@ const STATUS_OPTIONS = [
 const SUPERVISOR_NAMES = [
   "Zidan","Herlinda","Permana","Sutama","Purnami","Sukma","Asya","Indri",
   "Budiriani","Rosma","Eka","Yoga","Ave","Monic","Suparta","Halim",
-  "Budi Okta","Bajra","Agung Dharma","Sudiasa","Komang Ari","Agung Dirga","Dekci","Wija","Toni","Suar"
+  "Budi Okta","Bajra","Agung Dharma","Sudiasa","Komang Ari"
 ];
 
 let RAW_ROWS = [];       
