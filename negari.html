@@ -204,6 +204,36 @@ h1,h2,h3,.display{
 .legend-title{ font-size:10.5px; font-weight:700; color:var(--brown); text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; }
 .legend-row{ display:flex; align-items:center; gap:7px; font-size:12px; color:var(--brown-deep); padding:2px 0; }
 .legend-dot{ width:10px; height:10px; border-radius:50%; flex-shrink:0; border:1.5px solid #fff; box-shadow:0 0 0 1px rgba(86,47,0,0.2); }
+.legend-dot.square{ border-radius:3px; }
+
+.sls-legend{
+  background:rgba(255,253,241,0.95);
+  border:1px solid var(--peach-soft);
+  border-radius:12px;
+  padding:10px 12px;
+  box-shadow:var(--shadow);
+  font-family:'Inter',sans-serif;
+  min-width:150px;
+}
+.sls-toggle{
+  display:flex; align-items:center; gap:6px;
+  font-size:12.5px; color:var(--brown-deep); font-weight:600;
+  margin-left:auto;
+  cursor:pointer; user-select:none;
+}
+.sls-toggle input{ accent-color: var(--orange); width:14px; height:14px; cursor:pointer; }
+.sls-label-tag{
+  background:rgba(255,253,241,0.92);
+  border:1px solid rgba(86,47,0,0.25);
+  border-radius:6px;
+  padding:1px 6px;
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:700;
+  color:var(--brown-deep);
+  box-shadow:0 1px 4px rgba(86,47,0,0.15);
+  white-space:nowrap;
+}
 
 /* ===== Table ===== */
 .table-card{
@@ -308,6 +338,10 @@ table.dataTable tbody td:nth-last-child(2){ text-align:center; }
   <div class="section-head">
     <h2>Peta Sebaran Usaha</h2>
     <span class="tag" id="mapTag">memuat data...</span>
+    <label class="sls-toggle" for="toggleSls">
+      <input type="checkbox" id="toggleSls" checked>
+      Tampilkan Batas SLS
+    </label>
   </div>
   <div class="map-chart-row">
     <div id="map" class="map-col"></div>
@@ -355,6 +389,8 @@ table.dataTable tbody td:nth-last-child(2){ text-align:center; }
           <th>Nama Pemilik</th>
           <th>Alamat</th>
           <th>Jenis Produk</th>
+          <th>TK Pria</th>
+          <th>TK Wanita</th>
           <th>WA</th>
           <th>Maps</th>
         </tr>
@@ -378,6 +414,21 @@ const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnmIUIhrn1JXhy
 let RAW = [];          // all parsed rows
 let markersLayer = null;
 let map = null;
+let slsLayer = null;
+let slsLegendControl = null;
+
+const SLS_GEOJSON = {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"idsls": "51050200010001", "nmsls": "BANJAR TEGAL BESAR", "nmdesa": "NEGARI", "nmkec": "BANJARANGKAN", "kk": "120", "luas": 579153.8, "muatan": "161", "usaha": 38, "nama_ketua": "NI KETUT MENTIKAWATI"}, "geometry": {"type": "MultiPolygon", "coordinates": [[[[115.378099, -8.573125], [115.378126, -8.573151], [115.378135, -8.573251], [115.37813, -8.573356], [115.378011, -8.573533], [115.377449, -8.574207], [115.377197, -8.574599], [115.376704, -8.574709], [115.375691, -8.574806], [115.375305, -8.574794], [115.374343, -8.574861], [115.373649, -8.574861], [115.372564, -8.574832], [115.371345, -8.574804], [115.370629, -8.574913], [115.370667, -8.57467], [115.370715, -8.574493], [115.370779, -8.574268], [115.370861, -8.573753], [115.370956, -8.572744], [115.370938, -8.572544], [115.370955, -8.572462], [115.370963, -8.572419], [115.37102, -8.571973], [115.370913, -8.571484], [115.370692, -8.570981], [115.370617, -8.570217], [115.370649, -8.569874], [115.370603, -8.569564], [115.370686, -8.569153], [115.370681, -8.568967], [115.370713, -8.5688], [115.371356, -8.568669], [115.374408, -8.568198], [115.374885, -8.56813], [115.3754, -8.568056], [115.378003, -8.568037], [115.379815, -8.568083], [115.379842, -8.568086], [115.379838, -8.568093], [115.379724, -8.568373], [115.379562, -8.568568], [115.37941, -8.568806], [115.379088, -8.569043], [115.378861, -8.569073], [115.378635, -8.569156], [115.378254, -8.569239], [115.377826, -8.569335], [115.377534, -8.569495], [115.377439, -8.569608], [115.377368, -8.56984], [115.377332, -8.569995], [115.377439, -8.570215], [115.3776, -8.57044], [115.377621, -8.570532], [115.377691, -8.570801], [115.377931, -8.57094], [115.378036, -8.571065], [115.37817, -8.571228], [115.378208, -8.571401], [115.378088, -8.571702], [115.377903, -8.571714], [115.377888, -8.571709], [115.377886, -8.571866], [115.37809, -8.572586], [115.378138, -8.572594], [115.378099, -8.573125]]]]}}, {"type": "Feature", "properties": {"idsls": "51050200010002", "nmsls": "BANJAR NEGARI", "nmdesa": "NEGARI", "nmkec": "BANJARANGKAN", "kk": "103", "luas": 967563.3, "muatan": "140", "usaha": 34, "nama_ketua": "I WAYAN SURADNYA"}, "geometry": {"type": "MultiPolygon", "coordinates": [[[[115.379501, -8.566228], [115.379551, -8.566446], [115.379558, -8.566488], [115.379635, -8.566634], [115.379648, -8.566648], [115.379662, -8.566651], [115.379816, -8.566717], [115.379931, -8.566792], [115.38006, -8.567041], [115.380067, -8.567141], [115.380109, -8.567403], [115.380033, -8.56775], [115.379847, -8.568078], [115.379842, -8.568086], [115.379815, -8.568083], [115.378003, -8.568037], [115.3754, -8.568056], [115.374885, -8.56813], [115.374408, -8.568198], [115.371356, -8.568669], [115.370713, -8.5688], [115.370716, -8.568785], [115.370699, -8.568636], [115.370679, -8.568464], [115.370689, -8.568278], [115.370709, -8.568053], [115.370744, -8.567895], [115.370749, -8.567785], [115.370813, -8.567493], [115.370832, -8.567364], [115.370938, -8.567005], [115.370963, -8.566708], [115.370938, -8.566551], [115.370895, -8.566416], [115.370771, -8.566284], [115.370638, -8.56615], [115.370569, -8.566124], [115.370508, -8.566101], [115.370385, -8.566134], [115.370268, -8.56616], [115.370218, -8.56621], [115.370189, -8.566302], [115.370135, -8.566412], [115.370067, -8.566487], [115.369977, -8.566565], [115.369903, -8.566754], [115.369833, -8.566827], [115.369691, -8.566822], [115.369498, -8.566699], [115.369315, -8.566449], [115.369233, -8.566267], [115.369233, -8.56606], [115.369326, -8.565707], [115.369379, -8.565471], [115.369376, -8.565396], [115.369312, -8.565175], [115.369248, -8.565043], [115.369123, -8.564893], [115.369094, -8.564722], [115.369094, -8.564565], [115.36908, -8.564468], [115.369111, -8.564244], [115.369178, -8.564123], [115.369191, -8.564056], [115.369355, -8.563808], [115.369369, -8.563665], [115.369305, -8.563576], [115.369194, -8.563472], [115.369155, -8.563405], [115.369066, -8.56329], [115.36893, -8.563279], [115.36877, -8.563347], [115.368527, -8.563518], [115.368448, -8.563711], [115.368277, -8.563883], [115.368134, -8.563968], [115.367949, -8.564047], [115.367713, -8.564075], [115.367573, -8.563973], [115.367593, -8.563736], [115.367688, -8.563647], [115.367776, -8.563479], [115.367906, -8.56328], [115.368163, -8.562923], [115.368329, -8.562641], [115.368462, -8.562604], [115.369188, -8.562623], [115.36976, -8.562545], [115.370456, -8.56238], [115.371414, -8.562048], [115.372019, -8.561739], [115.372102, -8.561697], [115.372116, -8.56169], [115.372123, -8.561732], [115.372682, -8.561699], [115.373035, -8.561656], [115.373208, -8.561618], [115.373242, -8.561486], [115.373263, -8.56121], [115.373265, -8.56121], [115.374292, -8.561096], [115.374795, -8.561053], [115.374852, -8.561049], [115.374784, -8.560889], [115.374765, -8.560808], [115.374765, -8.560751], [115.37477, -8.560699], [115.37476, -8.560627], [115.374689, -8.560523], [115.374712, -8.56048], [115.374869, -8.56047], [115.374965, -8.560442], [115.375269, -8.560404], [115.37545, -8.560389], [115.375689, -8.560319], [115.375855, -8.560147], [115.37579, -8.560045], [115.375765, -8.55998], [115.375808, -8.559941], [115.375858, -8.559934], [115.375976, -8.559916], [115.376086, -8.559908], [115.376233, -8.559888], [115.376344, -8.559873], [115.376404, -8.55987], [115.376551, -8.559848], [115.376715, -8.559841], [115.376832, -8.559816], [115.376868, -8.559791], [115.37684, -8.559616], [115.376822, -8.559531], [115.376783, -8.559388], [115.37679, -8.559224], [115.376808, -8.559102], [115.376822, -8.55897], [115.376825, -8.558895], [115.376836, -8.558831], [115.376822, -8.558756], [115.376786, -8.558696], [115.376733, -8.558699], [115.376722, -8.558546], [115.376693, -8.558349], [115.376679, -8.557917], [115.376647, -8.557614], [115.376629, -8.557396], [115.376622, -8.557257], [115.376611, -8.557082], [115.376608, -8.556986], [115.376597, -8.556857], [115.376583, -8.556747], [115.376568, -8.556636], [115.376581, -8.556553], [115.376532, -8.556198], [115.376549, -8.555964], [115.376528, -8.555657], [115.376521, -8.555533], [115.376507, -8.555447], [115.376492, -8.555368], [115.376464, -8.555276], [115.376467, -8.555197], [115.376539, -8.555122], [115.376635, -8.555072], [115.376778, -8.555044], [115.376981, -8.555011], [115.377135, -8.555011], [115.377313, -8.555026], [115.377352, -8.555044], [115.377469, -8.555136], [115.377755, -8.555082], [115.377945, -8.555005], [115.378168, -8.554809], [115.37817, -8.554807], [115.378171, -8.554807], [115.378171, -8.554807], [115.378413, -8.554712], [115.378607, -8.554923], [115.378691, -8.555168], [115.378721, -8.55608], [115.378637, -8.556532], [115.378798, -8.556723], [115.378852, -8.557052], [115.378733, -8.557294], [115.378595, -8.557895], [115.378641, -8.558358], [115.378664, -8.559113], [115.378725, -8.559944], [115.37866, -8.560434], [115.378698, -8.561188], [115.378473, -8.561667], [115.378358, -8.562119], [115.378339, -8.562448], [115.37822, -8.562593], [115.378197, -8.562712], [115.37827, -8.562999], [115.378285, -8.56316], [115.378067, -8.563313], [115.377975, -8.563428], [115.377959, -8.563442], [115.37797, -8.563601], [115.37831, -8.563747], [115.378665, -8.563906], [115.379053, -8.564033], [115.379201, -8.564246], [115.379336, -8.564476], [115.379344, -8.564513], [115.379423, -8.564869], [115.379572, -8.565133], [115.379793, -8.565297], [115.380044, -8.565527], [115.380063, -8.565544], [115.380061, -8.565545], [115.379972, -8.565633], [115.379663, -8.565938], [115.379584, -8.566022], [115.379532, -8.566152], [115.379501, -8.566228]]]]}}, {"type": "Feature", "properties": {"idsls": "51050200010003", "nmsls": "BANJAR SARIMERTHA", "nmdesa": "NEGARI", "nmkec": "BANJARANGKAN", "kk": "99", "luas": 550990.0, "muatan": "130", "usaha": 12, "nama_ketua": "I WAYAN PASEK"}, "geometry": {"type": "MultiPolygon", "coordinates": [[[[115.382942, -8.5607], [115.382881, -8.5609], [115.382834, -8.561175], [115.382948, -8.561587], [115.383014, -8.561922], [115.38303, -8.5625], [115.38294, -8.562765], [115.38274, -8.563355], [115.382562, -8.563451], [115.382349, -8.563637], [115.382272, -8.563661], [115.381491, -8.564003], [115.381106, -8.56417], [115.381019, -8.564425], [115.38103, -8.564584], [115.381006, -8.564746], [115.380982, -8.564783], [115.380873, -8.56495], [115.38085, -8.565001], [115.380801, -8.565112], [115.380611, -8.565236], [115.380373, -8.565383], [115.380063, -8.565544], [115.380044, -8.565527], [115.379793, -8.565297], [115.379572, -8.565133], [115.379423, -8.564869], [115.379344, -8.564513], [115.379336, -8.564476], [115.379201, -8.564246], [115.379053, -8.564033], [115.378665, -8.563906], [115.37831, -8.563747], [115.37797, -8.563601], [115.377959, -8.563442], [115.377975, -8.563428], [115.378067, -8.563313], [115.378285, -8.56316], [115.37827, -8.562999], [115.378197, -8.562712], [115.37822, -8.562593], [115.378339, -8.562448], [115.378358, -8.562119], [115.378473, -8.561667], [115.378698, -8.561188], [115.37866, -8.560434], [115.378725, -8.559944], [115.378664, -8.559113], [115.378641, -8.558358], [115.378595, -8.557895], [115.378733, -8.557294], [115.378852, -8.557052], [115.378798, -8.556723], [115.378637, -8.556532], [115.378721, -8.55608], [115.378691, -8.555168], [115.378607, -8.554923], [115.378413, -8.554712], [115.378429, -8.554706], [115.378642, -8.554605], [115.378761, -8.554548], [115.378762, -8.554548], [115.378976, -8.554566], [115.379408, -8.554551], [115.379609, -8.554551], [115.379745, -8.554611], [115.379779, -8.554634], [115.380318, -8.554608], [115.380689, -8.554622], [115.381448, -8.554474], [115.38146, -8.554468], [115.381802, -8.554315], [115.382066, -8.554229], [115.382859, -8.554022], [115.383338, -8.553898], [115.383356, -8.55392], [115.383395, -8.554439], [115.383375, -8.554481], [115.383353, -8.554602], [115.38341, -8.554738], [115.383446, -8.554782], [115.383615, -8.555592], [115.38361, -8.555616], [115.383529, -8.556011], [115.383373, -8.556546], [115.383353, -8.556671], [115.383225, -8.556837], [115.383143, -8.556926], [115.383075, -8.557099], [115.383103, -8.557265], [115.383168, -8.557394], [115.383175, -8.557425], [115.383069, -8.557732], [115.383092, -8.558266], [115.383076, -8.558412], [115.383114, -8.559101], [115.383054, -8.559247], [115.383019, -8.559331], [115.382991, -8.560351], [115.382938, -8.560514], [115.382943, -8.560534], [115.382942, -8.560698], [115.382942, -8.5607]]]]}}]};
+
+const SLS_COLORS = {
+  "BANJAR TEGAL BESAR": "#FF9644",
+  "BANJAR NEGARI": "#4C9A2A",
+  "BANJAR SARIMERTHA": "#6A4C93"
+};
+const SLS_COLOR_FALLBACK = ["#FF9644","#4C9A2A","#6A4C93","#2E86AB","#B8336A"];
+
+function getSlsColor(nmsls, idx){
+  return SLS_COLORS[nmsls] || SLS_COLOR_FALLBACK[idx % SLS_COLOR_FALLBACK.length];
+}
 let dt = null;
 let markerById = {};   // id -> leaflet marker
 let chart = null;      // Chart.js instance
@@ -395,6 +446,14 @@ function parseCoord(v){
 
 function cleanTxt(v){
   return (v===undefined||v===null) ? "" : String(v).trim();
+}
+
+function parseNum(v){
+  if(v===undefined||v===null) return null;
+  const s = String(v).trim();
+  if(s===""||s==="-") return null;
+  const n = parseInt(s.replace(/[^\d-]/g,""), 10);
+  return isNaN(n) ? null : n;
 }
 
 function waLink(raw){
@@ -429,16 +488,81 @@ function buildCategoryColors(data, field){
 
 function makeCircleIcon(color){
   const svg = `
-  <svg width="26" height="26" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg" class="pin-icon">
-    <circle cx="13" cy="13" r="10.5" fill="${color}" stroke="#FFFDF1" stroke-width="2.5"/>
+  <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" class="pin-icon">
+    <circle cx="8" cy="8" r="6.2" fill="${color}" stroke="#FFFDF1" stroke-width="1.6"/>
   </svg>`;
   return L.divIcon({
     html: svg,
     className: "",
-    iconSize: [26,26],
-    iconAnchor: [13,13],
-    popupAnchor: [0,-13]
+    iconSize: [16,16],
+    iconAnchor: [8,8],
+    popupAnchor: [0,-8]
   });
+}
+
+function buildSlsLayer(){
+  slsLayer = L.geoJSON(SLS_GEOJSON, {
+    style: function(feature){
+      const color = getSlsColor(feature.properties.nmsls, 0);
+      return {
+        color: color,
+        weight: 2.5,
+        opacity: 0.9,
+        fillColor: color,
+        fillOpacity: 0.14,
+        dashArray: null
+      };
+    },
+    onEachFeature: function(feature, layer){
+      const p = feature.properties;
+      const color = getSlsColor(p.nmsls, 0);
+
+      layer.bindTooltip(p.nmsls, {
+        permanent: true,
+        direction: "center",
+        className: "sls-label-tag"
+      });
+
+      layer.bindPopup(
+        `<div style="font-family:Inter,sans-serif;min-width:180px;">
+           <div style="font-weight:700;color:${color};margin-bottom:4px;">${p.nmsls}</div>
+           <div style="font-size:12.5px;line-height:1.6;color:#3a1f00;">
+             Desa/Kec: ${p.nmdesa}, ${p.nmkec}<br>
+             KK: ${p.kk ?? "-"} &nbsp;|&nbsp; Muatan: ${p.muatan ?? "-"}<br>
+             Usaha tercatat: ${p.usaha ?? "-"}<br>
+             Ketua SLS: ${p.nama_ketua ?? "-"}
+           </div>
+         </div>`
+      );
+
+      layer.on("mouseover", function(){ this.setStyle({ fillOpacity: 0.3, weight: 3.5 }); });
+      layer.on("mouseout", function(){ this.setStyle({ fillOpacity: 0.14, weight: 2.5 }); });
+    }
+  });
+
+  buildSlsLegend();
+}
+
+function buildSlsLegend(){
+  const existing = document.getElementById("slsLegend");
+  if(existing) existing.remove();
+
+  const SlsLegendControl = L.Control.extend({
+    options:{ position: 'topright' },
+    onAdd: function(){
+      const div = L.DomUtil.create('div','sls-legend');
+      div.id = "slsLegend";
+      let html = `<div class="legend-title">Batas SLS — Desa Negari</div>`;
+      Object.keys(SLS_COLORS).forEach(nm=>{
+        html += `<div class="legend-row"><span class="legend-dot square" style="background:${SLS_COLORS[nm]}"></span>${nm}</div>`;
+      });
+      div.innerHTML = html;
+      L.DomEvent.disableClickPropagation(div);
+      return div;
+    }
+  });
+  slsLegendControl = new SlsLegendControl();
+  slsLegendControl.addTo(map);
 }
 
 function buildLegend(){
@@ -568,6 +692,8 @@ function renderTable(data){
     r.NAMA_PEMILIK || "-",
     r.ALAMAT || "-",
     r.JENIS_PRODUK || "-",
+    r.TK_PRIA!==null ? r.TK_PRIA : "-",
+    r.TK_WANITA!==null ? r.TK_WANITA : "-",
     (()=>{ const wa = waLink(r.KONTAK); return wa ? `<a class="cell-btn wa-cell-btn" href="${wa}" target="_blank" rel="noopener" title="${r.KONTAK}">WA</a>` : `<span class="cell-btn-disabled">–</span>`; })(),
     (r.LAT!==null && r.LNG!==null) ? `<a class="cell-btn maps-cell-btn" href="https://www.google.com/maps?q=${r.LAT},${r.LNG}" target="_blank" rel="noopener" title="Lihat di peta">📍</a>` : `<span class="cell-btn-disabled">–</span>`
   ]));
@@ -673,6 +799,8 @@ function boot(){
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
   markersLayer = L.layerGroup().addTo(map);
+  buildSlsLayer();
+  slsLayer.addTo(map);
   setTimeout(()=> map.invalidateSize(), 200);
   window.addEventListener("resize", ()=> map.invalidateSize());
 
@@ -681,7 +809,9 @@ function boot(){
     columns: [
       {title:"No"},{title:"Jenis Usaha"},{title:"Lapangan Usaha"},
       {title:"Jenis Industri"},{title:"Nama Perusahaan"},{title:"Nama Pemilik"},
-      {title:"Alamat"},{title:"Jenis Produk"},{title:"WA", className:"text-center"},{title:"Maps", className:"text-center"}
+      {title:"Alamat"},{title:"Jenis Produk"},
+      {title:"TK Pria", className:"text-center"},{title:"TK Wanita", className:"text-center"},
+      {title:"WA", className:"text-center"},{title:"Maps", className:"text-center"}
     ],
     pageLength: 10,
     lengthMenu: [10,25,50,100],
@@ -721,6 +851,8 @@ function boot(){
         NAMA_PEMILIK: cleanTxt(row["NAMA PEMILIK"]),
         ALAMAT: cleanTxt(row["ALAMAT"]),
         JENIS_PRODUK: cleanTxt(row["JENIS PRODUK"]),
+        TK_PRIA: parseNum(row["TK PRIA"]),
+        TK_WANITA: parseNum(row["TK WANITA"]),
         LAT: parseCoord(row["LATITUDE"]),
         LNG: parseCoord(row["LONGITUDE"]),
         KONTAK: cleanTxt(row["KONTAK PERSON"]),
@@ -753,6 +885,15 @@ function boot(){
     });
   });
   document.getElementById("fSearch").addEventListener("input", ()=>applyFilters());
+  document.getElementById("toggleSls").addEventListener("change", function(){
+    if(this.checked){
+      slsLayer.addTo(map);
+      if(!document.getElementById("slsLegend")) slsLegendControl.addTo(map);
+    } else {
+      map.removeLayer(slsLayer);
+      if(slsLegendControl) map.removeControl(slsLegendControl);
+    }
+  });
   document.getElementById("fColorBy").addEventListener("change", function(){
     colorByField = this.value;
     buildCategoryColors(RAW, colorByField);
