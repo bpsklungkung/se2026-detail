@@ -882,16 +882,42 @@ function boot(){
     }
   });
 
-  $("#dataTable tbody").on("click", "tr", function(e){
-    if($(e.target).closest("a").length) return; // let WA/Maps links behave normally
-    const id = this.dataset.rowid;
-    const marker = markerById[id];
-    if(marker){
-      map.flyTo(marker.getLatLng(), 18, {duration:0.6});
-      marker.openPopup();
-    }
-  });
+ $("#dataTable tbody").on("click", "tr", function(e){
 
+  // Kalau yang diklik adalah tombol/link WA atau Maps,
+  // jangan jalankan aksi klik baris
+  if($(e.target).closest("a").length) return;
+
+  const id = this.dataset.rowid;
+  const marker = markerById[id];
+
+  if(marker){
+
+    // Scroll halaman menuju peta
+    document.getElementById("map").scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+
+    // Pindahkan peta ke lokasi usaha
+    setTimeout(() => {
+
+      map.flyTo(
+        marker.getLatLng(),
+        18,
+        {
+          duration: 0.8
+        }
+      );
+
+      // Buka popup usaha
+      marker.openPopup();
+
+    }, 400);
+
+  }
+
+});
   Papa.parse(CSV_URL, {
     download: true,
     header: true,
