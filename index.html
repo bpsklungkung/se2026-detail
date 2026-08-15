@@ -7912,7 +7912,25 @@ function renderPivot(){
   const rowField=document.getElementById("pvRowField").value;
   const colField=document.getElementById("pvColField").value;
   const data=getPivotData();
-  const rowKeys=[...new Set(data.map(r=>r[rowField]||"(Kosong)"))].sort();
+  // Kunci pengelompokan baris pivot. Untuk mode SLS, nama SLS SAJA TIDAK CUKUP
+  // sebagai kunci unik — banyak nama SLS/banjar berulang di Desa berbeda (mis.
+  // "Banjar Tengah" bisa ada di beberapa Desa). Kalau hanya pakai nama SLS,
+  // baris dari SLS yang BERBEDA (Desa berbeda) bisa tergabung jadi satu baris,
+  // sehingga statistik dan Pencacah Awal-nya tercampur/tertukar. Maka untuk
+  // mode SLS, kuncinya digabung dengan Kecamatan+Desa agar tetap unik secara
+  // fisik; nama SLS tetap ditampilkan apa adanya ke pengguna (lihat plainLabelOf).
+  const rowKeyOf = (rw) => {
+    if(rowField === 'SLS'){
+      const slsName = (rw['SLS']||'').toString().trim();
+      if(!slsName) return '(Kosong)';
+      return `${rw['Kecamatan']||''}||${rw['Desa']||''}||${slsName}`;
+    }
+    return rw[rowField] || '(Kosong)';
+  };
+  // Ambil label yang ditampilkan ke pengguna dari kunci baris (untuk mode SLS,
+  // hanya nama SLS-nya saja yang ditampilkan, bukan gabungan Kecamatan||Desa||SLS).
+  const plainLabelOf = (rowKey) => rowField === 'SLS' ? String(rowKey).split('||').pop() : rowKey;
+  const rowKeys=[...new Set(data.map(r=>rowKeyOf(r)))].sort();
   const colKeys=[...new Set(data.map(r=>r[colField]||"(Kosong)"))].sort();
   const count={}, rowTotal={}, colTotal={}; let grand=0;
 
@@ -7945,7 +7963,7 @@ function renderPivot(){
       const pencacahToSet = {}; // pengawas → Set of pencacah
       rawData.forEach(row=>{
         const pencacah = row[PENCACAH_KEY]||'';
-        const pgw = row[rowField]||'';
+        const pgw = rowKeyOf(row);
         if(pencacah){ pencacahRecordCount[pencacah] = (pencacahRecordCount[pencacah]||0) + 1; }
         if(pgw && pencacah){
           if(!pencacahToSet[pgw]) pencacahToSet[pgw] = new Set();
@@ -7966,7 +7984,7 @@ function renderPivot(){
     }
     if(PENGAWAS_KEY){
       rawData.forEach(row=>{
-        const uname = row[rowField]||'';
+        const uname = rowKeyOf(row);
         if(uname && !pengawasName[uname] && row[PENGAWAS_KEY])
           pengawasName[uname] = row[PENGAWAS_KEY];
       });
@@ -7990,7 +8008,7 @@ function renderPivot(){
   if(showPencacah){
     window.petugasRowKecMap = window.petugasRowKecMap || {};
     rawData.forEach(row=>{
-      const key = row[rowField];
+      const key = rowKeyOf(row);
       const kec = row.Kecamatan;
       if(key && kec && !window.petugasRowKecMap[key]){
         window.petugasRowKecMap[key] = kec;
@@ -8005,7 +8023,7 @@ function renderPivot(){
   if(PROGRESS_CACAH_KEY || PROGRESS_RIKSA_KEY){
     const childFieldProg = {Kabupaten:'Kecamatan', Kecamatan:'Desa', Desa:'SLS'}[rowField] || null;
     rawData.forEach(row=>{
-      const key = row[rowField]||'';
+      const key = rowKeyOf(row);
       if(!key) return;
       const childKey = childFieldProg ? `${key}||${row[childFieldProg]||'(Kosong)'}` : null;
       if(PROGRESS_CACAH_KEY){
@@ -8030,7 +8048,7 @@ function renderPivot(){
   if(CEK_BANGUNAN_KEY){
     const childFieldCB = {Kabupaten:'Kecamatan', Kecamatan:'Desa', Desa:'SLS'}[rowField] || null;
     rawData.forEach(row=>{
-      const key = row[rowField]||'';
+      const key = rowKeyOf(row);
       if(!key) return;
       const v = parseFloat(String(row[CEK_BANGUNAN_KEY]||'').replace(',','.'));
       if(!isNaN(v)){
@@ -8049,7 +8067,7 @@ function renderPivot(){
   if(TIDAK_DITEMUKAN_KEY){
     const childFieldTD = {Kabupaten:'Kecamatan', Kecamatan:'Desa', Desa:'SLS'}[rowField] || null;
     rawData.forEach(row=>{
-      const key = row[rowField]||'';
+      const key = rowKeyOf(row);
       if(!key) return;
       const v = parseFloat(String(row[TIDAK_DITEMUKAN_KEY]||'').replace(',','.'));
       if(!isNaN(v) && v > 0){
@@ -8103,9 +8121,9 @@ function renderPivot(){
       const asgn = row.Assignment || '(Kosong)';
       if(!usernameCountCap[uname]) usernameCountCap[uname] = {};
       usernameCountCap[uname][asgn] = (usernameCountCap[uname][asgn]||0) + 1;
-      if(!usernameGeoCap[uname]) usernameGeoCap[uname] = row[rowField] || '(Kosong)';
+      if(!usernameGeoCap[uname]) usernameGeoCap[uname] = rowKeyOf(row);
       if(childFieldCap && rowField !== 'SLS' && !usernameChildCap[uname]){
-        const parentVal = row[rowField] || '(Kosong)';
+        const parentVal = rowKeyOf(row);
         const childVal  = row[childFieldCap] || '(Kosong)';
         usernameChildCap[uname] = `${parentVal}||${childVal}`;
       }
@@ -8158,7 +8176,7 @@ function renderPivot(){
   const showGeoCapaianRiksa = isGeoCapRow && isPengawasModeAny && Object.keys(geoCapaianRiksaMap).length > 0;
 
   data.forEach(row=>{
-    const r=row[rowField]||"(Kosong)", c=row[colField]||"(Kosong)";
+    const r=rowKeyOf(row), c=row[colField]||"(Kosong)";
     count[r][c]=(count[r][c]||0)+1; rowTotal[r]++; colTotal[c]++; grand++;
   });
 
@@ -8182,7 +8200,7 @@ function renderPivot(){
 
   if(showGeoCap){
     rawData.forEach(row=>{
-      const key  = row[rowField]||'(Kosong)';
+      const key  = rowKeyOf(row);
       const asgn = (row[colField]||'').toString();
       const isPgw   = /approved.+pengawas/i.test(asgn)||/rejected.+pengawas/i.test(asgn)||/revoked.+pengawas/i.test(asgn)
                     ||/edited.+pengawas/i.test(asgn)||/edited.+admin.+kabupaten/i.test(asgn)||/completed.+admin.+kabupaten/i.test(asgn);
@@ -8199,8 +8217,13 @@ function renderPivot(){
       if(rowField==='SLS'){
   if(!geoSubSLS[key]) geoSubSLS[key] = new Set();
   const subKode = (row['SubSLS']||'').toString().trim();
+  const kodeSubSlsFull = (row['Kode SubSLS']||'').toString().trim();
   if(subKode){
-    const uniqueSubKey = `${key}||${subKode}`;
+    // Format: SLS||KodeSubSLSUnik||NomorSubSLS — segmen terakhir tetap nomor pendek
+    // (dipakai banyak tempat lain via .split('||').pop() untuk tampilan "01, 02, ..."),
+    // sementara segmen tengah (kode unik kol. R) menjamin SubSLS fisik yang berbeda
+    // tidak tertukar walau nomornya sama-sama "01"/"02"/dst.
+    const uniqueSubKey = kodeSubSlsFull ? `${key}||${kodeSubSlsFull}||${subKode}` : `${key}||${subKode}`;
     geoSubSLS[key].add(uniqueSubKey);
     if(!subslsDetail[key])      subslsDetail[key] = {};
     if(!subslsDetail[key][uniqueSubKey]) {
@@ -8222,7 +8245,8 @@ function renderPivot(){
     if(/^open$/i.test(col)||/\bopen\b/i.test(col)) subslsDetail[key][uniqueSubKey].open++;
     if(/^draft$/i.test(col)||/\bdraft\b/i.test(col)) subslsDetail[key][uniqueSubKey].draft++;
     
-    // Hanya simpan SATU pencacah (yang pertama ditemukan)
+    // Hanya simpan SATU pencacah (yang pertama ditemukan) — sekarang terikat ke
+    // Kode SubSLS unik, bukan nomor SubSLS mentah, jadi tidak tertukar antar SubSLS lain.
     if(PENCACAH_KEY && row[PENCACAH_KEY] && !subslsDetail[key][uniqueSubKey].pencacahAwal) {
       subslsDetail[key][uniqueSubKey].pencacahAwal = String(row[PENCACAH_KEY]).trim();
     }
@@ -8643,15 +8667,16 @@ function renderPivot(){
   sortedRows.forEach(r=>{
     const rt=rowTotal[r]||0;
     const slsId = r.replace(/[^a-z0-9]/gi,'_') + '_' + rowField;
+    const rLabel = plainLabelOf(r);
 
     const hasChildren = ['Kabupaten','Kecamatan','Desa','SLS'].includes(rowField);
     const rowClass = hasChildren ? ' class="sls-parent-row"' : '';
     const isPersonRow = ['Username','Pencacah Awal','Pengawas Awal'].includes(rowField);
     const labelContent = hasChildren
-      ? `<span class="sls-toggle" onclick="toggleGeoRow(this,'${slsId}')"><span class="sls-toggle-icon">▶</span>${r}</span>`
+      ? `<span class="sls-toggle" onclick="toggleGeoRow(this,'${slsId}')"><span class="sls-toggle-icon">▶</span>${rLabel}</span>`
       : isPersonRow
-        ? `<span class="petugas-link" onclick="showPetugasPopup(event,'${r.replace(/'/g,"\\'")}','${rowField}')" title="Klik untuk lihat profil petugas">${r} <span style="font-size:9px;opacity:.6">ℹ</span></span>`
-        : r;
+        ? `<span class="petugas-link" onclick="showPetugasPopup(event,'${rLabel.replace(/'/g,"\\'")}','${rowField}')" title="Klik untuk lihat profil petugas">${rLabel} <span style="font-size:9px;opacity:.6">ℹ</span></span>`
+        : rLabel;
     html+=`<tr${rowClass}><td class="row-label">${labelContent}</td>`;
 
     // Badge naik/turun dibanding kemarin hanya ditampilkan saat baris = Pencacah atau Pengawas
@@ -8961,6 +8986,11 @@ function renderPivot(){
       const children = Object.keys(childSource[r]).sort();
       children.forEach(child=>{
         const d   = childSource[r][child];
+        // Untuk mode SLS, "child" sekarang berformat gabungan (kode unik SubSLS)
+        // agar Pencacah/Pengawas Awal tidak tertukar; tapi peta pembanding
+        // (progres kemarin dll) masih memakai nomor SubSLS mentah sebagai key,
+        // jadi lookup-nya harus pakai displayCode, bukan "child" langsung.
+        const childLookupKey = rowField==='SLS' ? (d.displayCode || child) : child;
         const st  = d.total, so = d.open, spg = d.pgwDone, sd = d.draft||0;
         html+=`<tr class="subsls-child" data-parent="${slsId}">`;
         html+=`<td class="row-label" style="padding-left:26px!important;border-left:4px solid ${cc.border}!important;font-weight:600!important;color:${cc.label}!important;background:${cc.lbg}!important;font-size:11px">${d.displayCode || child.split('||').pop() || child}</td>`;
@@ -8975,7 +9005,7 @@ function renderPivot(){
         html+=`<td class="total-col" style="background:${cc.tbg}!important"><div class="pivot-cell"><div class="pv-val">${st.toLocaleString()}</div><div class="pv-pct">100%</div></div></td>`;
         if(showGeoCap){
           if(rowField==='Desa'||rowField==='SLS'){
-            html+=`<td class="geo-parent-col" style="background:${cc.lbg}!important">${r}</td>`;
+            html+=`<td class="geo-parent-col" style="background:${cc.lbg}!important">${geoParent[r] || plainLabelOf(r)}</td>`;
           }
           if(rowField==='SLS'){
             html+=`<td class="geo-subsls-col" style="font-family:'Courier New',monospace;font-weight:700">${d.displayCode || child.split('||').pop() || child}</td>`;
@@ -8986,36 +9016,36 @@ function renderPivot(){
           }
           html += geoCapCells(st, so, spg, sd);
           if(showColV){
-            const childKey = `${r}||${child}`;
+            const childKey = `${r}||${childLookupKey}`;
             const sv = childProgressCacahMap[childKey] || 0;
             html+=`<td class="capaian-col" ><div class="pivot-cell"><div class="pv-val" >${sv.toLocaleString(undefined,{maximumFractionDigits:1})}</div></div></td>`;
           }
           if(showColW){
-            const childKey = `${r}||${child}`;
+            const childKey = `${r}||${childLookupKey}`;
             const sw = childProgressRiksaMap[childKey] || 0;
             html+=`<td class="capaian-col" ><div class="pivot-cell"><div class="pv-val" >${sw.toLocaleString(undefined,{maximumFractionDigits:1})}</div></div></td>`;
           }
           if(CEK_BANGUNAN_KEY){
-            const childKey = `${r}||${child}`;
+            const childKey = `${r}||${childLookupKey}`;
             const cb = childCekBangunanMap[childKey] || 0;
             const cbPct = st>0 ? ((cb/st)*100).toFixed(1)+'%' : '';
             html+=`<td class="capaian-col" ><div class="pivot-cell"><div class="pv-val" >${cb.toLocaleString(undefined,{maximumFractionDigits:0})}</div><div class="pv-pct">${cbPct}</div></div></td>`;
           }
           if(showTD){
-            const childKey = `${r}||${child}`;
+            const childKey = `${r}||${childLookupKey}`;
             const td = childTidakDitemukanMap[childKey] || 0;
             const tdPct = st>0 ? ((td/st)*100).toFixed(1)+'%' : '';
             html+=`<td class="capaian-col" ><div class="pivot-cell"><div class="pv-val" >${td>0?td.toLocaleString(undefined,{maximumFractionDigits:0}):'–'}</div><div class="pv-pct">${td>0?tdPct:''}</div></div></td>`;
           }
           if(showGeoCapaianCacah){
-            const childKey = `${r}||${child}`;
+            const childKey = `${r}||${childLookupKey}`;
             const gc = childCapaianCacahMap[childKey];
             const avg = gc && gc.count>0 ? (gc.sum/gc.count) : null;
             const capColor = avg===null ? '#94a3b8' : (avg>=10?'#22c55e':avg>=5?'#f59e0b':'#ef4444');
             html+=`<td class="capaian-col" ><div class="pivot-cell"><div class="pv-val" style="color:${capColor}">${avg===null?'–':avg.toLocaleString(undefined,{maximumFractionDigits:1})}</div><div class="pv-pct">${gc?`rata-rata ${gc.count} username`:''}</div></div></td>`;
           }
           if(showGeoCapaianRiksa){
-            const childKey = `${r}||${child}`;
+            const childKey = `${r}||${childLookupKey}`;
             const gc = childCapaianRiksaMap[childKey];
             const avg = gc && gc.count>0 ? (gc.sum/gc.count) : null;
             const capColor = avg===null ? '#94a3b8' : (avg>=10?'#22c55e':avg>=5?'#f59e0b':'#ef4444');
