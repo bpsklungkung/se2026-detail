@@ -10,6 +10,7 @@
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
 :root{
@@ -240,16 +241,36 @@ h1,h2,h3,.display{
   background:var(--white); border:1px solid var(--peach-soft); border-radius:18px;
   box-shadow:var(--shadow); padding:18px 20px 24px; overflow-x:auto;
 }
-table.dataTable{ width:100% !important; border-collapse:separate !important; border-spacing:0; font-size:12.8px; }
+table.dataTable{
+  width:100% !important;
+  border-collapse:separate !important;
+  border-spacing:0;
+  font-family:'Nunito', sans-serif;
+  font-size:13px;
+  font-weight:500;
+}
 table.dataTable thead th{
-  background:var(--brown); color:var(--cream) !important;
-  font-family:'Inter',sans-serif; font-weight:600; font-size:11.5px;
-  text-transform:uppercase; letter-spacing:.04em;
-  padding:11px 10px !important; border:none !important;
+  background:var(--brown);
+  color:var(--cream) !important;
+  font-family:'Nunito',sans-serif;
+  font-weight:700;
+  font-size:11.5px;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+  padding:11px 10px !important;
+  border:none !important;
 }
 table.dataTable thead th:first-child{ border-radius:10px 0 0 10px; }
 table.dataTable thead th:last-child{ border-radius:0 10px 10px 0; }
-table.dataTable tbody td{ padding:10px !important; border-bottom:1px solid var(--peach-soft) !important; vertical-align:top; color:var(--brown-deep); }
+table.dataTable tbody td{
+  padding:10px !important;
+  border-bottom:1px solid var(--peach-soft) !important;
+  vertical-align:top;
+  color:var(--brown-deep);
+  font-family:'Nunito',sans-serif;
+  font-weight:500;
+  line-height:1.45;
+}
 table.dataTable tbody tr:hover{ background:var(--cream); cursor:pointer; }
 table.dataTable tbody tr.row-selected{ background:var(--peach-soft) !important; }
 .dataTables_wrapper .dataTables_filter input,
@@ -285,6 +306,14 @@ table.dataTable tbody td:nth-last-child(2){ text-align:center; }
   .wrap{ padding:0 14px 40px; }
   #map{ height:400px; }
   .result-count{ margin-left:0; }
+}
+table.dataTable thead th:nth-child(5){
+  min-width:160px !important;
+  white-space:nowrap !important;
+}
+
+.company-header{
+  white-space:nowrap;
 }
 </style>
 </head>
@@ -385,7 +414,7 @@ table.dataTable tbody td:nth-last-child(2){ text-align:center; }
           <th>Jenis Usaha</th>
           <th>Lapangan Usaha</th>
           <th>Jenis Industri</th>
-          <th>Nama Perusahaan</th>
+          <th><span class="company-header">NAMA PERUSAHAAN</span><br><span>(TAHUN)</span></th>
           <th>Nama Pemilik</th>
           <th>Alamat</th>
           <th>Jenis Produk</th>
@@ -409,7 +438,7 @@ table.dataTable tbody td:nth-last-child(2){ text-align:center; }
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
 <script>
-const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnmIUIhrn1JXhysA0bpy5UG24PiQrdtofQKoWO2ityWi9l9fMmSq23cznLiGzMiA/pub?output=csv";
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ5CebDhEmn2bXcwomeH7g3WIBT4tBoYPkFldg2jAqb_VUeD2JZqCKzqDyR1Rq_I_WoikUQRzos34Am/pub?output=csv";
 
 let RAW = [];          // all parsed rows
 let markersLayer = null;
@@ -688,7 +717,12 @@ function renderTable(data){
     r.JENIS_USAHA ? `<span class="tag-usaha">${r.JENIS_USAHA}</span>` : "-",
     r.LAPANGAN_USAHA || "-",
     r.JENIS_INDUSTRI || "-",
-    r.NAMA_PERUSAHAAN || "-",
+    r.NAMA_PERUSAHAAN
+  ? r.NAMA_PERUSAHAAN.replace(
+      /\s*(\([^)]*\))/g,
+      '<br>$1'
+    )
+  : "-",
     r.NAMA_PEMILIK || "-",
     r.ALAMAT || "-",
     r.JENIS_PRODUK || "-",
@@ -729,8 +763,15 @@ function renderChart(data){
   const type = document.getElementById("chartType").value;
   const counts = computeCounts(data, field);
   const entries = Object.entries(counts).sort((a,b)=> b[1]-a[1]); // besar ke kecil
-  const labels = entries.map(e=>e[0]);
-  const values = entries.map(e=>e[1]);
+  // Label sumbu X: tampilkan maksimal 2 kata pertama
+const labels = entries.map(e => {
+  const words = String(e[0]).trim().split(/\s+/);
+  return words.length > 2
+    ? words.slice(0, 2).join(" ") + "..."
+    : e[0];
+});
+
+const values = entries.map(e=>e[1]);
   const colors = labels.map((l,i)=> CATEGORY_COLORS[l] || CATEGORY_PALETTE[i % CATEGORY_PALETTE.length]);
 
   const isCircular = (type==="pie" || type==="doughnut");
@@ -766,7 +807,15 @@ function renderChart(data){
       maintainAspectRatio: false,
       plugins: {
         legend: { display: isCircular, position:"bottom", labels:{ boxWidth:11, font:{size:10.5}, color:"#562F00" } },
-        tooltip: { callbacks: { label: (c)=> ` ${c.label}: ${c.formattedValue}` } }
+        tooltip: {
+  callbacks: {
+    title: (items) => {
+      const index = items[0].dataIndex;
+      return entries[index][0];
+    },
+    label: (c) => ` ${c.formattedValue} usaha`
+  }
+}
       },
       scales: isCircular ? {} : {
         x: { ticks: { autoSkip:false, maxRotation:60, minRotation:45, font:{size:10.5}, color:"#7a5a3a" }, grid:{ display:false } },
@@ -807,12 +856,19 @@ function boot(){
   dt = $("#dataTable").DataTable({
     data: [],
     columns: [
-      {title:"No"},{title:"Jenis Usaha"},{title:"Lapangan Usaha"},
-      {title:"Jenis Industri"},{title:"Nama Perusahaan"},{title:"Nama Pemilik"},
-      {title:"Alamat"},{title:"Jenis Produk"},
-      {title:"TK Pria", className:"text-center"},{title:"TK Wanita", className:"text-center"},
-      {title:"WA", className:"text-center"},{title:"Maps", className:"text-center"}
-    ],
+  {title:"No"},
+  {title:"Jenis Usaha"},
+  {title:"Lapangan Usaha"},
+  {title:"Jenis Industri"},
+  {title:"NAMA PERUSAHAAN<br>(TAHUN)", className:"text-center"},
+  {title:"Nama Pemilik", className:"text-center"},
+  {title:"Alamat", className:"text-center"},
+  {title:"Jenis Produk", className:"text-center"},
+  {title:"TK Pria", className:"text-center"},
+  {title:"TK Wanita", className:"text-center"},
+  {title:"WA", className:"text-center"},
+  {title:"Maps", className:"text-center"}
+],
     pageLength: 10,
     lengthMenu: [10,25,50,100],
     language: {
