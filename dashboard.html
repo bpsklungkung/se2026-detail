@@ -299,6 +299,103 @@
     .compare-picker{ max-height:240px; }
   }
 
+  /* ===== Shift-Share Dinamis ===== */
+  .ss-wrap{ margin-top:20px; }
+  .ss-intro h2{
+    font-family:'Fraunces',serif; font-weight:600; font-size:19px;
+    margin:0 0 3px; color:var(--brown);
+  }
+  .ss-intro p{ margin:0 0 14px; color:var(--brown-mid); font-size:12.5px; max-width:680px; line-height:1.5; }
+  .ss-intro a{ color:var(--orange-deep); font-weight:600; }
+
+  .ss-method-tabs{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+  .ss-method-tab{
+    font-family:'Inter',sans-serif; font-size:12px; font-weight:700;
+    padding:8px 14px; border-radius:999px; cursor:pointer;
+    background:var(--cream-deep); border:1px solid var(--peach-soft); color:var(--brown-mid);
+  }
+  .ss-method-tab.active{ background:var(--orange); color:#fff; border-color:var(--orange); }
+  .ss-method-tab:hover:not(.active){ background:var(--peach-soft); }
+
+  .ss-method-note{
+    background:linear-gradient(135deg, var(--cream) 0%, var(--cream-deep) 100%);
+    border:1px solid var(--peach); border-radius:12px; padding:12px 16px; margin-bottom:14px;
+    font-size:12px; line-height:1.55; color:var(--brown);
+  }
+  .ss-method-note b{ color:var(--brown-deep); }
+
+  .ss-controls{
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    background:var(--card-bg); border:1px solid var(--line); border-radius:12px;
+    padding:10px 14px; margin-bottom:14px;
+  }
+
+  .ss-mapping-toggle{
+    font-size:11.5px; font-weight:700; color:var(--orange-deep); background:none; border:none;
+    cursor:pointer; text-decoration:underline; margin-left:auto;
+  }
+  .ss-mapping-panel{
+    display:none; background:var(--card-bg); border:1px dashed var(--peach); border-radius:12px;
+    padding:14px; margin-bottom:14px;
+  }
+  .ss-mapping-panel.open{ display:block; }
+  .ss-mapping-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px 16px; margin-bottom:10px; }
+  .ss-mapping-grid .ctrl-item{ flex-direction:column; align-items:flex-start; gap:4px; }
+  .ss-mapping-grid select{ width:100%; }
+  .ss-mapping-mode{ display:flex; gap:14px; margin-bottom:10px; font-size:12px; font-weight:600; color:var(--brown-mid); }
+  .ss-mapping-mode label{ display:flex; align-items:center; gap:6px; cursor:pointer; }
+  .ss-mapping-apply{
+    font-size:12px; font-weight:700; color:#fff; background:var(--orange-deep); border:none;
+    padding:7px 16px; border-radius:999px; cursor:pointer;
+  }
+  .ss-mapping-apply:hover{ filter:brightness(1.05); }
+
+  .ss-kpi-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:16px; }
+
+  .ss-section-title{
+    font-size:11px; text-transform:uppercase; letter-spacing:.06em; font-weight:700;
+    color:var(--orange-deep); margin:18px 0 8px;
+  }
+
+  .ss-quad-grid{ display:grid; grid-template-columns:1.1fr 1fr; gap:14px; align-items:start; }
+  .ss-quad-legend{
+    display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;
+  }
+  .ss-quad-legend-item{
+    background:var(--cream); border:1px solid var(--line); border-radius:10px; padding:8px 10px;
+    font-size:11.5px; line-height:1.4; color:var(--brown-mid);
+  }
+  .ss-quad-legend-item b{ color:var(--brown-deep); display:block; font-size:12px; margin-bottom:2px; }
+  .ss-quad-legend-item .cnt{ color:var(--orange-deep); font-weight:700; }
+
+  .ss-table-wrap{
+    border:1px solid var(--line); border-radius:12px; overflow:hidden;
+  }
+  table.ss-table{ width:100%; border-collapse:collapse; font-size:12px; }
+  table.ss-table thead th{
+    background:var(--brown); color:var(--cream); text-align:right;
+    padding:8px 10px; font-size:10.5px; text-transform:uppercase; letter-spacing:.03em;
+    white-space:nowrap; position:sticky; top:0;
+  }
+  table.ss-table thead th:first-child, table.ss-table thead th:nth-child(2){ text-align:left; }
+  table.ss-table td{ padding:7px 10px; text-align:right; border-bottom:1px solid var(--line); color:var(--brown-mid); white-space:nowrap; }
+  table.ss-table td:first-child, table.ss-table td:nth-child(2){ text-align:left; color:var(--brown); font-weight:600; }
+  table.ss-table tbody tr:hover{ background:var(--cream); }
+  table.ss-table td.pos{ color:var(--green); font-weight:700; }
+  table.ss-table td.neg{ color:var(--rust); font-weight:700; }
+  .ss-table-scroll{ max-height:420px; overflow:auto; }
+  .ss-badge-quad{
+    display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px;
+    color:#fff;
+  }
+
+  @media (max-width:900px){
+    .ss-quad-grid{ grid-template-columns:1fr; }
+  }
+  @media (max-width:760px){
+    table.ss-table{ font-size:11px; }
+  }
+
   /* Category section */
   .kategori-block{ margin-top:24px; }
   .section-head h2{ display:flex; align-items:center; gap:9px; }
@@ -835,6 +932,34 @@ let compareChart = null;
 let compareChartType = 'line';
 const COMPARE_COLORS = ['#FF9644','#4E7D5A','#A63A50','#3E6E8E','#8C6BAF','#B98B27','#562F00','#5C8C8C'];
 
+/* ===== Shift-Share Dinamis ===== */
+const SS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcl1gMindMWTFT3LgR_k72Le9Gm94rR2F5kvJYHzMgfW9SNrwa-8xuZsaAtw649uyBfskx3A9VoYR1/pub?gid=78489782&single=true&output=csv";
+let ssMode = false;
+let ssRawRows = null;       // array of row objects from CSV (header:true)
+let ssHeaders = [];
+let ssLoadState = 'idle';   // idle | loading | error | ready
+let ssLoadError = '';
+let ssMap = {                // column mapping (user-editable)
+  yearCol: null,
+  sectorCol: null,
+  dataMode: 'wilayah',       // 'wilayah' (satu kolom wilayah + nilai) | 'terpisah' (dua kolom nilai)
+  regionCol: null,
+  valueCol: null,
+  regionStudi: null,
+  regionAcuan: null,
+  valueStudiCol: null,
+  valueAcuanCol: null
+};
+let ssMappingConfirmed = false;
+let ssMappingPanelOpen = false;
+let ssMethod = 'tradisional';  // tradisional | em | arcelus
+let ssYearFrom = null;
+let ssYearTo = null;
+let ssYearsAvailable = [];
+let ssChart = null;
+let ssQuadChart = null;
+let ssResult = null; // computed result cache
+
 const KATEGORI_PALETTE = ['#FF6B6B','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#FF9644','#008080','#4C5C7D','#C1440E'];
 let GROUP_COLOR_MAP = {};
 function getGroupColor(kategori, kelompok){
@@ -1117,9 +1242,9 @@ function renderTabs(){
   tabsEl.innerHTML = '';
   STORE.__order.forEach(p=>{
     const btn = document.createElement('button');
-    btn.className = 'tab' + (!compareMode && p===activePeriode?' active':'');
+    btn.className = 'tab' + (!compareMode && !ssMode && p===activePeriode?' active':'');
     btn.textContent = p;
-    btn.onclick = ()=>{ compareMode = false; activePeriode = p; renderTabs(); renderContent(p); };
+    btn.onclick = ()=>{ compareMode = false; ssMode = false; activePeriode = p; renderTabs(); renderContent(p); };
     tabsEl.appendChild(btn);
   });
 
@@ -1130,8 +1255,14 @@ function renderTabs(){
   const cmpBtn = document.createElement('button');
   cmpBtn.className = 'tab' + (compareMode ? ' active' : '');
   cmpBtn.textContent = '⇄ Bandingkan';
-  cmpBtn.onclick = ()=>{ compareMode = true; renderTabs(); renderCompareView(); };
+  cmpBtn.onclick = ()=>{ compareMode = true; ssMode = false; renderTabs(); renderCompareView(); };
   tabsEl.appendChild(cmpBtn);
+
+  const ssBtn = document.createElement('button');
+  ssBtn.className = 'tab' + (ssMode ? ' active' : '');
+  ssBtn.textContent = '📐 Shift-Share';
+  ssBtn.onclick = ()=>{ compareMode = false; ssMode = true; renderTabs(); renderShiftShareView(); };
+  tabsEl.appendChild(ssBtn);
 }
 
 function makeSparkline(entries, color, type){
@@ -4420,6 +4551,661 @@ function hexToRgba(hex, alpha){
   const g = parseInt(h.substring(2,4),16);
   const b = parseInt(h.substring(4,6),16);
   return `rgba(${r},${g},${b},${alpha})`;
+}
+
+/* =========================================================
+   SHIFT-SHARE DINAMIS
+   Referensi metode: https://en.wikipedia.org/wiki/Shift-share_analysis
+   Model: Tradisional (Dunn), Esteban-Marquilas (1972), Arcelus (1984)
+   ========================================================= */
+
+function ssIsNumericColumn(col){
+  let cnt=0, total=0;
+  for(let i=0;i<Math.min(40, ssRawRows.length); i++){
+    const v = ssRawRows[i][col];
+    if(v===undefined||v===null||v.toString().trim()==='') continue;
+    total++;
+    if(!isNaN(toNumber(v))) cnt++;
+  }
+  return total>0 && (cnt/total) > 0.8;
+}
+function ssIsYearLike(col){
+  let cnt=0, total=0;
+  ssRawRows.slice(0,50).forEach(r=>{
+    const v=(r[col]||'').toString().trim();
+    if(!v) return;
+    total++;
+    if(/^(19|20)\d{2}(\.0)?$/.test(v)) cnt++;
+  });
+  return total>0 && (cnt/total) > 0.6;
+}
+function ssUniqueValues(col){
+  const set = new Set();
+  ssRawRows.forEach(r=>{ const v=(r[col]||'').toString().trim(); if(v) set.add(v); });
+  return [...set];
+}
+
+function autoDetectSSColumns(){
+  if(!ssHeaders || !ssHeaders.length) return;
+
+  let yearCol = ssHeaders.find(h=>/tahun|year/i.test(h)) || ssHeaders.find(h=>ssIsYearLike(h));
+
+  let regionCol = ssHeaders.find(h=> h!==yearCol && /wilayah|kabupaten|kota|provinsi|region|daerah/i.test(h) && !ssIsNumericColumn(h));
+  if(regionCol){
+    const uv = ssUniqueValues(regionCol);
+    if(uv.length<2 || uv.length>12) regionCol = null;
+  }
+
+  let sectorCol = ssHeaders.find(h=> h!==yearCol && h!==regionCol && /sektor|lapangan\s*usaha|kategori\s*ekonomi|industri|lu\b/i.test(h));
+  if(!sectorCol){
+    const textCols = ssHeaders.filter(h=> h!==yearCol && h!==regionCol && !ssIsNumericColumn(h));
+    textCols.sort((a,b)=> ssUniqueValues(b).length - ssUniqueValues(a).length);
+    sectorCol = textCols[0] || null;
+  }
+
+  const numericCols = ssHeaders.filter(h=> h!==yearCol && h!==sectorCol && h!==regionCol && ssIsNumericColumn(h));
+
+  ssMap.yearCol = yearCol || null;
+  ssMap.sectorCol = sectorCol || null;
+
+  if(regionCol && numericCols.length){
+    ssMap.dataMode = 'wilayah';
+    ssMap.regionCol = regionCol;
+    ssMap.valueCol = numericCols.find(h=>/nilai|value|pdrb|jumlah|produksi|tenaga\s*kerja|pekerja/i.test(h)) || numericCols[0];
+    const uv = ssUniqueValues(regionCol);
+    ssMap.regionStudi = uv.find(v=>/klungkung/i.test(v)) || uv[0] || null;
+    ssMap.regionAcuan = uv.find(v=> v!==ssMap.regionStudi && /bali|provinsi|nasional|indonesia/i.test(v)) || uv.find(v=> v!==ssMap.regionStudi) || null;
+  } else {
+    ssMap.dataMode = 'terpisah';
+    ssMap.regionCol = null; ssMap.valueCol = null;
+    ssMap.valueStudiCol = numericCols.find(h=>/klungkung|studi|kab\b/i.test(h)) || numericCols[0] || null;
+    ssMap.valueAcuanCol = numericCols.find(h=> h!==ssMap.valueStudiCol && /bali|provinsi|acuan|nasional|indonesia/i.test(h)) || numericCols.find(h=> h!==ssMap.valueStudiCol) || null;
+  }
+}
+
+function ssMappingValid(){
+  if(!ssMap.yearCol || !ssMap.sectorCol) return false;
+  if(ssMap.dataMode==='wilayah'){
+    return !!(ssMap.regionCol && ssMap.valueCol && ssMap.regionStudi && ssMap.regionAcuan && ssMap.regionStudi!==ssMap.regionAcuan);
+  }
+  return !!(ssMap.valueStudiCol && ssMap.valueAcuanCol && ssMap.valueStudiCol!==ssMap.valueAcuanCol);
+}
+
+function ssExtractYear(v){
+  if(v===undefined||v===null) return NaN;
+  const s = v.toString().trim();
+  const m = s.match(/(19|20)\d{2}/);
+  return m ? parseInt(m[0]) : parseInt(s);
+}
+
+function buildSSDataset(){
+  const map = {};
+  ssRawRows.forEach(r=>{
+    const tahun = ssExtractYear(r[ssMap.yearCol]);
+    const sektor = (r[ssMap.sectorCol]||'').toString().trim();
+    if(!tahun || isNaN(tahun) || !sektor) return;
+    const key = tahun+'|||'+sektor;
+    if(!map[key]) map[key] = {tahun, sektor, studi:0, acuan:0};
+    if(ssMap.dataMode==='wilayah'){
+      const wil = (r[ssMap.regionCol]||'').toString().trim();
+      const val = toNumber(r[ssMap.valueCol]);
+      if(isNaN(val)) return;
+      if(wil===ssMap.regionStudi) map[key].studi += val;
+      else if(wil===ssMap.regionAcuan) map[key].acuan += val;
+    } else {
+      const vS = toNumber(r[ssMap.valueStudiCol]);
+      const vA = toNumber(r[ssMap.valueAcuanCol]);
+      if(!isNaN(vS)) map[key].studi += vS;
+      if(!isNaN(vA)) map[key].acuan += vA;
+    }
+  });
+  return Object.values(map);
+}
+
+function indexSSDataset(dataset){
+  const byYear = {};
+  const totals = {};
+  const sectorsSet = new Set();
+  dataset.forEach(d=>{
+    sectorsSet.add(d.sektor);
+    if(!byYear[d.tahun]) byYear[d.tahun] = {};
+    byYear[d.tahun][d.sektor] = {studi:d.studi, acuan:d.acuan};
+    if(!totals[d.tahun]) totals[d.tahun] = {studi:0, acuan:0};
+    totals[d.tahun].studi += d.studi;
+    totals[d.tahun].acuan += d.acuan;
+  });
+  const years = Object.keys(byYear).map(Number).sort((a,b)=>a-b);
+  return { byYear, totals, sectors:[...sectorsSet].sort(), years };
+}
+
+const SS_QUAD_LABELS = {
+  tradisional: {
+    1:{ title:'Kuadran I · Progresif', desc:'Bauran industri & keunggulan kompetitif sama-sama positif — sektor tumbuh cepat secara nasional dan makin unggul di wilayah.', color:'#6F8F52' },
+    2:{ title:'Kuadran II · Kompetitif Lokal', desc:'Secara nasional bauran industrinya lambat, namun wilayah tetap unggul kompetitif pada sektor ini.', color:'#3E6E8E' },
+    3:{ title:'Kuadran III · Lamban', desc:'Bauran industri & keunggulan kompetitif sama-sama negatif — sektor tertinggal di kedua sisi.', color:'#C1440E' },
+    4:{ title:'Kuadran IV · Rentan', desc:'Secara nasional sektor tumbuh cepat, tetapi wilayah kalah bersaing (kurang kompetitif) di sektor ini.', color:'#B98B27' }
+  },
+  spesialisasi: {
+    1:{ title:'Kuadran I · Unggulan', desc:'Wilayah terspesialisasi pada sektor ini dan sekaligus unggul kompetitif — kombinasi ideal.', color:'#6F8F52' },
+    2:{ title:'Kuadran II · Potensial', desc:'Belum terspesialisasi namun kompetitif — peluang untuk memperbesar porsi sektor ini.', color:'#3E6E8E' },
+    3:{ title:'Kuadran III · Bukan Unggulan', desc:'Tidak terspesialisasi dan tidak kompetitif di sektor ini.', color:'#C1440E' },
+    4:{ title:'Kuadran IV · Salah Spesialisasi', desc:'Wilayah terspesialisasi pada sektor ini tetapi kalah kompetitif — alokasi sumber daya kurang tepat (efek alokasi negatif).', color:'#B98B27' }
+  }
+};
+
+function ssClassify(method, row){
+  let x,y;
+  if(method==='tradisional'){ x = row.M; y = row.C; }
+  else { x = row.spesialisasi; y = row.C; }
+  if(x===null || x===undefined || isNaN(x)) return null;
+  if(x>=0 && y>=0) return 1;
+  if(x<0 && y>=0) return 2;
+  if(x<0 && y<0) return 3;
+  return 4;
+}
+
+function computeShiftShare(idx, yearFrom, yearTo, method){
+  const years = idx.years.filter(y=> y>=yearFrom && y<=yearTo);
+  const sectors = idx.sectors;
+  const acc = {};
+  sectors.forEach(s=> acc[s] = {N:0,M:0,C:0,A:0,D:0, hasData:false});
+  let skippedIntervals = 0;
+
+  for(let i=0;i<years.length-1;i++){
+    const y0=years[i], y1=years[i+1];
+    const tot0 = idx.totals[y0], tot1 = idx.totals[y1];
+    if(!tot0 || !tot1 || !(tot0.acuan>0) || !(tot0.studi>0)){ skippedIntervals++; continue; }
+    const r00 = (tot1.acuan - tot0.acuan) / tot0.acuan;
+    sectors.forEach(s=>{
+      const d0 = (idx.byYear[y0]||{})[s];
+      const d1 = (idx.byYear[y1]||{})[s];
+      if(!d0 || !d1) return;
+      const Eij0=d0.studi, Eij1=d1.studi, Ei0=d0.acuan, Ei1=d1.acuan;
+      acc[s].D += (Eij1-Eij0);
+      if(!(Eij0>0) || !(Ei0>0)) return;
+      acc[s].hasData = true;
+      const ri0 = (Ei1-Ei0)/Ei0;
+      const rij = (Eij1-Eij0)/Eij0;
+      const EijStar0 = tot0.studi * (Ei0/tot0.acuan);
+      let N=0,M=0,C=0,A=0;
+      if(method==='tradisional'){
+        N = Eij0*r00; M = Eij0*(ri0-r00); C = Eij0*(rij-ri0);
+      } else if(method==='em'){
+        N = Eij0*r00; M = Eij0*(ri0-r00);
+        C = EijStar0*(rij-ri0); A = (Eij0-EijStar0)*(rij-ri0);
+      } else { // arcelus — strukturisasi Eij* diterapkan pada seluruh komponen
+        N = EijStar0*r00; M = EijStar0*(ri0-r00);
+        C = EijStar0*(rij-ri0); A = (Eij0-EijStar0)*rij;
+      }
+      acc[s].N+=N; acc[s].M+=M; acc[s].C+=C; acc[s].A+=A;
+    });
+  }
+
+  const y0base = years[0];
+  const tot0base = idx.totals[y0base];
+  const specBySector = {};
+  sectors.forEach(s=>{
+    const d0 = (idx.byYear[y0base]||{})[s];
+    if(d0 && tot0base && tot0base.acuan>0){
+      const EijStar0 = tot0base.studi * (d0.acuan/tot0base.acuan);
+      specBySector[s] = d0.studi - EijStar0;
+    } else specBySector[s] = null;
+  });
+
+  let perSector = sectors.map(s=>{
+    const a = acc[s];
+    const total = method==='tradisional' ? (a.N+a.M+a.C) : (a.N+a.M+a.C+a.A);
+    return {
+      sektor:s, N:a.N, M:a.M, C:a.C, A:a.A, total, deltaAktual:a.D,
+      spesialisasi: specBySector[s], hasData:a.hasData
+    };
+  }).filter(r=>r.hasData);
+
+  perSector.forEach(r=>{ r.quadrant = ssClassify(method, r); });
+  perSector.sort((a,b)=> Math.abs(b.total) - Math.abs(a.total));
+
+  return { perSector, years, skippedIntervals, y0base };
+}
+
+/* ---------- Rendering ---------- */
+
+function renderShiftShareView(){
+  const filterPanel = document.getElementById('kelFilterPanel');
+  if(filterPanel) filterPanel.style.display = 'none';
+  const main = document.getElementById('main');
+
+  const introHtml = `
+    <div class="ss-intro">
+      <h2>Shift-Share Dinamis</h2>
+      <p>Analisis Shift-Share menguraikan pertumbuhan tiap sektor di suatu wilayah menjadi tiga hal: dorongan pertumbuhan wilayah acuan (Pertumbuhan Nasional), pengaruh komposisi/campuran sektor (Bauran Industri), dan keunggulan/kelemahan bersaing wilayah itu sendiri (Pergeseran Diferensial). Versi <b>dinamis</b> di bawah ini menghitung ulang ketiga komponen tersebut untuk setiap pasang tahun berurutan lalu mengakumulasikannya sepanjang rentang yang dipilih, sehingga perubahan laju pertumbuhan dari tahun ke tahun ikut tertangkap — bukan hanya membandingkan dua titik tahun. Tersedia tiga varian model: Tradisional (Dunn), Esteban-Marquilas (1972), dan Arcelus (1984). Rujukan metode: <a href="https://en.wikipedia.org/wiki/Shift-share_analysis" target="_blank" rel="noopener">Shift-share analysis — Wikipedia ↗</a></p>
+    </div>`;
+
+  if(ssLoadState==='idle'){
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>Memuat data Shift-Share…</div></section>`;
+    loadShiftShareData();
+    return;
+  }
+  if(ssLoadState==='loading'){
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>Memuat data Shift-Share…</div></section>`;
+    return;
+  }
+  if(ssLoadState==='error'){
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(ssLoadError)}<br><br><a href="${SS_CSV_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div></section>`;
+    return;
+  }
+  if(!ssRawRows || !ssRawRows.length){
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">Sumber data kosong atau tidak dapat dibaca.</div></section>`;
+    return;
+  }
+
+  const mappingOk = ssMappingValid();
+
+  main.innerHTML = `
+    <section class="ss-wrap">
+      ${introHtml}
+
+      <div class="ss-method-tabs" id="ssMethodTabs">
+        <button class="ss-method-tab" data-m="tradisional">Tradisional</button>
+        <button class="ss-method-tab" data-m="em">Esteban-Marquilas</button>
+        <button class="ss-method-tab" data-m="arcelus">Arcelus</button>
+      </div>
+      <div class="ss-method-note" id="ssMethodNote"></div>
+
+      <div class="ss-controls">
+        <div class="ctrl-item"><label>Tahun Awal</label><select id="ssFrom"></select></div>
+        <div class="ctrl-item"><label>Tahun Akhir</label><select id="ssTo"></select></div>
+        <div class="ctrl-item" style="font-size:11.5px;color:var(--brown-soft);" id="ssIntervalInfo"></div>
+        <button class="ss-mapping-toggle" id="ssMapToggle">${mappingOk ? '⚙ Atur Pemetaan Kolom' : '⚠ Atur Pemetaan Kolom (perlu dilengkapi)'}</button>
+      </div>
+
+      <div class="ss-mapping-panel${ssMappingPanelOpen ? ' open' : ''}" id="ssMapPanel"></div>
+
+      <div id="ssBody"></div>
+    </section>`;
+
+  document.querySelectorAll('.ss-method-tab').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.m===ssMethod);
+    btn.onclick = ()=>{ ssMethod = btn.dataset.m; renderShiftShareView(); };
+  });
+  updateSSMethodNote();
+
+  renderSSMappingPanel();
+  document.getElementById('ssMapToggle').onclick = ()=>{
+    ssMappingPanelOpen = !ssMappingPanelOpen;
+    document.getElementById('ssMapPanel').classList.toggle('open', ssMappingPanelOpen);
+  };
+
+  if(!mappingOk){
+    document.getElementById('ssBody').innerHTML = `<div class="state-msg">Pemetaan kolom belum lengkap/valid. Buka "Atur Pemetaan Kolom" di atas untuk menyesuaikan sumber data dengan struktur sheet.</div>`;
+    ssMappingPanelOpen = true;
+    document.getElementById('ssMapPanel').classList.add('open');
+    return;
+  }
+
+  const dataset = buildSSDataset();
+  const idx = indexSSDataset(dataset);
+
+  if(idx.years.length < 2){
+    document.getElementById('ssBody').innerHTML = `<div class="state-msg">Data tahun yang valid kurang dari 2 — Shift-Share memerlukan minimal dua tahun untuk menghitung pertumbuhan.</div>`;
+    return;
+  }
+
+  ssYearsAvailable = idx.years;
+  if(!ssYearFrom || !idx.years.includes(ssYearFrom)) ssYearFrom = idx.years[0];
+  if(!ssYearTo || !idx.years.includes(ssYearTo) || ssYearTo<=ssYearFrom) ssYearTo = idx.years[idx.years.length-1];
+
+  const fromSel = document.getElementById('ssFrom');
+  const toSel = document.getElementById('ssTo');
+  idx.years.forEach(y=>{
+    fromSel.innerHTML += `<option value="${y}" ${y===ssYearFrom?'selected':''}>${y}</option>`;
+    toSel.innerHTML += `<option value="${y}" ${y===ssYearTo?'selected':''}>${y}</option>`;
+  });
+  fromSel.onchange = ()=>{
+    ssYearFrom = parseInt(fromSel.value);
+    if(ssYearTo<=ssYearFrom){ const nxt = idx.years.find(y=>y>ssYearFrom); ssYearTo = nxt||ssYearFrom; }
+    renderShiftShareView();
+  };
+  toSel.onchange = ()=>{ ssYearTo = parseInt(toSel.value); renderShiftShareView(); };
+
+  const usedYears = idx.years.filter(y=>y>=ssYearFrom && y<=ssYearTo);
+  document.getElementById('ssIntervalInfo').textContent =
+    usedYears.length>=2 ? `${usedYears.length-1} interval tahunan dihitung & diakumulasi` : 'Rentang tahun terlalu pendek';
+
+  if(usedYears.length < 2){
+    document.getElementById('ssBody').innerHTML = `<div class="state-msg">Pilih rentang minimal 2 tahun.</div>`;
+    return;
+  }
+
+  const result = computeShiftShare(idx, ssYearFrom, ssYearTo, ssMethod);
+  ssResult = result;
+
+  if(!result.perSector.length){
+    document.getElementById('ssBody').innerHTML = `<div class="state-msg">Tidak ada sektor dengan data lengkap pada rentang tahun ini. Coba perlebar rentang tahun atau periksa pemetaan kolom.</div>`;
+    return;
+  }
+
+  renderSSBody(result);
+}
+
+function updateSSMethodNote(){
+  const notes = {
+    tradisional: 'Model klasik (Dunn, 1960): perubahan sektor dipecah menjadi Pertumbuhan Nasional (PN), Bauran Industri/Pergeseran Proporsional (PP), dan Pergeseran Diferensial/Keunggulan Kompetitif (PPW). Kuadran dibentuk dari PP (sumbu-x) vs PPW (sumbu-y).',
+    em: 'Esteban-Marquilas (1972) memisahkan efek kompetitif klasik menjadi efek kompetitif murni (dihitung dari nilai homotetik — nilai seandainya struktur sektor wilayah sama dengan wilayah acuan) dan Efek Alokasi, yang menunjukkan apakah spesialisasi wilayah sudah tepat sasaran. Kuadran dibentuk dari Spesialisasi (sumbu-x) vs Keunggulan Kompetitif (sumbu-y).',
+    arcelus: 'Arcelus (1984) memperluas gagasan Esteban-Marquilas dengan menerapkan nilai homotetik pada seluruh komponen (bukan hanya komponen kompetitif), sehingga Pertumbuhan Nasional, Bauran Industri, dan Efek Kompetitif dihitung dari struktur standar wilayah acuan, dilengkapi Efek Struktural/Alokasi sebagai penyeimbang. Kuadran dibentuk dari Spesialisasi (sumbu-x) vs Keunggulan Kompetitif (sumbu-y).'
+  };
+  document.getElementById('ssMethodNote').innerHTML = `<b>${ssMethod==='tradisional'?'Model Tradisional':ssMethod==='em'?'Model Esteban-Marquilas':'Model Arcelus'}:</b> ${notes[ssMethod]}`;
+}
+
+function renderSSMappingPanel(){
+  const panel = document.getElementById('ssMapPanel');
+  if(!panel) return;
+  panel.innerHTML = `
+    <div class="ss-mapping-grid">
+      <div class="ctrl-item"><label>Kolom Tahun</label>
+        <select id="mapYear">${ssHeaders.map(h=>`<option value="${escapeHtml(h)}" ${h===ssMap.yearCol?'selected':''}>${escapeHtml(h)}</option>`).join('')}</select>
+      </div>
+      <div class="ctrl-item"><label>Kolom Sektor / Lapangan Usaha</label>
+        <select id="mapSector">${ssHeaders.map(h=>`<option value="${escapeHtml(h)}" ${h===ssMap.sectorCol?'selected':''}>${escapeHtml(h)}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="ss-mapping-mode">
+      <label><input type="radio" name="mapMode" value="wilayah" ${ssMap.dataMode==='wilayah'?'checked':''}> Satu kolom Wilayah + satu kolom Nilai</label>
+      <label><input type="radio" name="mapMode" value="terpisah" ${ssMap.dataMode==='terpisah'?'checked':''}> Nilai wilayah studi & acuan di kolom terpisah</label>
+    </div>
+    <div class="ss-mapping-grid" id="mapModeArea"></div>
+    <button class="ss-mapping-apply" id="mapApply">Terapkan Pemetaan</button>
+  `;
+
+  function currentNumericCols(){
+    const yearSel = document.getElementById('mapYear').value;
+    const sectorSel = document.getElementById('mapSector').value;
+    return ssHeaders.filter(h=> h!==yearSel && h!==sectorSel && ssIsNumericColumn(h));
+  }
+
+  function renderModeArea(){
+    const mode = panel.querySelector('input[name=mapMode]:checked').value;
+    const area = document.getElementById('mapModeArea');
+    const numericCols = currentNumericCols();
+    if(mode==='wilayah'){
+      area.innerHTML = `
+        <div class="ctrl-item"><label>Kolom Wilayah</label>
+          <select id="mapRegionCol">${ssHeaders.map(h=>`<option value="${escapeHtml(h)}" ${h===ssMap.regionCol?'selected':''}>${escapeHtml(h)}</option>`).join('')}</select>
+        </div>
+        <div class="ctrl-item"><label>Kolom Nilai</label>
+          <select id="mapValueCol">${numericCols.map(h=>`<option value="${escapeHtml(h)}" ${h===ssMap.valueCol?'selected':''}>${escapeHtml(h)}</option>`).join('')}</select>
+        </div>
+        <div class="ctrl-item"><label>Wilayah Studi (mis. Klungkung)</label>
+          <select id="mapRegionStudi"></select>
+        </div>
+        <div class="ctrl-item"><label>Wilayah Acuan (mis. Bali/Nasional)</label>
+          <select id="mapRegionAcuan"></select>
+        </div>`;
+      const fillRegionOptions = ()=>{
+        const col = document.getElementById('mapRegionCol').value;
+        const uv = ssUniqueValues(col);
+        const studiSel = document.getElementById('mapRegionStudi');
+        const acuanSel = document.getElementById('mapRegionAcuan');
+        studiSel.innerHTML = uv.map(v=>`<option value="${escapeHtml(v)}" ${v===ssMap.regionStudi?'selected':''}>${escapeHtml(v)}</option>`).join('');
+        acuanSel.innerHTML = uv.map(v=>`<option value="${escapeHtml(v)}" ${v===ssMap.regionAcuan?'selected':''}>${escapeHtml(v)}</option>`).join('');
+      };
+      document.getElementById('mapRegionCol').onchange = fillRegionOptions;
+      fillRegionOptions();
+    } else {
+      area.innerHTML = `
+        <div class="ctrl-item"><label>Kolom Nilai Wilayah Studi</label>
+          <select id="mapValueStudi">${numericCols.map(h=>`<option value="${escapeHtml(h)}" ${h===ssMap.valueStudiCol?'selected':''}>${escapeHtml(h)}</option>`).join('')}</select>
+        </div>
+        <div class="ctrl-item"><label>Kolom Nilai Wilayah Acuan</label>
+          <select id="mapValueAcuan">${numericCols.map(h=>`<option value="${escapeHtml(h)}" ${h===ssMap.valueAcuanCol?'selected':''}>${escapeHtml(h)}</option>`).join('')}</select>
+        </div>`;
+    }
+  }
+  renderModeArea();
+  panel.querySelectorAll('input[name=mapMode]').forEach(r=> r.onchange = renderModeArea);
+  document.getElementById('mapYear').onchange = renderModeArea;
+  document.getElementById('mapSector').onchange = renderModeArea;
+
+  document.getElementById('mapApply').onclick = ()=>{
+    ssMap.yearCol = document.getElementById('mapYear').value;
+    ssMap.sectorCol = document.getElementById('mapSector').value;
+    const mode = panel.querySelector('input[name=mapMode]:checked').value;
+    ssMap.dataMode = mode;
+    if(mode==='wilayah'){
+      ssMap.regionCol = document.getElementById('mapRegionCol').value;
+      ssMap.valueCol = document.getElementById('mapValueCol').value;
+      ssMap.regionStudi = document.getElementById('mapRegionStudi').value;
+      ssMap.regionAcuan = document.getElementById('mapRegionAcuan').value;
+    } else {
+      ssMap.valueStudiCol = document.getElementById('mapValueStudi').value;
+      ssMap.valueAcuanCol = document.getElementById('mapValueAcuan').value;
+    }
+    ssYearFrom = null; ssYearTo = null;
+    renderShiftShareView();
+  };
+}
+
+function ssPctStr(perSector, field){
+  const sum = perSector.reduce((s,r)=>s+(r[field]||0),0);
+  return sum;
+}
+
+function renderSSBody(result){
+  const body = document.getElementById('ssBody');
+  const { perSector, years } = result;
+  const isTraditional = ssMethod==='tradisional';
+  const quadGroup = isTraditional ? 'tradisional' : 'spesialisasi';
+
+  const totalN = ssPctStr(perSector,'N');
+  const totalM = ssPctStr(perSector,'M');
+  const totalC = ssPctStr(perSector,'C');
+  const totalA = ssPctStr(perSector,'A');
+  const totalD = ssPctStr(perSector,'total');
+  const totalAktual = ssPctStr(perSector,'deltaAktual');
+
+  const dominant = [...perSector].sort((a,b)=> b.total-a.total)[0];
+  const weakest = [...perSector].sort((a,b)=> a.total-b.total)[0];
+
+  const quadCounts = {1:0,2:0,3:0,4:0};
+  perSector.forEach(r=>{ if(r.quadrant) quadCounts[r.quadrant]++; });
+
+  body.innerHTML = `
+    <div class="ss-kpi-grid">
+      <div class="stat-box"><div class="stat-label">Rentang Dihitung</div><div class="stat-value" style="font-size:15px;">${years[0]}–${years[years.length-1]}</div></div>
+      <div class="stat-box"><div class="stat-label">Total Perubahan (Efek)</div><div class="stat-value" style="font-size:15px;">${fmtNum(totalD)}</div></div>
+      <div class="stat-box"><div class="stat-label">Total Perubahan Aktual</div><div class="stat-value" style="font-size:15px;">${fmtNum(totalAktual)}</div></div>
+      <div class="stat-box"><div class="stat-label">Sektor Kontribusi Terbesar</div><div class="stat-value" style="font-size:13.5px;">${escapeHtml(dominant.sektor)}</div></div>
+      <div class="stat-box"><div class="stat-label">Sektor Kontribusi Terkecil</div><div class="stat-value" style="font-size:13.5px;">${escapeHtml(weakest.sektor)}</div></div>
+    </div>
+
+    <div class="ss-section-title">Posisi Kuadran per Sektor</div>
+    <div class="ss-quad-grid">
+      <div class="chart-box-wrap">
+        <button class="dl-btn" id="dlSSQuad" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+        <div class="chart-box" style="height:360px;"><canvas id="ssQuadCanvas"></canvas></div>
+      </div>
+      <div>
+        <div class="ss-quad-legend">
+          ${[1,2,3,4].map(q=>`
+            <div class="ss-quad-legend-item">
+              <b style="color:${SS_QUAD_LABELS[quadGroup][q].color}">${SS_QUAD_LABELS[quadGroup][q].title} <span class="cnt">(${quadCounts[q]})</span></b>
+              ${SS_QUAD_LABELS[quadGroup][q].desc}
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="ss-section-title">Komponen Shift-Share per Sektor</div>
+    <div class="chart-box-wrap">
+      <button class="dl-btn" id="dlSSChart" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+      <div class="chart-box" style="height:${Math.max(260, perSector.length*26)}px;"><canvas id="ssChartCanvas"></canvas></div>
+    </div>
+
+    <div class="table-head-row">
+      <span class="table-head-label">Tabel Hasil Shift-Share (${ssMethod==='tradisional'?'Tradisional':ssMethod==='em'?'Esteban-Marquilas':'Arcelus'})</span>
+      <button class="dl-btn" id="ssExcelBtn" style="position:static;">⬇ Excel</button>
+    </div>
+    <div class="ss-table-wrap ss-table-scroll">
+      <table class="ss-table" id="ssTable"></table>
+    </div>
+  `;
+
+  renderSSTable(perSector, isTraditional);
+  renderSSComponentChart(perSector, isTraditional);
+  renderSSQuadrantChart(perSector, quadGroup, isTraditional);
+
+  document.getElementById('dlSSChart').onclick = ()=> triggerJPGDownload(ssChart, `shiftshare_komponen_${ssMethod}`);
+  document.getElementById('dlSSQuad').onclick = ()=> triggerJPGDownload(ssQuadChart, `shiftshare_kuadran_${ssMethod}`);
+  document.getElementById('ssExcelBtn').onclick = ()=> exportSSExcel(perSector, isTraditional);
+}
+
+function renderSSTable(perSector, isTraditional){
+  const table = document.getElementById('ssTable');
+  const head = isTraditional
+    ? `<tr><th>Sektor</th><th>Kuadran</th><th>PN (Nasional)</th><th>PP (Bauran Industri)</th><th>PPW (Kompetitif)</th><th>Total Efek</th><th>Perubahan Aktual</th></tr>`
+    : `<tr><th>Sektor</th><th>Kuadran</th><th>PN</th><th>PP</th><th>Kompetitif${ssMethod==='em'?' (Murni)':''}</th><th>Efek Alokasi</th><th>Total Efek</th><th>Perubahan Aktual</th></tr>`;
+
+  const quadGroup = isTraditional ? 'tradisional' : 'spesialisasi';
+  const cellCls = v => v>=0 ? 'pos':'neg';
+
+  const rows = perSector.map(r=>{
+    const qInfo = r.quadrant ? SS_QUAD_LABELS[quadGroup][r.quadrant] : null;
+    const badge = qInfo ? `<span class="ss-badge-quad" style="background:${qInfo.color}">Q${r.quadrant}</span>` : '—';
+    const common = `<td>${escapeHtml(r.sektor)}</td><td>${badge}</td>
+      <td class="${cellCls(r.N)}">${fmtNum(r.N)}</td>
+      <td class="${cellCls(r.M)}">${fmtNum(r.M)}</td>
+      <td class="${cellCls(r.C)}">${fmtNum(r.C)}</td>`;
+    if(isTraditional){
+      return `<tr>${common}<td class="${cellCls(r.total)}">${fmtNum(r.total)}</td><td>${fmtNum(r.deltaAktual)}</td></tr>`;
+    }
+    return `<tr>${common}<td class="${cellCls(r.A)}">${fmtNum(r.A)}</td><td class="${cellCls(r.total)}">${fmtNum(r.total)}</td><td>${fmtNum(r.deltaAktual)}</td></tr>`;
+  }).join('');
+
+  table.innerHTML = `<thead>${head}</thead><tbody>${rows}</tbody>`;
+}
+
+function renderSSComponentChart(perSector, isTraditional){
+  const ctx = document.getElementById('ssChartCanvas');
+  if(ssChart){ ssChart.destroy(); ssChart=null; }
+  const labels = perSector.map(r=>r.sektor);
+  const datasets = isTraditional ? [
+    { label:'PN (Nasional)', data:perSector.map(r=>r.N), backgroundColor:'#B98B27' },
+    { label:'PP (Bauran Industri)', data:perSector.map(r=>r.M), backgroundColor:'#3E6E8E' },
+    { label:'PPW (Kompetitif)', data:perSector.map(r=>r.C), backgroundColor:'#FF9644' }
+  ] : [
+    { label:'PN (Nasional)', data:perSector.map(r=>r.N), backgroundColor:'#B98B27' },
+    { label:'PP (Bauran Industri)', data:perSector.map(r=>r.M), backgroundColor:'#3E6E8E' },
+    { label:'Kompetitif', data:perSector.map(r=>r.C), backgroundColor:'#FF9644' },
+    { label:'Efek Alokasi', data:perSector.map(r=>r.A), backgroundColor:'#8C6BAF' }
+  ];
+  ssChart = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:11}, color:'#562F00' } } },
+      scales:{
+        x:{ stacked:true, grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } },
+        y:{ stacked:true, grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } }
+      }
+    }
+  });
+}
+
+const ssCrosshairPlugin = {
+  id:'ssCrosshair',
+  beforeDatasetsDraw(chart){
+    const {ctx, chartArea:{left,right,top,bottom}, scales:{x,y}} = chart;
+    const x0 = x.getPixelForValue(0), y0 = y.getPixelForValue(0);
+    ctx.save();
+    ctx.strokeStyle = '#D8A15B';
+    ctx.setLineDash([4,4]);
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x0, top); ctx.lineTo(x0, bottom); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(left, y0); ctx.lineTo(right, y0); ctx.stroke();
+    ctx.restore();
+  }
+};
+
+function renderSSQuadrantChart(perSector, quadGroup, isTraditional){
+  const ctx = document.getElementById('ssQuadCanvas');
+  if(ssQuadChart){ ssQuadChart.destroy(); ssQuadChart=null; }
+  const pts = perSector.map(r=>({
+    x: isTraditional ? r.M : r.spesialisasi,
+    y: r.C,
+    label: r.sektor,
+    q: r.quadrant
+  })).filter(p=> p.x!==null && p.x!==undefined && !isNaN(p.x));
+
+  const maxAbsX = Math.max(1, ...pts.map(p=>Math.abs(p.x)));
+  const maxAbsY = Math.max(1, ...pts.map(p=>Math.abs(p.y)));
+  const padX = maxAbsX*1.25, padY = maxAbsY*1.25;
+
+  ssQuadChart = new Chart(ctx, {
+    type:'scatter',
+    data:{ datasets:[{
+      label:'Sektor',
+      data: pts,
+      backgroundColor: pts.map(p=> p.q ? SS_QUAD_LABELS[quadGroup][p.q].color : '#999'),
+      pointRadius:7,
+      pointHoverRadius:9
+    }]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:false },
+        tooltip:{
+          callbacks:{
+            label:(ctx)=> `${ctx.raw.label}: ${isTraditional?'PP':'Spesialisasi'}=${fmtNum(ctx.raw.x)}, ${isTraditional?'PPW':'Kompetitif'}=${fmtNum(ctx.raw.y)}`
+          }
+        }
+      },
+      scales:{
+        x:{ min:-padX, max:padX, grid:{color:'#F2DEB8'}, title:{display:true, text:isTraditional?'Bauran Industri (PP)':'Spesialisasi', color:'#8A5A24', font:{family:'Inter', size:11}}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10} } },
+        y:{ min:-padY, max:padY, grid:{color:'#F2DEB8'}, title:{display:true, text:isTraditional?'Kompetitif (PPW)':'Keunggulan Kompetitif', color:'#8A5A24', font:{family:'Inter', size:11}}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10} } }
+      }
+    },
+    plugins:[ssCrosshairPlugin]
+  });
+}
+
+async function exportSSExcel(perSector, isTraditional){
+  const header = isTraditional
+    ? ['Sektor','Kuadran','PN (Nasional)','PP (Bauran Industri)','PPW (Kompetitif)','Total Efek','Perubahan Aktual']
+    : ['Sektor','Kuadran','PN (Nasional)','PP (Bauran Industri)','Kompetitif','Efek Alokasi','Total Efek','Perubahan Aktual'];
+  const rows = perSector.map(r=>{
+    const q = r.quadrant ? 'Q'+r.quadrant : '-';
+    return isTraditional
+      ? [r.sektor, q, r.N, r.M, r.C, r.total, r.deltaAktual]
+      : [r.sektor, q, r.N, r.M, r.C, r.A, r.total, r.deltaAktual];
+  });
+  await exportStyledExcel(`shiftshare_${ssMethod}_${ssYearFrom}_${ssYearTo}`, 'Shift-Share', header, rows);
+}
+
+function loadShiftShareData(){
+  ssLoadState = 'loading';
+  Papa.parse(SS_CSV_URL, {
+    download:true,
+    header:true,
+    skipEmptyLines:true,
+    complete:function(res){
+      try{
+        ssRawRows = (res.data||[]).filter(r=> Object.values(r).some(v=> v!==null && v!==undefined && v.toString().trim()!==''));
+        ssHeaders = (res.meta && res.meta.fields) ? res.meta.fields.filter(h=>h && h.toString().trim()!=='') : (ssRawRows[0]?Object.keys(ssRawRows[0]):[]);
+        if(!ssMap.yearCol) autoDetectSSColumns();
+        ssLoadState = 'ready';
+      }catch(err){
+        ssLoadState = 'error';
+        ssLoadError = err.message;
+      }
+      if(ssMode) renderShiftShareView();
+    },
+    error:function(err){
+      ssLoadState = 'error';
+      ssLoadError = err.toString();
+      if(ssMode) renderShiftShareView();
+    }
+  });
 }
 
 loadData();
