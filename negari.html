@@ -643,51 +643,174 @@ function buildPopupHTML(row){
 }
 
 function populateSelect(sel, values){
+
   const current = sel.value;
-  sel.innerHTML = '<option value="">Semua</option>';
-  [...new Set(values)].filter(Boolean).sort((a,b)=>a.localeCompare(b,'id')).forEach(v=>{
-    const opt = document.createElement("option");
-    opt.value = v; opt.textContent = v;
-    sel.appendChild(opt);
+
+  // Pecah setiap nilai berdasarkan tanda ;
+  const separated = [];
+
+  values.forEach(value => {
+
+    if (!value) return;
+
+    String(value)
+      .split(";")
+      .map(v => v.trim())
+      .filter(Boolean)
+      .forEach(v => separated.push(v));
+
   });
-  if([...sel.options].some(o=>o.value===current)) sel.value = current;
+
+  // Hilangkan duplikat
+  const uniqueValues = [...new Set(separated)]
+    .sort((a,b) => a.localeCompare(b, 'id'));
+
+  sel.innerHTML = '<option value="">Semua</option>';
+
+  uniqueValues.forEach(v => {
+
+    const opt = document.createElement("option");
+
+    opt.value = v;
+    opt.textContent = v;
+
+    sel.appendChild(opt);
+
+  });
+
+  // Pertahankan pilihan sebelumnya jika masih tersedia
+  if ([...sel.options].some(o => o.value === current)) {
+    sel.value = current;
+  }
+
 }
 
 function refreshCascadingFilters(){
-  const fJenis = document.getElementById("fJenis");
-  const fLapangan = document.getElementById("fLapangan");
-  const fIndustri = document.getElementById("fIndustri");
 
-  const jenisVal = fJenis.value;
-  const lapanganVal = fLapangan.value;
+  const fJenis =
+    document.getElementById("fJenis");
 
-  // Lapangan options depend on Jenis
+  const fLapangan =
+    document.getElementById("fLapangan");
+
+  const fIndustri =
+    document.getElementById("fIndustri");
+
+  const jenisVal =
+    fJenis.value;
+
+  // ==========================================
+  // LAPANGAN USAHA
+  // ==========================================
+
   let scoped = RAW;
-  if(jenisVal) scoped = scoped.filter(r=>r.JENIS_USAHA===jenisVal);
-  populateSelect(fLapangan, scoped.map(r=>r.LAPANGAN_USAHA));
 
-  // Industri options depend on Jenis + Lapangan
+  if(jenisVal){
+
+    scoped = scoped.filter(r =>
+      hasCategory(
+        r.JENIS_USAHA,
+        jenisVal
+      )
+    );
+
+  }
+
+  populateSelect(
+    fLapangan,
+    scoped.map(r => r.LAPANGAN_USAHA)
+  );
+
+  // ==========================================
+  // JENIS INDUSTRI
+  // ==========================================
+
   let scoped2 = scoped;
-  if(fLapangan.value) scoped2 = scoped2.filter(r=>r.LAPANGAN_USAHA===fLapangan.value);
-  populateSelect(fIndustri, scoped2.map(r=>r.JENIS_INDUSTRI));
+
+  if(fLapangan.value){
+
+    scoped2 = scoped2.filter(r =>
+      hasCategory(
+        r.LAPANGAN_USAHA,
+        fLapangan.value
+      )
+    );
+
+  }
+
+  populateSelect(
+    fIndustri,
+    scoped2.map(r => r.JENIS_INDUSTRI)
+  );
+
 }
 
-function getFilteredData(){
-  const jenis = document.getElementById("fJenis").value;
-  const lapangan = document.getElementById("fLapangan").value;
-  const industri = document.getElementById("fIndustri").value;
-  const q = document.getElementById("fSearch").value.trim().toLowerCase();
+function hasCategory(value, selected){
 
-  return RAW.filter(r=>{
-    if(jenis && r.JENIS_USAHA!==jenis) return false;
-    if(lapangan && r.LAPANGAN_USAHA!==lapangan) return false;
-    if(industri && r.JENIS_INDUSTRI!==industri) return false;
+  if (!selected) return true;
+
+  return String(value || "")
+    .split(";")
+    .map(v => v.trim())
+    .filter(Boolean)
+    .includes(selected);
+
+}
+function getFilteredData(){
+
+  const jenis =
+    document.getElementById("fJenis").value;
+
+  const lapangan =
+    document.getElementById("fLapangan").value;
+
+  const industri =
+    document.getElementById("fIndustri").value;
+
+  const q =
+    document.getElementById("fSearch")
+      .value
+      .trim()
+      .toLowerCase();
+
+  return RAW.filter(r => {
+
+    if(
+      jenis &&
+      !hasCategory(r.JENIS_USAHA, jenis)
+    ) return false;
+
+    if(
+      lapangan &&
+      !hasCategory(r.LAPANGAN_USAHA, lapangan)
+    ) return false;
+
+    if(
+      industri &&
+      !hasCategory(r.JENIS_INDUSTRI, industri)
+    ) return false;
+
     if(q){
-      const hay = (r.NAMA_PERUSAHAAN+" "+r.ALAMAT+" "+r.JENIS_PRODUK+" "+r.NAMA_PEMILIK).toLowerCase();
+
+      const hay =
+        (
+          r.NAMA_PERUSAHAAN +
+          " " +
+          r.ALAMAT +
+          " " +
+          r.JENIS_PRODUK +
+          " " +
+          r.NAMA_PEMILIK
+        ).toLowerCase();
+
       if(!hay.includes(q)) return false;
+
     }
+
     return true;
+
   });
+
 }
 
 function renderMap(data){
