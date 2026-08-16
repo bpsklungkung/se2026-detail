@@ -323,6 +323,11 @@
     font-size:12px; line-height:1.55; color:var(--brown);
   }
   .ss-method-note b{ color:var(--brown-deep); }
+  .ss-method-note .formula-list{ margin:4px 0 2px 20px; padding:0; }
+  .ss-method-note .formula-list li{ margin-bottom:2px; font-family:'Menlo','Consolas',monospace; font-size:11.5px; color:var(--brown-deep); }
+  .ss-method-note .formula-caption{ margin-top:2px; color:var(--brown-mid); }
+  .ss-method-note .component-list{ margin:4px 0 8px 20px; padding:0; }
+  .ss-method-note .component-list li{ margin-bottom:5px; }
 
   .ss-controls{
     display:flex; align-items:center; gap:14px; flex-wrap:wrap;
@@ -939,10 +944,10 @@ const SS_FIELDS = [
   {key:'tahunAwal', label:'Tahun Awal',            patterns:[/^tahun[_\s]*awal$/i, /tahun.*awal/i]},
   {key:'tahunAkhir', label:'Tahun Akhir',           patterns:[/^tahun[_\s]*akhir$/i, /tahun.*akhir/i]},
   {key:'kategori',   label:'Kategori/Sektor',       patterns:[/^kategori$/i, /sektor|lapangan\s*usaha|kategori/i]},
-  {key:'D',          label:'Klungkung_Awal (e_i, t-1)',      patterns:[/^klungkung[_\s]*awal$/i]},
-  {key:'E',          label:'Klungkung_Akhir (e_i, t)',       patterns:[/^klungkung[_\s]*akhir$/i]},
-  {key:'F',          label:'Bali_Awal (E_i, t-1)',           patterns:[/^bali[_\s]*awal$/i]},
-  {key:'G',          label:'Bali_Akhir (E_i, t)',            patterns:[/^bali[_\s]*akhir$/i]},
+  {key:'D',          label:'Klungkung_Awal (eᵢ, t-1)',      patterns:[/^klungkung[_\s]*awal$/i]},
+  {key:'E',          label:'Klungkung_Akhir (eᵢ, t)',       patterns:[/^klungkung[_\s]*akhir$/i]},
+  {key:'F',          label:'Bali_Awal (Eᵢ, t-1)',           patterns:[/^bali[_\s]*awal$/i]},
+  {key:'G',          label:'Bali_Akhir (Eᵢ, t)',            patterns:[/^bali[_\s]*akhir$/i]},
   {key:'H',          label:'Total_Klungkung_Awal (e, t-1)',  patterns:[/^total[_\s]*klungkung[_\s]*awal$/i]},
   {key:'I',          label:'Total_Klungkung_Akhir (e, t)',   patterns:[/^total[_\s]*klungkung[_\s]*akhir$/i]},
   {key:'J',          label:'Total_Bali_Awal (E, t-1)',       patterns:[/^total[_\s]*bali[_\s]*awal$/i]},
@@ -973,6 +978,24 @@ let lqYearTo = null;
 let lqChart = null;
 let lqQuadChart = null;
 let lqResult = null;
+
+/* ===== Analisis Diversitas (Entropy, HHI, REI, Tress Index) ===== */
+let divMode = false;
+let DIV_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQKSgeM19zaa1omlwoFlDDScXQQAsgeHZdumyO-jS63AM2FV2wD8iqgXDQzl9mt4XURWZmD2Yk56K1H/pub?gid=579154758&single=true&output=csv';
+const DIV_N_SEKTOR = 17;     // n tetap = 17 sektor/lapangan usaha standar BPS, dipakai untuk normalisasi Tress
+let divRawRows = null;
+let divHeaders = [];
+let divLoadState = 'idle';   // idle | loading | error | ready
+let divLoadError = '';
+let divMap = { kShare:{}, bShare:{} };  // hasil auto-detect: {tahun, totalK, totalB, kShare:{sektor:kolom}, kEntropy, kHhi, kTress, kRei, kShannon, bShare:{...}, bEntropy, ...}
+let divMappingPanelOpen = false;
+let divYearFrom = null;
+let divYearTo = null;
+let divCompositionYear = null;
+let divCompareBali = false;
+let divTsChart = null;
+let divCompChart = null;
+let divResult = null;
 
 const KATEGORI_PALETTE = ['#FF6B6B','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#FF9644','#008080','#4C5C7D','#C1440E'];
 let GROUP_COLOR_MAP = {};
@@ -1258,7 +1281,7 @@ function renderTabs(){
     const btn = document.createElement('button');
     btn.className = 'tab' + (!compareMode && !ssMode && p===activePeriode?' active':'');
     btn.textContent = p;
-    btn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; activePeriode = p; renderTabs(); renderContent(p); };
+    btn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; divMode = false; activePeriode = p; renderTabs(); renderContent(p); };
     tabsEl.appendChild(btn);
   });
 
@@ -1269,20 +1292,26 @@ function renderTabs(){
   const cmpBtn = document.createElement('button');
   cmpBtn.className = 'tab' + (compareMode ? ' active' : '');
   cmpBtn.textContent = '⇄ Bandingkan';
-  cmpBtn.onclick = ()=>{ compareMode = true; ssMode = false; lqMode = false; renderTabs(); renderCompareView(); };
+  cmpBtn.onclick = ()=>{ compareMode = true; ssMode = false; lqMode = false; divMode = false; renderTabs(); renderCompareView(); };
   tabsEl.appendChild(cmpBtn);
 
   const ssBtn = document.createElement('button');
   ssBtn.className = 'tab' + (ssMode ? ' active' : '');
   ssBtn.textContent = '📐 Shift-Share';
-  ssBtn.onclick = ()=>{ compareMode = false; ssMode = true; lqMode = false; renderTabs(); renderShiftShareView(); };
+  ssBtn.onclick = ()=>{ compareMode = false; ssMode = true; lqMode = false; divMode = false; renderTabs(); renderShiftShareView(); };
   tabsEl.appendChild(ssBtn);
 
   const lqBtn = document.createElement('button');
   lqBtn.className = 'tab' + (lqMode ? ' active' : '');
   lqBtn.textContent = '📈 LQ';
-  lqBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = true; renderTabs(); renderLQView(); };
+  lqBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = true; divMode = false; renderTabs(); renderLQView(); };
   tabsEl.appendChild(lqBtn);
+
+  const divBtn = document.createElement('button');
+  divBtn.className = 'tab' + (divMode ? ' active' : '');
+  divBtn.textContent = '🧬 Diversitas';
+  divBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; divMode = true; renderTabs(); renderDiversityView(); };
+  tabsEl.appendChild(divBtn);
 }
 
 function makeSparkline(entries, color, type){
@@ -4859,16 +4888,45 @@ function updateSSMethodNote(){
   const notes = {
     tradisional: `
       <div><b>📖 Apa itu model ini:</b> Model paling dasar (Dunn, 1960) untuk memecah pertumbuhan tiap sektor menjadi tiga sumber terpisah: seberapa besar sektor itu tumbuh karena terbawa arus pertumbuhan ekonomi Bali secara umum, seberapa besar karena sektor itu memang sedang "booming"/lesu di tingkat provinsi, dan seberapa besar murni karena daya saing Klungkung sendiri di sektor tersebut.</div>
-      <div style="margin-top:6px"><b>🧮 Formula:</b> NS = e_i(t-1)×G, IM = e_i(t-1)×(G_i−G), RS = e_i(t-1)×(g_i−G_i). Kuadran dibentuk dari IM (sumbu-x) vs RS (sumbu-y).</div>
-      <div style="margin-top:6px"><b>💡 Cara membaca angka:</b> <b>NS</b> besar bukan berarti sektor itu hebat — itu cuma menunjukkan seberapa besar dorongan pertumbuhan ekonomi Bali secara umum. <b>IM</b> positif berarti sektor ini termasuk yang sedang tumbuh cepat di level provinsi (iklim sektoralnya bagus), IM negatif berarti sektor ini secara nasional/provinsi memang sedang lesu. Yang paling penting untuk menilai daya saing lokal murni adalah <b>RS (Pergeseran Diferensial)</b>: RS positif = Klungkung unggul kompetitif dibanding Bali pada sektor ini (tumbuh lebih cepat dari yang "seharusnya"); RS negatif = sektor ini kalah saing di Klungkung dibanding rata-rata Bali, meski secara nasional sektornya sendiri mungkin sedang bagus.</div>`,
+      <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+      <ul class="formula-list">
+        <li>NS = eᵢ(t−1) × G</li>
+        <li>IM = eᵢ(t−1) × (Gᵢ − G)</li>
+        <li>RS = eᵢ(t−1) × (gᵢ − Gᵢ)</li>
+      </ul>
+      <div class="formula-caption">Kuadran dibentuk dari IM (sumbu-x) vs RS (sumbu-y).</div>
+      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> <b>NS</b> besar bukan berarti sektor itu hebat — itu cuma menunjukkan seberapa besar dorongan pertumbuhan ekonomi Bali secara umum. <b>IM</b> positif berarti sektor ini termasuk yang sedang tumbuh cepat di level provinsi (iklim sektoralnya bagus), IM negatif berarti sektor ini secara nasional/provinsi memang sedang lesu. Yang paling penting untuk menilai daya saing lokal murni adalah <b>RS (Pergeseran Diferensial)</b>: RS positif = Klungkung unggul kompetitif dibanding Bali pada sektor ini (tumbuh lebih cepat dari yang "seharusnya"); RS negatif = sektor ini kalah saing di Klungkung dibanding rata-rata Bali, meski secara nasional sektornya sendiri mungkin sedang bagus.</div>`,
     em: `
-      <div><b>📖 Apa itu model ini:</b> Perbaikan dari model Tradisional (Esteban-Marquilas, 1972). Masalah pada RS versi Tradisional adalah nilainya bisa "tertipu" oleh besar-kecilnya porsi sektor tersebut di ekonomi Klungkung (spesialisasi), bukan murni oleh daya saingnya. Model ini memisahkan nilai aktual sektor (e_i) menjadi nilai homotetik <b>h</b> — porsi yang "seharusnya" dimiliki Klungkung seandainya struktur ekonominya sama persis dengan Bali — supaya efek kompetitif bisa dihitung bersih dari bias spesialisasi.</div>
-      <div style="margin-top:6px"><b>🧮 Formula:</b> h = e(t-1)×E_i(t-1)/E(t-1) (nilai homotetik). RS EM = h×(g_i−G_i) (efek kompetitif murni), Allocation = (e_i−h)×(g_i−G_i). Kuadran dibentuk dari akumulasi (e_i−h) — spesialisasi (sumbu-x) — vs RS EM — keunggulan kompetitif (sumbu-y).</div>
-      <div style="margin-top:6px"><b>💡 Cara membaca angka:</b> <b>RS EM</b> positif = daya saing sektor itu sendiri sedang bagus, terlepas dari besar-kecilnya porsi sektor itu di ekonomi Klungkung. <b>Allocation (Efek Alokasi)</b> positif berarti spesialisasi Klungkung "pas sasaran" — sektor yang porsinya besar (e_i > h) memang juga sektor yang kompetitif, atau sebaliknya sektor kecil memang kurang kompetitif sehingga wajar porsinya kecil. Allocation <b>negatif</b> adalah sinyal "salah spesialisasi": sektor dengan porsi besar justru kurang kompetitif (sumber daya terlalu banyak ditaruh di sektor yang lemah), atau sektor kompetitif justru porsinya kecil (potensi belum digarap maksimal) — ini bisa jadi dasar rekomendasi realokasi sumber daya.</div>`,
+      <div><b>📖 Apa itu model ini:</b> Perbaikan dari model Tradisional (Esteban-Marquilas, 1972). Masalah pada RS versi Tradisional adalah nilainya bisa "tertipu" oleh besar-kecilnya porsi sektor tersebut di ekonomi Klungkung (spesialisasi), bukan murni oleh daya saingnya. Model ini memisahkan nilai aktual sektor (eᵢ) menjadi nilai homotetik <b>h</b> — porsi yang "seharusnya" dimiliki Klungkung seandainya struktur ekonominya sama persis dengan Bali — supaya efek kompetitif bisa dihitung bersih dari bias spesialisasi.</div>
+      <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+      <ul class="formula-list">
+        <li>h = e(t−1) × Eᵢ(t−1) / E(t−1)  <span style="font-family:'Inter',sans-serif;color:var(--brown-mid);">(nilai homotetik)</span></li>
+        <li>RS EM = h × (gᵢ − Gᵢ)  <span style="font-family:'Inter',sans-serif;color:var(--brown-mid);">(efek kompetitif murni)</span></li>
+        <li>Allocation = (eᵢ − h) × (gᵢ − Gᵢ)</li>
+      </ul>
+      <div class="formula-caption">Kuadran dibentuk dari akumulasi (eᵢ − h) — spesialisasi (sumbu-x) — vs RS EM — keunggulan kompetitif (sumbu-y).</div>
+      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> <b>RS EM</b> positif = daya saing sektor itu sendiri sedang bagus, terlepas dari besar-kecilnya porsi sektor itu di ekonomi Klungkung. <b>Allocation (Efek Alokasi)</b> positif berarti spesialisasi Klungkung "pas sasaran" — sektor yang porsinya besar (eᵢ &gt; h) memang juga sektor yang kompetitif, atau sebaliknya sektor kecil memang kurang kompetitif sehingga wajar porsinya kecil. Allocation <b>negatif</b> adalah sinyal "salah spesialisasi": sektor dengan porsi besar justru kurang kompetitif (sumber daya terlalu banyak ditaruh di sektor yang lemah), atau sektor kompetitif justru porsinya kecil (potensi belum digarap maksimal) — ini bisa jadi dasar rekomendasi realokasi sumber daya.</div>`,
     arcelus: `
-      <div><b>📖 Apa itu model ini:</b> Perluasan dari Esteban-Marquilas (Arcelus, 1984). Kalau EM hanya menerapkan nilai homotetik <b>h</b> pada komponen kompetitif saja, Arcelus menerapkannya ke <b>seluruh</b> komponen (Pertumbuhan Nasional, Bauran Industri, maupun Regional), sehingga tiap komponen bisa dipecah lagi menjadi bagian yang "sesuai struktur standar wilayah acuan" (Effect, pakai h) dan bagian yang "menyimpang karena struktur khas Klungkung sendiri" (Deviation, pakai e_i−h).</div>
-      <div style="margin-top:6px"><b>🧮 Formula:</b> NSE/NSD = h×G & (e_i−h)×G, IME/IMD = h×(G_i−G) & (e_i−h)×(G_i−G), RGE/RGD = h×(g−G) & (e_i−h)×(g−G), RIE/RID = h×(g_i−g−G_i+G) & (e_i−h)×(g_i−g−G_i+G) — dengan g = laju pertumbuhan total Klungkung. Kuadran dibentuk dari akumulasi (e_i−h) — spesialisasi — vs (RGE+RGD+RIE+RID) — keunggulan kompetitif total.</div>
-      <div style="margin-top:6px"><b>💡 Cara membaca angka:</b> Untuk tiap pasangan komponen (misal RGE vs RGD), bagian <b>Effect</b> (E) menunjukkan kontribusi yang murni berasal dari laju pertumbuhan seandainya struktur sektor Klungkung standar, sedangkan <b>Deviation</b> (D) menunjukkan tambahan/pengurangan akibat struktur sektor Klungkung yang menyimpang dari standar tersebut. Kalau Effect dan Deviation searah (sama-sama positif atau sama-sama negatif), berarti struktur khas Klungkung <b>memperkuat</b> efek itu; kalau berlawanan arah, struktur khas Klungkung justru <b>meredam</b>/mengoreksi efek tersebut. Total per sektor tetap menunjukkan besaran perubahan riilnya, sama seperti model lain.</div>`
+      <div><b>📖 Apa itu model ini:</b> Perluasan dari Esteban-Marquilas (Arcelus, 1984). Kalau EM hanya memisahkan komponen kompetitif menjadi "sesuai struktur standar" (Effect) vs "menyimpang karena struktur khas Klungkung" (Deviation), Arcelus menerapkan pemisahan yang sama ke <b>seluruh</b> komponen — Nasional, Bauran Industri, sampai Regional.</div>
+      <div style="margin-top:8px;padding:10px 12px;background:rgba(255,255,255,0.5);border-radius:9px;">
+        <b>🧠 Analogi sederhana:</b> Bayangkan ada Klungkung "kembar imajiner" yang struktur ekonominya (porsi tiap sektor) persis sama dengan Bali. <b>Effect</b> = perubahan yang akan dialami sektor itu <i>seandainya</i> Klungkung memang seperti si kembar imajiner ini. <b>Deviation</b> = koreksi tambahan karena Klungkung yang sesungguhnya <i>tidak</i> persis seperti itu — porsi sektornya lebih besar atau lebih kecil dari "standar". Effect + Deviation selalu kembali menjadi angka perubahan yang sama seperti dihitung biasa, hanya saja sekarang dipecah supaya kelihatan mana yang murni soal tren pertumbuhan, dan mana yang soal struktur khas Klungkung sendiri.
+      </div>
+      <div style="margin-top:8px"><b>🔍 Empat pasang komponennya:</b></div>
+      <ul class="component-list">
+        <li><b>NSE &amp; NSD (Efek Nasional):</b> dorongan dari pertumbuhan ekonomi Bali secara keseluruhan — "air pasang" yang mengangkat semua sektor.</li>
+        <li><b>IME &amp; IMD (Efek Bauran Industri):</b> dorongan dari cepat/lambatnya sektor <i>itu sendiri</i> secara nasional/provinsi, di luar tren Bali secara umum.</li>
+        <li><b>RGE &amp; RGD (Efek Pertumbuhan Regional):</b> dorongan dari seberapa cepat/lambat <i>Klungkung secara keseluruhan</i> (semua sektor digabung) dibanding Bali — bukan soal sektor tertentu, tapi soal daerahnya.</li>
+        <li><b>RIE &amp; RID (Efek Interaksi Regional):</b> sisa yang tidak dijelaskan tiga efek di atas — murni keunggulan/kelemahan <i>sektor itu khusus di Klungkung</i>, setelah semua faktor makro dikeluarkan. Biasanya paling menarik dicermati.</li>
+      </ul>
+      <div><b>🧮 Formula:</b></div>
+      <ul class="formula-list">
+        <li>NSE = h × G &nbsp;·&nbsp; NSD = (eᵢ − h) × G</li>
+        <li>IME = h × (Gᵢ − G) &nbsp;·&nbsp; IMD = (eᵢ − h) × (Gᵢ − G)</li>
+        <li>RGE = h × (g − G) &nbsp;·&nbsp; RGD = (eᵢ − h) × (g − G)</li>
+        <li>RIE = h × (gᵢ − g − Gᵢ + G) &nbsp;·&nbsp; RID = (eᵢ − h) × (gᵢ − g − Gᵢ + G)</li>
+      </ul>
+      <div class="formula-caption">g = laju pertumbuhan total Klungkung. Kuadran dibentuk dari akumulasi (eᵢ − h) — spesialisasi — vs (RGE+RGD+RIE+RID) — keunggulan kompetitif total.</div>
+      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> Untuk tiap pasangan, kalau Effect dan Deviation <b>searah</b> (sama-sama positif atau sama-sama negatif) berarti struktur khas Klungkung <b>memperkuat</b> efek itu; kalau <b>berlawanan arah</b>, struktur khas Klungkung justru <b>meredam/mengoreksi</b> efek tersebut. Contoh: kalau RGE positif (Klungkung tumbuh lebih cepat dari Bali secara umum) dan RGD <i>juga</i> positif, sektor ini ikut diuntungkan lebih besar oleh pertumbuhan Klungkung yang cepat itu. Tapi kalau RGE positif sementara RGD <i>negatif</i>, sektor ini justru "ketinggalan" menikmati keuntungan tersebut dibanding sektor-sektor lain di Klungkung. Total tiap sektor (jumlah kedelapan komponen) tetap sama persis dengan perubahan riilnya, seperti model lain.</div>`
   };
   document.getElementById('ssMethodNote').innerHTML = `<b>${ssMethod==='tradisional'?'Dynamic Traditional':ssMethod==='em'?'Dynamic Esteban-Marquilas':'Dynamic Arcelus'}</b><br><br>${notes[ssMethod]}`;
 }
@@ -5113,7 +5171,7 @@ function renderSSQuadrantChart(perKategori, quadGroup, isTraditional){
         }
       },
       scales:{
-        x:{ min:-padX, max:padX, grid:{color:'#F2DEB8'}, title:{display:true, text:isTraditional?'Bauran Industri (IM)':'Spesialisasi (Σ e_i−h)', color:'#8A5A24', font:{family:'Inter', size:11}}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10} } },
+        x:{ min:-padX, max:padX, grid:{color:'#F2DEB8'}, title:{display:true, text:isTraditional?'Bauran Industri (IM)':'Spesialisasi (Σ eᵢ−h)', color:'#8A5A24', font:{family:'Inter', size:11}}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10} } },
         y:{ min:-padY, max:padY, grid:{color:'#F2DEB8'}, title:{display:true, text:isTraditional?'Pergeseran Diferensial (RS)':'Keunggulan Kompetitif', color:'#8A5A24', font:{family:'Inter', size:11}}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10} } }
       }
     },
@@ -5374,11 +5432,21 @@ function updateLQMethodNote(){
   const notes = {
     raw: `
       <div><b>📖 Apa itu model ini:</b> Location Quotient asli — bentuk paling umum dipakai. <b>SLQ</b> (Static) membandingkan porsi sektor di Klungkung vs Bali pada satu titik/rentang waktu (potret keunggulan saat ini). <b>DLQ</b> (Dynamic) membandingkan laju pertumbuhan relatif sektor tersebut, sehingga menangkap ke mana arah sektor itu menuju, bukan cuma posisinya sekarang.</div>
-      <div style="margin-top:6px"><b>🧮 Formula:</b> SLQ = (rata-rata pangsa sektor di Klungkung) / (rata-rata pangsa sektor di Bali) selama rentang tahun terpilih. DLQ = [((1+g_i)/(1+g)) / ((1+G_i)/(1+G))]^t, dengan g_i & g = laju pertumbuhan rata-rata tahunan sektor & total Klungkung, G_i & G = laju pertumbuhan rata-rata tahunan sektor & total Bali, t = jumlah tahun. Ambang klasifikasi: 1.</div>
-      <div style="margin-top:6px"><b>💡 Cara membaca angka:</b> <b>SLQ = 1</b> berarti porsi sektor itu di Klungkung persis sama dengan di Bali (netral, tidak istimewa). <b>SLQ &gt; 1</b> berarti Klungkung lebih terkonsentrasi/terspesialisasi pada sektor itu dibanding Bali — sektor ini menjadi basis ekonomi Klungkung, bukan sekadar melayani kebutuhan lokal. <b>SLQ &lt; 1</b> berarti porsinya di Klungkung lebih kecil dari Bali — sektor ini belum jadi andalan. Untuk <b>DLQ</b>: <b>DLQ &gt; 1</b> berarti sektor ini di Klungkung tumbuh lebih cepat secara relatif dibanding Bali (berpotensi makin unggul ke depan), sedangkan <b>DLQ &lt; 1</b> berarti tumbuh lebih lambat (berisiko makin tertinggal/despesialisasi). Kombinasi keduanya menghasilkan klasifikasi Unggulan/Andalan/Prospektif/Tertinggal.</div>`,
+      <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+      <ul class="formula-list">
+        <li>SLQ = (rata-rata pangsa sektor di Klungkung) / (rata-rata pangsa sektor di Bali)</li>
+        <li>DLQ = [((1+gᵢ)/(1+g)) / ((1+Gᵢ)/(1+G))]ᵗ</li>
+      </ul>
+      <div class="formula-caption">gᵢ & g = laju pertumbuhan rata-rata tahunan sektor & total Klungkung, Gᵢ & G = laju pertumbuhan rata-rata tahunan sektor & total Bali, t = jumlah tahun. Ambang klasifikasi: 1.</div>
+      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> <b>SLQ = 1</b> berarti porsi sektor itu di Klungkung persis sama dengan di Bali (netral, tidak istimewa). <b>SLQ &gt; 1</b> berarti Klungkung lebih terkonsentrasi/terspesialisasi pada sektor itu dibanding Bali — sektor ini menjadi basis ekonomi Klungkung, bukan sekadar melayani kebutuhan lokal. <b>SLQ &lt; 1</b> berarti porsinya di Klungkung lebih kecil dari Bali — sektor ini belum jadi andalan. Untuk <b>DLQ</b>: <b>DLQ &gt; 1</b> berarti sektor ini di Klungkung tumbuh lebih cepat secara relatif dibanding Bali (berpotensi makin unggul ke depan), sedangkan <b>DLQ &lt; 1</b> berarti tumbuh lebih lambat (berisiko makin tertinggal/despesialisasi). Kombinasi keduanya menghasilkan klasifikasi Unggulan/Andalan/Prospektif/Tertinggal.</div>`,
     symmetric: `
       <div><b>📖 Apa itu model ini:</b> Transformasi dari SLQ/DLQ (Dalum et al., 1998) untuk mengatasi kelemahan statistik SLQ/DLQ asli: karena rentangnya 0 sampai tak terhingga dengan titik netral di angka 1, penyimpangan di ATAS 1 (misal dari 1 ke 3) dan di BAWAH 1 (misal dari 1 ke 0,2) tidak dibobot setara secara matematis, sehingga kurang cocok dipakai untuk perbandingan statistik lanjutan (korelasi, regresi, dsb).</div>
-      <div style="margin-top:6px"><b>🧮 Formula:</b> SSLQ = (SLQ−1)/(SLQ+1), DSLQ = (DLQ−1)/(DLQ+1) — transformasi ke rentang -1 s.d. 1 dengan titik netral di 0. Ambang klasifikasi: 0. Menghasilkan klasifikasi sektor yang identik dengan SLQ-DLQ (terbukti lewat korelasi Spearman = 1 pada studi rujukan).</div>
+      <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+      <ul class="formula-list">
+        <li>SSLQ = (SLQ − 1) / (SLQ + 1)</li>
+        <li>DSLQ = (DLQ − 1) / (DLQ + 1)</li>
+      </ul>
+      <div class="formula-caption">Transformasi ke rentang −1 s.d. 1 dengan titik netral di 0. Ambang klasifikasi: 0. Menghasilkan klasifikasi sektor yang identik dengan SLQ-DLQ (terbukti lewat korelasi Spearman = 1 pada studi rujukan).</div>
       <div style="margin-top:6px"><b>💡 Cara membaca angka:</b> <b>SSLQ = 0</b> setara dengan SLQ = 1 (netral). <b>SSLQ mendekati +1</b> berarti spesialisasi sangat kuat (SLQ jauh di atas 1); <b>SSLQ mendekati −1</b> berarti sangat tidak terspesialisasi (SLQ mendekati 0). Pola yang sama berlaku untuk <b>DSLQ</b> terhadap DLQ: mendekati +1 = tumbuh jauh lebih cepat dari Bali, mendekati −1 = tumbuh jauh lebih lambat. Karena skalanya simetris & seragam antar sektor, versi ini lebih adil dipakai untuk membandingkan "seberapa jauh" posisi tiap sektor dari titik netral, bukan cuma arah unggul/tidaknya saja.</div>`
   };
   document.getElementById('lqMethodNote').innerHTML = `<b>${lqMethod==='raw'?'LQ Asli (SLQ · DLQ)':'LQ Simetris (SSLQ · DSLQ)'}</b><br><br>${notes[lqMethod]}`;
@@ -5572,6 +5640,479 @@ async function exportLQExcel(perKategori){
   await exportStyledExcel(`lq_${lqYearFrom}_${lqYearTo}`, 'Location Quotient', header, rows);
 }
 
+
+/* =========================================================
+   ANALISIS DIVERSITAS EKONOMI (Entropy/Shannon-Weaver, HHI, REI, Tress Index)
+   Sheet sumber SUDAH menghitung semua index-nya sendiri per Tahun, untuk
+   Klungkung (kolom "K ...") maupun Bali sebagai pembanding (kolom "B ...").
+   Dashboard ini hanya membaca & menyajikan, tidak menghitung ulang dari nol.
+   ========================================================= */
+
+function divNormalizeHeader(h){ return (h||'').toString().trim(); }
+
+/* Parser angka khusus untuk sheet ini: koma sebagai desimal, tanpa pemisah ribuan
+   (mis. "3580,17" -> 3580.17, "0,002748472838" -> 0.002748472838). Sengaja terpisah
+   dari toNumber() global karena format sumber ini berbeda (Indonesian decimal comma). */
+function divToNumber(v){
+  if(v===undefined||v===null) return NaN;
+  const s = v.toString().trim();
+  if(s==='') return NaN;
+  return parseFloat(s.replace(/,/g,'.'));
+}
+
+/* Cari semua kolom "PREFIX Share – Sektor" / "PREFIX Rank – Sektor" dsb,
+   dan kembalikan {sektor: headerAsli} */
+function divFindGroupCols(headers, prefix, label){
+  const re = new RegExp('^'+prefix+'\\s*'+label+'\\s*[-\\u2013\\u2014]\\s*(.+)$','i');
+  const out = {};
+  headers.forEach(h=>{
+    const m = divNormalizeHeader(h).match(re);
+    if(m) out[m[1].trim()] = h;
+  });
+  return out;
+}
+
+function autoDetectDivColumns(){
+  if(!divHeaders || !divHeaders.length) return;
+  const find = (re)=> divHeaders.find(h=> re.test(divNormalizeHeader(h)));
+
+  divMap.tahun = find(/^tahun$/i) || divMap.tahun;
+  divMap.totalK = find(/^total\s*klungkung$/i) || divMap.totalK;
+  divMap.totalB = find(/^total\s*bali$/i) || divMap.totalB;
+
+  divMap.kShare = divFindGroupCols(divHeaders, 'K', 'Share');
+  divMap.bShare = divFindGroupCols(divHeaders, 'B', 'Share');
+
+  divMap.kEntropy = find(/^K\s*Entropy$/i) || divMap.kEntropy;
+  divMap.kShannon = find(/^K\s*Shannon.?Weaver$/i) || divMap.kShannon;
+  divMap.kHhi     = find(/^K\s*HHI$/i) || divMap.kHhi;
+  divMap.kRei     = find(/^K\s*REI$/i) || divMap.kRei;
+  divMap.kTress   = find(/^K\s*Tress/i) || divMap.kTress;
+
+  divMap.bEntropy = find(/^B\s*Entropy$/i) || divMap.bEntropy;
+  divMap.bShannon = find(/^B\s*Shannon.?Weaver$/i) || divMap.bShannon;
+  divMap.bHhi     = find(/^B\s*HHI$/i) || divMap.bHhi;
+  divMap.bRei     = find(/^B\s*REI$/i) || divMap.bRei;
+  divMap.bTress   = find(/^B\s*Tress/i) || divMap.bTress;
+}
+
+function divMappingValid(){
+  return !!(divMap.tahun && divMap.kEntropy && divMap.kHhi && divMap.kTress && Object.keys(divMap.kShare||{}).length>0);
+}
+function divHasBaliData(){
+  return !!(divMap.bEntropy && divMap.bHhi && divMap.bTress && Object.keys(divMap.bShare||{}).length>0);
+}
+
+function divExtractYear(v){
+  if(v===undefined||v===null) return NaN;
+  const s = v.toString().trim();
+  const m = s.match(/(19|20)\d{2}/);
+  return m ? parseInt(m[0]) : parseInt(s);
+}
+
+function buildDivSeries(){
+  const rows = [];
+  divRawRows.forEach(r=>{
+    const tahun = divExtractYear(r[divMap.tahun]);
+    if(!tahun || isNaN(tahun)) return;
+    const kEntropy = divToNumber(r[divMap.kEntropy]);
+    const kHhi = divToNumber(r[divMap.kHhi]);
+    const kTress = divToNumber(r[divMap.kTress]);
+    if(isNaN(kEntropy) || isNaN(kHhi) || isNaN(kTress)) return;
+
+    const kShares = {};
+    Object.entries(divMap.kShare).forEach(([sektor,col])=>{
+      const v = divToNumber(r[col]);
+      if(!isNaN(v)) kShares[sektor] = v;
+    });
+
+    const row = {
+      tahun,
+      totalK: divMap.totalK ? divToNumber(r[divMap.totalK]) : null,
+      kShares,
+      kEntropy, kHhi, kTress,
+      kShannon: divMap.kShannon ? divToNumber(r[divMap.kShannon]) : kEntropy,
+      kRei: divMap.kRei ? divToNumber(r[divMap.kRei]) : null
+    };
+    if(row.kRei!==null && isNaN(row.kRei)) row.kRei = null;
+
+    if(divHasBaliData()){
+      const bEntropy = divToNumber(r[divMap.bEntropy]);
+      const bHhi = divToNumber(r[divMap.bHhi]);
+      const bTress = divToNumber(r[divMap.bTress]);
+      if(!isNaN(bEntropy) && !isNaN(bHhi) && !isNaN(bTress)){
+        const bShares = {};
+        Object.entries(divMap.bShare).forEach(([sektor,col])=>{
+          const v = divToNumber(r[col]);
+          if(!isNaN(v)) bShares[sektor] = v;
+        });
+        row.totalB = divMap.totalB ? divToNumber(r[divMap.totalB]) : null;
+        row.bShares = bShares;
+        row.bEntropy = bEntropy; row.bHhi = bHhi; row.bTress = bTress;
+        row.bShannon = divMap.bShannon ? divToNumber(r[divMap.bShannon]) : bEntropy;
+        row.bRei = divMap.bRei ? divToNumber(r[divMap.bRei]) : null;
+        if(row.bRei!==null && isNaN(row.bRei)) row.bRei = null;
+      }
+    }
+    rows.push(row);
+  });
+  rows.sort((a,b)=>a.tahun-b.tahun);
+  return rows;
+}
+
+function divHHIBadge(hhi){
+  if(hhi < 0.15) return { label:'Terdiversifikasi', color:'#6F8F52' };
+  if(hhi < 0.25) return { label:'Konsentrasi Sedang', color:'#B98B27' };
+  return { label:'Sangat Terkonsentrasi', color:'#C1440E' };
+}
+
+function renderDiversityView(){
+  const filterPanel = document.getElementById('kelFilterPanel');
+  if(filterPanel) filterPanel.style.display = 'none';
+  const main = document.getElementById('main');
+
+  const introHtml = `
+    <div class="ss-intro">
+      <h2>Analisis Diversitas Ekonomi</h2>
+      <p>Mengukur seberapa merata PDRB Klungkung tersebar di antara berbagai sektor (diversifikasi) versus seberapa bertumpu pada segelintir sektor saja (konsentrasi), serta seberapa besar struktur itu bergeser dari tahun ke tahun. Empat indeks — <b>Entropy/Shannon-Weaver</b>, <b>HHI</b>, <b>REI</b>, dan <b>Tress Index</b> — sudah dihitung langsung di sumber data (Google Sheets) untuk Klungkung, dan juga tersedia untuk Bali sebagai pembanding.</p>
+    </div>`;
+
+  if(!DIV_CSV_URL){
+    main.innerHTML = `<section class="ss-wrap">${introHtml}
+      <div class="ss-controls">
+        <div class="ctrl-item" style="flex:1;min-width:280px;">
+          <label>Link CSV Sumber Data</label>
+          <input type="text" id="divUrlInput" placeholder="Tempel link publish-to-CSV Google Sheets di sini…" style="width:100%;font-family:'Inter',sans-serif;font-size:12.5px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card-bg);color:var(--brown);">
+        </div>
+        <button class="ss-mapping-apply" id="divUrlApply">Muat Data</button>
+      </div>
+      <div class="state-msg">Belum ada sumber data.</div>
+    </section>`;
+    document.getElementById('divUrlApply').onclick = ()=>{
+      const val = document.getElementById('divUrlInput').value.trim();
+      if(!val) return;
+      DIV_CSV_URL = val;
+      divLoadState = 'idle';
+      renderDiversityView();
+    };
+    return;
+  }
+
+  if(divLoadState==='idle'){
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>Memuat data…</div></section>`;
+    loadDivData();
+    return;
+  }
+  if(divLoadState==='loading'){
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>Memuat data…</div></section>`;
+    return;
+  }
+  if(divLoadState==='error'){
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(divLoadError)}<br><br><a href="${DIV_CSV_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div>
+      <button class="ss-mapping-apply" id="divUrlReset" style="margin-top:10px;">Ganti Link Sumber Data</button>
+    </section>`;
+    document.getElementById('divUrlReset').onclick = ()=>{ DIV_CSV_URL=''; divLoadState='idle'; renderDiversityView(); };
+    return;
+  }
+  if(!divRawRows || !divRawRows.length){
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">Sumber data kosong atau tidak dapat dibaca.</div></section>`;
+    return;
+  }
+
+  const mappingOk = divMappingValid();
+
+  main.innerHTML = `
+    <section class="ss-wrap">
+      ${introHtml}
+      <div class="ss-method-note" id="divMethodNote"></div>
+
+      <div class="ss-controls">
+        <div class="ctrl-item"><label>Tahun Awal</label><select id="divFrom"></select></div>
+        <div class="ctrl-item"><label>Tahun Akhir</label><select id="divTo"></select></div>
+        ${divHasBaliData() ? `<div class="ctrl-item"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="divCompareBali"${divCompareBali?' checked':''}> Bandingkan dengan Bali</label></div>` : ''}
+        <div class="ctrl-item" style="font-size:11.5px;color:var(--brown-soft);" id="divIntervalInfo"></div>
+        <button class="ss-mapping-toggle" id="divMapToggle">${mappingOk ? '⚙ Info Pemetaan Kolom' : '⚠ Kolom belum lengkap terdeteksi'}</button>
+        <button class="ss-mapping-toggle" id="divUrlChangeBtn">🔗 Ganti Sumber Data</button>
+      </div>
+
+      <div class="ss-mapping-panel${divMappingPanelOpen ? ' open' : ''}" id="divMapPanel"></div>
+
+      <div id="divBody"></div>
+    </section>`;
+
+  updateDivMethodNote();
+  renderDivMappingInfo();
+  document.getElementById('divMapToggle').onclick = ()=>{
+    divMappingPanelOpen = !divMappingPanelOpen;
+    document.getElementById('divMapPanel').classList.toggle('open', divMappingPanelOpen);
+  };
+  document.getElementById('divUrlChangeBtn').onclick = ()=>{ DIV_CSV_URL=''; divLoadState='idle'; renderDiversityView(); };
+  if(divHasBaliData()){
+    document.getElementById('divCompareBali').onchange = (e)=>{ divCompareBali = e.target.checked; renderDiversityView(); };
+  }
+
+  if(!mappingOk){
+    document.getElementById('divBody').innerHTML = `<div class="state-msg">Kolom wajib (Tahun, K Entropy, K HHI, K Tress Index, K Share – ...) belum lengkap terdeteksi dari header sheet. Periksa nama kolom di sumber data.</div>`;
+    return;
+  }
+
+  const series = buildDivSeries();
+  if(!series.length){
+    document.getElementById('divBody').innerHTML = `<div class="state-msg">Tidak ada baris data yang valid.</div>`;
+    return;
+  }
+
+  const years = series.map(s=>s.tahun);
+  if(!divYearFrom || !years.includes(divYearFrom)) divYearFrom = years[0];
+  if(!divYearTo || !years.includes(divYearTo) || divYearTo<divYearFrom) divYearTo = years[years.length-1];
+
+  const fromSel = document.getElementById('divFrom');
+  const toSel = document.getElementById('divTo');
+  years.forEach(y=>{
+    fromSel.innerHTML += `<option value="${y}" ${y===divYearFrom?'selected':''}>${y}</option>`;
+    toSel.innerHTML += `<option value="${y}" ${y===divYearTo?'selected':''}>${y}</option>`;
+  });
+  fromSel.onchange = ()=>{
+    divYearFrom = parseInt(fromSel.value);
+    if(divYearTo<divYearFrom) divYearTo = divYearFrom;
+    renderDiversityView();
+  };
+  toSel.onchange = ()=>{ divYearTo = parseInt(toSel.value); renderDiversityView(); };
+
+  const filtered = series.filter(s=> s.tahun>=divYearFrom && s.tahun<=divYearTo);
+  document.getElementById('divIntervalInfo').textContent = `${filtered.length} titik tahun ditampilkan`;
+
+  if(!filtered.length){
+    document.getElementById('divBody').innerHTML = `<div class="state-msg">Tidak ada tahun pada rentang ${divYearFrom}–${divYearTo}.</div>`;
+    return;
+  }
+
+  divResult = filtered;
+  if(!divCompositionYear || !filtered.find(s=>s.tahun===divCompositionYear)) divCompositionYear = filtered[filtered.length-1].tahun;
+
+  renderDivBody(filtered);
+}
+
+function updateDivMethodNote(){
+  document.getElementById('divMethodNote').innerHTML = `
+    <div><b>📖 Apa itu indeks-indeks ini:</b> Keempatnya sama-sama dihitung dari pangsa (share) pᵢ tiap sektor terhadap total PDRB tiap tahun, tapi menyorot sisi berbeda: <b>Entropy/Shannon-Weaver</b> & <b>HHI</b> mengukur tingkat keberagaman/konsentrasi struktur ekonomi pada satu titik waktu, <b>REI</b> mengukur seberapa besar struktur itu bergeser dibanding tahun sebelumnya, dan <b>Tress Index</b> mengukur konsentrasi dengan bobot ranking sehingga lebih peka terhadap dominasi sektor terbesar.</div>
+    <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+    <ul class="formula-list">
+      <li>Entropy = −Σ pᵢ ln(pᵢ)</li>
+      <li>HHI = Σ pᵢ²</li>
+      <li>REIₜ = ½ Σ |pᵢ,ₜ − pᵢ,ₜ₋₁|</li>
+      <li>Tress = [(Σ(shareᵢ × rankᵢ) − (n+1)/2) / (n − (n+1)/2)] × 100</li>
+    </ul>
+    <div class="formula-caption">rank 1 = share terkecil, rank n = share terbesar, n = ${DIV_N_SEKTOR}. Seluruh angka dihitung di sumber data (Google Sheets) dan dibaca langsung oleh dashboard ini.</div>
+    <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> <b>Entropy</b> makin tinggi (mendekati ln(${DIV_N_SEKTOR})≈${Math.log(DIV_N_SEKTOR).toFixed(2)}) = ekonomi makin merata/terdiversifikasi antar sektor; mendekati 0 = sangat bertumpu pada segelintir sektor. <b>HHI</b> arahnya kebalikan: mendekati 1/${DIV_N_SEKTOR}≈${(1/DIV_N_SEKTOR).toFixed(2)} = merata; mendekati 1 = sangat terkonsentrasi (ambang umum: &lt;0,15 terdiversifikasi baik, 0,15–0,25 konsentrasi sedang, &gt;0,25 sangat terkonsentrasi). <b>REI</b> mendekati 0 = struktur ekonomi stabil dari tahun sebelumnya; makin tinggi = terjadi pergeseran porsi sektor yang signifikan dalam setahun. <b>Tress</b> 0 = seluruh sektor porsinya sama besar; mendekati 100 = ekonomi sangat bertumpu pada satu sektor dominan.</div>`;
+}
+
+function renderDivMappingInfo(){
+  const panel = document.getElementById('divMapPanel');
+  if(!panel) return;
+  const kSektor = Object.keys(divMap.kShare||{});
+  const rows = [
+    ['Tahun', divMap.tahun],
+    ['Total Klungkung', divMap.totalK],
+    ['K Entropy', divMap.kEntropy],
+    ['K Shannon-Weaver', divMap.kShannon],
+    ['K HHI', divMap.kHhi],
+    ['K REI', divMap.kRei],
+    ['K Tress Index', divMap.kTress],
+    ['K Share (jumlah sektor terdeteksi)', kSektor.length + ' sektor: ' + kSektor.join(', ')]
+  ];
+  if(divHasBaliData()){
+    rows.push(['Total Bali', divMap.totalB]);
+    rows.push(['B Entropy / HHI / Tress / REI', [divMap.bEntropy,divMap.bHhi,divMap.bTress,divMap.bRei].filter(Boolean).join(' · ')]);
+  }
+  panel.innerHTML = `
+    <div style="font-size:12px;color:var(--brown-mid);line-height:1.7;">
+      Kolom terdeteksi otomatis dari header sheet:
+      <table style="width:100%;margin-top:6px;font-size:11.5px;">
+        ${rows.map(([label,val])=>`<tr><td style="padding:2px 8px 2px 0;font-weight:600;color:var(--brown);white-space:nowrap;">${escapeHtml(label)}</td><td style="padding:2px 0;color:var(--brown-mid);">${escapeHtml((val||'— tidak ditemukan').toString())}</td></tr>`).join('')}
+      </table>
+    </div>`;
+}
+
+function renderDivBody(series){
+  const body = document.getElementById('divBody');
+  const latest = series[series.length-1];
+  const hhiBadge = divHHIBadge(latest.kHhi);
+  const latestREI = [...series].reverse().find(s=>s.kRei!==null && s.kRei!==undefined && !isNaN(s.kRei));
+  const showBali = divCompareBali && divHasBaliData();
+
+  body.innerHTML = `
+    <div class="ss-kpi-grid">
+      <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
+      <div class="stat-box"><div class="stat-label">Entropy</div><div class="stat-value" style="font-size:15px;">${latest.kEntropy.toFixed(3)}${showBali && latest.bEntropy!==undefined?` <span style="font-size:11px;color:var(--brown-soft);">(Bali ${latest.bEntropy.toFixed(3)})</span>`:''}</div></div>
+      <div class="stat-box"><div class="stat-label">HHI</div><div class="stat-value" style="font-size:15px;color:${hhiBadge.color};">${latest.kHhi.toFixed(3)} · ${hhiBadge.label}</div></div>
+      <div class="stat-box"><div class="stat-label">Tress Index</div><div class="stat-value" style="font-size:15px;">${latest.kTress.toFixed(1)}${showBali && latest.bTress!==undefined?` <span style="font-size:11px;color:var(--brown-soft);">(Bali ${latest.bTress.toFixed(1)})</span>`:''}</div></div>
+      <div class="stat-box"><div class="stat-label">REI Terbaru</div><div class="stat-value" style="font-size:15px;">${latestREI?latestREI.kRei.toFixed(3)+' ('+latestREI.tahun+')':'—'}</div></div>
+    </div>
+
+    <div class="ss-section-title">Tren Indeks Antar Tahun${showBali?' — Klungkung vs Bali':''}</div>
+    <div class="chart-box-wrap">
+      <button class="dl-btn" id="dlDivTs" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+      <div class="chart-box" style="height:320px;"><canvas id="divTsCanvas"></canvas></div>
+    </div>
+
+    <div class="ss-section-title">Komposisi Sektor</div>
+    <div class="ss-controls" style="margin-bottom:10px;">
+      <div class="ctrl-item"><label>Tahun</label><select id="divCompYear"></select></div>
+    </div>
+    <div class="chart-box-wrap">
+      <button class="dl-btn" id="dlDivComp" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+      <div class="chart-box" style="height:${Math.max(280, Object.keys(latest.kShares).length*24)}px;"><canvas id="divCompCanvas"></canvas></div>
+    </div>
+
+    <div class="table-head-row">
+      <span class="table-head-label">Tabel Indeks per Tahun</span>
+      <button class="dl-btn" id="divExcelBtn" style="position:static;">⬇ Excel</button>
+    </div>
+    <div class="ss-table-wrap ss-table-scroll">
+      <table class="ss-table" id="divTable"></table>
+    </div>
+  `;
+
+  const compSel = document.getElementById('divCompYear');
+  series.forEach(s=>{
+    compSel.innerHTML += `<option value="${s.tahun}" ${s.tahun===divCompositionYear?'selected':''}>${s.tahun}</option>`;
+  });
+  compSel.onchange = ()=>{
+    divCompositionYear = parseInt(compSel.value);
+    renderDivCompositionChart(series.find(x=>x.tahun===divCompositionYear));
+  };
+
+  renderDivTable(series, showBali);
+  renderDivTimeSeriesChart(series, showBali);
+  renderDivCompositionChart(series.find(s=>s.tahun===divCompositionYear) || latest);
+
+  document.getElementById('dlDivTs').onclick = ()=> triggerJPGDownload(divTsChart, `diversitas_tren_${divYearFrom}_${divYearTo}`);
+  document.getElementById('dlDivComp').onclick = ()=> triggerJPGDownload(divCompChart, `diversitas_komposisi_${divCompositionYear}`);
+  document.getElementById('divExcelBtn').onclick = ()=> exportDivExcel(series, showBali);
+}
+
+function renderDivTable(series, showBali){
+  const table = document.getElementById('divTable');
+  const head = showBali
+    ? `<tr><th>Tahun</th><th>K Entropy</th><th>K HHI</th><th>Klasifikasi</th><th>K Tress</th><th>K REI</th><th>B Entropy</th><th>B HHI</th><th>B Tress</th><th>B REI</th></tr>`
+    : `<tr><th>Tahun</th><th>Entropy</th><th>HHI</th><th>Klasifikasi</th><th>Tress</th><th>REI</th></tr>`;
+  const rows = series.map(s=>{
+    const b = divHHIBadge(s.kHhi);
+    const base = `<td>${s.tahun}</td>
+      <td>${s.kEntropy.toFixed(3)}</td>
+      <td>${s.kHhi.toFixed(3)}</td>
+      <td><span class="ss-badge-quad" style="background:${b.color}">${b.label}</span></td>
+      <td>${s.kTress.toFixed(1)}</td>
+      <td>${s.kRei!==null&&s.kRei!==undefined?s.kRei.toFixed(3):'—'}</td>`;
+    if(showBali && s.bEntropy!==undefined){
+      return `<tr>${base}
+        <td>${s.bEntropy.toFixed(3)}</td>
+        <td>${s.bHhi.toFixed(3)}</td>
+        <td>${s.bTress.toFixed(1)}</td>
+        <td>${s.bRei!==null&&s.bRei!==undefined?s.bRei.toFixed(3):'—'}</td>
+      </tr>`;
+    }
+    return `<tr>${base}</tr>`;
+  }).join('');
+  table.innerHTML = `<thead>${head}</thead><tbody>${rows}</tbody>`;
+}
+
+function renderDivTimeSeriesChart(series, showBali){
+  const ctx = document.getElementById('divTsCanvas');
+  if(divTsChart){ divTsChart.destroy(); divTsChart=null; }
+  const labels = series.map(s=>s.tahun);
+  const datasets = [
+    { label:'K Entropy', data:series.map(s=>s.kEntropy), borderColor:'#3E6E8E', backgroundColor:'rgba(62,110,142,0.16)', yAxisID:'yEntropy', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' },
+    { label:'K HHI', data:series.map(s=>s.kHhi), borderColor:'#C1440E', backgroundColor:'rgba(193,68,14,0.14)', yAxisID:'yHhiRei', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' },
+    { label:'K REI', data:series.map(s=>s.kRei), borderColor:'#8C6BAF', backgroundColor:'rgba(140,107,175,0.14)', yAxisID:'yHhiRei', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', spanGaps:true },
+    { label:'K Tress', data:series.map(s=>s.kTress), borderColor:'#B98B27', backgroundColor:'rgba(185,139,39,0.14)', yAxisID:'yTress', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' }
+  ];
+  if(showBali){
+    datasets.push(
+      { label:'B Entropy', data:series.map(s=>s.bEntropy), borderColor:'#3E6E8E', borderDash:[5,4], backgroundColor:'transparent', yAxisID:'yEntropy', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' },
+      { label:'B HHI', data:series.map(s=>s.bHhi), borderColor:'#C1440E', borderDash:[5,4], backgroundColor:'transparent', yAxisID:'yHhiRei', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' },
+      { label:'B Tress', data:series.map(s=>s.bTress), borderColor:'#B98B27', borderDash:[5,4], backgroundColor:'transparent', yAxisID:'yTress', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' }
+    );
+  }
+  divTsChart = new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'nearest', intersect:false },
+      plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:10.5}, color:'#562F00', boxWidth:14 } } },
+      scales:{
+        x:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } },
+        yEntropy:{ position:'left', grid:{color:'#F2DEB8'}, title:{display:true, text:'Entropy', color:'#3E6E8E', font:{size:10}}, ticks:{ color:'#8A5A24', font:{size:10} } },
+        yHhiRei:{ position:'right', min:0, max:1, grid:{display:false}, title:{display:true, text:'HHI / REI', color:'#C1440E', font:{size:10}}, ticks:{ color:'#8A5A24', font:{size:10} } },
+        yTress:{ display:false, min:0, max:100 }
+      }
+    }
+  });
+}
+
+function renderDivCompositionChart(s){
+  if(!s) return;
+  const ctx = document.getElementById('divCompCanvas');
+  if(divCompChart){ divCompChart.destroy(); divCompChart=null; }
+  const entries = Object.entries(s.kShares).sort((a,b)=> b[1]-a[1]);
+  const datasets = [{ label:`Klungkung ${s.tahun}`, data:entries.map(e=>e[1]*100), backgroundColor:'#FF9644' }];
+  if(divCompareBali && s.bShares){
+    datasets.push({ label:`Bali ${s.tahun}`, data:entries.map(e=> (s.bShares[e[0]]||0)*100), backgroundColor:'#3E6E8E' });
+  }
+  divCompChart = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: entries.map(e=>e[0]), datasets },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display: datasets.length>1, position:'bottom', labels:{font:{family:'Inter',size:11},color:'#562F00'} } },
+      scales:{
+        x:{ grid:{color:'#F2DEB8'}, title:{display:true, text:'% terhadap Total PDRB', color:'#8A5A24', font:{size:10.5}}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5}, callback:v=>v+'%' } },
+        y:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } }
+      }
+    }
+  });
+}
+
+async function exportDivExcel(series, showBali){
+  const header = showBali
+    ? ['Tahun','K Entropy','K HHI','Klasifikasi K','K Tress','K REI','B Entropy','B HHI','B Tress','B REI']
+    : ['Tahun','Entropy','HHI','Klasifikasi','Tress','REI'];
+  const rows = series.map(s=>{
+    const base = [s.tahun, s.kEntropy, s.kHhi, divHHIBadge(s.kHhi).label, s.kTress, s.kRei];
+    if(showBali && s.bEntropy!==undefined) return [...base, s.bEntropy, s.bHhi, s.bTress, s.bRei];
+    return base;
+  });
+  await exportStyledExcel(`diversitas_${divYearFrom}_${divYearTo}`, 'Diversitas', header, rows);
+}
+
+function loadDivData(){
+  divLoadState = 'loading';
+  Papa.parse(DIV_CSV_URL, {
+    download:true,
+    header:true,
+    skipEmptyLines:true,
+    complete:function(res){
+      try{
+        divRawRows = (res.data||[]).filter(r=> Object.values(r).some(v=> v!==null && v!==undefined && v.toString().trim()!==''));
+        divHeaders = (res.meta && res.meta.fields) ? res.meta.fields.filter(h=>h && h.toString().trim()!=='') : (divRawRows[0]?Object.keys(divRawRows[0]):[]);
+        autoDetectDivColumns();
+        divLoadState = 'ready';
+      }catch(err){
+        divLoadState = 'error';
+        divLoadError = err.message;
+      }
+      if(divMode) renderDiversityView();
+    },
+    error:function(err){
+      divLoadState = 'error';
+      divLoadError = err.toString();
+      if(divMode) renderDiversityView();
+    }
+  });
+}
 loadData();
 </script>
 </body>
