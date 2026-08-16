@@ -1274,13 +1274,13 @@ function renderTabs(){
 
   const ssBtn = document.createElement('button');
   ssBtn.className = 'tab' + (ssMode ? ' active' : '');
-  ssBtn.textContent = '📐 Shift-Share';
+  ssBtn.textContent = 'Shift-Share';
   ssBtn.onclick = ()=>{ compareMode = false; ssMode = true; lqMode = false; renderTabs(); renderShiftShareView(); };
   tabsEl.appendChild(ssBtn);
 
   const lqBtn = document.createElement('button');
   lqBtn.className = 'tab' + (lqMode ? ' active' : '');
-  lqBtn.textContent = '📈 LQ';
+  lqBtn.textContent = 'LQ';
   lqBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = true; renderTabs(); renderLQView(); };
   tabsEl.appendChild(lqBtn);
 }
