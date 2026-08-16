@@ -963,6 +963,17 @@ let ssChart = null;
 let ssQuadChart = null;
 let ssResult = null; // computed result cache
 
+/* ===== Location Quotient (SLQ/DLQ) ===== */
+// Menggunakan sumber data & pemetaan kolom yang SAMA dengan Shift-Share (struktur identik:
+// interval Tahun_Awal-Tahun_Akhir per Kategori, Klungkung vs Bali).
+let lqMode = false;
+let lqMethod = 'raw';   // 'raw' (SLQ/DLQ) | 'symmetric' (SSLQ/DSLQ)
+let lqYearFrom = null;
+let lqYearTo = null;
+let lqChart = null;
+let lqQuadChart = null;
+let lqResult = null;
+
 const KATEGORI_PALETTE = ['#FF6B6B','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#FF9644','#008080','#4C5C7D','#C1440E'];
 let GROUP_COLOR_MAP = {};
 function getGroupColor(kategori, kelompok){
@@ -1247,7 +1258,7 @@ function renderTabs(){
     const btn = document.createElement('button');
     btn.className = 'tab' + (!compareMode && !ssMode && p===activePeriode?' active':'');
     btn.textContent = p;
-    btn.onclick = ()=>{ compareMode = false; ssMode = false; activePeriode = p; renderTabs(); renderContent(p); };
+    btn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; activePeriode = p; renderTabs(); renderContent(p); };
     tabsEl.appendChild(btn);
   });
 
@@ -1258,14 +1269,20 @@ function renderTabs(){
   const cmpBtn = document.createElement('button');
   cmpBtn.className = 'tab' + (compareMode ? ' active' : '');
   cmpBtn.textContent = '⇄ Bandingkan';
-  cmpBtn.onclick = ()=>{ compareMode = true; ssMode = false; renderTabs(); renderCompareView(); };
+  cmpBtn.onclick = ()=>{ compareMode = true; ssMode = false; lqMode = false; renderTabs(); renderCompareView(); };
   tabsEl.appendChild(cmpBtn);
 
   const ssBtn = document.createElement('button');
   ssBtn.className = 'tab' + (ssMode ? ' active' : '');
   ssBtn.textContent = '📐 Shift-Share';
-  ssBtn.onclick = ()=>{ compareMode = false; ssMode = true; renderTabs(); renderShiftShareView(); };
+  ssBtn.onclick = ()=>{ compareMode = false; ssMode = true; lqMode = false; renderTabs(); renderShiftShareView(); };
   tabsEl.appendChild(ssBtn);
+
+  const lqBtn = document.createElement('button');
+  lqBtn.className = 'tab' + (lqMode ? ' active' : '');
+  lqBtn.textContent = '📈 LQ';
+  lqBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = true; renderTabs(); renderLQView(); };
+  tabsEl.appendChild(lqBtn);
 }
 
 function makeSparkline(entries, color, type){
@@ -5127,13 +5144,417 @@ function loadShiftShareData(){
         ssLoadError = err.message;
       }
       if(ssMode) renderShiftShareView();
+      if(lqMode) renderLQView();
     },
     error:function(err){
       ssLoadState = 'error';
       ssLoadError = err.toString();
       if(ssMode) renderShiftShareView();
+      if(lqMode) renderLQView();
     }
   });
+}
+
+
+/* =========================================================
+   LOCATION QUOTIENT (SLQ / DLQ / SSLQ / DSLQ)
+   Referensi: Kuncoro & Idris (2010), "Mengapa Terjadi Growth without
+   Development di Provinsi Kalimantan Timur?", Jurnal Ekonomi Pembangunan.
+   Sumber data & pemetaan kolom sama dengan tab Shift-Share
+   (interval Tahun_Awal-Tahun_Akhir per Kategori, Klungkung vs Bali).
+   ========================================================= */
+
+/* Bangun indeks tahun->nilai per kategori dari dataset interval Shift-Share,
+   supaya bisa mengambil nilai pada tahun tertentu (bukan hanya growth per-interval). */
+function buildLQIndex(dataset){
+  const byKatYear = {};
+  const totalByYear = {};
+  const kategoriSet = new Set();
+  const yearSet = new Set();
+  dataset.forEach(r=>{
+    kategoriSet.add(r.kategori);
+    yearSet.add(r.tahunAwal); yearSet.add(r.tahunAkhir);
+    if(!byKatYear[r.kategori]) byKatYear[r.kategori] = {};
+    byKatYear[r.kategori][r.tahunAwal] = { klungkung:r.D, bali:r.F };
+    byKatYear[r.kategori][r.tahunAkhir] = { klungkung:r.E, bali:r.G };
+    totalByYear[r.tahunAwal] = { totalKlungkung:r.H, totalBali:r.J };
+    totalByYear[r.tahunAkhir] = { totalKlungkung:r.I, totalBali:r.K };
+  });
+  return {
+    byKatYear, totalByYear,
+    kategoris: [...kategoriSet].sort(),
+    years: [...yearSet].sort((a,b)=>a-b)
+  };
+}
+
+const LQ_KLAS = {
+  unggulan:    { label:'Unggulan',    desc:'Terspesialisasi (SLQ≥1) dan sedang tumbuh lebih cepat dari wilayah acuan (DLQ≥1) — sektor basis dengan momentum yang menguat.', color:'#6F8F52' },
+  andalan:     { label:'Andalan',     desc:'Belum terspesialisasi (SLQ<1) namun tumbuh lebih cepat dari wilayah acuan (DLQ≥1) — berpotensi menjadi unggulan di masa depan.', color:'#3E6E8E' },
+  prospektif:  { label:'Prospektif',  desc:'Sudah terspesialisasi (SLQ≥1) tetapi pertumbuhannya melambat dibanding wilayah acuan (DLQ<1) — perlu diwaspadai despesialisasi.', color:'#B98B27' },
+  tertinggal:  { label:'Tertinggal',  desc:'Belum terspesialisasi (SLQ<1) dan pertumbuhannya juga lebih lambat (DLQ<1) — bukan sektor basis maupun berkembang.', color:'#C1440E' }
+};
+
+function computeLQ(idx, yearFrom, yearTo){
+  const t = yearTo - yearFrom;
+  if(!(t>0) || !idx.kategoris.length) return { perKategori:[], t, yearsUsed:[] };
+  const yearsInRange = idx.years.filter(y=> y>=yearFrom && y<=yearTo);
+
+  const perKategori = [];
+  idx.kategoris.forEach(kat=>{
+    const katYear = idx.byKatYear[kat] || {};
+
+    // --- SLQ: rata-rata pangsa selama rentang tahun terpilih ---
+    let sumKS=0,sumKT=0,sumBS=0,sumBT=0,n=0;
+    yearsInRange.forEach(y=>{
+      const kv = katYear[y];
+      const tv = idx.totalByYear[y];
+      if(kv && tv && tv.totalKlungkung>0 && tv.totalBali>0 && kv.klungkung>=0 && kv.bali>0){
+        sumKS+=kv.klungkung; sumKT+=tv.totalKlungkung; sumBS+=kv.bali; sumBT+=tv.totalBali; n++;
+      }
+    });
+    if(n===0) return;
+    const avgKS=sumKS/n, avgKT=sumKT/n, avgBS=sumBS/n, avgBT=sumBT/n;
+    if(!(avgKT>0) || !(avgBT>0) || !(avgBS>0)) return;
+    const SLQ = (avgKS/avgKT)/(avgBS/avgBT);
+
+    // --- DLQ: pertumbuhan rata-rata tahunan dari tahun awal ke tahun akhir terpilih ---
+    const kv0 = katYear[yearFrom], kv1 = katYear[yearTo];
+    const tv0 = idx.totalByYear[yearFrom], tv1 = idx.totalByYear[yearTo];
+    if(!kv0||!kv1||!tv0||!tv1) return;
+    if(!(kv0.klungkung>0)||!(tv0.totalKlungkung>0)||!(kv0.bali>0)||!(tv0.totalBali>0)) return;
+
+    const g_ij = Math.pow(kv1.klungkung/kv0.klungkung, 1/t) - 1;   // laju sektor, wilayah studi
+    const g_j  = Math.pow(tv1.totalKlungkung/tv0.totalKlungkung, 1/t) - 1; // laju total, wilayah studi
+    const G_i  = Math.pow(kv1.bali/kv0.bali, 1/t) - 1;             // laju sektor, wilayah acuan
+    const G    = Math.pow(tv1.totalBali/tv0.totalBali, 1/t) - 1;   // laju total, wilayah acuan
+    const IPPSij = (1+g_ij)/(1+g_j);
+    const IPPSi  = (1+G_i)/(1+G);
+    if(!(IPPSi>0)) return;
+    const DLQ = Math.pow(IPPSij/IPPSi, t);
+
+    const SSLQ = (SLQ-1)/(SLQ+1);
+    const DSLQ = DLQ >= -1 ? (DLQ-1)/(DLQ+1) : -1*((DLQ-1)/(DLQ+1));
+
+    let klas;
+    if(SLQ>=1 && DLQ>=1) klas='unggulan';
+    else if(SLQ<1 && DLQ>=1) klas='andalan';
+    else if(SLQ<1 && DLQ<1) klas='tertinggal';
+    else klas='prospektif';
+
+    perKategori.push({ kategori:kat, SLQ,DLQ,SSLQ,DSLQ, klas, g_ij,g_j,G_i,G, nYearsAvg:n });
+  });
+
+  perKategori.sort((a,b)=> b.SLQ-a.SLQ);
+  return { perKategori, t, yearsUsed:yearsInRange };
+}
+
+function renderLQView(){
+  const filterPanel = document.getElementById('kelFilterPanel');
+  if(filterPanel) filterPanel.style.display = 'none';
+  const main = document.getElementById('main');
+
+  const introHtml = `
+    <div class="ss-intro">
+      <h2>Location Quotient (SLQ &amp; DLQ)</h2>
+      <p>Location Quotient mengukur derajat spesialisasi/keunggulan suatu sektor di Klungkung dibanding Bali. <b>Static LQ (SLQ)</b> membandingkan pangsa sektor di dua wilayah pada satu titik/rentang waktu; <b>Dynamic LQ (DLQ)</b> melakukan hal serupa namun memakai laju pertumbuhan tahunan, sehingga menangkap potensi sektor ke depan, bukan hanya kontribusinya saat ini. Karena nilai SLQ/DLQ tidak simetris di sekitar 1 (rentang 0 s.d. tak terhingga), tersedia pula versi <b>simetris (SSLQ &amp; DSLQ)</b> yang mentransformasikannya ke rentang -1 s.d. 1 agar lebih adil secara statistik. Kedua versi menghasilkan klasifikasi sektor yang identik. Sektor diklasifikasikan menjadi <b>Unggulan</b>, <b>Andalan</b>, <b>Prospektif</b>, atau <b>Tertinggal</b> berdasarkan kombinasi SLQ &amp; DLQ. Sumber data & pemetaan kolom memakai yang sama dengan tab Shift-Share.</p>
+    </div>`;
+
+  if(ssLoadState==='idle'){
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>Memuat data…</div></section>`;
+    loadShiftShareData();
+    return;
+  }
+  if(ssLoadState==='loading'){
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>Memuat data…</div></section>`;
+    return;
+  }
+  if(ssLoadState==='error'){
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(ssLoadError)}<br><br><a href="${SS_CSV_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div></section>`;
+    return;
+  }
+  if(!ssRawRows || !ssRawRows.length){
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">Sumber data kosong atau tidak dapat dibaca.</div></section>`;
+    return;
+  }
+
+  const mappingOk = ssMappingValid();
+
+  main.innerHTML = `
+    <section class="ss-wrap">
+      ${introHtml}
+
+      <div class="ss-method-tabs" id="lqMethodTabs">
+        <button class="ss-method-tab" data-m="raw">LQ Asli (SLQ · DLQ)</button>
+        <button class="ss-method-tab" data-m="symmetric">LQ Simetris (SSLQ · DSLQ)</button>
+      </div>
+      <div class="ss-method-note" id="lqMethodNote"></div>
+
+      <div class="ss-controls">
+        <div class="ctrl-item"><label>Tahun Awal</label><select id="lqFrom"></select></div>
+        <div class="ctrl-item"><label>Tahun Akhir</label><select id="lqTo"></select></div>
+        <div class="ctrl-item" style="font-size:11.5px;color:var(--brown-soft);" id="lqIntervalInfo"></div>
+        <button class="ss-mapping-toggle" id="lqMapToggle">${mappingOk ? '⚙ Atur Pemetaan Kolom' : '⚠ Atur Pemetaan Kolom (perlu dilengkapi)'}</button>
+      </div>
+
+      <div class="ss-mapping-panel${ssMappingPanelOpen ? ' open' : ''}" id="lqMapPanel"></div>
+
+      <div id="lqBody"></div>
+    </section>`;
+
+  document.querySelectorAll('#lqMethodTabs .ss-method-tab').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.m===lqMethod);
+    btn.onclick = ()=>{ lqMethod = btn.dataset.m; renderLQView(); };
+  });
+  updateLQMethodNote();
+
+  renderLQMappingPanelInto('lqMapPanel');
+  document.getElementById('lqMapToggle').onclick = ()=>{
+    ssMappingPanelOpen = !ssMappingPanelOpen;
+    document.getElementById('lqMapPanel').classList.toggle('open', ssMappingPanelOpen);
+  };
+
+  if(!mappingOk){
+    document.getElementById('lqBody').innerHTML = `<div class="state-msg">Pemetaan kolom belum lengkap/valid. Buka "Atur Pemetaan Kolom" di atas (sama seperti tab Shift-Share).</div>`;
+    ssMappingPanelOpen = true;
+    document.getElementById('lqMapPanel').classList.add('open');
+    return;
+  }
+
+  const dataset = buildSSDataset();
+  if(!dataset.length){
+    document.getElementById('lqBody').innerHTML = `<div class="state-msg">Tidak ada baris data yang valid.</div>`;
+    return;
+  }
+  const idx = buildLQIndex(dataset);
+  if(idx.years.length < 2){
+    document.getElementById('lqBody').innerHTML = `<div class="state-msg">Data tahun kurang dari 2 — LQ Dinamis memerlukan minimal dua titik tahun.</div>`;
+    return;
+  }
+
+  if(!lqYearFrom || !idx.years.includes(lqYearFrom)) lqYearFrom = idx.years[0];
+  if(!lqYearTo || !idx.years.includes(lqYearTo) || lqYearTo<=lqYearFrom) lqYearTo = idx.years[idx.years.length-1];
+
+  const fromSel = document.getElementById('lqFrom');
+  const toSel = document.getElementById('lqTo');
+  idx.years.forEach(y=>{
+    fromSel.innerHTML += `<option value="${y}" ${y===lqYearFrom?'selected':''}>${y}</option>`;
+    toSel.innerHTML += `<option value="${y}" ${y===lqYearTo?'selected':''}>${y}</option>`;
+  });
+  fromSel.onchange = ()=>{
+    lqYearFrom = parseInt(fromSel.value);
+    if(lqYearTo<=lqYearFrom){ const nxt = idx.years.find(y=>y>lqYearFrom); lqYearTo = nxt||lqYearFrom; }
+    renderLQView();
+  };
+  toSel.onchange = ()=>{ lqYearTo = parseInt(toSel.value); renderLQView(); };
+
+  const result = computeLQ(idx, lqYearFrom, lqYearTo);
+  lqResult = result;
+
+  document.getElementById('lqIntervalInfo').textContent =
+    `t = ${result.t} tahun · SLQ dirata-rata dari ${result.yearsUsed.length} titik tahun`;
+
+  if(!result.perKategori.length){
+    document.getElementById('lqBody').innerHTML = `<div class="state-msg">Tidak ada sektor dengan data lengkap pada rentang tahun ${lqYearFrom}–${lqYearTo}.</div>`;
+    return;
+  }
+
+  renderLQBody(result);
+}
+
+function updateLQMethodNote(){
+  const notes = {
+    raw: 'SLQ = (rata-rata pangsa sektor di Klungkung) / (rata-rata pangsa sektor di Bali) selama rentang tahun terpilih. DLQ = [((1+g_i)/(1+g)) / ((1+G_i)/(1+G))]^t, dengan g_i & g = laju pertumbuhan rata-rata tahunan sektor & total Klungkung, G_i & G = laju pertumbuhan rata-rata tahunan sektor & total Bali, t = jumlah tahun. Ambang klasifikasi: 1.',
+    symmetric: 'SSLQ = (SLQ−1)/(SLQ+1), DSLQ = (DLQ−1)/(DLQ+1) — transformasi ke rentang -1 s.d. 1 agar bobot di atas & di bawah nilai tengah setara (Dalum et al., 1998). Ambang klasifikasi: 0. Menghasilkan klasifikasi sektor yang identik dengan SLQ-DLQ.'
+  };
+  document.getElementById('lqMethodNote').innerHTML = `<b>${lqMethod==='raw'?'LQ Asli':'LQ Simetris'}:</b> ${notes[lqMethod]}`;
+}
+
+function renderLQMappingPanelInto(targetId){
+  // Pemetaan kolom sama persis dengan Shift-Share (SS_FIELDS / ssMap) — render ulang UI-nya ke panel LQ.
+  const panel = document.getElementById(targetId);
+  if(!panel) return;
+  panel.innerHTML = `
+    <div class="ss-mapping-grid">
+      ${SS_FIELDS.map(f=>`
+        <div class="ctrl-item"><label>${escapeHtml(f.label)}</label>
+          <select id="lqmap_${f.key}">
+            <option value="">— pilih kolom —</option>
+            ${ssHeaders.map(h=>`<option value="${escapeHtml(h)}" ${h===ssMap[f.key]?'selected':''}>${escapeHtml(h)}</option>`).join('')}
+          </select>
+        </div>`).join('')}
+    </div>
+    <button class="ss-mapping-apply" id="lqMapApply">Terapkan Pemetaan</button>
+  `;
+  document.getElementById('lqMapApply').onclick = ()=>{
+    SS_FIELDS.forEach(f=>{ ssMap[f.key] = document.getElementById(`lqmap_${f.key}`).value || null; });
+    lqYearFrom = null; lqYearTo = null; ssYearFrom = null; ssYearTo = null;
+    renderLQView();
+  };
+}
+
+function renderLQBody(result){
+  const body = document.getElementById('lqBody');
+  const { perKategori } = result;
+  const isRaw = lqMethod==='raw';
+
+  const counts = {unggulan:0, andalan:0, prospektif:0, tertinggal:0};
+  perKategori.forEach(r=> counts[r.klas]++);
+
+  body.innerHTML = `
+    <div class="ss-kpi-grid">
+      <div class="stat-box"><div class="stat-label">Periode</div><div class="stat-value" style="font-size:15px;">${lqYearFrom}–${lqYearTo}</div></div>
+      <div class="stat-box"><div class="stat-label">Sektor Unggulan</div><div class="stat-value" style="font-size:15px;color:${LQ_KLAS.unggulan.color};">${counts.unggulan}</div></div>
+      <div class="stat-box"><div class="stat-label">Sektor Andalan</div><div class="stat-value" style="font-size:15px;color:${LQ_KLAS.andalan.color};">${counts.andalan}</div></div>
+      <div class="stat-box"><div class="stat-label">Sektor Prospektif</div><div class="stat-value" style="font-size:15px;color:${LQ_KLAS.prospektif.color};">${counts.prospektif}</div></div>
+      <div class="stat-box"><div class="stat-label">Sektor Tertinggal</div><div class="stat-value" style="font-size:15px;color:${LQ_KLAS.tertinggal.color};">${counts.tertinggal}</div></div>
+    </div>
+
+    <div class="ss-section-title">Posisi Kuadran per Sektor</div>
+    <div class="ss-quad-grid">
+      <div class="chart-box-wrap">
+        <button class="dl-btn" id="dlLQQuad" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+        <div class="chart-box" style="height:360px;"><canvas id="lqQuadCanvas"></canvas></div>
+      </div>
+      <div>
+        <div class="ss-quad-legend">
+          ${['unggulan','andalan','tertinggal','prospektif'].map(k=>`
+            <div class="ss-quad-legend-item">
+              <b style="color:${LQ_KLAS[k].color}">${LQ_KLAS[k].label} <span class="cnt">(${counts[k]})</span></b>
+              ${LQ_KLAS[k].desc}
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="ss-section-title">${isRaw?'SLQ vs DLQ':'SSLQ vs DSLQ'} per Sektor</div>
+    <div class="chart-box-wrap">
+      <button class="dl-btn" id="dlLQChart" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+      <div class="chart-box" style="height:${Math.max(260, perKategori.length*26)}px;"><canvas id="lqChartCanvas"></canvas></div>
+    </div>
+
+    <div class="table-head-row">
+      <span class="table-head-label">Tabel Hasil LQ</span>
+      <button class="dl-btn" id="lqExcelBtn" style="position:static;">⬇ Excel</button>
+    </div>
+    <div class="ss-table-wrap ss-table-scroll">
+      <table class="ss-table" id="lqTable"></table>
+    </div>
+  `;
+
+  renderLQTable(perKategori);
+  renderLQBarChart(perKategori, isRaw);
+  renderLQQuadrantChart(perKategori, isRaw);
+
+  document.getElementById('dlLQChart').onclick = ()=> triggerJPGDownload(lqChart, `lq_${lqMethod}_${lqYearFrom}_${lqYearTo}`);
+  document.getElementById('dlLQQuad').onclick = ()=> triggerJPGDownload(lqQuadChart, `lq_kuadran_${lqMethod}_${lqYearFrom}_${lqYearTo}`);
+  document.getElementById('lqExcelBtn').onclick = ()=> exportLQExcel(perKategori);
+}
+
+function renderLQTable(perKategori){
+  const table = document.getElementById('lqTable');
+  const head = `<tr><th>Sektor</th><th>Klasifikasi</th><th>SLQ</th><th>DLQ</th><th>SSLQ</th><th>DSLQ</th></tr>`;
+  const rows = perKategori.map(r=>`<tr>
+    <td>${escapeHtml(r.kategori)}</td>
+    <td><span class="ss-badge-quad" style="background:${LQ_KLAS[r.klas].color}">${LQ_KLAS[r.klas].label}</span></td>
+    <td class="${r.SLQ>=1?'pos':'neg'}">${r.SLQ.toFixed(2)}</td>
+    <td class="${r.DLQ>=1?'pos':'neg'}">${r.DLQ.toFixed(2)}</td>
+    <td class="${r.SSLQ>=0?'pos':'neg'}">${r.SSLQ.toFixed(2)}</td>
+    <td class="${r.DSLQ>=0?'pos':'neg'}">${r.DSLQ.toFixed(2)}</td>
+  </tr>`).join('');
+  table.innerHTML = `<thead>${head}</thead><tbody>${rows}</tbody>`;
+}
+
+function renderLQBarChart(perKategori, isRaw){
+  const ctx = document.getElementById('lqChartCanvas');
+  if(lqChart){ lqChart.destroy(); lqChart=null; }
+  const labels = perKategori.map(r=>r.kategori);
+  const datasets = isRaw ? [
+    { label:'SLQ', data:perKategori.map(r=>r.SLQ), backgroundColor:'#3E6E8E' },
+    { label:'DLQ', data:perKategori.map(r=>r.DLQ), backgroundColor:'#FF9644' }
+  ] : [
+    { label:'SSLQ', data:perKategori.map(r=>r.SSLQ), backgroundColor:'#3E6E8E' },
+    { label:'DSLQ', data:perKategori.map(r=>r.DSLQ), backgroundColor:'#FF9644' }
+  ];
+  lqChart = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:11}, color:'#562F00' } } },
+      scales:{
+        x:{ grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } },
+        y:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } }
+      }
+    }
+  });
+}
+
+function lqCrosshairPlugin(refX, refY){
+  return {
+    id:'lqCrosshair',
+    beforeDatasetsDraw(chart){
+      const {ctx, chartArea:{left,right,top,bottom}, scales:{x,y}} = chart;
+      const x0 = x.getPixelForValue(refX), y0 = y.getPixelForValue(refY);
+      ctx.save();
+      ctx.strokeStyle = '#D8A15B';
+      ctx.setLineDash([4,4]);
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x0, top); ctx.lineTo(x0, bottom); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(left, y0); ctx.lineTo(right, y0); ctx.stroke();
+      ctx.restore();
+    }
+  };
+}
+
+function renderLQQuadrantChart(perKategori, isRaw){
+  const ctx = document.getElementById('lqQuadCanvas');
+  if(lqQuadChart){ lqQuadChart.destroy(); lqQuadChart=null; }
+  const ref = isRaw ? 1 : 0;
+  const pts = perKategori.map(r=>({
+    x: isRaw ? r.SLQ : r.SSLQ,
+    y: isRaw ? r.DLQ : r.DSLQ,
+    label: r.kategori,
+    klas: r.klas
+  }));
+
+  const maxAbsX = Math.max(Math.abs(ref)+0.5, ...pts.map(p=>Math.abs(p.x-ref)))+ref;
+  const maxAbsY = Math.max(Math.abs(ref)+0.5, ...pts.map(p=>Math.abs(p.y-ref)))+ref;
+  const minX = isRaw ? Math.max(0, ref - (maxAbsX-ref)*1.15) : -(maxAbsX-ref)*1.15;
+  const minY = isRaw ? Math.max(0, ref - (maxAbsY-ref)*1.15) : -(maxAbsY-ref)*1.15;
+
+  lqQuadChart = new Chart(ctx, {
+    type:'scatter',
+    data:{ datasets:[{
+      label:'Sektor',
+      data: pts,
+      backgroundColor: pts.map(p=> LQ_KLAS[p.klas].color),
+      pointRadius:7,
+      pointHoverRadius:9
+    }]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:false },
+        tooltip:{
+          callbacks:{
+            label:(item)=> `${item.raw.label}: ${isRaw?'SLQ':'SSLQ'}=${item.raw.x.toFixed(2)}, ${isRaw?'DLQ':'DSLQ'}=${item.raw.y.toFixed(2)}`
+          }
+        }
+      },
+      scales:{
+        x:{ min:minX, max:(ref+(maxAbsX-ref)*1.15), grid:{color:'#F2DEB8'}, title:{display:true, text:isRaw?'SLQ':'SSLQ', color:'#8A5A24', font:{family:'Inter', size:11}}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10} } },
+        y:{ min:minY, max:(ref+(maxAbsY-ref)*1.15), grid:{color:'#F2DEB8'}, title:{display:true, text:isRaw?'DLQ':'DSLQ', color:'#8A5A24', font:{family:'Inter', size:11}}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10} } }
+      }
+    },
+    plugins:[lqCrosshairPlugin(ref, ref)]
+  });
+}
+
+async function exportLQExcel(perKategori){
+  const header = ['Sektor','Klasifikasi','SLQ','DLQ','SSLQ','DSLQ'];
+  const rows = perKategori.map(r=>[r.kategori, LQ_KLAS[r.klas].label, r.SLQ, r.DLQ, r.SSLQ, r.DSLQ]);
+  await exportStyledExcel(`lq_${lqYearFrom}_${lqYearTo}`, 'Location Quotient', header, rows);
 }
 
 loadData();
