@@ -1274,13 +1274,13 @@ function renderTabs(){
 
   const ssBtn = document.createElement('button');
   ssBtn.className = 'tab' + (ssMode ? ' active' : '');
-  ssBtn.textContent = 'Shift-Share';
+  ssBtn.textContent = '📐 Shift-Share';
   ssBtn.onclick = ()=>{ compareMode = false; ssMode = true; lqMode = false; renderTabs(); renderShiftShareView(); };
   tabsEl.appendChild(ssBtn);
 
   const lqBtn = document.createElement('button');
   lqBtn.className = 'tab' + (lqMode ? ' active' : '');
-  lqBtn.textContent = 'LQ';
+  lqBtn.textContent = '📈 LQ';
   lqBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = true; renderTabs(); renderLQView(); };
   tabsEl.appendChild(lqBtn);
 }
@@ -4857,11 +4857,20 @@ function renderShiftShareView(){
 
 function updateSSMethodNote(){
   const notes = {
-    tradisional: 'NS = e_i(t-1)×G, IM = e_i(t-1)×(G_i−G), RS = e_i(t-1)×(g_i−G_i). Kuadran dibentuk dari IM (sumbu-x) vs RS (sumbu-y).',
-    em: 'h = e(t-1)×E_i(t-1)/E(t-1) (nilai homotetik). RS EM = h×(g_i−G_i) (efek kompetitif murni), Allocation = (e_i−h)×(g_i−G_i). Kuadran dibentuk dari akumulasi (e_i−h) — spesialisasi (sumbu-x) — vs RS EM — keunggulan kompetitif (sumbu-y).',
-    arcelus: 'Struktur homotetik h diterapkan ke seluruh komponen: NSE/NSD = h×G & (e_i−h)×G, IME/IMD = h×(G_i−G) & (e_i−h)×(G_i−G), RGE/RGD = h×(g−G) & (e_i−h)×(g−G), RIE/RID = h×(g_i−g−G_i+G) & (e_i−h)×(g_i−g−G_i+G) — dengan g = laju pertumbuhan total Klungkung. Kuadran dibentuk dari akumulasi (e_i−h) — spesialisasi — vs (RGE+RGD+RIE+RID) — keunggulan kompetitif total.'
+    tradisional: `
+      <div><b>📖 Apa itu model ini:</b> Model paling dasar (Dunn, 1960) untuk memecah pertumbuhan tiap sektor menjadi tiga sumber terpisah: seberapa besar sektor itu tumbuh karena terbawa arus pertumbuhan ekonomi Bali secara umum, seberapa besar karena sektor itu memang sedang "booming"/lesu di tingkat provinsi, dan seberapa besar murni karena daya saing Klungkung sendiri di sektor tersebut.</div>
+      <div style="margin-top:6px"><b>🧮 Formula:</b> NS = e_i(t-1)×G, IM = e_i(t-1)×(G_i−G), RS = e_i(t-1)×(g_i−G_i). Kuadran dibentuk dari IM (sumbu-x) vs RS (sumbu-y).</div>
+      <div style="margin-top:6px"><b>💡 Cara membaca angka:</b> <b>NS</b> besar bukan berarti sektor itu hebat — itu cuma menunjukkan seberapa besar dorongan pertumbuhan ekonomi Bali secara umum. <b>IM</b> positif berarti sektor ini termasuk yang sedang tumbuh cepat di level provinsi (iklim sektoralnya bagus), IM negatif berarti sektor ini secara nasional/provinsi memang sedang lesu. Yang paling penting untuk menilai daya saing lokal murni adalah <b>RS (Pergeseran Diferensial)</b>: RS positif = Klungkung unggul kompetitif dibanding Bali pada sektor ini (tumbuh lebih cepat dari yang "seharusnya"); RS negatif = sektor ini kalah saing di Klungkung dibanding rata-rata Bali, meski secara nasional sektornya sendiri mungkin sedang bagus.</div>`,
+    em: `
+      <div><b>📖 Apa itu model ini:</b> Perbaikan dari model Tradisional (Esteban-Marquilas, 1972). Masalah pada RS versi Tradisional adalah nilainya bisa "tertipu" oleh besar-kecilnya porsi sektor tersebut di ekonomi Klungkung (spesialisasi), bukan murni oleh daya saingnya. Model ini memisahkan nilai aktual sektor (e_i) menjadi nilai homotetik <b>h</b> — porsi yang "seharusnya" dimiliki Klungkung seandainya struktur ekonominya sama persis dengan Bali — supaya efek kompetitif bisa dihitung bersih dari bias spesialisasi.</div>
+      <div style="margin-top:6px"><b>🧮 Formula:</b> h = e(t-1)×E_i(t-1)/E(t-1) (nilai homotetik). RS EM = h×(g_i−G_i) (efek kompetitif murni), Allocation = (e_i−h)×(g_i−G_i). Kuadran dibentuk dari akumulasi (e_i−h) — spesialisasi (sumbu-x) — vs RS EM — keunggulan kompetitif (sumbu-y).</div>
+      <div style="margin-top:6px"><b>💡 Cara membaca angka:</b> <b>RS EM</b> positif = daya saing sektor itu sendiri sedang bagus, terlepas dari besar-kecilnya porsi sektor itu di ekonomi Klungkung. <b>Allocation (Efek Alokasi)</b> positif berarti spesialisasi Klungkung "pas sasaran" — sektor yang porsinya besar (e_i > h) memang juga sektor yang kompetitif, atau sebaliknya sektor kecil memang kurang kompetitif sehingga wajar porsinya kecil. Allocation <b>negatif</b> adalah sinyal "salah spesialisasi": sektor dengan porsi besar justru kurang kompetitif (sumber daya terlalu banyak ditaruh di sektor yang lemah), atau sektor kompetitif justru porsinya kecil (potensi belum digarap maksimal) — ini bisa jadi dasar rekomendasi realokasi sumber daya.</div>`,
+    arcelus: `
+      <div><b>📖 Apa itu model ini:</b> Perluasan dari Esteban-Marquilas (Arcelus, 1984). Kalau EM hanya menerapkan nilai homotetik <b>h</b> pada komponen kompetitif saja, Arcelus menerapkannya ke <b>seluruh</b> komponen (Pertumbuhan Nasional, Bauran Industri, maupun Regional), sehingga tiap komponen bisa dipecah lagi menjadi bagian yang "sesuai struktur standar wilayah acuan" (Effect, pakai h) dan bagian yang "menyimpang karena struktur khas Klungkung sendiri" (Deviation, pakai e_i−h).</div>
+      <div style="margin-top:6px"><b>🧮 Formula:</b> NSE/NSD = h×G & (e_i−h)×G, IME/IMD = h×(G_i−G) & (e_i−h)×(G_i−G), RGE/RGD = h×(g−G) & (e_i−h)×(g−G), RIE/RID = h×(g_i−g−G_i+G) & (e_i−h)×(g_i−g−G_i+G) — dengan g = laju pertumbuhan total Klungkung. Kuadran dibentuk dari akumulasi (e_i−h) — spesialisasi — vs (RGE+RGD+RIE+RID) — keunggulan kompetitif total.</div>
+      <div style="margin-top:6px"><b>💡 Cara membaca angka:</b> Untuk tiap pasangan komponen (misal RGE vs RGD), bagian <b>Effect</b> (E) menunjukkan kontribusi yang murni berasal dari laju pertumbuhan seandainya struktur sektor Klungkung standar, sedangkan <b>Deviation</b> (D) menunjukkan tambahan/pengurangan akibat struktur sektor Klungkung yang menyimpang dari standar tersebut. Kalau Effect dan Deviation searah (sama-sama positif atau sama-sama negatif), berarti struktur khas Klungkung <b>memperkuat</b> efek itu; kalau berlawanan arah, struktur khas Klungkung justru <b>meredam</b>/mengoreksi efek tersebut. Total per sektor tetap menunjukkan besaran perubahan riilnya, sama seperti model lain.</div>`
   };
-  document.getElementById('ssMethodNote').innerHTML = `<b>${ssMethod==='tradisional'?'Dynamic Traditional':ssMethod==='em'?'Dynamic Esteban-Marquilas':'Dynamic Arcelus'}:</b> ${notes[ssMethod]}`;
+  document.getElementById('ssMethodNote').innerHTML = `<b>${ssMethod==='tradisional'?'Dynamic Traditional':ssMethod==='em'?'Dynamic Esteban-Marquilas':'Dynamic Arcelus'}</b><br><br>${notes[ssMethod]}`;
 }
 
 function renderSSMappingPanel(){
@@ -5363,10 +5372,16 @@ function renderLQView(){
 
 function updateLQMethodNote(){
   const notes = {
-    raw: 'SLQ = (rata-rata pangsa sektor di Klungkung) / (rata-rata pangsa sektor di Bali) selama rentang tahun terpilih. DLQ = [((1+g_i)/(1+g)) / ((1+G_i)/(1+G))]^t, dengan g_i & g = laju pertumbuhan rata-rata tahunan sektor & total Klungkung, G_i & G = laju pertumbuhan rata-rata tahunan sektor & total Bali, t = jumlah tahun. Ambang klasifikasi: 1.',
-    symmetric: 'SSLQ = (SLQ−1)/(SLQ+1), DSLQ = (DLQ−1)/(DLQ+1) — transformasi ke rentang -1 s.d. 1 agar bobot di atas & di bawah nilai tengah setara (Dalum et al., 1998). Ambang klasifikasi: 0. Menghasilkan klasifikasi sektor yang identik dengan SLQ-DLQ.'
+    raw: `
+      <div><b>📖 Apa itu model ini:</b> Location Quotient asli — bentuk paling umum dipakai. <b>SLQ</b> (Static) membandingkan porsi sektor di Klungkung vs Bali pada satu titik/rentang waktu (potret keunggulan saat ini). <b>DLQ</b> (Dynamic) membandingkan laju pertumbuhan relatif sektor tersebut, sehingga menangkap ke mana arah sektor itu menuju, bukan cuma posisinya sekarang.</div>
+      <div style="margin-top:6px"><b>🧮 Formula:</b> SLQ = (rata-rata pangsa sektor di Klungkung) / (rata-rata pangsa sektor di Bali) selama rentang tahun terpilih. DLQ = [((1+g_i)/(1+g)) / ((1+G_i)/(1+G))]^t, dengan g_i & g = laju pertumbuhan rata-rata tahunan sektor & total Klungkung, G_i & G = laju pertumbuhan rata-rata tahunan sektor & total Bali, t = jumlah tahun. Ambang klasifikasi: 1.</div>
+      <div style="margin-top:6px"><b>💡 Cara membaca angka:</b> <b>SLQ = 1</b> berarti porsi sektor itu di Klungkung persis sama dengan di Bali (netral, tidak istimewa). <b>SLQ &gt; 1</b> berarti Klungkung lebih terkonsentrasi/terspesialisasi pada sektor itu dibanding Bali — sektor ini menjadi basis ekonomi Klungkung, bukan sekadar melayani kebutuhan lokal. <b>SLQ &lt; 1</b> berarti porsinya di Klungkung lebih kecil dari Bali — sektor ini belum jadi andalan. Untuk <b>DLQ</b>: <b>DLQ &gt; 1</b> berarti sektor ini di Klungkung tumbuh lebih cepat secara relatif dibanding Bali (berpotensi makin unggul ke depan), sedangkan <b>DLQ &lt; 1</b> berarti tumbuh lebih lambat (berisiko makin tertinggal/despesialisasi). Kombinasi keduanya menghasilkan klasifikasi Unggulan/Andalan/Prospektif/Tertinggal.</div>`,
+    symmetric: `
+      <div><b>📖 Apa itu model ini:</b> Transformasi dari SLQ/DLQ (Dalum et al., 1998) untuk mengatasi kelemahan statistik SLQ/DLQ asli: karena rentangnya 0 sampai tak terhingga dengan titik netral di angka 1, penyimpangan di ATAS 1 (misal dari 1 ke 3) dan di BAWAH 1 (misal dari 1 ke 0,2) tidak dibobot setara secara matematis, sehingga kurang cocok dipakai untuk perbandingan statistik lanjutan (korelasi, regresi, dsb).</div>
+      <div style="margin-top:6px"><b>🧮 Formula:</b> SSLQ = (SLQ−1)/(SLQ+1), DSLQ = (DLQ−1)/(DLQ+1) — transformasi ke rentang -1 s.d. 1 dengan titik netral di 0. Ambang klasifikasi: 0. Menghasilkan klasifikasi sektor yang identik dengan SLQ-DLQ (terbukti lewat korelasi Spearman = 1 pada studi rujukan).</div>
+      <div style="margin-top:6px"><b>💡 Cara membaca angka:</b> <b>SSLQ = 0</b> setara dengan SLQ = 1 (netral). <b>SSLQ mendekati +1</b> berarti spesialisasi sangat kuat (SLQ jauh di atas 1); <b>SSLQ mendekati −1</b> berarti sangat tidak terspesialisasi (SLQ mendekati 0). Pola yang sama berlaku untuk <b>DSLQ</b> terhadap DLQ: mendekati +1 = tumbuh jauh lebih cepat dari Bali, mendekati −1 = tumbuh jauh lebih lambat. Karena skalanya simetris & seragam antar sektor, versi ini lebih adil dipakai untuk membandingkan "seberapa jauh" posisi tiap sektor dari titik netral, bukan cuma arah unggul/tidaknya saja.</div>`
   };
-  document.getElementById('lqMethodNote').innerHTML = `<b>${lqMethod==='raw'?'LQ Asli':'LQ Simetris'}:</b> ${notes[lqMethod]}`;
+  document.getElementById('lqMethodNote').innerHTML = `<b>${lqMethod==='raw'?'LQ Asli (SLQ · DLQ)':'LQ Simetris (SSLQ · DSLQ)'}</b><br><br>${notes[lqMethod]}`;
 }
 
 function renderLQMappingPanelInto(targetId){
