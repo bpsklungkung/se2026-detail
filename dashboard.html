@@ -1324,31 +1324,31 @@ function renderTabs(){
 
   const cmpBtn = document.createElement('button');
   cmpBtn.className = 'tab' + (compareMode ? ' active' : '');
-  cmpBtn.textContent = '⇄ Bandingkan';
+  cmpBtn.textContent = 'Bandingkan';
   cmpBtn.onclick = ()=>{ compareMode = true; ssMode = false; lqMode = false; divMode = false; advMode = false; renderTabs(); renderCompareView(); };
   tabsEl.appendChild(cmpBtn);
 
   const ssBtn = document.createElement('button');
   ssBtn.className = 'tab' + (ssMode ? ' active' : '');
-  ssBtn.textContent = '📐 Shift-Share';
+  ssBtn.textContent = 'Shift-Share';
   ssBtn.onclick = ()=>{ compareMode = false; ssMode = true; lqMode = false; divMode = false; advMode = false; renderTabs(); renderShiftShareView(); };
   tabsEl.appendChild(ssBtn);
 
   const lqBtn = document.createElement('button');
   lqBtn.className = 'tab' + (lqMode ? ' active' : '');
-  lqBtn.textContent = '📈 LQ';
+  lqBtn.textContent = 'LQ';
   lqBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = true; divMode = false; advMode = false; renderTabs(); renderLQView(); };
   tabsEl.appendChild(lqBtn);
 
   const divBtn = document.createElement('button');
   divBtn.className = 'tab' + (divMode ? ' active' : '');
-  divBtn.textContent = '🧬 Diversitas';
+  divBtn.textContent = 'Diversitas';
   divBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; divMode = true; advMode = false; renderTabs(); renderDiversityView(); };
   tabsEl.appendChild(divBtn);
 
   const advBtn = document.createElement('button');
   advBtn.className = 'tab' + (advMode ? ' active' : '');
-  advBtn.textContent = '🔬 Lanjutan';
+  advBtn.textContent = 'Lanjutan';
   advBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; divMode = false; advMode = true; renderTabs(); renderAdvancedView(); };
   tabsEl.appendChild(advBtn);
 }
