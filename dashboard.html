@@ -324,7 +324,7 @@
   }
   .ss-method-note b{ color:var(--brown-deep); }
   .ss-method-note .formula-list{ margin:4px 0 2px 20px; padding:0; }
-  .ss-method-note .formula-list li{ margin-bottom:2px; font-family:'Menlo','Consolas',monospace; font-size:11.5px; color:var(--brown-deep); }
+  .ss-method-note .formula-list li{ margin-bottom:4px; font-family:'Menlo','Consolas',monospace; font-size:15px; font-weight:700; color:var(--brown-deep); }
   .ss-method-note .formula-caption{ margin-top:2px; color:var(--brown-mid); }
   .ss-method-note .component-list{ margin:4px 0 8px 20px; padding:0; }
   .ss-method-note .component-list li{ margin-bottom:5px; }
@@ -348,6 +348,26 @@
   .ss-mapping-grid .ctrl-item{ flex-direction:column; align-items:flex-start; gap:4px; }
   .ss-mapping-grid select{ width:100%; }
   .ss-mapping-mode{ display:flex; gap:14px; margin-bottom:10px; font-size:12px; font-weight:600; color:var(--brown-mid); }
+
+  .ms-dropdown{ position:relative; display:inline-block; }
+  .ms-dropdown-btn{
+    font-size:11.5px; font-weight:700; color:var(--brown); background:var(--card-bg);
+    border:1.5px solid var(--peach); border-radius:8px; padding:6px 12px; cursor:pointer;
+    display:flex; align-items:center; gap:6px;
+  }
+  .ms-dropdown-btn:hover{ border-color:var(--orange-deep); }
+  .ms-dropdown-panel{
+    display:none; position:absolute; top:calc(100% + 6px); left:0; z-index:20;
+    background:var(--card-bg); border:1.5px solid var(--peach); border-radius:10px;
+    padding:8px; min-width:160px; box-shadow:0 6px 20px rgba(86,47,0,0.12);
+  }
+  .ms-dropdown-panel.open{ display:block; }
+  .ms-dropdown-item{
+    display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:6px;
+    font-size:12.5px; font-weight:600; color:var(--brown-mid); cursor:pointer; white-space:nowrap;
+  }
+  .ms-dropdown-item:hover{ background:var(--cream-deep); }
+  .ms-dropdown-item input{ accent-color:var(--orange-deep); width:14px; height:14px; flex-shrink:0; }
   .ss-mapping-mode label{ display:flex; align-items:center; gap:6px; cursor:pointer; }
   .ss-mapping-apply{
     font-size:12px; font-weight:700; color:#fff; background:var(--orange-deep); border:none;
@@ -969,12 +989,19 @@ let ssQuadChart = null;
 let ssResult = null; // computed result cache
 
 /* ===== Location Quotient (SLQ/DLQ) ===== */
-// Menggunakan sumber data & pemetaan kolom yang SAMA dengan Shift-Share (struktur identik:
-// interval Tahun_Awal-Tahun_Akhir per Kategori, Klungkung vs Bali).
+// Sheet sumber (LQ_Dynamic) SUDAH menghitung ADHB/ADHK, Share, SLQ, SSLQ, DLQ, DSLQ &
+// Status/klasifikasi per Tahun+Sektor. Dashboard hanya membaca & menyajikan (tidak
+// menghitung ulang dari nol), sama seperti tab Diversitas/Analisis Lanjutan.
+const LQ_DYN_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQGadLKWEE3BLGSLeLjkzia8QJKuiLMBVshH_1qOKxWqDlFVsWKnRcrVym2fSDIOKZAEI_dY9KCokKr/pub?gid=815788734&single=true&output=csv";
 let lqMode = false;
 let lqMethod = 'raw';   // 'raw' (SLQ/DLQ) | 'symmetric' (SSLQ/DSLQ)
-let lqYearFrom = null;
-let lqYearTo = null;
+let lqYear = null;       // Tahun terpilih (t)
+let lqYearFrom = null;   // = lqYear - 1, dipakai untuk label periode
+let lqYearTo = null;     // = lqYear
+let lqRawRows = null;
+let lqHeaders = [];
+let lqLoadState = 'idle';  // idle | loading | error | ready
+let lqLoadError = '';
 let lqChart = null;
 let lqQuadChart = null;
 let lqResult = null;
@@ -993,9 +1020,31 @@ let divYearFrom = null;
 let divYearTo = null;
 let divCompositionYear = null;
 let divCompareBali = false;
+let divChartMetrics = new Set(['entropy']); // indeks yang ditampilkan di grafik tren (default: 1 saja)
 let divTsChart = null;
 let divCompChart = null;
 let divResult = null;
+
+/* ===== Analisis Lanjutan (Structural Similarity, Gap, Markov, ECP, Resilience, Trajectory) ===== */
+let advMode = false;
+let advSubTab = 'similarity';
+const ADV_URLS = {
+  similarity: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRwkYQJ0hgpoLJKOdJS66e0gXnZO1EfzbISGThN6LEGByxgbwKb9KcvFSffqXssuHX5hSYkkf2-JGWu/pub?gid=534611480&single=true&output=csv',
+  gap:        'https://docs.google.com/spreadsheets/d/e/2PACX-1vRwkYQJ0hgpoLJKOdJS66e0gXnZO1EfzbISGThN6LEGByxgbwKb9KcvFSffqXssuHX5hSYkkf2-JGWu/pub?gid=1780718029&single=true&output=csv',
+  markov:     'https://docs.google.com/spreadsheets/d/e/2PACX-1vRwkYQJ0hgpoLJKOdJS66e0gXnZO1EfzbISGThN6LEGByxgbwKb9KcvFSffqXssuHX5hSYkkf2-JGWu/pub?gid=415024084&single=true&output=csv',
+  complexity: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRwkYQJ0hgpoLJKOdJS66e0gXnZO1EfzbISGThN6LEGByxgbwKb9KcvFSffqXssuHX5hSYkkf2-JGWu/pub?gid=861976403&single=true&output=csv',
+  resilience: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRwkYQJ0hgpoLJKOdJS66e0gXnZO1EfzbISGThN6LEGByxgbwKb9KcvFSffqXssuHX5hSYkkf2-JGWu/pub?gid=120464967&single=true&output=csv',
+  trajectory: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRwkYQJ0hgpoLJKOdJS66e0gXnZO1EfzbISGThN6LEGByxgbwKb9KcvFSffqXssuHX5hSYkkf2-JGWu/pub?gid=1965986014&single=true&output=csv'
+};
+let advRaw = {};        // {key: rawRows}
+let advHeaders = {};    // {key: headers}
+let advLoadState = {};  // {key: 'idle'|'loading'|'error'|'ready'}
+let advLoadError = {};
+let advMap = {};        // {key: {...detected columns}}
+let advYear = {};        // {key: selected single-year or from/to}
+let advCharts = {};     // {key: Chart instances}
+let advReriMetrics = new Set(['reri']); // indeks yang ditampilkan di grafik tren RERI (default: 1 saja)
+let advCompYear = {};   // for sub-tabs needing a year selector for sector composition
 
 const KATEGORI_PALETTE = ['#FF6B6B','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#FF9644','#008080','#4C5C7D','#C1440E'];
 let GROUP_COLOR_MAP = {};
@@ -1040,28 +1089,12 @@ function getGroupChartType(kategori, kelompok, sub){
   const key = kategori + '|||' + kelompok + '|||' + (sub || '');
   getGroupColor(kategori, kelompok);
   if(CHART_STYLE_OVERRIDES[key]) return CHART_STYLE_OVERRIDES[key];
-  
-  if (sub && /indeks\s*kemahalan\s*konstruksi/i.test(sub)) {
-    return 'pure-bubble';
-  }
-  if (/upah/i.test(kategori) || /upah/i.test(kelompok) || /upah/i.test(sub || '')) {
-    return 'bar'; // Diubah menjadi bar chart standar (bukan rounded-bar) untuk upah atau kategori terkait
-  }
-  if (/konsumsi|pengeluaran/i.test(kelompok)) {
-    return 'rounded-bar';
-  }
-  if (/gender/i.test(kelompok) || /gender/i.test(kategori)) {
-    return 'lollipop';
-  }
-  if (/pendidikan/i.test(kelompok) || /pendidikan/i.test(kategori)) {
-    return 'spline';
-  }
-  if (/penanaman\s*modal/i.test(kelompok) || /penanaman\s*modal/i.test(kategori)) {
-    return 'bubble-ts';
-  }
 
+  // Default awal untuk kartu non-komposit (Tahunan & Triwulanan): hanya dua gaya —
+  // Tangga (stepped-area) & Batang Bulat (rounded-bar). Pengguna tetap bisa ganti
+  // manual lewat dropdown gaya grafik di tiap kartu (CHART_STYLE_OVERRIDES).
   const idx = Object.keys(GROUP_COLOR_MAP).indexOf(kategori + '|||' + kelompok);
-  const types = ['filled-area', 'bar', 'stepped-area', 'dashed-area', 'scatter', 'lollipop', 'rounded-bar', 'spline', 'bubble-ts', 'pure-bubble'];
+  const types = ['stepped-area', 'rounded-bar'];
   return types[idx % types.length];
 }
 
@@ -1281,7 +1314,7 @@ function renderTabs(){
     const btn = document.createElement('button');
     btn.className = 'tab' + (!compareMode && !ssMode && p===activePeriode?' active':'');
     btn.textContent = p;
-    btn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; divMode = false; activePeriode = p; renderTabs(); renderContent(p); };
+    btn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; divMode = false; advMode = false; activePeriode = p; renderTabs(); renderContent(p); };
     tabsEl.appendChild(btn);
   });
 
@@ -1292,26 +1325,32 @@ function renderTabs(){
   const cmpBtn = document.createElement('button');
   cmpBtn.className = 'tab' + (compareMode ? ' active' : '');
   cmpBtn.textContent = '⇄ Bandingkan';
-  cmpBtn.onclick = ()=>{ compareMode = true; ssMode = false; lqMode = false; divMode = false; renderTabs(); renderCompareView(); };
+  cmpBtn.onclick = ()=>{ compareMode = true; ssMode = false; lqMode = false; divMode = false; advMode = false; renderTabs(); renderCompareView(); };
   tabsEl.appendChild(cmpBtn);
 
   const ssBtn = document.createElement('button');
   ssBtn.className = 'tab' + (ssMode ? ' active' : '');
   ssBtn.textContent = '📐 Shift-Share';
-  ssBtn.onclick = ()=>{ compareMode = false; ssMode = true; lqMode = false; divMode = false; renderTabs(); renderShiftShareView(); };
+  ssBtn.onclick = ()=>{ compareMode = false; ssMode = true; lqMode = false; divMode = false; advMode = false; renderTabs(); renderShiftShareView(); };
   tabsEl.appendChild(ssBtn);
 
   const lqBtn = document.createElement('button');
   lqBtn.className = 'tab' + (lqMode ? ' active' : '');
   lqBtn.textContent = '📈 LQ';
-  lqBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = true; divMode = false; renderTabs(); renderLQView(); };
+  lqBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = true; divMode = false; advMode = false; renderTabs(); renderLQView(); };
   tabsEl.appendChild(lqBtn);
 
   const divBtn = document.createElement('button');
   divBtn.className = 'tab' + (divMode ? ' active' : '');
   divBtn.textContent = '🧬 Diversitas';
-  divBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; divMode = true; renderTabs(); renderDiversityView(); };
+  divBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; divMode = true; advMode = false; renderTabs(); renderDiversityView(); };
   tabsEl.appendChild(divBtn);
+
+  const advBtn = document.createElement('button');
+  advBtn.className = 'tab' + (advMode ? ' active' : '');
+  advBtn.textContent = '🔬 Lanjutan';
+  advBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; divMode = false; advMode = true; renderTabs(); renderAdvancedView(); };
+  tabsEl.appendChild(advBtn);
 }
 
 function makeSparkline(entries, color, type){
@@ -5211,12 +5250,35 @@ function loadShiftShareData(){
         ssLoadError = err.message;
       }
       if(ssMode) renderShiftShareView();
-      if(lqMode) renderLQView();
     },
     error:function(err){
       ssLoadState = 'error';
       ssLoadError = err.toString();
       if(ssMode) renderShiftShareView();
+    }
+  });
+}
+
+function loadLQData(){
+  lqLoadState = 'loading';
+  Papa.parse(LQ_DYN_CSV_URL, {
+    download:true,
+    header:true,
+    skipEmptyLines:true,
+    complete:function(res){
+      try{
+        lqRawRows = (res.data||[]).filter(r=> Object.values(r).some(v=> v!==null && v!==undefined && v.toString().trim()!==''));
+        lqHeaders = (res.meta && res.meta.fields) ? res.meta.fields.filter(h=>h && h.toString().trim()!=='') : (lqRawRows[0]?Object.keys(lqRawRows[0]):[]);
+        lqLoadState = 'ready';
+      }catch(err){
+        lqLoadState = 'error';
+        lqLoadError = err.message;
+      }
+      if(lqMode) renderLQView();
+    },
+    error:function(err){
+      lqLoadState = 'error';
+      lqLoadError = err.toString();
       if(lqMode) renderLQView();
     }
   });
@@ -5231,27 +5293,35 @@ function loadShiftShareData(){
    (interval Tahun_Awal-Tahun_Akhir per Kategori, Klungkung vs Bali).
    ========================================================= */
 
-/* Bangun indeks tahun->nilai per kategori dari dataset interval Shift-Share,
-   supaya bisa mengambil nilai pada tahun tertentu (bukan hanya growth per-interval). */
-function buildLQIndex(dataset){
-  const byKatYear = {};
-  const totalByYear = {};
-  const kategoriSet = new Set();
-  const yearSet = new Set();
-  dataset.forEach(r=>{
-    kategoriSet.add(r.kategori);
-    yearSet.add(r.tahunAwal); yearSet.add(r.tahunAkhir);
-    if(!byKatYear[r.kategori]) byKatYear[r.kategori] = {};
-    byKatYear[r.kategori][r.tahunAwal] = { klungkung:r.D, bali:r.F };
-    byKatYear[r.kategori][r.tahunAkhir] = { klungkung:r.E, bali:r.G };
-    totalByYear[r.tahunAwal] = { totalKlungkung:r.H, totalBali:r.J };
-    totalByYear[r.tahunAkhir] = { totalKlungkung:r.I, totalBali:r.K };
+/* Parser angka khusus untuk sheet LQ_Dynamic: format Indonesia (koma = desimal,
+   titik = ribuan bila ada). Tidak memakai toNumber() global karena fungsi itu
+   mencoba dulu asumsi koma = pemisah ribuan gaya Amerika, yang salah untuk
+   nilai seperti "1,077087399" (harus dibaca 1.077087399, bukan 1077087399). */
+function lqParseNum(v){
+  if(v===undefined || v===null) return NaN;
+  const s = v.toString().trim();
+  if(s==='') return NaN;
+  return parseFloat(s.replace(/\./g,'').replace(/,/g,'.'));
+}
+
+/* Ambil daftar Tahun yang tersedia di sheet LQ_Dynamic (urut naik). */
+function lqAvailableYears(rows){
+  const years = new Set();
+  (rows||[]).forEach(r=>{
+    const y = parseInt(lqParseNum(r['Tahun']));
+    if(!isNaN(y)) years.add(y);
   });
-  return {
-    byKatYear, totalByYear,
-    kategoris: [...kategoriSet].sort(),
-    years: [...yearSet].sort((a,b)=>a-b)
-  };
+  return [...years].sort((a,b)=>a-b);
+}
+
+/* Normalisasi teks kolom Status/klasifikasi dari sheet ke key internal LQ_KLAS. */
+function lqStatusToKlas(status){
+  const s = (status||'').toString().trim().toLowerCase();
+  if(s.startsWith('unggul')) return 'unggulan';
+  if(s.startsWith('andal')) return 'andalan';
+  if(s.startsWith('prospek')) return 'prospektif';
+  if(s.startsWith('tertingg')) return 'tertinggal';
+  return 'tertinggal';
 }
 
 const LQ_KLAS = {
@@ -5261,58 +5331,22 @@ const LQ_KLAS = {
   tertinggal:  { label:'Tertinggal',  desc:'Belum terspesialisasi (SLQ<1) dan pertumbuhannya juga lebih lambat (DLQ<1) — bukan sektor basis maupun berkembang.', color:'#C1440E' }
 };
 
-function computeLQ(idx, yearFrom, yearTo){
-  const t = yearTo - yearFrom;
-  if(!(t>0) || !idx.kategoris.length) return { perKategori:[], t, yearsUsed:[] };
-  const yearsInRange = idx.years.filter(y=> y>=yearFrom && y<=yearTo);
-
+function computeLQ(rows, year){
+  const rowsYear = (rows||[]).filter(r=> parseInt(lqParseNum(r['Tahun']))===year);
   const perKategori = [];
-  idx.kategoris.forEach(kat=>{
-    const katYear = idx.byKatYear[kat] || {};
-
-    // --- SLQ: rata-rata pangsa selama rentang tahun terpilih ---
-    let sumKS=0,sumKT=0,sumBS=0,sumBT=0,n=0;
-    yearsInRange.forEach(y=>{
-      const kv = katYear[y];
-      const tv = idx.totalByYear[y];
-      if(kv && tv && tv.totalKlungkung>0 && tv.totalBali>0 && kv.klungkung>=0 && kv.bali>0){
-        sumKS+=kv.klungkung; sumKT+=tv.totalKlungkung; sumBS+=kv.bali; sumBT+=tv.totalBali; n++;
-      }
-    });
-    if(n===0) return;
-    const avgKS=sumKS/n, avgKT=sumKT/n, avgBS=sumBS/n, avgBT=sumBT/n;
-    if(!(avgKT>0) || !(avgBT>0) || !(avgBS>0)) return;
-    const SLQ = (avgKS/avgKT)/(avgBS/avgBT);
-
-    // --- DLQ: pertumbuhan rata-rata tahunan dari tahun awal ke tahun akhir terpilih ---
-    const kv0 = katYear[yearFrom], kv1 = katYear[yearTo];
-    const tv0 = idx.totalByYear[yearFrom], tv1 = idx.totalByYear[yearTo];
-    if(!kv0||!kv1||!tv0||!tv1) return;
-    if(!(kv0.klungkung>0)||!(tv0.totalKlungkung>0)||!(kv0.bali>0)||!(tv0.totalBali>0)) return;
-
-    const g_ij = Math.pow(kv1.klungkung/kv0.klungkung, 1/t) - 1;   // laju sektor, wilayah studi
-    const g_j  = Math.pow(tv1.totalKlungkung/tv0.totalKlungkung, 1/t) - 1; // laju total, wilayah studi
-    const G_i  = Math.pow(kv1.bali/kv0.bali, 1/t) - 1;             // laju sektor, wilayah acuan
-    const G    = Math.pow(tv1.totalBali/tv0.totalBali, 1/t) - 1;   // laju total, wilayah acuan
-    const IPPSij = (1+g_ij)/(1+g_j);
-    const IPPSi  = (1+G_i)/(1+G);
-    if(!(IPPSi>0)) return;
-    const DLQ = Math.pow(IPPSij/IPPSi, t);
-
-    const SSLQ = (SLQ-1)/(SLQ+1);
-    const DSLQ = DLQ >= -1 ? (DLQ-1)/(DLQ+1) : -1*((DLQ-1)/(DLQ+1));
-
-    let klas;
-    if(SLQ>=1 && DLQ>=1) klas='unggulan';
-    else if(SLQ<1 && DLQ>=1) klas='andalan';
-    else if(SLQ<1 && DLQ<1) klas='tertinggal';
-    else klas='prospektif';
-
-    perKategori.push({ kategori:kat, SLQ,DLQ,SSLQ,DSLQ, klas, g_ij,g_j,G_i,G, nYearsAvg:n });
+  rowsYear.forEach(r=>{
+    const kategori = (r['Sektor']||'').toString().trim();
+    if(!kategori) return;
+    const SLQ = lqParseNum(r['SLQ']);
+    const DLQ = lqParseNum(r['DLQ']);
+    const SSLQ = lqParseNum(r['SSLQ']);
+    const DSLQ = lqParseNum(r['DSLQ']);
+    if(isNaN(SLQ) || isNaN(DLQ) || isNaN(SSLQ) || isNaN(DSLQ)) return;
+    const klas = lqStatusToKlas(r['Status']);
+    perKategori.push({ kategori, SLQ, DLQ, SSLQ, DSLQ, klas });
   });
-
   perKategori.sort((a,b)=> b.SLQ-a.SLQ);
-  return { perKategori, t, yearsUsed:yearsInRange };
+  return { perKategori, t:1, yearsUsed:[year] };
 }
 
 function renderLQView(){
@@ -5323,28 +5357,26 @@ function renderLQView(){
   const introHtml = `
     <div class="ss-intro">
       <h2>Location Quotient (SLQ &amp; DLQ)</h2>
-      <p>Location Quotient mengukur derajat spesialisasi/keunggulan suatu sektor di Klungkung dibanding Bali. <b>Static LQ (SLQ)</b> membandingkan pangsa sektor di dua wilayah pada satu titik/rentang waktu; <b>Dynamic LQ (DLQ)</b> melakukan hal serupa namun memakai laju pertumbuhan tahunan, sehingga menangkap potensi sektor ke depan, bukan hanya kontribusinya saat ini. Karena nilai SLQ/DLQ tidak simetris di sekitar 1 (rentang 0 s.d. tak terhingga), tersedia pula versi <b>simetris (SSLQ &amp; DSLQ)</b> yang mentransformasikannya ke rentang -1 s.d. 1 agar lebih adil secara statistik. Kedua versi menghasilkan klasifikasi sektor yang identik. Sektor diklasifikasikan menjadi <b>Unggulan</b>, <b>Andalan</b>, <b>Prospektif</b>, atau <b>Tertinggal</b> berdasarkan kombinasi SLQ &amp; DLQ. Sumber data & pemetaan kolom memakai yang sama dengan tab Shift-Share.</p>
+      <p>Location Quotient mengukur derajat spesialisasi/keunggulan suatu sektor di Klungkung dibanding Bali. <b>Static LQ (SLQ)</b> membandingkan pangsa sektor di dua wilayah pada tahun terpilih; <b>Dynamic LQ (DLQ)</b> melakukan hal serupa namun memakai laju pertumbuhan tahunan (tahun terpilih vs tahun sebelumnya), sehingga menangkap potensi sektor ke depan, bukan hanya kontribusinya saat ini. Karena nilai SLQ/DLQ tidak simetris di sekitar 1 (rentang 0 s.d. tak terhingga), tersedia pula versi <b>simetris (SSLQ &amp; DSLQ)</b> yang mentransformasikannya ke rentang -1 s.d. 1 agar lebih adil secara statistik. Kedua versi menghasilkan klasifikasi sektor yang identik. Sektor diklasifikasikan menjadi <b>Unggulan</b>, <b>Andalan</b>, <b>Prospektif</b>, atau <b>Tertinggal</b> berdasarkan kombinasi SLQ &amp; DLQ. Seluruh nilai (SLQ, DLQ, SSLQ, DSLQ, Status) sudah dihitung di sheet sumber (LQ_Dynamic); dashboard hanya membaca &amp; menyajikan.</p>
     </div>`;
 
-  if(ssLoadState==='idle'){
+  if(lqLoadState==='idle'){
     main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>Memuat data…</div></section>`;
-    loadShiftShareData();
+    loadLQData();
     return;
   }
-  if(ssLoadState==='loading'){
+  if(lqLoadState==='loading'){
     main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>Memuat data…</div></section>`;
     return;
   }
-  if(ssLoadState==='error'){
-    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(ssLoadError)}<br><br><a href="${SS_CSV_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div></section>`;
+  if(lqLoadState==='error'){
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(lqLoadError)}<br><br><a href="${LQ_DYN_CSV_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div></section>`;
     return;
   }
-  if(!ssRawRows || !ssRawRows.length){
+  if(!lqRawRows || !lqRawRows.length){
     main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">Sumber data kosong atau tidak dapat dibaca.</div></section>`;
     return;
   }
-
-  const mappingOk = ssMappingValid();
 
   main.innerHTML = `
     <section class="ss-wrap">
@@ -5357,13 +5389,9 @@ function renderLQView(){
       <div class="ss-method-note" id="lqMethodNote"></div>
 
       <div class="ss-controls">
-        <div class="ctrl-item"><label>Tahun Awal</label><select id="lqFrom"></select></div>
-        <div class="ctrl-item"><label>Tahun Akhir</label><select id="lqTo"></select></div>
+        <div class="ctrl-item"><label>Tahun</label><select id="lqTahun"></select></div>
         <div class="ctrl-item" style="font-size:11.5px;color:var(--brown-soft);" id="lqIntervalInfo"></div>
-        <button class="ss-mapping-toggle" id="lqMapToggle">${mappingOk ? '⚙ Atur Pemetaan Kolom' : '⚠ Atur Pemetaan Kolom (perlu dilengkapi)'}</button>
       </div>
-
-      <div class="ss-mapping-panel${ssMappingPanelOpen ? ' open' : ''}" id="lqMapPanel"></div>
 
       <div id="lqBody"></div>
     </section>`;
@@ -5374,54 +5402,31 @@ function renderLQView(){
   });
   updateLQMethodNote();
 
-  renderLQMappingPanelInto('lqMapPanel');
-  document.getElementById('lqMapToggle').onclick = ()=>{
-    ssMappingPanelOpen = !ssMappingPanelOpen;
-    document.getElementById('lqMapPanel').classList.toggle('open', ssMappingPanelOpen);
-  };
-
-  if(!mappingOk){
-    document.getElementById('lqBody').innerHTML = `<div class="state-msg">Pemetaan kolom belum lengkap/valid. Buka "Atur Pemetaan Kolom" di atas (sama seperti tab Shift-Share).</div>`;
-    ssMappingPanelOpen = true;
-    document.getElementById('lqMapPanel').classList.add('open');
+  const years = lqAvailableYears(lqRawRows);
+  if(years.length < 1){
+    document.getElementById('lqBody').innerHTML = `<div class="state-msg">Tidak ada data Tahun yang terbaca dari sheet.</div>`;
     return;
   }
 
-  const dataset = buildSSDataset();
-  if(!dataset.length){
-    document.getElementById('lqBody').innerHTML = `<div class="state-msg">Tidak ada baris data yang valid.</div>`;
-    return;
-  }
-  const idx = buildLQIndex(dataset);
-  if(idx.years.length < 2){
-    document.getElementById('lqBody').innerHTML = `<div class="state-msg">Data tahun kurang dari 2 — LQ Dinamis memerlukan minimal dua titik tahun.</div>`;
-    return;
-  }
+  if(!lqYear || !years.includes(lqYear)) lqYear = years[years.length-1];
 
-  if(!lqYearFrom || !idx.years.includes(lqYearFrom)) lqYearFrom = idx.years[0];
-  if(!lqYearTo || !idx.years.includes(lqYearTo) || lqYearTo<=lqYearFrom) lqYearTo = idx.years[idx.years.length-1];
-
-  const fromSel = document.getElementById('lqFrom');
-  const toSel = document.getElementById('lqTo');
-  idx.years.forEach(y=>{
-    fromSel.innerHTML += `<option value="${y}" ${y===lqYearFrom?'selected':''}>${y}</option>`;
-    toSel.innerHTML += `<option value="${y}" ${y===lqYearTo?'selected':''}>${y}</option>`;
+  const tahunSel = document.getElementById('lqTahun');
+  years.forEach(y=>{
+    tahunSel.innerHTML += `<option value="${y}" ${y===lqYear?'selected':''}>${y}</option>`;
   });
-  fromSel.onchange = ()=>{
-    lqYearFrom = parseInt(fromSel.value);
-    if(lqYearTo<=lqYearFrom){ const nxt = idx.years.find(y=>y>lqYearFrom); lqYearTo = nxt||lqYearFrom; }
-    renderLQView();
-  };
-  toSel.onchange = ()=>{ lqYearTo = parseInt(toSel.value); renderLQView(); };
+  tahunSel.onchange = ()=>{ lqYear = parseInt(tahunSel.value); renderLQView(); };
 
-  const result = computeLQ(idx, lqYearFrom, lqYearTo);
+  lqYearTo = lqYear;
+  lqYearFrom = lqYear - 1;
+
+  const result = computeLQ(lqRawRows, lqYear);
   lqResult = result;
 
   document.getElementById('lqIntervalInfo').textContent =
-    `t = ${result.t} tahun · SLQ dirata-rata dari ${result.yearsUsed.length} titik tahun`;
+    `Tahun ${lqYear} · dibandingkan terhadap tahun ${lqYearFrom}`;
 
   if(!result.perKategori.length){
-    document.getElementById('lqBody').innerHTML = `<div class="state-msg">Tidak ada sektor dengan data lengkap pada rentang tahun ${lqYearFrom}–${lqYearTo}.</div>`;
+    document.getElementById('lqBody').innerHTML = `<div class="state-msg">Tidak ada sektor dengan data lengkap pada tahun ${lqYear}.</div>`;
     return;
   }
 
@@ -5450,29 +5455,6 @@ function updateLQMethodNote(){
       <div style="margin-top:6px"><b>💡 Cara membaca angka:</b> <b>SSLQ = 0</b> setara dengan SLQ = 1 (netral). <b>SSLQ mendekati +1</b> berarti spesialisasi sangat kuat (SLQ jauh di atas 1); <b>SSLQ mendekati −1</b> berarti sangat tidak terspesialisasi (SLQ mendekati 0). Pola yang sama berlaku untuk <b>DSLQ</b> terhadap DLQ: mendekati +1 = tumbuh jauh lebih cepat dari Bali, mendekati −1 = tumbuh jauh lebih lambat. Karena skalanya simetris & seragam antar sektor, versi ini lebih adil dipakai untuk membandingkan "seberapa jauh" posisi tiap sektor dari titik netral, bukan cuma arah unggul/tidaknya saja.</div>`
   };
   document.getElementById('lqMethodNote').innerHTML = `<b>${lqMethod==='raw'?'LQ Asli (SLQ · DLQ)':'LQ Simetris (SSLQ · DSLQ)'}</b><br><br>${notes[lqMethod]}`;
-}
-
-function renderLQMappingPanelInto(targetId){
-  // Pemetaan kolom sama persis dengan Shift-Share (SS_FIELDS / ssMap) — render ulang UI-nya ke panel LQ.
-  const panel = document.getElementById(targetId);
-  if(!panel) return;
-  panel.innerHTML = `
-    <div class="ss-mapping-grid">
-      ${SS_FIELDS.map(f=>`
-        <div class="ctrl-item"><label>${escapeHtml(f.label)}</label>
-          <select id="lqmap_${f.key}">
-            <option value="">— pilih kolom —</option>
-            ${ssHeaders.map(h=>`<option value="${escapeHtml(h)}" ${h===ssMap[f.key]?'selected':''}>${escapeHtml(h)}</option>`).join('')}
-          </select>
-        </div>`).join('')}
-    </div>
-    <button class="ss-mapping-apply" id="lqMapApply">Terapkan Pemetaan</button>
-  `;
-  document.getElementById('lqMapApply').onclick = ()=>{
-    SS_FIELDS.forEach(f=>{ ssMap[f.key] = document.getElementById(`lqmap_${f.key}`).value || null; });
-    lqYearFrom = null; lqYearTo = null; ssYearFrom = null; ssYearTo = null;
-    renderLQView();
-  };
 }
 
 function renderLQBody(result){
@@ -5951,6 +5933,17 @@ function renderDivBody(series){
     </div>
 
     <div class="ss-section-title">Tren Indeks Antar Tahun${showBali?' — Klungkung vs Bali':''}</div>
+    <div class="ss-controls" style="margin-bottom:8px;">
+      <div class="ms-dropdown" id="divMetricDropdown">
+        <button type="button" class="ms-dropdown-btn" id="divMetricBtn">📊 Pilih Indeks ▾</button>
+        <div class="ms-dropdown-panel" id="divMetricPanel">
+          <label class="ms-dropdown-item"><input type="checkbox" data-metric="entropy" ${divChartMetrics.has('entropy')?'checked':''}> Entropy</label>
+          <label class="ms-dropdown-item"><input type="checkbox" data-metric="hhi" ${divChartMetrics.has('hhi')?'checked':''}> HHI</label>
+          <label class="ms-dropdown-item"><input type="checkbox" data-metric="rei" ${divChartMetrics.has('rei')?'checked':''}> REI</label>
+          <label class="ms-dropdown-item"><input type="checkbox" data-metric="tress" ${divChartMetrics.has('tress')?'checked':''}> Tress Index</label>
+        </div>
+      </div>
+    </div>
     <div class="chart-box-wrap">
       <button class="dl-btn" id="dlDivTs" title="Unduh grafik sebagai JPG">⬇ JPG</button>
       <div class="chart-box" style="height:320px;"><canvas id="divTsCanvas"></canvas></div>
@@ -5982,6 +5975,31 @@ function renderDivBody(series){
     divCompositionYear = parseInt(compSel.value);
     renderDivCompositionChart(series.find(x=>x.tahun===divCompositionYear));
   };
+
+  const metricBtn = document.getElementById('divMetricBtn');
+  const metricPanel = document.getElementById('divMetricPanel');
+  metricBtn.onclick = (e)=>{
+    e.stopPropagation();
+    metricPanel.classList.toggle('open');
+  };
+  document.addEventListener('click', function closeMetricPanel(e){
+    if(!document.getElementById('divMetricDropdown')) { document.removeEventListener('click', closeMetricPanel); return; }
+    if(!document.getElementById('divMetricDropdown').contains(e.target)){
+      metricPanel.classList.remove('open');
+    }
+  });
+  metricPanel.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.onchange = ()=>{
+      const m = cb.dataset.metric;
+      if(cb.checked){
+        divChartMetrics.add(m);
+      }else{
+        if(divChartMetrics.size<=1){ cb.checked = true; alert('Minimal 1 indeks harus ditampilkan.'); return; }
+        divChartMetrics.delete(m);
+      }
+      renderDivTimeSeriesChart(series, showBali);
+    };
+  });
 
   renderDivTable(series, showBali);
   renderDivTimeSeriesChart(series, showBali);
@@ -6022,19 +6040,20 @@ function renderDivTimeSeriesChart(series, showBali){
   const ctx = document.getElementById('divTsCanvas');
   if(divTsChart){ divTsChart.destroy(); divTsChart=null; }
   const labels = series.map(s=>s.tahun);
-  const datasets = [
-    { label:'K Entropy', data:series.map(s=>s.kEntropy), borderColor:'#3E6E8E', backgroundColor:'rgba(62,110,142,0.16)', yAxisID:'yEntropy', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' },
-    { label:'K HHI', data:series.map(s=>s.kHhi), borderColor:'#C1440E', backgroundColor:'rgba(193,68,14,0.14)', yAxisID:'yHhiRei', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' },
-    { label:'K REI', data:series.map(s=>s.kRei), borderColor:'#8C6BAF', backgroundColor:'rgba(140,107,175,0.14)', yAxisID:'yHhiRei', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', spanGaps:true },
-    { label:'K Tress', data:series.map(s=>s.kTress), borderColor:'#B98B27', backgroundColor:'rgba(185,139,39,0.14)', yAxisID:'yTress', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' }
+  const allDatasets = [
+    { m:'entropy', ds:{ label:'K Entropy', data:series.map(s=>s.kEntropy), borderColor:'#3E6E8E', backgroundColor:'rgba(62,110,142,0.16)', yAxisID:'yEntropy', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } },
+    { m:'hhi', ds:{ label:'K HHI', data:series.map(s=>s.kHhi), borderColor:'#C1440E', backgroundColor:'rgba(193,68,14,0.14)', yAxisID:'yHhiRei', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } },
+    { m:'rei', ds:{ label:'K REI', data:series.map(s=>s.kRei), borderColor:'#8C6BAF', backgroundColor:'rgba(140,107,175,0.14)', yAxisID:'yHhiRei', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', spanGaps:true } },
+    { m:'tress', ds:{ label:'K Tress', data:series.map(s=>s.kTress), borderColor:'#B98B27', backgroundColor:'rgba(185,139,39,0.14)', yAxisID:'yTress', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } }
   ];
   if(showBali){
-    datasets.push(
-      { label:'B Entropy', data:series.map(s=>s.bEntropy), borderColor:'#3E6E8E', borderDash:[5,4], backgroundColor:'transparent', yAxisID:'yEntropy', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' },
-      { label:'B HHI', data:series.map(s=>s.bHhi), borderColor:'#C1440E', borderDash:[5,4], backgroundColor:'transparent', yAxisID:'yHhiRei', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' },
-      { label:'B Tress', data:series.map(s=>s.bTress), borderColor:'#B98B27', borderDash:[5,4], backgroundColor:'transparent', yAxisID:'yTress', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' }
+    allDatasets.push(
+      { m:'entropy', ds:{ label:'B Entropy', data:series.map(s=>s.bEntropy), borderColor:'#3E6E8E', borderDash:[5,4], backgroundColor:'transparent', yAxisID:'yEntropy', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } },
+      { m:'hhi', ds:{ label:'B HHI', data:series.map(s=>s.bHhi), borderColor:'#C1440E', borderDash:[5,4], backgroundColor:'transparent', yAxisID:'yHhiRei', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } },
+      { m:'tress', ds:{ label:'B Tress', data:series.map(s=>s.bTress), borderColor:'#B98B27', borderDash:[5,4], backgroundColor:'transparent', yAxisID:'yTress', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } }
     );
   }
+  const datasets = allDatasets.filter(d=> divChartMetrics.has(d.m)).map(d=>d.ds);
   divTsChart = new Chart(ctx, {
     type:'line',
     data:{ labels, datasets },
@@ -6113,6 +6132,730 @@ function loadDivData(){
     }
   });
 }
+
+/* =========================================================
+   ANALISIS LANJUTAN
+   6 sub-analisis: Structural Similarity, Structural Gap, Markov Transition,
+   Economic Complexity Proxy, Regional Economic Resilience Index, Dynamic
+   Specialization Trajectory. Semua sudah dihitung di sumber data (Google
+   Sheets) — dashboard ini membaca & menyajikan, tidak menghitung ulang.
+   Reuses divToNumber / divExtractYear / divNormalizeHeader / divFindGroupCols
+   dari modul Diversitas (format & konvensi sumber data sama).
+   ========================================================= */
+
+function renderAdvancedView(){
+  const filterPanel = document.getElementById('kelFilterPanel');
+  if(filterPanel) filterPanel.style.display = 'none';
+  const main = document.getElementById('main');
+
+  const subTabs = [
+    {key:'similarity', label:'Kemiripan Struktur'},
+    {key:'gap', label:'Kesenjangan Struktur'},
+    {key:'markov', label:'Transisi Markov'},
+    {key:'complexity', label:'Kompleksitas Ekonomi'},
+    {key:'resilience', label:'Ketahanan Ekonomi'},
+    {key:'trajectory', label:'Spesialisasi Dinamis'}
+  ];
+
+  main.innerHTML = `
+    <section class="ss-wrap">
+      <div class="ss-intro">
+        <h2>Analisis Lanjutan</h2>
+        <p>Enam analisis pelengkap Shift-Share, LQ, dan Diversitas: seberapa mirip struktur ekonomi Klungkung dengan Bali, sektor mana penyumbang perbedaan terbesar, bagaimana sektor berpindah kelas dari waktu ke waktu, seberapa kompleks kapabilitas ekonominya, seberapa tahan terhadap guncangan, dan bagaimana lintasan spesialisasi tiap sektor sejak 2010.</p>
+      </div>
+      <div class="ss-method-tabs" id="advSubTabs">
+        ${subTabs.map(t=>`<button class="ss-method-tab" data-k="${t.key}">${escapeHtml(t.label)}</button>`).join('')}
+      </div>
+      <div id="advBody"></div>
+    </section>`;
+
+  document.querySelectorAll('#advSubTabs .ss-method-tab').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.k===advSubTab);
+    btn.onclick = ()=>{ advSubTab = btn.dataset.k; renderAdvancedView(); };
+  });
+
+  const renderers = {
+    similarity: renderAdvSimilarity,
+    gap: renderAdvGap,
+    markov: renderAdvMarkov,
+    complexity: renderAdvComplexity,
+    resilience: renderAdvResilience,
+    trajectory: renderAdvTrajectory
+  };
+  renderers[advSubTab]();
+}
+
+/* ---------- Loader generik per sub-tab ---------- */
+function advEnsureLoaded(key){
+  const body = document.getElementById('advBody');
+  const state = advLoadState[key];
+  if(!state || state==='idle'){
+    advLoadState[key] = 'loading';
+    body.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`;
+    Papa.parse(ADV_URLS[key], {
+      download:true, header:false, skipEmptyLines:false,
+      complete:function(res){
+        try{
+          const grid = res.data || [];
+          // Sheet-sheet ini punya baris judul/deskripsi di atas baris header asli,
+          // jadi cari baris yang kolom pertamanya persis "Tahun" sebagai header sungguhan.
+          let headerIdx = grid.findIndex(row => row && row[0] && row[0].toString().trim().toLowerCase()==='tahun');
+          if(headerIdx === -1) headerIdx = 0;
+          const headers = (grid[headerIdx]||[]).map(h=> (h||'').toString().trim());
+          const dataRows = [];
+          for(let i=headerIdx+1; i<grid.length; i++){
+            const row = grid[i];
+            const isBlank = !row || row.every(c=> c===null || c===undefined || c.toString().trim()==='');
+            if(isBlank) break; // berhenti di baris kosong pertama setelah header (hindari blok ringkasan tambahan di bawahnya, mis. SUMMARY TAHUNAN)
+            const obj = {};
+            headers.forEach((h,idx)=>{ if(h) obj[h] = row[idx]; });
+            dataRows.push(obj);
+          }
+          advRaw[key] = dataRows;
+          advHeaders[key] = headers.filter(h=>h);
+          advLoadState[key] = 'ready';
+        }catch(err){ advLoadState[key]='error'; advLoadError[key]=err.message; }
+        if(advMode && advSubTab===key) renderAdvancedView();
+      },
+      error:function(err){ advLoadState[key]='error'; advLoadError[key]=err.toString(); if(advMode && advSubTab===key) renderAdvancedView(); }
+    });
+    return false;
+  }
+  if(state==='loading'){ body.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; return false; }
+  if(state==='error'){
+    body.innerHTML = `<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(advLoadError[key]||'')}<br><br><a href="${ADV_URLS[key]}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div>
+      <button class="ss-mapping-apply" id="advRetryBtn" style="margin-top:10px;">Coba Lagi</button>`;
+    const btn = document.getElementById('advRetryBtn');
+    if(btn) btn.onclick = ()=>{ advLoadState[key]='idle'; renderAdvancedView(); };
+    return false;
+  }
+  if(!advRaw[key] || !advRaw[key].length){ body.innerHTML = `<div class="state-msg">Sumber data kosong.</div>`; return false; }
+  return true;
+}
+
+/* =========================================================
+   1. STRUCTURAL SIMILARITY (SSI)
+   ========================================================= */
+function advDetectSimilarityCols(){
+  const h = advHeaders.similarity;
+  const find = re=> h.find(x=> re.test(divNormalizeHeader(x)));
+  advMap.similarity = {
+    tahun: find(/^tahun$/i),
+    totalK: find(/^total\s*klungkung$/i),
+    totalB: find(/^total\s*bali$/i),
+    kShare: divFindGroupCols(h, 'K', 'Share'),
+    bShare: divFindGroupCols(h, 'B', 'Share'),
+    totalGap: find(/^total\s*absolute\s*gap$/i),
+    ssi: find(/^SSI$/i),
+    ssiPct: find(/^SSI\s*\(%\)$/i) || h.find(x=> /ssi.*%/i.test(divNormalizeHeader(x)))
+  };
+}
+function advBuildSimilaritySeries(){
+  const m = advMap.similarity;
+  const rows = [];
+  advRaw.similarity.forEach(r=>{
+    const tahun = divExtractYear(r[m.tahun]);
+    if(!tahun) return;
+    const ssiPct = divToNumber(r[m.ssiPct]);
+    if(isNaN(ssiPct)) return;
+    const kShares={}, bShares={};
+    Object.entries(m.kShare).forEach(([s,c])=>{ const v=divToNumber(r[c]); if(!isNaN(v)) kShares[s]=v; });
+    Object.entries(m.bShare).forEach(([s,c])=>{ const v=divToNumber(r[c]); if(!isNaN(v)) bShares[s]=v; });
+    rows.push({ tahun, totalGap: divToNumber(r[m.totalGap]), ssi: divToNumber(r[m.ssi]), ssiPct, kShares, bShares });
+  });
+  rows.sort((a,b)=>a.tahun-b.tahun);
+  return rows;
+}
+function ssiBadge(pct){
+  if(pct>=85) return {label:'Sangat Mirip', color:'#6F8F52'};
+  if(pct>=70) return {label:'Cukup Mirip', color:'#B98B27'};
+  return {label:'Berbeda', color:'#C1440E'};
+}
+function renderAdvSimilarity(){
+  if(!advEnsureLoaded('similarity')) return;
+  if(!advMap.similarity) advDetectSimilarityCols();
+  const series = advBuildSimilaritySeries();
+  const body = document.getElementById('advBody');
+  if(!series.length){ body.innerHTML = `<div class="state-msg">Tidak ada data valid — periksa struktur kolom sumber data.</div>`; return; }
+
+  if(!advCompYear.similarity || !series.find(s=>s.tahun===advCompYear.similarity)) advCompYear.similarity = series[series.length-1].tahun;
+  const latest = series[series.length-1];
+  const badge = ssiBadge(latest.ssiPct);
+
+  body.innerHTML = `
+    <div class="ss-method-note">
+      <div><b>📖 Apa itu indeks ini:</b> Structural Similarity Index (SSI) mengukur seberapa mirip struktur ekonomi Klungkung dengan Bali — bukan soal siapa "lebih maju", tapi seberapa mirip komposisi sektoralnya.</div>
+      <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+      <ul class="formula-list"><li>SSI = 1 − ½ × Σ |Shareᵢ,Klungkung − Shareᵢ,Bali|</li></ul>
+      <div class="formula-caption">Identik dengan REI di tab Diversitas, hanya sumbu pembandingnya diganti dari "antar tahun" menjadi "antar wilayah".</div>
+      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> SSI (%) mendekati <b>100%</b> = struktur ekonomi Klungkung nyaris identik dengan Bali. Mendekati <b>0%</b> = struktur sangat berbeda — Klungkung punya "wajah ekonomi" sendiri, bukan sekadar mengikuti pola Bali. Ini indikator kemiripan struktural saja, bukan pernyataan sebab-akibat atau ketergantungan.</div>
+    </div>
+    <div class="ss-kpi-grid">
+      <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
+      <div class="stat-box"><div class="stat-label">SSI</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${latest.ssiPct.toFixed(1)}% · ${badge.label}</div></div>
+      <div class="stat-box"><div class="stat-label">Total Absolute Gap</div><div class="stat-value" style="font-size:15px;">${latest.totalGap.toFixed(3)}</div></div>
+    </div>
+    <div class="ss-section-title">Tren Kemiripan Struktur Antar Tahun</div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvSimTs">⬇ JPG</button><div class="chart-box" style="height:280px;"><canvas id="advSimTsCanvas"></canvas></div></div>
+    <div class="ss-section-title">Perbandingan Komposisi Sektor</div>
+    <div class="ss-controls" style="margin-bottom:10px;"><div class="ctrl-item"><label>Tahun</label><select id="advSimYear"></select></div></div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvSimComp">⬇ JPG</button><div class="chart-box" style="height:${Math.max(280,Object.keys(latest.kShares).length*24)}px;"><canvas id="advSimCompCanvas"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel SSI per Tahun</span><button class="dl-btn" id="advSimExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advSimTable"></table></div>
+  `;
+
+  const yearSel = document.getElementById('advSimYear');
+  series.forEach(s=> yearSel.innerHTML += `<option value="${s.tahun}" ${s.tahun===advCompYear.similarity?'selected':''}>${s.tahun}</option>`);
+  yearSel.onchange = ()=>{ advCompYear.similarity = parseInt(yearSel.value); renderAdvSimCompChart(series.find(s=>s.tahun===advCompYear.similarity)); };
+
+  document.getElementById('advSimTable').innerHTML = `<thead><tr><th>Tahun</th><th>Total Absolute Gap</th><th>SSI</th><th>SSI (%)</th><th>Klasifikasi</th></tr></thead><tbody>${
+    series.map(s=>{ const b=ssiBadge(s.ssiPct); return `<tr><td>${s.tahun}</td><td>${s.totalGap.toFixed(3)}</td><td>${s.ssi.toFixed(3)}</td><td>${s.ssiPct.toFixed(1)}%</td><td><span class="ss-badge-quad" style="background:${b.color}">${b.label}</span></td></tr>`; }).join('')
+  }</tbody>`;
+
+  const ctx = document.getElementById('advSimTsCanvas');
+  if(advCharts.simTs){ advCharts.simTs.destroy(); }
+  advCharts.simTs = new Chart(ctx, {
+    type:'line',
+    data:{ labels: series.map(s=>s.tahun), datasets:[{ label:'SSI (%)', data: series.map(s=>s.ssiPct), borderColor:'#6F8F52', backgroundColor:'rgba(111,143,82,0.18)', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false}, ticks:{color:'#8A5A24',font:{family:'Inter',size:10.5}}}, y:{min:0,max:100,grid:{color:'#F2DEB8'}, ticks:{color:'#8A5A24',font:{size:10},callback:v=>v+'%'}} } }
+  });
+
+  renderAdvSimCompChart(series.find(s=>s.tahun===advCompYear.similarity));
+
+  document.getElementById('dlAdvSimTs').onclick = ()=> triggerJPGDownload(advCharts.simTs, `ssi_tren`);
+  document.getElementById('dlAdvSimComp').onclick = ()=> triggerJPGDownload(advCharts.simComp, `ssi_komposisi_${advCompYear.similarity}`);
+  document.getElementById('advSimExcelBtn').onclick = async ()=>{
+    await exportStyledExcel('structural_similarity', 'SSI', ['Tahun','Total Absolute Gap','SSI','SSI (%)'], series.map(s=>[s.tahun,s.totalGap,s.ssi,s.ssiPct]));
+  };
+}
+function renderAdvSimCompChart(s){
+  if(!s) return;
+  const ctx = document.getElementById('advSimCompCanvas');
+  if(advCharts.simComp){ advCharts.simComp.destroy(); }
+  const entries = Object.keys(s.kShares).sort((a,b)=> s.kShares[b]-s.kShares[a]);
+  advCharts.simComp = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: entries, datasets:[
+      {label:`Klungkung ${s.tahun}`, data: entries.map(k=>s.kShares[k]*100), backgroundColor:'#FF9644'},
+      {label:`Bali ${s.tahun}`, data: entries.map(k=>(s.bShares[k]||0)*100), backgroundColor:'#3E6E8E'}
+    ]},
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#562F00'}}},
+      scales:{ x:{grid:{color:'#F2DEB8'}, ticks:{color:'#8A5A24',font:{family:'Inter',size:10.5},callback:v=>v+'%'}}, y:{grid:{display:false},ticks:{color:'#8A5A24',font:{family:'Inter',size:10.5}}} } }
+  });
+}
+
+/* =========================================================
+   2. STRUCTURAL GAP
+   ========================================================= */
+function advDetectGapCols(){
+  const h = advHeaders.gap;
+  const find = re=> h.find(x=> re.test(divNormalizeHeader(x)));
+  advMap.gap = {
+    tahun: find(/^tahun$/i), sektor: find(/^sektor$/i),
+    kShare: find(/^K\s*Share$/i), bShare: find(/^B\s*Share$/i),
+    gap: find(/^Absolute\s*Gap$/i), contrib: find(/^Gap\s*Contribution$/i), rank: find(/^Gap\s*Rank$/i)
+  };
+}
+function advBuildGapRows(){
+  const m = advMap.gap;
+  const rows = [];
+  advRaw.gap.forEach(r=>{
+    const tahun = divExtractYear(r[m.tahun]);
+    const sektor = (r[m.sektor]||'').toString().trim();
+    const gap = divToNumber(r[m.gap]);
+    if(!tahun || !sektor || isNaN(gap)) return;
+    rows.push({ tahun, sektor, kShare: divToNumber(r[m.kShare]), bShare: divToNumber(r[m.bShare]), gap, contrib: divToNumber(r[m.contrib]), rank: divToNumber(r[m.rank]) });
+  });
+  return rows;
+}
+function renderAdvGap(){
+  if(!advEnsureLoaded('gap')) return;
+  if(!advMap.gap) advDetectGapCols();
+  const rows = advBuildGapRows();
+  const body = document.getElementById('advBody');
+  if(!rows.length){ body.innerHTML = `<div class="state-msg">Tidak ada data valid.</div>`; return; }
+  const years = [...new Set(rows.map(r=>r.tahun))].sort((a,b)=>a-b);
+  if(!advCompYear.gap || !years.includes(advCompYear.gap)) advCompYear.gap = years[years.length-1];
+
+  body.innerHTML = `
+    <div class="ss-method-note">
+      <div><b>📖 Apa itu analisis ini:</b> Kalau SSI cuma kasih satu angka ringkasan kemiripan struktur, analisis ini membedah <b>sektor mana</b> yang paling menyumbang perbedaan struktur Klungkung vs Bali di tahun tertentu.</div>
+      <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+      <ul class="formula-list">
+        <li>Gap = |Shareᵢ,Klungkung − Shareᵢ,Bali|</li>
+        <li>Gap Contribution = Gapᵢ / Σ Gap</li>
+      </ul>
+      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> Sektor dengan <b>Gap Contribution</b> terbesar (Rank 1) paling membuat struktur ekonomi Klungkung berbeda dari Bali — entah karena porsinya jauh lebih besar di Klungkung (basis kuat/unik) atau jauh lebih kecil (kurang berkembang dibanding Bali).</div>
+    </div>
+    <div class="ss-controls" style="margin-bottom:10px;"><div class="ctrl-item"><label>Tahun</label><select id="advGapYear"></select></div></div>
+    <div class="ss-section-title">Kontribusi Sektor terhadap Kesenjangan Struktur</div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvGap">⬇ JPG</button><div class="chart-box" style="height:400px;"><canvas id="advGapCanvas"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Kesenjangan Sektor</span><button class="dl-btn" id="advGapExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advGapTable"></table></div>
+  `;
+
+  const sel = document.getElementById('advGapYear');
+  years.forEach(y=> sel.innerHTML += `<option value="${y}" ${y===advCompYear.gap?'selected':''}>${y}</option>`);
+  sel.onchange = ()=>{ advCompYear.gap = parseInt(sel.value); renderAdvGapForYear(rows); };
+
+  renderAdvGapForYear(rows);
+
+  document.getElementById('dlAdvGap').onclick = ()=> triggerJPGDownload(advCharts.gap, `structural_gap_${advCompYear.gap}`);
+  document.getElementById('advGapExcelBtn').onclick = async ()=>{
+    const yr = rows.filter(r=>r.tahun===advCompYear.gap).sort((a,b)=>a.rank-b.rank);
+    await exportStyledExcel(`structural_gap_${advCompYear.gap}`, 'Gap', ['Sektor','K Share','B Share','Absolute Gap','Gap Contribution','Rank'], yr.map(r=>[r.sektor,r.kShare,r.bShare,r.gap,r.contrib,r.rank]));
+  };
+}
+function renderAdvGapForYear(rows){
+  const yr = rows.filter(r=>r.tahun===advCompYear.gap).sort((a,b)=>a.rank-b.rank);
+  const ctx = document.getElementById('advGapCanvas');
+  if(advCharts.gap){ advCharts.gap.destroy(); }
+  advCharts.gap = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: yr.map(r=>r.sektor), datasets:[{ label:'Gap Contribution (%)', data: yr.map(r=>r.contrib*100), backgroundColor: yr.map((r,i)=> i===0?'#C1440E':'#FF9644') }] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+      scales:{ x:{grid:{color:'#F2DEB8'}, ticks:{color:'#8A5A24',font:{family:'Inter',size:10.5},callback:v=>v+'%'}}, y:{grid:{display:false},ticks:{color:'#8A5A24',font:{family:'Inter',size:10.5}}} } }
+  });
+  document.getElementById('advGapTable').innerHTML = `<thead><tr><th>Rank</th><th>Sektor</th><th>K Share</th><th>B Share</th><th>Absolute Gap</th><th>Kontribusi</th></tr></thead><tbody>${
+    yr.map(r=>`<tr><td>${r.rank}</td><td>${escapeHtml(r.sektor)}</td><td>${(r.kShare*100).toFixed(2)}%</td><td>${(r.bShare*100).toFixed(2)}%</td><td>${r.gap.toFixed(4)}</td><td>${(r.contrib*100).toFixed(1)}%</td></tr>`).join('')
+  }</tbody>`;
+}
+
+/* =========================================================
+   3. MARKOV TRANSITION
+   ========================================================= */
+function advDetectMarkovCols(){
+  const h = advHeaders.markov;
+  const find = re=> h.find(x=> re.test(divNormalizeHeader(x)));
+  advMap.markov = {
+    tahun: find(/^tahun$/i), sektor: find(/^sektor$/i), slq: find(/^SLQ$/i),
+    kelas: find(/^Kelas$/i), kelasSebelum: find(/^Kelas\s*Sebelumnya$/i), transisi: find(/^Transisi$/i)
+  };
+}
+function advBuildMarkovRows(){
+  const m = advMap.markov;
+  const rows = [];
+  advRaw.markov.forEach(r=>{
+    const tahun = divExtractYear(r[m.tahun]);
+    const sektor = (r[m.sektor]||'').toString().trim();
+    const kelas = (r[m.kelas]||'').toString().trim();
+    if(!tahun || !sektor || !kelas) return;
+    rows.push({ tahun, sektor, slq: divToNumber(r[m.slq]), kelas, kelasSebelum:(r[m.kelasSebelum]||'').toString().trim(), transisi:(r[m.transisi]||'').toString().trim() });
+  });
+  return rows;
+}
+const MARKOV_ORDER = ['Rendah','Menengah','Tinggi'];
+function renderAdvMarkov(){
+  if(!advEnsureLoaded('markov')) return;
+  if(!advMap.markov) advDetectMarkovCols();
+  const rows = advBuildMarkovRows();
+  const body = document.getElementById('advBody');
+  if(!rows.length){ body.innerHTML = `<div class="state-msg">Tidak ada data valid.</div>`; return; }
+
+  const withPrev = rows.filter(r=> MARKOV_ORDER.includes(r.kelasSebelum) && MARKOV_ORDER.includes(r.kelas));
+  const counts = {}; MARKOV_ORDER.forEach(a=>{ counts[a]={}; MARKOV_ORDER.forEach(b=> counts[a][b]=0); });
+  withPrev.forEach(r=> counts[r.kelasSebelum][r.kelas]++ );
+  const rowTotals = {}; MARKOV_ORDER.forEach(a=> rowTotals[a] = MARKOV_ORDER.reduce((s,b)=>s+counts[a][b],0));
+  const stay = withPrev.filter(r=>r.kelasSebelum===r.kelas).length;
+  const mobilityRate = withPrev.length? (1-stay/withPrev.length)*100 : 0;
+
+  const years = [...new Set(rows.map(r=>r.tahun))].sort((a,b)=>a-b);
+  const latestYear = years[years.length-1];
+  const latestMovers = rows.filter(r=> r.tahun===latestYear && r.transisi && r.transisi!=='Tetap');
+
+  body.innerHTML = `
+    <div class="ss-method-note">
+      <div><b>📖 Apa itu analisis ini:</b> Rantai Markov melihat bagaimana sektor "berpindah kelas" dari tahun ke tahun berdasarkan status LQ-nya, lalu memperkirakan probabilitas perpindahan tersebut — mirip konsep mobilitas kelas sosial, tapi untuk sektor ekonomi.</div>
+      <div style="margin-top:8px"><b>🧮 Aturan Kelas &amp; Formula:</b></div>
+      <ul class="formula-list">
+        <li>Kelas: Rendah (SLQ &lt; 0,75) · Menengah (0,75 ≤ SLQ &lt; 1) · Tinggi/Basis (SLQ ≥ 1)</li>
+        <li>P(i→j) = jumlah transisi kelas i ke kelas j / total transisi dari kelas i</li>
+      </ul>
+      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> Baris matriks = kelas <b>tahun sebelumnya</b>, kolom = kelas <b>tahun berjalan</b>. Angka di diagonal (Rendah→Rendah, dst.) menunjukkan seberapa stabil/persisten kelas suatu sektor. Angka tinggi di luar diagonal menandakan sektor sering naik/turun kelas. <b>Mobility Rate</b> = persentase transisi yang BUKAN "Tetap" — makin tinggi, makin sering sektor berpindah status dari tahun ke tahun.</div>
+    </div>
+    <div class="ss-kpi-grid">
+      <div class="stat-box"><div class="stat-label">Total Transisi Diamati</div><div class="stat-value" style="font-size:15px;">${withPrev.length}</div></div>
+      <div class="stat-box"><div class="stat-label">Mobility Rate</div><div class="stat-value" style="font-size:15px;">${mobilityRate.toFixed(1)}%</div></div>
+      <div class="stat-box"><div class="stat-label">Sektor Berubah Kelas (${latestYear})</div><div class="stat-value" style="font-size:15px;">${latestMovers.length}</div></div>
+    </div>
+    <div class="ss-section-title">Matriks Probabilitas Transisi</div>
+    <div class="ss-table-wrap" style="margin-bottom:18px;"><table class="ss-table" id="advMarkovMatrix"></table></div>
+    ${latestMovers.length? `
+    <div class="ss-section-title">Sektor yang Berubah Kelas di ${latestYear}</div>
+    <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advMarkovMoversTable"></table></div>` : ''}
+    <div class="table-head-row" style="margin-top:18px;"><span class="table-head-label">Ekspor Data Transisi Lengkap</span><button class="dl-btn" id="advMarkovExcelBtn" style="position:static;">⬇ Excel</button></div>
+  `;
+
+  const maxProb = Math.max(0.01, ...MARKOV_ORDER.flatMap(a=> MARKOV_ORDER.map(b=> rowTotals[a]? counts[a][b]/rowTotals[a] : 0)));
+  const matrixHead = `<tr><th>Dari \\ Ke</th>${MARKOV_ORDER.map(b=>`<th>${b}</th>`).join('')}<th>Total</th></tr>`;
+  const matrixRows = MARKOV_ORDER.map(a=>{
+    const cells = MARKOV_ORDER.map(b=>{
+      const c = counts[a][b]; const p = rowTotals[a]? c/rowTotals[a] : 0;
+      const alpha = maxProb>0 ? (0.12+0.65*(p/maxProb)) : 0.12;
+      return `<td style="background:rgba(255,150,68,${alpha.toFixed(2)});text-align:center;">${(p*100).toFixed(0)}%<br><span style="font-size:10px;color:var(--brown-soft);">(n=${c})</span></td>`;
+    }).join('');
+    return `<tr><td style="font-weight:700;">${a}</td>${cells}<td style="text-align:center;">${rowTotals[a]}</td></tr>`;
+  }).join('');
+  document.getElementById('advMarkovMatrix').innerHTML = `<thead>${matrixHead}</thead><tbody>${matrixRows}</tbody>`;
+
+  if(latestMovers.length){
+    document.getElementById('advMarkovMoversTable').innerHTML = `<thead><tr><th>Sektor</th><th>Kelas Sebelumnya</th><th>Kelas Sekarang</th><th>SLQ</th><th>Transisi</th></tr></thead><tbody>${
+      latestMovers.map(r=>`<tr><td>${escapeHtml(r.sektor)}</td><td>${r.kelasSebelum}</td><td>${r.kelas}</td><td>${r.slq.toFixed(2)}</td><td>${escapeHtml(r.transisi)}</td></tr>`).join('')
+    }</tbody>`;
+  }
+
+  document.getElementById('advMarkovExcelBtn').onclick = async ()=>{
+    await exportStyledExcel('markov_transition', 'Markov', ['Tahun','Sektor','SLQ','Kelas','Kelas Sebelumnya','Transisi'], rows.map(r=>[r.tahun,r.sektor,r.slq,r.kelas,r.kelasSebelum,r.transisi]));
+  };
+}
+
+/* =========================================================
+   4. ECONOMIC COMPLEXITY PROXY (ECP)
+   ========================================================= */
+function advDetectComplexityCols(){
+  const h = advHeaders.complexity;
+  const find = re=> h.find(x=> re.test(divNormalizeHeader(x)));
+  advMap.complexity = {
+    tahun: find(/^tahun$/i), sektor: find(/^sektor$/i),
+    kShare: find(/^K\s*Share$/i), bShare: find(/^B\s*Share$/i), rca: find(/^RCA$/i),
+    advM: find(/^Advantage\s*M/i), rcaUnggulan: find(/^RCA\s*Unggulan$/i),
+    dt: find(/^D_t/i), divers: find(/^Diversification/i), avgRca: find(/^Avg\s*RCA/i),
+    rawEcp: find(/^Raw\s*ECP$/i), ecpNorm: find(/^ECP\s*Normalized/i)
+  };
+}
+function advBuildComplexityRows(){
+  const m = advMap.complexity;
+  const rows = [];
+  advRaw.complexity.forEach(r=>{
+    const tahun = divExtractYear(r[m.tahun]);
+    const sektor = (r[m.sektor]||'').toString().trim();
+    const rca = divToNumber(r[m.rca]);
+    if(!tahun || !sektor || isNaN(rca)) return;
+    rows.push({
+      tahun, sektor, kShare:divToNumber(r[m.kShare]), bShare:divToNumber(r[m.bShare]), rca,
+      dt: divToNumber(r[m.dt]), divers: divToNumber(r[m.divers]),
+      avgRca: divToNumber(r[m.avgRca]), rawEcp: divToNumber(r[m.rawEcp]), ecpNorm: divToNumber(r[m.ecpNorm])
+    });
+  });
+  return rows;
+}
+function renderAdvComplexity(){
+  if(!advEnsureLoaded('complexity')) return;
+  if(!advMap.complexity) advDetectComplexityCols();
+  const rows = advBuildComplexityRows();
+  const body = document.getElementById('advBody');
+  if(!rows.length){ body.innerHTML = `<div class="state-msg">Tidak ada data valid.</div>`; return; }
+
+  const byYear = {};
+  rows.forEach(r=>{ if(!byYear[r.tahun]) byYear[r.tahun] = { tahun:r.tahun, dt:r.dt, divers:r.divers, avgRca:r.avgRca, rawEcp:r.rawEcp, ecpNorm:r.ecpNorm, sektor: [] }; byYear[r.tahun].sektor.push(r); });
+  const yearSeries = Object.values(byYear).sort((a,b)=>a.tahun-b.tahun);
+  const years = yearSeries.map(y=>y.tahun);
+  if(!advCompYear.complexity || !years.includes(advCompYear.complexity)) advCompYear.complexity = years[years.length-1];
+  const latest = yearSeries[yearSeries.length-1];
+
+  body.innerHTML = `
+    <div class="ss-method-note">
+      <div><b>📖 Apa itu indeks ini:</b> Economic Complexity Proxy (ECP) — proksi sederhana dari konsep Economic Complexity Index (Hidalgo &amp; Hausmann) yang biasanya dipakai untuk data ekspor antarnegara, di sini diadaptasi untuk 17 sektor PDRB. Mengukur seberapa banyak &amp; seberapa kuat sektor "unggul" (RCA≥1) yang dimiliki Klungkung dibanding Bali.</div>
+      <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+      <ul class="formula-list">
+        <li>RCA = (K Shareᵢ) / (B Shareᵢ) <span style="font-family:'Inter',sans-serif;color:var(--brown-mid);">— identik dengan SLQ</span></li>
+        <li>D* (Diversifikasi) = jumlah sektor RCA≥1 / total sektor</li>
+        <li>ECP = normalized(D* × rata-rata RCA sektor unggulan)</li>
+      </ul>
+      <div class="formula-caption">ECP Normalized 0–100 dinormalisasi min-max lintas seluruh tahun yang tersedia (bukan skala absolut) — tahun dengan ECP=100 adalah tahun PALING kompleks dalam rentang data ini, bukan patokan mutlak. Ini bukan ECI perdagangan klasik.</div>
+      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> ECP makin tinggi = Klungkung punya makin banyak sektor unggulan (RCA≥1) DAN sektor-sektor itu unggul secara meyakinkan (RCA jauh di atas 1) — tanda ekonomi yang lebih terdiversifikasi &amp; punya banyak kapabilitas sekaligus. ECP rendah = mengandalkan sedikit sektor saja, atau sektor unggulannya cuma sedikit di atas ambang RCA=1.</div>
+    </div>
+    <div class="ss-kpi-grid">
+      <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
+      <div class="stat-box"><div class="stat-label">ECP Normalized</div><div class="stat-value" style="font-size:15px;">${latest.ecpNorm.toFixed(1)}</div></div>
+      <div class="stat-box"><div class="stat-label">Sektor Unggulan (RCA≥1)</div><div class="stat-value" style="font-size:15px;">${latest.dt} dari 17</div></div>
+      <div class="stat-box"><div class="stat-label">Rata-rata RCA Unggulan</div><div class="stat-value" style="font-size:15px;">${latest.avgRca.toFixed(2)}</div></div>
+    </div>
+    <div class="ss-section-title">Tren ECP Antar Tahun</div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvEcpTs">⬇ JPG</button><div class="chart-box" style="height:280px;"><canvas id="advEcpTsCanvas"></canvas></div></div>
+    <div class="ss-section-title">RCA per Sektor</div>
+    <div class="ss-controls" style="margin-bottom:10px;"><div class="ctrl-item"><label>Tahun</label><select id="advEcpYear"></select></div></div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvEcpRca">⬇ JPG</button><div class="chart-box" style="height:${Math.max(280, latest.sektor.length*24)}px;"><canvas id="advEcpRcaCanvas"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel ECP per Tahun</span><button class="dl-btn" id="advEcpExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advEcpTable"></table></div>
+  `;
+
+  const yrSel = document.getElementById('advEcpYear');
+  years.forEach(y=> yrSel.innerHTML += `<option value="${y}" ${y===advCompYear.complexity?'selected':''}>${y}</option>`);
+  yrSel.onchange = ()=>{ advCompYear.complexity = parseInt(yrSel.value); renderAdvEcpRcaChart(byYear[advCompYear.complexity]); };
+
+  document.getElementById('advEcpTable').innerHTML = `<thead><tr><th>Tahun</th><th>Sektor Unggulan</th><th>Diversifikasi</th><th>Avg RCA Unggulan</th><th>Raw ECP</th><th>ECP Normalized</th></tr></thead><tbody>${
+    yearSeries.map(y=>`<tr><td>${y.tahun}</td><td>${y.dt}</td><td>${(y.divers*100).toFixed(1)}%</td><td>${y.avgRca.toFixed(2)}</td><td>${y.rawEcp.toFixed(3)}</td><td>${y.ecpNorm.toFixed(1)}</td></tr>`).join('')
+  }</tbody>`;
+
+  const ctx = document.getElementById('advEcpTsCanvas');
+  if(advCharts.ecpTs){ advCharts.ecpTs.destroy(); }
+  advCharts.ecpTs = new Chart(ctx, {
+    type:'line',
+    data:{ labels: years, datasets:[{ label:'ECP Normalized', data: yearSeries.map(y=>y.ecpNorm), borderColor:'#8C6BAF', backgroundColor:'rgba(140,107,175,0.18)', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false},ticks:{color:'#8A5A24',font:{family:'Inter',size:10.5}}}, y:{min:0,max:100,grid:{color:'#F2DEB8'},ticks:{color:'#8A5A24',font:{size:10}}} } }
+  });
+
+  renderAdvEcpRcaChart(byYear[advCompYear.complexity]);
+
+  document.getElementById('dlAdvEcpTs').onclick = ()=> triggerJPGDownload(advCharts.ecpTs, 'ecp_tren');
+  document.getElementById('dlAdvEcpRca').onclick = ()=> triggerJPGDownload(advCharts.ecpRca, `ecp_rca_${advCompYear.complexity}`);
+  document.getElementById('advEcpExcelBtn').onclick = async ()=>{
+    await exportStyledExcel('economic_complexity', 'ECP', ['Tahun','Sektor Unggulan (D_t)','Diversifikasi','Avg RCA Unggulan','Raw ECP','ECP Normalized'], yearSeries.map(y=>[y.tahun,y.dt,y.divers,y.avgRca,y.rawEcp,y.ecpNorm]));
+  };
+}
+function renderAdvEcpRcaChart(yearData){
+  if(!yearData) return;
+  const ctx = document.getElementById('advEcpRcaCanvas');
+  if(advCharts.ecpRca){ advCharts.ecpRca.destroy(); }
+  const sorted = [...yearData.sektor].sort((a,b)=> b.rca-a.rca);
+  advCharts.ecpRca = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: sorted.map(s=>s.sektor), datasets:[{ label:'RCA', data: sorted.map(s=>s.rca), backgroundColor: sorted.map(s=> s.rca>=1?'#6F8F52':'#C1440E') }] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+      scales:{ x:{grid:{color:'#F2DEB8'}, ticks:{color:'#8A5A24',font:{family:'Inter',size:10.5}}}, y:{grid:{display:false},ticks:{color:'#8A5A24',font:{family:'Inter',size:10.5}}} } }
+  });
+}
+
+/* =========================================================
+   5. REGIONAL ECONOMIC RESILIENCE INDEX (RERI)
+   ========================================================= */
+function advDetectResilienceCols(){
+  const h = advHeaders.resilience;
+  const find = re=> h.find(x=> re.test(divNormalizeHeader(x)));
+  advMap.resilience = {
+    tahun: find(/^tahun$/i), totalPdrb: find(/^Total\s*PDRB$/i),
+    entropy: find(/^Entropy$/i), de: find(/^Normalized\s*Entropy/i),
+    hhi: find(/^HHI$/i), hhiDiv: find(/^HHI\s*Diversification$/i),
+    reiStruktur: find(/^REI\s*Struktur$/i), stability: find(/^Stability/i),
+    rc: find(/^Recovery\s*Capacity$/i), reri: find(/^RERI/i)
+  };
+}
+function advBuildResilienceRows(){
+  const m = advMap.resilience;
+  const rows = [];
+  advRaw.resilience.forEach(r=>{
+    const tahun = divExtractYear(r[m.tahun]);
+    const reri = divToNumber(r[m.reri]);
+    if(!tahun || isNaN(reri)) return;
+    const rcRaw = r[m.rc];
+    const isNA = rcRaw!==undefined && rcRaw!==null && rcRaw.toString().trim().toUpperCase()==='N/A';
+    const rc = isNA ? null : divToNumber(rcRaw);
+    rows.push({
+      tahun, totalPdrb: divToNumber(r[m.totalPdrb]), entropy: divToNumber(r[m.entropy]), de: divToNumber(r[m.de]),
+      hhi: divToNumber(r[m.hhi]), hhiDiv: divToNumber(r[m.hhiDiv]), reiStruktur: divToNumber(r[m.reiStruktur]),
+      stability: divToNumber(r[m.stability]), rc: (rc!==null && isNaN(rc)) ? null : rc, reri
+    });
+  });
+  rows.sort((a,b)=>a.tahun-b.tahun);
+  return rows;
+}
+function reriBadge(v){
+  if(v>=80) return {label:'Sangat Tahan', color:'#6F8F52'};
+  if(v>=60) return {label:'Cukup Tahan', color:'#B98B27'};
+  return {label:'Rentan', color:'#C1440E'};
+}
+function renderAdvResilience(){
+  if(!advEnsureLoaded('resilience')) return;
+  if(!advMap.resilience) advDetectResilienceCols();
+  const rows = advBuildResilienceRows();
+  const body = document.getElementById('advBody');
+  if(!rows.length){ body.innerHTML = `<div class="state-msg">Tidak ada data valid.</div>`; return; }
+  const latest = rows[rows.length-1];
+  const badge = reriBadge(latest.reri);
+
+  body.innerHTML = `
+    <div class="ss-method-note">
+      <div><b>📖 Apa itu indeks ini:</b> Regional Economic Resilience Index (RERI) — indeks komposit yang mengukur seberapa tahan struktur ekonomi Klungkung: apakah cukup terdiversifikasi, stabil dari waktu ke waktu, tidak terlalu terkonsentrasi, dan mampu pulih setelah guncangan (mis. pandemi).</div>
+      <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+      <ul class="formula-list"><li>RERI = 100 × (0,25×DE + 0,25×Stability + 0,25×HHI_Diversification + 0,25×RC)</li></ul>
+      <div class="formula-caption">DE = Entropy ternormalisasi; Stability = 1 − REI struktur (kebalikan pergeseran struktur antar tahun, lihat tab Diversitas); HHI_Diversification = 1 − HHI; RC (Recovery Capacity) dihitung untuk 2021–2025 terhadap baseline 2019, tahun lain N/A. Bobot keempatnya sama rata (25%).</div>
+      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> RERI tinggi (mendekati 100) = ekonomi Klungkung terdiversifikasi baik, strukturnya stabil dari tahun ke tahun, tidak bertumpu pada satu-dua sektor, dan (untuk tahun setelah 2021) sudah pulih dari guncangan sebelumnya. RERI rendah menandakan salah satu atau lebih aspek itu lemah — cek komponen mana yang paling menekan skornya lewat grafik di bawah.</div>
+    </div>
+    <div class="ss-kpi-grid">
+      <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
+      <div class="stat-box"><div class="stat-label">RERI</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${latest.reri.toFixed(1)} · ${badge.label}</div></div>
+      <div class="stat-box"><div class="stat-label">Diversifikasi (DE)</div><div class="stat-value" style="font-size:15px;">${(latest.de*100).toFixed(1)}%</div></div>
+      <div class="stat-box"><div class="stat-label">Stabilitas Struktur</div><div class="stat-value" style="font-size:15px;">${(latest.stability*100).toFixed(1)}%</div></div>
+      <div class="stat-box"><div class="stat-label">Recovery Capacity</div><div class="stat-value" style="font-size:15px;">${latest.rc!==null? (latest.rc*100).toFixed(1)+'%' : 'N/A'}</div></div>
+    </div>
+    <div class="ss-section-title">Tren RERI &amp; Komponennya</div>
+    <div class="ss-controls" style="margin-bottom:8px;">
+      <div class="ms-dropdown" id="advReriMetricDropdown">
+        <button type="button" class="ms-dropdown-btn" id="advReriMetricBtn">📊 Pilih Indeks ▾</button>
+        <div class="ms-dropdown-panel" id="advReriMetricPanel">
+          <label class="ms-dropdown-item"><input type="checkbox" data-metric="reri" ${advReriMetrics.has('reri')?'checked':''}> RERI</label>
+          <label class="ms-dropdown-item"><input type="checkbox" data-metric="de" ${advReriMetrics.has('de')?'checked':''}> Diversifikasi (DE)</label>
+          <label class="ms-dropdown-item"><input type="checkbox" data-metric="stability" ${advReriMetrics.has('stability')?'checked':''}> Stabilitas</label>
+          <label class="ms-dropdown-item"><input type="checkbox" data-metric="rc" ${advReriMetrics.has('rc')?'checked':''}> Recovery Capacity</label>
+        </div>
+      </div>
+    </div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvReri">⬇ JPG</button><div class="chart-box" style="height:320px;"><canvas id="advReriCanvas"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel RERI per Tahun</span><button class="dl-btn" id="advReriExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advReriTable"></table></div>
+  `;
+
+  document.getElementById('advReriTable').innerHTML = `<thead><tr><th>Tahun</th><th>DE</th><th>Stability</th><th>HHI Div.</th><th>Recovery Cap.</th><th>RERI</th></tr></thead><tbody>${
+    rows.map(r=>`<tr><td>${r.tahun}</td><td>${(r.de*100).toFixed(1)}%</td><td>${(r.stability*100).toFixed(1)}%</td><td>${(r.hhiDiv*100).toFixed(1)}%</td><td>${r.rc!==null?(r.rc*100).toFixed(1)+'%':'N/A'}</td><td>${r.reri.toFixed(1)}</td></tr>`).join('')
+  }</tbody>`;
+
+  const metricBtn = document.getElementById('advReriMetricBtn');
+  const metricPanel = document.getElementById('advReriMetricPanel');
+  metricBtn.onclick = (e)=>{
+    e.stopPropagation();
+    metricPanel.classList.toggle('open');
+  };
+  document.addEventListener('click', function closeAdvReriMetricPanel(e){
+    if(!document.getElementById('advReriMetricDropdown')) { document.removeEventListener('click', closeAdvReriMetricPanel); return; }
+    if(!document.getElementById('advReriMetricDropdown').contains(e.target)){
+      metricPanel.classList.remove('open');
+    }
+  });
+  metricPanel.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.onchange = ()=>{
+      const m = cb.dataset.metric;
+      if(cb.checked){
+        advReriMetrics.add(m);
+      }else{
+        if(advReriMetrics.size<=1){ cb.checked = true; alert('Minimal 1 indeks harus ditampilkan.'); return; }
+        advReriMetrics.delete(m);
+      }
+      renderAdvReriChart(rows);
+    };
+  });
+
+  renderAdvReriChart(rows);
+
+  document.getElementById('dlAdvReri').onclick = ()=> triggerJPGDownload(advCharts.reri, 'reri_tren');
+  document.getElementById('advReriExcelBtn').onclick = async ()=>{
+    await exportStyledExcel('resilience_index', 'RERI', ['Tahun','DE','Stability','HHI Diversification','Recovery Capacity','RERI'], rows.map(r=>[r.tahun,r.de,r.stability,r.hhiDiv,r.rc,r.reri]));
+  };
+}
+
+function renderAdvReriChart(rows){
+  const ctx = document.getElementById('advReriCanvas');
+  if(advCharts.reri){ advCharts.reri.destroy(); }
+  const allDatasets = [
+    { m:'reri', ds:{ label:'RERI', data: rows.map(r=>r.reri), borderColor:'#562F00', backgroundColor:'rgba(86,47,0,0.14)', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100' } },
+    { m:'de', ds:{ label:'Diversifikasi (DE)', data: rows.map(r=>r.de*100), borderColor:'#3E6E8E', backgroundColor:'transparent', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100' } },
+    { m:'stability', ds:{ label:'Stabilitas', data: rows.map(r=>r.stability*100), borderColor:'#B98B27', backgroundColor:'transparent', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100' } },
+    { m:'rc', ds:{ label:'Recovery Capacity', data: rows.map(r=>r.rc!==null?r.rc*100:null), borderColor:'#6F8F52', backgroundColor:'transparent', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100', spanGaps:false } }
+  ];
+  const datasets = allDatasets.filter(d=> advReriMetrics.has(d.m)).map(d=>d.ds);
+  advCharts.reri = new Chart(ctx, {
+    type:'line',
+    data:{ labels: rows.map(r=>r.tahun), datasets },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:10.5},color:'#562F00',boxWidth:14}}},
+      scales:{ x:{grid:{display:false},ticks:{color:'#8A5A24',font:{family:'Inter',size:10.5}}}, y100:{min:0,max:100,grid:{color:'#F2DEB8'},ticks:{color:'#8A5A24',font:{size:10}}} } }
+  });
+}
+
+/* =========================================================
+   6. DYNAMIC SPECIALIZATION TRAJECTORY
+   ========================================================= */
+function advDetectTrajectoryCols(){
+  const h = advHeaders.trajectory;
+  const find = re=> h.find(x=> re.test(divNormalizeHeader(x)));
+  advMap.trajectory = {
+    tahun: find(/^tahun$/i), sektor: find(/^sektor$/i),
+    slq: find(/^SLQ\/RCA$/i) || find(/^SLQ/i),
+    dlq: find(/^DLQ$/i), deltaSlq: find(/ΔSLQ|Delta\s*SLQ/i), status: find(/^Status\s*SLQ$/i),
+    trajectory: find(/^Trajectory/i), dss: find(/^DSS/i)
+  };
+}
+function advBuildTrajectoryRows(){
+  const m = advMap.trajectory;
+  const rows = [];
+  advRaw.trajectory.forEach(r=>{
+    const tahun = divExtractYear(r[m.tahun]);
+    const sektor = (r[m.sektor]||'').toString().trim();
+    const slq = divToNumber(r[m.slq]);
+    if(!tahun || !sektor || isNaN(slq)) return;
+    rows.push({
+      tahun, sektor, slq, dlq: divToNumber(r[m.dlq]), deltaSlq: divToNumber(r[m.deltaSlq]),
+      status: (r[m.status]||'').toString().trim(), trajectory: (r[m.trajectory]||'').toString().trim(),
+      dss: divToNumber(r[m.dss])
+    });
+  });
+  return rows;
+}
+const TRAJ_INFO = {
+  'Persistent Leader': {color:'#6F8F52', desc:'Konsisten jadi sektor unggulan (SLQ≥1) sejak awal periode hingga sekarang.'},
+  'Emerging': {color:'#3E6E8E', desc:'Awalnya bukan unggulan, tapi tren SLQ-nya naik — kandidat sektor unggulan baru.'},
+  'Declining Specialist': {color:'#C1440E', desc:'Dulunya unggulan, tapi SLQ-nya menurun — berisiko kehilangan status basisnya.'},
+  'Persistent Non-specialist': {color:'#8A5A24', desc:'Konsisten bukan sektor unggulan sepanjang periode.'},
+  'Potential': {color:'#B98B27', desc:'Belum unggulan, tren belum cukup jelas naik/turun — perlu dipantau lebih lanjut.'}
+};
+function renderAdvTrajectory(){
+  if(!advEnsureLoaded('trajectory')) return;
+  if(!advMap.trajectory) advDetectTrajectoryCols();
+  const rows = advBuildTrajectoryRows();
+  const body = document.getElementById('advBody');
+  if(!rows.length){ body.innerHTML = `<div class="state-msg">Tidak ada data valid.</div>`; return; }
+
+  const years = [...new Set(rows.map(r=>r.tahun))].sort((a,b)=>a-b);
+  const latestYear = years[years.length-1];
+  const bySektor = {};
+  rows.forEach(r=>{ if(!bySektor[r.sektor]) bySektor[r.sektor] = []; bySektor[r.sektor].push(r); });
+  const summary = Object.entries(bySektor).map(([sektor, list])=>{
+    list.sort((a,b)=>a.tahun-b.tahun);
+    const last = list[list.length-1];
+    return { sektor, trajectory:last.trajectory, dss:last.dss, slqLatest:last.slq, slqAwal:list[0].slq };
+  }).sort((a,b)=> b.dss-a.dss);
+
+  const counts = {};
+  summary.forEach(s=>{ counts[s.trajectory] = (counts[s.trajectory]||0)+1; });
+
+  body.innerHTML = `
+    <div class="ss-method-note">
+      <div><b>📖 Apa itu analisis ini:</b> Menggabungkan status LQ sepanjang waktu untuk melihat lintasan tiap sektor — bukan cuma "unggul atau tidak sekarang", tapi "menuju ke arah mana" dari 2010 sampai tahun terakhir.</div>
+      <div style="margin-top:8px"><b>🧮 Formula &amp; Klasifikasi:</b></div>
+      <ul class="formula-list">
+        <li>DLQ &amp; ΔSLQ dihitung tiap tahun (lihat tab LQ untuk detail DLQ)</li>
+        <li>DSS = skor lintasan relatif terhadap tahun dasar 2010</li>
+      </ul>
+      <div class="formula-caption">Klasifikasi: <b>Persistent Leader</b> (konsisten unggul), <b>Emerging</b> (tren naik menuju unggul), <b>Declining Specialist</b> (dulu unggul, kini menurun), <b>Persistent Non-specialist</b> (konsisten tidak unggul), <b>Potential</b> (belum jelas arahnya).</div>
+      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> Sektor <b>Persistent Leader</b> adalah fondasi ekonomi yang paling bisa diandalkan karena keunggulannya teruji lama. Sektor <b>Emerging</b> patut diperhatikan sebagai calon sektor unggulan baru — sering jadi target kebijakan pengembangan. Sektor <b>Declining Specialist</b> perlu perhatian karena keunggulan yang dulu dimiliki sedang terkikis. <b>DSS</b> yang lebih tinggi menunjukkan lintasan yang lebih positif dibanding kondisi awal 2010.</div>
+    </div>
+    <div class="ss-section-title">Distribusi Klasifikasi Lintasan Sektor</div>
+    <div class="ss-quad-legend" style="margin-bottom:16px;">
+      ${Object.keys(TRAJ_INFO).map(k=>`
+        <div class="ss-quad-legend-item">
+          <b style="color:${TRAJ_INFO[k].color}">${k} <span class="cnt">(${counts[k]||0})</span></b>
+          ${TRAJ_INFO[k].desc}
+        </div>`).join('')}
+    </div>
+    <div class="ss-section-title">Peta Lintasan Tiap Sektor (SLQ Awal → SLQ ${latestYear})</div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvTraj">⬇ JPG</button><div class="chart-box" style="height:${Math.max(320, summary.length*26)}px;"><canvas id="advTrajCanvas"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Klasifikasi Lintasan Sektor</span><button class="dl-btn" id="advTrajExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advTrajTable"></table></div>
+  `;
+
+  document.getElementById('advTrajTable').innerHTML = `<thead><tr><th>Sektor</th><th>Klasifikasi</th><th>SLQ Awal</th><th>SLQ ${latestYear}</th><th>DSS</th></tr></thead><tbody>${
+    summary.map(s=>`<tr><td>${escapeHtml(s.sektor)}</td><td><span class="ss-badge-quad" style="background:${(TRAJ_INFO[s.trajectory]||{color:'#999'}).color}">${escapeHtml(s.trajectory)}</span></td><td>${s.slqAwal.toFixed(2)}</td><td>${s.slqLatest.toFixed(2)}</td><td class="${s.dss>=0?'pos':'neg'}">${s.dss.toFixed(3)}</td></tr>`).join('')
+  }</tbody>`;
+
+  const ctx = document.getElementById('advTrajCanvas');
+  if(advCharts.traj){ advCharts.traj.destroy(); }
+  advCharts.traj = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: summary.map(s=>s.sektor), datasets:[
+      { label:'SLQ Awal (2010)', data: summary.map(s=>s.slqAwal), backgroundColor:'#D9B36C' },
+      { label:`SLQ ${latestYear}`, data: summary.map(s=>s.slqLatest), backgroundColor: summary.map(s=>(TRAJ_INFO[s.trajectory]||{color:'#999'}).color) }
+    ]},
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#562F00'}}},
+      scales:{ x:{grid:{color:'#F2DEB8'}, ticks:{color:'#8A5A24',font:{family:'Inter',size:10.5}}}, y:{grid:{display:false},ticks:{color:'#8A5A24',font:{family:'Inter',size:10.5}}} } }
+  });
+
+  document.getElementById('dlAdvTraj').onclick = ()=> triggerJPGDownload(advCharts.traj, 'dynamic_specialization');
+  document.getElementById('advTrajExcelBtn').onclick = async ()=>{
+    await exportStyledExcel('dynamic_specialization', 'Trajectory', ['Sektor','Klasifikasi','SLQ Awal','SLQ Terakhir','DSS'], summary.map(s=>[s.sektor,s.trajectory,s.slqAwal,s.slqLatest,s.dss]));
+  };
+}
+
 loadData();
 </script>
 </body>
