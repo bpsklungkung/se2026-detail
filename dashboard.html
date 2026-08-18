@@ -5357,7 +5357,7 @@ function renderLQView(){
   const introHtml = `
     <div class="ss-intro">
       <h2>Location Quotient (SLQ &amp; DLQ)</h2>
-      <p>Location Quotient mengukur derajat spesialisasi/keunggulan suatu sektor di Klungkung dibanding Bali. <b>Static LQ (SLQ)</b> membandingkan pangsa sektor di dua wilayah pada tahun terpilih; <b>Dynamic LQ (DLQ)</b> melakukan hal serupa namun memakai laju pertumbuhan tahunan (tahun terpilih vs tahun sebelumnya), sehingga menangkap potensi sektor ke depan, bukan hanya kontribusinya saat ini. Karena nilai SLQ/DLQ tidak simetris di sekitar 1 (rentang 0 s.d. tak terhingga), tersedia pula versi <b>simetris (SSLQ &amp; DSLQ)</b> yang mentransformasikannya ke rentang -1 s.d. 1 agar lebih adil secara statistik. Kedua versi menghasilkan klasifikasi sektor yang identik. Sektor diklasifikasikan menjadi <b>Unggulan</b>, <b>Andalan</b>, <b>Prospektif</b>, atau <b>Tertinggal</b> berdasarkan kombinasi SLQ &amp; DLQ. Seluruh nilai (SLQ, DLQ, SSLQ, DSLQ, Status) sudah dihitung di sheet sumber (LQ_Dynamic); dashboard hanya membaca &amp; menyajikan.</p>
+      <p>Location Quotient mengukur derajat spesialisasi/keunggulan suatu sektor di Klungkung dibanding Bali. <b>Static LQ (SLQ)</b> membandingkan pangsa sektor di dua wilayah pada tahun terpilih; <b>Dynamic LQ (DLQ)</b> melakukan hal serupa namun memakai laju pertumbuhan tahunan (tahun terpilih vs tahun sebelumnya), sehingga menangkap potensi sektor ke depan, bukan hanya kontribusinya saat ini. Karena nilai SLQ/DLQ tidak simetris di sekitar 1 (rentang 0 s.d. tak terhingga), tersedia pula versi <b>simetris (SSLQ &amp; DSLQ)</b> yang mentransformasikannya ke rentang -1 s.d. 1 agar lebih adil secara statistik. Kedua versi menghasilkan klasifikasi sektor yang identik. Sektor diklasifikasikan menjadi <b>Unggulan</b>, <b>Andalan</b>, <b>Prospektif</b>, atau <b>Tertinggal</b> berdasarkan kombinasi SLQ &amp; DLQ.</p>
     </div>`;
 
   if(lqLoadState==='idle'){
@@ -6161,7 +6161,7 @@ function renderAdvancedView(){
     <section class="ss-wrap">
       <div class="ss-intro">
         <h2>Analisis Lanjutan</h2>
-        <p>Enam analisis pelengkap Shift-Share, LQ, dan Diversitas: seberapa mirip struktur ekonomi Klungkung dengan Bali, sektor mana penyumbang perbedaan terbesar, bagaimana sektor berpindah kelas dari waktu ke waktu, seberapa kompleks kapabilitas ekonominya, seberapa tahan terhadap guncangan, dan bagaimana lintasan spesialisasi tiap sektor sejak 2010.</p>
+        <p>Enam analisis pelengkap Shift-Share, LQ, dan Diversitas: seberapa mirip struktur ekonomi Klungkung dengan Bali, sektor mana penyumbang perbedaan terbesar, bagaimana sektor berpindah kelas dari waktu ke waktu, seberapa kompleks kapabilitas ekonominya, seberapa tahan terhadap guncangan, dan bagaimana pola spesialisasi tiap sektor sejak 2010.</p>
       </div>
       <div class="ss-method-tabs" id="advSubTabs">
         ${subTabs.map(t=>`<button class="ss-method-tab" data-k="${t.key}">${escapeHtml(t.label)}</button>`).join('')}
