@@ -5885,7 +5885,7 @@ function updateDivMethodNote(){
       <li>REIₜ = ½ Σ |pᵢ,ₜ − pᵢ,ₜ₋₁|</li>
       <li>Tress = [(Σ(shareᵢ × rankᵢ) − (n+1)/2) / (n − (n+1)/2)] × 100</li>
     </ul>
-    <div class="formula-caption">rank 1 = share terkecil, rank n = share terbesar, n = ${DIV_N_SEKTOR}. Seluruh angka dihitung di sumber data (Google Sheets) dan dibaca langsung oleh dashboard ini.</div>
+    <div class="formula-caption">rank 1 = share terkecil, rank n = share terbesar, n = ${DIV_N_SEKTOR}.</div>
     <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> <b>Entropy</b> makin tinggi (mendekati ln(${DIV_N_SEKTOR})≈${Math.log(DIV_N_SEKTOR).toFixed(2)}) = ekonomi makin merata/terdiversifikasi antar sektor; mendekati 0 = sangat bertumpu pada segelintir sektor. <b>HHI</b> arahnya kebalikan: mendekati 1/${DIV_N_SEKTOR}≈${(1/DIV_N_SEKTOR).toFixed(2)} = merata; mendekati 1 = sangat terkonsentrasi (ambang umum: &lt;0,15 terdiversifikasi baik, 0,15–0,25 konsentrasi sedang, &gt;0,25 sangat terkonsentrasi). <b>REI</b> mendekati 0 = struktur ekonomi stabil dari tahun sebelumnya; makin tinggi = terjadi pergeseran porsi sektor yang signifikan dalam setahun. <b>Tress</b> 0 = seluruh sektor porsinya sama besar; mendekati 100 = ekonomi sangat bertumpu pada satu sektor dominan.</div>`;
 }
 
