@@ -11,16 +11,16 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';document.head.appendChild(s);"></script>
 <style>
   :root{
-    --cream:#FFFDF1;
-    --cream-deep:#FFF3DC;
-    --peach:#FFCE99;
-    --peach-soft:#FFE7C9;
-    --orange:#FF9644;
-    --orange-deep:#D97730;
-    --brown:#562F00;
-    --brown-deep:#3a1f00;
-    --brown-mid:#7a5230;
-    --brown-soft:#a08a70;
+    --cream:#FFF9F5;
+    --cream-deep:#FFEFE3;
+    --peach:#F0AFAE;
+    --peach-soft:#FBDCDA;
+    --orange:#D64553;
+    --orange-deep:#B23244;
+    --brown:#4A1620;
+    --brown-deep:#2E0D14;
+    --brown-mid:#7A3540;
+    --brown-soft:#A9787E;
     --green:#6F8F52;
     --green-bg:#E9EEDD;
     --rust:#C1440E;
@@ -28,8 +28,9 @@
     --white:#FFFFFF;
     --card-bg:#FFFFFF;
     --page-bg:#FFFFFF;
-    --line:#FFE7C9;
-    --shadow: 0 6px 20px rgba(86,47,0,0.10);
+    --line:#E5E5E5;
+    --border:#E5E5E5;
+    --shadow: 0 6px 20px rgba(0,0,0,0.08);
     --radius:16px;
   }
   *{box-sizing:border-box;}
@@ -51,39 +52,33 @@
 
   /* ===== Hero ===== */
   .hero{
-    background: linear-gradient(135deg, var(--brown) 0%, #7a4310 55%, var(--orange) 130%);
+    background: var(--white);
+    border-bottom:1px solid #ECECEC;
     padding:30px 24px 40px;
     position:relative;
     overflow:hidden;
-  }
-  .hero::after{
-    content:"";
-    position:absolute; right:-60px; top:-60px;
-    width:220px; height:220px; border-radius:50%;
-    background:radial-gradient(circle, rgba(255,150,68,0.35), transparent 70%);
   }
   .hero-inner{
     max-width:1280px; margin:0 auto; position:relative; z-index:1;
     display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap;
   }
   .hero-eyebrow{
-    color:var(--peach); font-weight:600; letter-spacing:.13em; text-transform:uppercase;
+    color:var(--orange); font-weight:600; letter-spacing:.13em; text-transform:uppercase;
     font-size:11px; margin-bottom:8px; font-family:'Inter',sans-serif;
   }
-  .hero h1{ color:var(--cream); font-size:clamp(22px,3vw,32px); font-weight:600; line-height:1.15; }
-  .hero p{ color:var(--peach-soft); margin-top:6px; font-size:12.5px; max-width:480px; line-height:1.45; }
+  .hero h1{ color:var(--brown-deep); font-size:clamp(22px,3vw,32px); font-weight:600; line-height:1.15; }
+  .hero p{ color:var(--brown-mid); margin-top:6px; font-size:12.5px; max-width:480px; line-height:1.45; }
 
   .hero-stats{ display:flex; gap:10px; flex-wrap:wrap; }
   .stat-pill{
-    background:rgba(255,253,241,0.12);
-    border:1px solid rgba(255,206,153,0.35);
+    background:#F7F7F7;
+    border:1px solid #ECECEC;
     border-radius:12px;
     padding:9px 15px;
     min-width:88px;
-    backdrop-filter:blur(4px);
   }
-  .stat-pill .num{ color:var(--cream); font-family:'Fraunces',serif; font-size:20px; font-weight:600; line-height:1; }
-  .stat-pill .lbl{ color:var(--peach-soft); font-size:10px; margin-top:3px; letter-spacing:.05em; }
+  .stat-pill .num{ color:var(--brown-deep); font-family:'Fraunces',serif; font-size:20px; font-weight:600; line-height:1; }
+  .stat-pill .lbl{ color:var(--brown-mid); font-size:10px; margin-top:3px; letter-spacing:.05em; }
 
   /* ===== Layout ===== */
   .page-wrap{ max-width:1280px; margin:0 auto; padding:0 24px; }
@@ -91,7 +86,7 @@
   /* Tabbar */
   .tabbar{
     background:var(--white);
-    border:1px solid var(--peach-soft);
+    border:1px solid #ECECEC;
     border-radius:16px;
     box-shadow:var(--shadow);
     padding:9px 10px;
@@ -129,7 +124,7 @@
     width:220px;
     flex-shrink:0;
     background:var(--white);
-    border:1px solid var(--peach-soft);
+    border:1px solid var(--border);
     border-radius:16px;
     box-shadow:var(--shadow);
     padding:16px;
@@ -261,8 +256,8 @@
     gap:12px;
   }
   .ai-insight-box{
-    background: linear-gradient(135deg, var(--cream) 0%, var(--cream-deep) 100%);
-    border:1px solid var(--peach);
+    background: #FAFAFA;
+    border:1px solid var(--border);
     border-radius:12px;
     padding:18px;
   }
@@ -312,20 +307,20 @@
   .ss-method-tab{
     font-family:'Inter',sans-serif; font-size:12px; font-weight:700;
     padding:8px 14px; border-radius:999px; cursor:pointer;
-    background:var(--cream-deep); border:1px solid var(--peach-soft); color:var(--brown-mid);
+    background:var(--cream-deep); border:1px solid var(--border); color:var(--brown-mid);
   }
   .ss-method-tab.active{ background:var(--orange); color:#fff; border-color:var(--orange); }
   .ss-method-tab:hover:not(.active){ background:var(--peach-soft); }
 
   .ss-method-note{
-    background:linear-gradient(135deg, var(--cream) 0%, var(--cream-deep) 100%);
-    border:1px solid var(--peach); border-radius:12px; padding:12px 16px; margin-bottom:14px;
+    background:#FAFAFA;
+    border:1px solid var(--border); border-radius:12px; padding:12px 16px; margin-bottom:14px;
     font-size:12px; line-height:1.55; color:var(--brown);
   }
   .ss-method-note b{ color:var(--brown-deep); }
   .ss-method-note .formula-list{ margin:4px 0 2px 20px; padding:0; }
   .ss-method-note .formula-list li{ margin-bottom:4px; font-family:'Menlo','Consolas',monospace; font-size:15px; font-weight:700; color:var(--brown-deep); }
-  .ss-method-note .formula-caption{ margin-top:2px; color:var(--brown-mid); }
+  .ss-method-note .formula-caption{ margin:6px 0 2px 20px; font-size:11.5px; font-style:italic; color:var(--brown-soft); line-height:1.5; }
   .ss-method-note .component-list{ margin:4px 0 8px 20px; padding:0; }
   .ss-method-note .component-list li{ margin-bottom:5px; }
 
@@ -340,7 +335,7 @@
     cursor:pointer; text-decoration:underline; margin-left:auto;
   }
   .ss-mapping-panel{
-    display:none; background:var(--card-bg); border:1px dashed var(--peach); border-radius:12px;
+    display:none; background:var(--card-bg); border:1px dashed var(--border); border-radius:12px;
     padding:14px; margin-bottom:14px;
   }
   .ss-mapping-panel.open{ display:block; }
@@ -352,14 +347,14 @@
   .ms-dropdown{ position:relative; display:inline-block; }
   .ms-dropdown-btn{
     font-size:11.5px; font-weight:700; color:var(--brown); background:var(--card-bg);
-    border:1.5px solid var(--peach); border-radius:8px; padding:6px 12px; cursor:pointer;
+    border:1.5px solid var(--border); border-radius:8px; padding:6px 12px; cursor:pointer;
     display:flex; align-items:center; gap:6px;
   }
   .ms-dropdown-btn:hover{ border-color:var(--orange-deep); }
   .ms-dropdown-panel{
     display:none; position:absolute; top:calc(100% + 6px); left:0; z-index:20;
-    background:var(--card-bg); border:1.5px solid var(--peach); border-radius:10px;
-    padding:8px; min-width:160px; box-shadow:0 6px 20px rgba(86,47,0,0.12);
+    background:var(--card-bg); border:1.5px solid var(--border); border-radius:10px;
+    padding:8px; min-width:160px; box-shadow:0 6px 20px rgba(74,22,32,0.12);
   }
   .ms-dropdown-panel.open{ display:block; }
   .ms-dropdown-item{
@@ -471,7 +466,7 @@
   .card:hover{
     transform:translateY(-2px);
     border-color:var(--orange);
-    box-shadow:0 3px 6px rgba(86,47,0,.08), 0 10px 22px rgba(86,47,0,.12);
+    box-shadow:0 3px 6px rgba(74,22,32,.08), 0 10px 22px rgba(74,22,32,.12);
   }
   .card.comp-card{
     display:flex;
@@ -607,7 +602,7 @@
   /* Detail overlay */
   .overlay{
     position:fixed; inset:0;
-    background:rgba(50,28,0,.42);
+    background:rgba(42,14,20,.42);
     backdrop-filter:blur(2px);
     display:none;
     align-items:stretch;
@@ -616,11 +611,11 @@
   }
   .overlay.show{ display:flex; }
   .drawer{
-    background:var(--cream);
+    background:var(--white);
     width:min(600px,100%);
     height:100%;
     overflow-y:auto;
-    box-shadow:-8px 0 26px rgba(50,28,0,.2);
+    box-shadow:-8px 0 26px rgba(42,14,20,.2);
     padding:22px 22px 40px;
     transform:translateX(20px);
     animation:slidein .22s ease forwards;
@@ -737,8 +732,8 @@
     border-radius:11px;
   }
   .drawer-desc{
-    background:var(--peach-soft);
-    border:1px solid var(--line);
+    background:#FAFAFA;
+    border:1px solid var(--border);
     border-radius:12px;
     padding:11px 14px;
     margin-top:10px;
@@ -842,7 +837,8 @@
   /* ===== Site Footer ===== */
   .site-footer{
     margin-top:44px;
-    background: linear-gradient(135deg, var(--brown) 0%, #7a4310 55%, var(--orange) 130%);
+    background: var(--white);
+    border-top:1px solid #ECECEC;
     border-radius:20px 20px 0 0;
     padding:30px 28px;
     display:flex;
@@ -850,16 +846,17 @@
     align-items:center;
     gap:12px;
   }
-  .footer-social-title{ font-size:11.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--cream); }
+  .footer-social-title{ font-size:11.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--brown-mid); }
   .footer-social-icons{ display:flex; gap:12px; }
   .footer-social-icons a{
     width:40px; height:40px; border-radius:50%;
-    background:#fff;
+    background:var(--white);
+    border:1px solid #ECECEC;
     display:flex; align-items:center; justify-content:center;
     transition:transform .15s, box-shadow .15s;
-    box-shadow:0 2px 8px rgba(0,0,0,0.18);
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
   }
-  .footer-social-icons a:hover{ transform:translateY(-3px); box-shadow:0 5px 14px rgba(0,0,0,0.28); }
+  .footer-social-icons a:hover{ transform:translateY(-3px); box-shadow:0 5px 14px rgba(0,0,0,0.14); }
   .footer-social-icons svg{ width:20px; height:20px; display:block; }
 </style>
 </head>
@@ -913,9 +910,6 @@
         <circle cx="17" cy="7" r="1.05" fill="#fff"/>
       </svg>
     </a>
-    <a href="https://www.twitter.com/bps_statistics" target="_blank" rel="noopener" aria-label="Twitter">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#000"/><path fill="#fff" d="M13.35 11.05 19.2 4.3h-1.39l-5.08 5.86L8.67 4.3H3.6l6.14 8.94L3.6 19.7h1.39l5.37-6.19 4.29 6.19h5.07l-6.37-8.65Zm-1.9 2.19-.62-.89L5.9 5.35h2.13l4 5.72.62.89 5.2 7.44h-2.13l-4.27-6.16Z"/></svg>
-    </a>
     <a href="https://www.youtube.com/@bpskabupatenklungkung47" target="_blank" rel="noopener" aria-label="YouTube">
       <svg viewBox="0 0 24 24"><rect width="24" height="24" rx="7" fill="#FF0000"/><path fill="#fff" d="M9.5 8.5v7l6-3.5-6-3.5Z"/></svg>
     </a>
@@ -939,6 +933,7 @@ const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS0IHQMxQuwLfTd
 let STORE = {};        
 let DEFINISI = {};     
 let SATUAN = {};       
+function subLabel(sub){ return SATUAN[sub] ? `${sub} (${SATUAN[sub]})` : sub; }
 let activePeriode = null;
 let ENABLED_KELOMPOK = null;
 let chartInstance = null;
@@ -955,7 +950,7 @@ let compareTo = null;
 let normalizeCompare = false;
 let compareChart = null;
 let compareChartType = 'line';
-const COMPARE_COLORS = ['#FF9644','#4E7D5A','#A63A50','#3E6E8E','#8C6BAF','#B98B27','#562F00','#5C8C8C'];
+const COMPARE_COLORS = ['#D64553','#4E7D5A','#A63A50','#3E6E8E','#8C6BAF','#B98B27','#4A1620','#5C8C8C'];
 
 /* ===== Shift-Share Dinamis ===== */
 const SS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcl1gMindMWTFT3LgR_k72Le9Gm94rR2F5kvJYHzMgfW9SNrwa-8xuZsaAtw649uyBfskx3A9VoYR1/pub?gid=78489782&single=true&output=csv";
@@ -1046,7 +1041,7 @@ let advCharts = {};     // {key: Chart instances}
 let advReriMetrics = new Set(['reri']); // indeks yang ditampilkan di grafik tren RERI (default: 1 saja)
 let advCompYear = {};   // for sub-tabs needing a year selector for sector composition
 
-const KATEGORI_PALETTE = ['#FF6B6B','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#FF9644','#008080','#4C5C7D','#C1440E'];
+const KATEGORI_PALETTE = ['#FF6B6B','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#D64553','#008080','#4C5C7D','#C1440E'];
 let GROUP_COLOR_MAP = {};
 function getGroupColor(kategori, kelompok){
   const key = kategori + '|||' + kelompok;
@@ -1098,7 +1093,7 @@ function getGroupChartType(kategori, kelompok, sub){
   return types[idx % types.length];
 }
 
-let currentDetailColor = '#FF9644';
+let currentDetailColor = '#D64553';
 let currentDetailChartType = 'filled-area';
 
 function toNumber(v){
@@ -1553,7 +1548,7 @@ function makeSparkline(entries, color, type){
       const yTop = isUp ? y : zeroY;
       const barH = Math.max(1.5, Math.abs(zeroY - y));
       return `<rect x="${x.toFixed(1)}" y="${yTop.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" fill="${isUp ? '#4E7D5A' : '#A63A50'}" rx="1"></rect>`;
-    }).join('') + `<line x1="${pad}" y1="${zeroY.toFixed(1)}" x2="${w-pad}" y2="${zeroY.toFixed(1)}" stroke="#8A5A24" stroke-width="0.7" stroke-dasharray="2,2"></line>`;
+    }).join('') + `<line x1="${pad}" y1="${zeroY.toFixed(1)}" x2="${w-pad}" y2="${zeroY.toFixed(1)}" stroke="#8A4A55" stroke-width="0.7" stroke-dasharray="2,2"></line>`;
   } else if (type === 'combo') {
     const barW = Math.max(3, (w - pad * 2) / vals.length * 0.55);
     const bars = vals.map((v, i) => {
@@ -1591,7 +1586,7 @@ function makeSparkline(entries, color, type){
       const y = h - pad - pct * (h - pad*2);
       return `${xPos.toFixed(1)},${y.toFixed(1)}`;
     }).join(' ');
-    svgContent = bars + `<polyline points="${cumPts}" fill="none" stroke="#562F00" stroke-width="1.4"></polyline>`;
+    svgContent = bars + `<polyline points="${cumPts}" fill="none" stroke="#4A1620" stroke-width="1.4"></polyline>`;
   } else if (type === 'stream') {
     const midY = h / 2;
     const scaleY = range > 0 ? (h - pad*2) / 2 / (range/2) : 1;
@@ -2436,7 +2431,7 @@ function buildDumbbellSVG(segs, bySegSK, sortedSK, skMap){
     const minP = pts.reduce((a,b)=> a.v<b.v?a:b);
     const maxP = pts.reduce((a,b)=> a.v>b.v?a:b);
 
-    svg += `<text x="8" y="${(y+4).toFixed(1)}" font-size="10.5" font-family="Inter,sans-serif" fill="#8A5A24">${escapeHtml(skMap.get(sk)||'')}</text>`;
+    svg += `<text x="8" y="${(y+4).toFixed(1)}" font-size="10.5" font-family="Inter,sans-serif" fill="#8A4A55">${escapeHtml(skMap.get(sk)||'')}</text>`;
     if(pts.length > 1){
       svg += `<line x1="${xOf(minP.v).toFixed(1)}" y1="${y.toFixed(1)}" x2="${xOf(maxP.v).toFixed(1)}" y2="${y.toFixed(1)}" stroke="#D8A15B" stroke-width="2.5"></line>`;
     }
@@ -2492,7 +2487,7 @@ function buildStreamSVG(segs, bySegSK, sortedSK, skMap){
   const labelStep = Math.max(1, Math.ceil(n/8));
   sortedSK.forEach((sk,ti)=>{
     if(ti % labelStep === 0 || ti === n-1){
-      svg += `<text x="${xAt(ti).toFixed(1)}" y="${(H-6).toFixed(1)}" font-size="9" text-anchor="middle" fill="#8A5A24">${escapeHtml(skMap.get(sk)||'')}</text>`;
+      svg += `<text x="${xAt(ti).toFixed(1)}" y="${(H-6).toFixed(1)}" font-size="9" text-anchor="middle" fill="#8A4A55">${escapeHtml(skMap.get(sk)||'')}</text>`;
     }
   });
   svg += `</svg>`;
@@ -2523,7 +2518,7 @@ function buildMarimekkoSVG(segs, bySegSK, sortedSK, skMap){
       yCursor += shareH;
     });
     if(colW > 20){
-      svg += `<text x="${(xCursor+colW/2).toFixed(1)}" y="${(H-12).toFixed(1)}" font-size="9" text-anchor="middle" fill="#8A5A24">${escapeHtml(skMap.get(sk)||'')}</text>`;
+      svg += `<text x="${(xCursor+colW/2).toFixed(1)}" y="${(H-12).toFixed(1)}" font-size="9" text-anchor="middle" fill="#8A4A55">${escapeHtml(skMap.get(sk)||'')}</text>`;
     }
     xCursor += colW;
   });
@@ -2626,7 +2621,7 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
               tooltip:{ callbacks:{ label:(c)=>`${c.label}: ${fmtNum(c.parsed.r ?? c.parsed)}` } }
             },
             scales:{
-              r:{ grid:{color:'#F2DEB8'}, angleLines:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', backdropColor:'transparent', font:{family:'Inter', size:9.5} } }
+              r:{ grid:{color:'#F2D9D4'}, angleLines:{color:'#F2D9D4'}, ticks:{ color:'#8A4A55', backdropColor:'transparent', font:{family:'Inter', size:9.5} } }
             }
           }
         });
@@ -2641,16 +2636,16 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
             labels: items.map(it=>it.name),
             datasets:[
               { type:'bar', data: items.map(it=>it.value), backgroundColor: items.map((_,i)=>COMPARE_COLORS[i % COMPARE_COLORS.length]), borderWidth:0, borderRadius:4, maxBarThickness:44, yAxisID:'y', order:2 },
-              { type:'line', data: cumPct, borderColor:'#562F00', backgroundColor:'#562F00', borderWidth:2.2, pointRadius:4, tension:0, fill:false, yAxisID:'y1', order:1 }
+              { type:'line', data: cumPct, borderColor:'#4A1620', backgroundColor:'#4A1620', borderWidth:2.2, pointRadius:4, tension:0, fill:false, yAxisID:'y1', order:1 }
             ]
           },
           options:{
             responsive:true, maintainAspectRatio:false,
             plugins:{ legend:{ display:false } },
             scales:{
-              x:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } },
-              y:{ type:'linear', position:'left', grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
-              y1:{ type:'linear', position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11}, callback:(v)=>v+'%' } }
+              x:{ grid:{display:false}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10.5} } },
+              y:{ type:'linear', position:'left', grid:{color:'#F2D9D4'}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:11} } },
+              y1:{ type:'linear', position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:11}, callback:(v)=>v+'%' } }
             }
           }
         });
@@ -2689,7 +2684,7 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
               },
               {
                 data:[totalSum],
-                backgroundColor:[currentCompKey ? getGroupColor(currentCompKey.kategori, currentCompKey.kelompok) : '#FF9644'],
+                backgroundColor:[currentCompKey ? getGroupColor(currentCompKey.kategori, currentCompKey.kelompok) : '#D64553'],
                 borderColor:'#fff', borderWidth:2, weight:0.55
               }
             ]
@@ -2726,8 +2721,8 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
               tooltip:{ mode:'index', intersect:false, callbacks:{ label:(c)=>`${c.dataset.label}: ${fmtNum(c.parsed.y)}` } }
             },
             scales:{
-              x:{ stacked:true, grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
-              y:{ stacked:true, grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } }
+              x:{ stacked:true, grid:{display:false}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:11} } },
+              y:{ stacked:true, grid:{color:'#F2D9D4'}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:11} } }
             }
           }
         });
@@ -2747,8 +2742,8 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
               }
             },
             scales:{
-              x:{ stacked:true, grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
-              y:{ stacked:true, grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } }
+              x:{ stacked:true, grid:{display:false}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:11} } },
+              y:{ stacked:true, grid:{color:'#F2D9D4'}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:11} } }
             }
           }
         });
@@ -2944,9 +2939,10 @@ function renderComparePicker(){
       Object.keys(katObj[kategori][kelompok]).forEach(sub=>{
         const key = `${kategori}|||${kelompok}|||${sub}`;
         const checked = compareSelected.has(key) ? 'checked' : '';
+        const unit = SATUAN[sub] ? ` (${SATUAN[sub]})` : '';
         html += `<label class="picker-item">
           <input type="checkbox" data-key="${encodeURIComponent(key)}" ${checked}>
-          <span>${escapeHtml(sub)}</span>
+          <span>${escapeHtml(sub)}${escapeHtml(unit)}</span>
         </label>`;
       });
     });
@@ -3050,8 +3046,8 @@ function renderCompareWaterfallChart(keys, seriesAnalysisData){
         }}}
       },
       scales:{
-        x:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } },
-        y:{ grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } }
+        x:{ grid:{display:false}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10.5} } },
+        y:{ grid:{color:'#F2D9D4'}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:11} } }
       }
     }
   });
@@ -3077,8 +3073,8 @@ function renderCompareFunnelChart(keys, seriesAnalysisData){
         tooltip:{ callbacks:{ label:(c)=>`${fmtNum(c.parsed.x)}` } }
       },
       scales:{
-        x:{ grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
-        y:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } }
+        x:{ grid:{color:'#F2D9D4'}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:11} } },
+        y:{ grid:{display:false}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:11} } }
       }
     }
   });
@@ -3108,7 +3104,7 @@ function renderCompareRadarChart(keys){
     }
     const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
     return {
-      label: info.sub,
+      label: subLabel(info.sub),
       data: values,
       borderColor: color,
       backgroundColor: hexToRgba(color, 0.18),
@@ -3125,14 +3121,14 @@ function renderCompareRadarChart(keys){
     options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{
-        legend:{ position:'bottom', labels:{ color:'#562F00', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } }
+        legend:{ position:'bottom', labels:{ color:'#4A1620', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } }
       },
       scales:{
         r:{
-          grid:{ color:'#F2DEB8' },
-          angleLines:{ color:'#F2DEB8' },
-          pointLabels:{ color:'#8A5A24', font:{family:'Inter', size:10.5} },
-          ticks:{ color:'#8A5A24', backdropColor:'transparent', font:{family:'Inter', size:9.5} }
+          grid:{ color:'#F2D9D4' },
+          angleLines:{ color:'#F2D9D4' },
+          pointLabels:{ color:'#8A4A55', font:{family:'Inter', size:10.5} },
+          ticks:{ color:'#8A4A55', backdropColor:'transparent', font:{family:'Inter', size:9.5} }
         }
       }
     }
@@ -3152,14 +3148,14 @@ function renderComparePolarArea(keys, seriesAnalysisData){
     options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{
-        legend:{ position:'bottom', labels:{ color:'#562F00', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } },
+        legend:{ position:'bottom', labels:{ color:'#4A1620', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } },
         tooltip:{ callbacks:{ label:(c)=>`${c.label}: ${fmtNum(c.parsed.r ?? c.parsed)}` } }
       },
       scales:{
         r:{
-          grid:{ color:'#F2DEB8' },
-          angleLines:{ color:'#F2DEB8' },
-          ticks:{ color:'#8A5A24', backdropColor:'transparent', font:{family:'Inter', size:9.5} }
+          grid:{ color:'#F2D9D4' },
+          angleLines:{ color:'#F2D9D4' },
+          ticks:{ color:'#8A4A55', backdropColor:'transparent', font:{family:'Inter', size:9.5} }
         }
       }
     }
@@ -3184,8 +3180,8 @@ function renderCompareDivergingBar(keys, seriesAnalysisData){
         tooltip:{ callbacks:{ label:(c)=>`${c.parsed.x>0?'+':''}${c.parsed.x.toFixed(1)}% (kumulatif)` } }
       },
       scales:{
-        x:{ grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11}, callback:(v)=>v+'%' } },
-        y:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } }
+        x:{ grid:{color:'#F2D9D4'}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:11}, callback:(v)=>v+'%' } },
+        y:{ grid:{display:false}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:11} } }
       }
     }
   });
@@ -3207,16 +3203,16 @@ function renderComparePareto(keys, seriesAnalysisData){
       labels: pLabels,
       datasets:[
         { type:'bar', data: pData, backgroundColor: colors, borderWidth:0, borderRadius:4, maxBarThickness:44, yAxisID:'y', order:2 },
-        { type:'line', data: cumPct, borderColor:'#562F00', backgroundColor:'#562F00', borderWidth:2.2, pointRadius:4, tension:0, fill:false, yAxisID:'y1', order:1 }
+        { type:'line', data: cumPct, borderColor:'#4A1620', backgroundColor:'#4A1620', borderWidth:2.2, pointRadius:4, tension:0, fill:false, yAxisID:'y1', order:1 }
       ]
     },
     options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ display:false } },
       scales:{
-        x:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } },
-        y:{ type:'linear', position:'left', grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
-        y1:{ type:'linear', position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11}, callback:(v)=>v+'%' } }
+        x:{ grid:{display:false}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10.5} } },
+        y:{ type:'linear', position:'left', grid:{color:'#F2D9D4'}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:11} } },
+        y1:{ type:'linear', position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:11}, callback:(v)=>v+'%' } }
       }
     }
   });
@@ -3254,7 +3250,7 @@ function renderCompareBump(keys){
     const info = compareIndex[k];
     const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
     return {
-      label: info.sub,
+      label: subLabel(info.sub),
       data: ranksByKey[i],
       borderColor: color,
       backgroundColor: color,
@@ -3274,17 +3270,17 @@ function renderCompareBump(keys){
     options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{
-        legend:{ position:'bottom', labels:{ color:'#562F00', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } },
+        legend:{ position:'bottom', labels:{ color:'#4A1620', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } },
         tooltip:{ callbacks:{ label:(c)=>`${c.dataset.label}: Peringkat ${c.parsed.y}` } }
       },
       scales:{
-        x:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
+        x:{ grid:{display:false}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:11} } },
         y:{
           reverse:true,
           min:1,
           max: keys.length,
-          ticks:{ stepSize:1, color:'#8A5A24', font:{family:'Inter', size:11} },
-          grid:{color:'#F2DEB8'}
+          ticks:{ stepSize:1, color:'#8A4A55', font:{family:'Inter', size:11} },
+          grid:{color:'#F2D9D4'}
         }
       }
     }
@@ -3320,14 +3316,14 @@ function buildCompareSurfaceGrid(keys){
     const rangeV = (maxV-minV) || 1;
     const color = COMPARE_COLORS[keys.indexOf(k) % COMPARE_COLORS.length];
 
-    html += `<tr><td class="surface-row-label" title="${escapeHtml(info.sub)}">${escapeHtml(info.sub)}</td>`;
+    html += `<tr><td class="surface-row-label" title="${escapeHtml(subLabel(info.sub))}">${escapeHtml(subLabel(info.sub))}</td>`;
     vals.forEach(v=>{
       if(v === null){
         html += `<td class="surface-cell" style="background:#F5EEDB;"></td>`;
       }else{
         const norm = (v-minV)/rangeV;
         const op = (0.15 + norm*0.75).toFixed(2);
-        html += `<td class="surface-cell" style="background:${hexToRgba(color,op)};" title="${escapeHtml(info.sub)}: ${fmtNum(v)}">${fmtNum(v)}</td>`;
+        html += `<td class="surface-cell" style="background:${hexToRgba(color,op)};" title="${escapeHtml(subLabel(info.sub))}: ${fmtNum(v)}">${fmtNum(v)}</td>`;
       }
     });
     html += '</tr>';
@@ -3390,13 +3386,13 @@ function buildCompareStreamSVG(keys){
     });
     const pathPts = topPts.concat(botPts.slice().reverse());
     const d = pathPts.map((p,idx)=> (idx===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ') + ' Z';
-    svg += `<path d="${d}" fill="${color}" fill-opacity="0.85" stroke="#fff" stroke-width="0.6"><title>${escapeHtml(info.sub)}</title></path>`;
+    svg += `<path d="${d}" fill="${color}" fill-opacity="0.85" stroke="#fff" stroke-width="0.6"><title>${escapeHtml(subLabel(info.sub))}</title></path>`;
   });
 
   const labelStep = Math.max(1, Math.ceil(n/8));
   sortedKeys.forEach((sk,ti)=>{
     if(ti % labelStep === 0 || ti === n-1){
-      svg += `<text x="${xAt(ti).toFixed(1)}" y="${(H-6).toFixed(1)}" font-size="9" text-anchor="middle" fill="#8A5A24">${escapeHtml(uniqueLabelsMap.get(sk)||'')}</text>`;
+      svg += `<text x="${xAt(ti).toFixed(1)}" y="${(H-6).toFixed(1)}" font-size="9" text-anchor="middle" fill="#8A4A55">${escapeHtml(uniqueLabelsMap.get(sk)||'')}</text>`;
     }
   });
   svg += `</svg>`;
@@ -3404,7 +3400,7 @@ function buildCompareStreamSVG(keys){
   const legend = keys.map((k,i)=>{
     const info = compareIndex[k];
     const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
-    return `<div class="comp-legend-item"><span class="dot" style="background:${color}"></span>${escapeHtml(info.sub)}</div>`;
+    return `<div class="comp-legend-item"><span class="dot" style="background:${color}"></span>${escapeHtml(subLabel(info.sub))}</div>`;
   }).join('');
 
   return svg + `<div class="comp-legend" style="margin-top:10px;">${legend}</div><div class="comp-chart-note">Menampilkan alur tiap indikator sepanjang waktu, disusun simetris di sekitar garis tengah (ThemeRiver style). Perhatikan bahwa penjumlahan lintas indikator hanya bermakna jika satuannya sama.</div>`;
@@ -3446,11 +3442,11 @@ function buildCompareMarimekkoSVG(keys){
       const v = Math.max(0, valuesByKey[i][si] || 0);
       const shareH = total > 0 ? (v/total) * plotH : 0;
       const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
-      svg += `<rect x="${xCursor.toFixed(1)}" y="${yCursor.toFixed(1)}" width="${Math.max(0,colW-1.5).toFixed(1)}" height="${Math.max(0,shareH-1).toFixed(1)}" fill="${color}"><title>${escapeHtml(info.sub)} (${escapeHtml(uniqueLabelsMap.get(sk)||'')}): ${fmtNum(v)}</title></rect>`;
+      svg += `<rect x="${xCursor.toFixed(1)}" y="${yCursor.toFixed(1)}" width="${Math.max(0,colW-1.5).toFixed(1)}" height="${Math.max(0,shareH-1).toFixed(1)}" fill="${color}"><title>${escapeHtml(subLabel(info.sub))} (${escapeHtml(uniqueLabelsMap.get(sk)||'')}): ${fmtNum(v)}</title></rect>`;
       yCursor += shareH;
     });
     if(colW > 20){
-      svg += `<text x="${(xCursor+colW/2).toFixed(1)}" y="${(H-12).toFixed(1)}" font-size="9" text-anchor="middle" fill="#8A5A24">${escapeHtml(uniqueLabelsMap.get(sk)||'')}</text>`;
+      svg += `<text x="${(xCursor+colW/2).toFixed(1)}" y="${(H-12).toFixed(1)}" font-size="9" text-anchor="middle" fill="#8A4A55">${escapeHtml(uniqueLabelsMap.get(sk)||'')}</text>`;
     }
     xCursor += colW;
   });
@@ -3459,7 +3455,7 @@ function buildCompareMarimekkoSVG(keys){
   const legend = keys.map((k,i)=>{
     const info = compareIndex[k];
     const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
-    return `<div class="comp-legend-item"><span class="dot" style="background:${color}"></span>${escapeHtml(info.sub)}</div>`;
+    return `<div class="comp-legend-item"><span class="dot" style="background:${color}"></span>${escapeHtml(subLabel(info.sub))}</div>`;
   }).join('');
 
   return svg + `<div class="comp-legend" style="margin-top:10px;">${legend}</div><div class="comp-chart-note">Lebar tiap kolom sebanding dengan total gabungan seluruh indikator pada tahun tersebut (relatif terhadap total seluruh tahun); tinggi tiap segmen menunjukkan porsi indikator dalam tahun itu. Bermakna optimal jika satuan antar indikator sebanding.</div>`;
@@ -3516,12 +3512,12 @@ function renderCompareCategoricalScatter(keys, seriesAnalysisData){
     options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{
-        legend:{ position:'bottom', labels:{ color:'#562F00', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } },
+        legend:{ position:'bottom', labels:{ color:'#4A1620', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } },
         tooltip:{ callbacks:{ label:(c)=> `${c.raw.y} · ${c.raw.x}: ${fmtNum(c.raw._raw)}` } }
       },
       scales:{
-        x:{ type:'category', labels: periodLabels, offset:true, grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
-        y:{ type:'category', labels: keyLabels, offset:true, grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } }
+        x:{ type:'category', labels: periodLabels, offset:true, grid:{color:'#F2D9D4'}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:11} } },
+        y:{ type:'category', labels: keyLabels, offset:true, grid:{color:'#F2D9D4'}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10.5} } }
       }
     }
   });
@@ -3578,8 +3574,8 @@ function renderCompareDotPlot(keys, seriesAnalysisData){
         tooltip:{ callbacks:{ label:(c)=> `${c.raw.y} · ${c.raw._period}: ${fmtNum(c.raw.x)}` } }
       },
       scales:{
-        x:{ grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
-        y:{ type:'category', labels: keyLabels, offset:true, grid:{ display:true, color:'#F2DEB8' }, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } }
+        x:{ grid:{color:'#F2D9D4'}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:11} } },
+        y:{ type:'category', labels: keyLabels, offset:true, grid:{ display:true, color:'#F2D9D4' }, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10.5} } }
       }
     }
   });
@@ -3606,7 +3602,7 @@ function renderCompareRangePlot(keys, seriesAnalysisData){
     const first = vals.length ? vals[0] : 0;
     const last = vals.length ? vals[vals.length-1] : 0;
     const naik = last >= first;
-    return { label: info.sub, first, last, naik, color: COMPARE_COLORS[i % COMPARE_COLORS.length] };
+    return { label: subLabel(info.sub), first, last, naik, color: COMPARE_COLORS[i % COMPARE_COLORS.length] };
   });
 
   const fromLabel = periodLabels[0] || '';
@@ -3641,8 +3637,8 @@ function renderCompareRangePlot(keys, seriesAnalysisData){
         }
       },
       scales:{
-        x:{ grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
-        y:{ grid:{display:false}, ticks:{ color:'#562F00', font:{family:'Inter', size:11} } }
+        x:{ grid:{color:'#F2D9D4'}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:11} } },
+        y:{ grid:{display:false}, ticks:{ color:'#4A1620', font:{family:'Inter', size:11} } }
       }
     }
   });
@@ -3694,7 +3690,7 @@ function buildCompareRadialBarSVG(keys){
   let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" id="cmpRadialBarSvg" style="width:100%;max-width:460px;height:auto;display:block;margin:0 auto;">`;
 
   [0.25,0.5,0.75,1].forEach(f=>{
-    svg += `<circle cx="${cx}" cy="${cy}" r="${(rInner + f*(rOuter-rInner)).toFixed(1)}" fill="none" stroke="#F2DEB8" stroke-width="1"></circle>`;
+    svg += `<circle cx="${cx}" cy="${cy}" r="${(rInner + f*(rOuter-rInner)).toFixed(1)}" fill="none" stroke="#F2D9D4" stroke-width="1"></circle>`;
   });
 
   sortedKeys.forEach((sk, ti)=>{
@@ -3711,7 +3707,7 @@ function buildCompareRadialBarSVG(keys){
     });
     const labelA = a0 + anglePer/2;
     const [lx,ly] = polar(rOuter+16, labelA);
-    svg += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="9.5" text-anchor="middle" dominant-baseline="middle" fill="#8A5A24">${escapeHtml(uniqueLabelsMap.get(sk)||'')}</text>`;
+    svg += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="9.5" text-anchor="middle" dominant-baseline="middle" fill="#8A4A55">${escapeHtml(uniqueLabelsMap.get(sk)||'')}</text>`;
   });
 
   svg += `</svg>`;
@@ -3719,7 +3715,7 @@ function buildCompareRadialBarSVG(keys){
   const legend = keys.map((k,i)=>{
     const info = compareIndex[k];
     const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
-    return `<div class="comp-legend-item"><span class="dot" style="background:${color}"></span>${escapeHtml(info.sub)}</div>`;
+    return `<div class="comp-legend-item"><span class="dot" style="background:${color}"></span>${escapeHtml(subLabel(info.sub))}</div>`;
   }).join('');
 
   return svg + `<div class="comp-legend" style="margin-top:10px;">${legend}</div><div class="comp-chart-note">Setiap sektor melingkar mewakili satu periode; panjang batang radial dari pusat sebanding dengan nilai indikator (dinormalisasi terhadap nilai maksimum di antara seluruh indikator terpilih).</div>`;
@@ -3747,7 +3743,7 @@ function buildCompareBulletSVG(keys){
     const minV = vals.length ? Math.min(0, ...vals) : 0;
     const maxV = vals.length ? Math.max(...vals) : 1;
     const avgV = vals.length ? vals.reduce((s,v)=>s+v,0)/vals.length : 0;
-    return { label: info.sub, latest, target, minV, maxV: (maxV||1), avgV, color: COMPARE_COLORS[i % COMPARE_COLORS.length] };
+    return { label: subLabel(info.sub), latest, target, minV, maxV: (maxV||1), avgV, color: COMPARE_COLORS[i % COMPARE_COLORS.length] };
   });
 
   const W = 640;
@@ -3766,17 +3762,17 @@ function buildCompareBulletSVG(keys){
     const xAt = v => padLeft + (v-gMin)*scale;
 
     const bandY = y0 + 8, bandH = 22;
-    svg += `<rect x="${xAt(gMin).toFixed(1)}" y="${bandY}" width="${Math.max(0,xAt(r.avgV)-xAt(gMin)).toFixed(1)}" height="${bandH}" fill="#F2DEB8"></rect>`;
+    svg += `<rect x="${xAt(gMin).toFixed(1)}" y="${bandY}" width="${Math.max(0,xAt(r.avgV)-xAt(gMin)).toFixed(1)}" height="${bandH}" fill="#F2D9D4"></rect>`;
     svg += `<rect x="${xAt(r.avgV).toFixed(1)}" y="${bandY}" width="${Math.max(0,xAt(gMax)-xAt(r.avgV)).toFixed(1)}" height="${bandH}" fill="#EACB8E"></rect>`;
 
     const barY = bandY + bandH/2 - 5;
     svg += `<rect x="${xAt(gMin).toFixed(1)}" y="${barY}" width="${Math.max(0,xAt(r.latest)-xAt(gMin)).toFixed(1)}" height="10" fill="${r.color}"><title>${escapeHtml(r.label)}: ${fmtNum(r.latest)}</title></rect>`;
 
     const tx = xAt(r.target).toFixed(1);
-    svg += `<line x1="${tx}" y1="${bandY-4}" x2="${tx}" y2="${bandY+bandH+4}" stroke="#562F00" stroke-width="2.5"><title>Periode sebelumnya: ${fmtNum(r.target)}</title></line>`;
+    svg += `<line x1="${tx}" y1="${bandY-4}" x2="${tx}" y2="${bandY+bandH+4}" stroke="#4A1620" stroke-width="2.5"><title>Periode sebelumnya: ${fmtNum(r.target)}</title></line>`;
 
     const shortLabel = r.label.length > 24 ? r.label.slice(0,22)+'…' : r.label;
-    svg += `<text x="${padLeft-10}" y="${(bandY+bandH/2+4).toFixed(1)}" font-size="10.5" text-anchor="end" fill="#562F00">${escapeHtml(shortLabel)}</text>`;
+    svg += `<text x="${padLeft-10}" y="${(bandY+bandH/2+4).toFixed(1)}" font-size="10.5" text-anchor="end" fill="#4A1620">${escapeHtml(shortLabel)}</text>`;
   });
 
   svg += `</svg>`;
@@ -3973,11 +3969,11 @@ function renderCompareChart(){
 
     if(compareChartType === 'lollipop'){
       datasets.push({
-        type:'bar', label:info.sub, data:values, backgroundColor: hexToRgba(color,0.5),
+        type:'bar', label: subLabel(info.sub), data:values, backgroundColor: hexToRgba(color,0.5),
         maxBarThickness:5, borderWidth:0, yAxisID, order:2
       });
       datasets.push({
-        type:'line', label:info.sub, data:values, borderColor:color, backgroundColor:color,
+        type:'line', label: subLabel(info.sub), data:values, borderColor:color, backgroundColor:color,
         pointBackgroundColor:color, pointRadius:5, pointHoverRadius:7, showLine:false, fill:false,
         yAxisID, order:1
       });
@@ -3989,7 +3985,7 @@ function renderCompareChart(){
       const isTS = compareChartType === 'bubble-ts';
       datasets.push({
         type:'line',
-        label: info.sub,
+        label: subLabel(info.sub),
         data: values,
         borderColor: color,
         backgroundColor: isTS ? hexToRgba(color,0.16) : hexToRgba(color,0.7),
@@ -4016,25 +4012,25 @@ function renderCompareChart(){
     }else if(isSlope){
       const twoVals = values.length >= 2 ? [values[0], values[values.length-1]] : values;
       datasets.push({
-        type:'line', label:info.sub, data:twoVals, borderColor:color, backgroundColor:color,
+        type:'line', label: subLabel(info.sub), data:twoVals, borderColor:color, backgroundColor:color,
         pointBackgroundColor:color, pointRadius:5, pointHoverRadius:7, borderWidth:3, tension:0,
         fill:false, yAxisID
       });
     }else if(compareChartType === 'combo'){
       if(i === 0){
         datasets.push({
-          type:'bar', label:info.sub, data:values, backgroundColor: hexToRgba(color,0.5),
+          type:'bar', label: subLabel(info.sub), data:values, backgroundColor: hexToRgba(color,0.5),
           borderWidth:0, borderRadius:3, maxBarThickness:32, yAxisID, order:2
         });
       }else{
         datasets.push({
-          type:'line', label:info.sub, data:values, borderColor:color, backgroundColor:color,
+          type:'line', label: subLabel(info.sub), data:values, borderColor:color, backgroundColor:color,
           pointRadius:3, pointHoverRadius:5, borderWidth:2.2, tension:0.22, fill:false, yAxisID, order:1, spanGaps:true
         });
       }
     }else{
       const style = getCompareTypeStyle(compareChartType, color);
-      datasets.push(Object.assign({ label:info.sub, data:values, borderColor:color, yAxisID, spanGaps:true }, style));
+      datasets.push(Object.assign({ label: subLabel(info.sub), data:values, borderColor:color, yAxisID, spanGaps:true }, style));
     }
   });
 
@@ -4055,7 +4051,7 @@ function renderCompareChart(){
         legend:{
           position:'bottom',
           labels:{
-            color:'#562F00', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true,
+            color:'#4A1620', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true,
             filter: (legendItem)=> compareChartType !== 'lollipop' || legendItem.datasetIndex % 2 === 1
           }
         },
@@ -4068,16 +4064,16 @@ function renderCompareChart(){
         }
       },
       scales:{
-        x:{ stacked: isStackedType, grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
+        x:{ stacked: isStackedType, grid:{display:false}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:11} } },
         y:{
           type: 'linear',
           display: true,
           position: 'left',
           stacked: isStackedType,
           max: compareChartType==='stacked-bar-100' ? 100 : undefined,
-          grid:{color:'#F2DEB8'},
+          grid:{color:'#F2D9D4'},
           ticks:{
-            color:'#8A5A24', font:{family:'Inter', size:11},
+            color:'#8A4A55', font:{family:'Inter', size:11},
             callback: compareChartType==='stacked-bar-100' ? (v)=> v+'%' : undefined
           }
         },
@@ -4086,7 +4082,7 @@ function renderCompareChart(){
           display: hasY1,
           position: 'right',
           grid:{ drawOnChartArea: false },
-          ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} }
+          ticks:{ color:'#8A4A55', font:{family:'Inter', size:11} }
         }
       }
     }
@@ -4224,7 +4220,7 @@ function renderCompareDefinitions(keys){
   keys.forEach(k=>{
     const info = compareIndex[k];
     const def = DEFINISI[info.sub] || 'Belum ada deskripsi definisi untuk indikator ini.';
-    html += `<div class="def-item"><b>${escapeHtml(info.sub)}:</b> ${escapeHtml(def)}</div>`;
+    html += `<div class="def-item"><b>${escapeHtml(subLabel(info.sub))}:</b> ${escapeHtml(def)}</div>`;
   });
   listEl.innerHTML = html;
 }
@@ -4347,7 +4343,7 @@ function refreshDetail(entries, fromYear, toYear){
   const ctx = canvasEl.getContext('2d');
   if(chartInstance) chartInstance.destroy();
 
-  const accent = currentDetailColor || '#FF9644';
+  const accent = currentDetailColor || '#D64553';
   const isBar = currentDetailChartType === 'bar' || currentDetailChartType === 'rounded-bar';
   const isLollipop = currentDetailChartType === 'lollipop';
   const isSpline = currentDetailChartType === 'spline';
@@ -4399,7 +4395,7 @@ function refreshDetail(entries, fromYear, toYear){
     const movingAvg = values.map((v,i)=>{ running += v; return running/(i+1); });
     datasets = [
       { type:'bar', data: values, backgroundColor: hexToRgba(accent,0.45), borderWidth:0, borderRadius:3, maxBarThickness:32, order:2 },
-      { type:'line', data: movingAvg, borderColor:'#562F00', backgroundColor:'#562F00', borderWidth:2, pointRadius:2, tension:0.25, fill:false, order:1 }
+      { type:'line', data: movingAvg, borderColor:'#4A1620', backgroundColor:'#4A1620', borderWidth:2, pointRadius:2, tension:0.25, fill:false, order:1 }
     ];
   } else if (isPareto) {
     const idxSorted = values.map((v,i)=>i).sort((a,b)=>values[b]-values[a]);
@@ -4410,7 +4406,7 @@ function refreshDetail(entries, fromYear, toYear){
     const cumPct = sortedVals.map(v=>{ cum += v; return (cum/total*100); });
     datasets = [
       { type:'bar', data: sortedVals, backgroundColor: hexToRgba(accent,0.6), borderWidth:0, borderRadius:3, maxBarThickness:34, yAxisID:'y', order:2 },
-      { type:'line', data: cumPct, borderColor:'#562F00', backgroundColor:'#562F00', borderWidth:2, pointRadius:3, tension:0, fill:false, yAxisID:'y1', order:1 }
+      { type:'line', data: cumPct, borderColor:'#4A1620', backgroundColor:'#4A1620', borderWidth:2, pointRadius:3, tension:0, fill:false, yAxisID:'y1', order:1 }
     ];
   } else if (isLollipop) {
     datasets = [
@@ -4579,10 +4575,10 @@ function refreshDetail(entries, fromYear, toYear){
       plugins:{ legend:{display:false} },
       scales:{
         r:{
-          grid:{ color:'#F2DEB8' },
-          angleLines:{ color:'#F2DEB8' },
-          pointLabels:{ color:'#8A5A24', font:{family:'Inter', size:10.5} },
-          ticks:{ color:'#8A5A24', backdropColor:'transparent', font:{family:'Inter', size:9.5} }
+          grid:{ color:'#F2D9D4' },
+          angleLines:{ color:'#F2D9D4' },
+          pointLabels:{ color:'#8A4A55', font:{family:'Inter', size:10.5} },
+          ticks:{ color:'#8A4A55', backdropColor:'transparent', font:{family:'Inter', size:9.5} }
         }
       }
     } : isPolarArea ? {
@@ -4591,10 +4587,10 @@ function refreshDetail(entries, fromYear, toYear){
       plugins:{ legend:{display:false} },
       scales:{
         r:{
-          grid:{ color:'#F2DEB8' },
-          angleLines:{ color:'#F2DEB8' },
-          pointLabels:{ color:'#8A5A24', font:{family:'Inter', size:10.5} },
-          ticks:{ color:'#8A5A24', backdropColor:'transparent', font:{family:'Inter', size:9.5} }
+          grid:{ color:'#F2D9D4' },
+          angleLines:{ color:'#F2D9D4' },
+          pointLabels:{ color:'#8A4A55', font:{family:'Inter', size:10.5} },
+          ticks:{ color:'#8A4A55', backdropColor:'transparent', font:{family:'Inter', size:9.5} }
         }
       }
     } : isPareto ? {
@@ -4602,9 +4598,9 @@ function refreshDetail(entries, fromYear, toYear){
       maintainAspectRatio:false,
       plugins:{ legend:{display:false} },
       scales:{
-        x:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } },
-        y:{ type:'linear', position:'left', grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } },
-        y1:{ type:'linear', position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11}, callback:(v)=>v+'%' } }
+        x:{ grid:{display:false}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10.5} } },
+        y:{ type:'linear', position:'left', grid:{color:'#F2D9D4'}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:11} } },
+        y1:{ type:'linear', position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:11}, callback:(v)=>v+'%' } }
       }
     } : {
       responsive:true,
@@ -4613,10 +4609,10 @@ function refreshDetail(entries, fromYear, toYear){
       plugins:{ legend:{display:false} },
       scales:{
         x:{ 
-          grid:{display: isFunnel ? true : false, color:'#F2DEB8'}, 
-          ticks:{ color:'#8A5A24', font:{family:'Inter', size:11} } 
+          grid:{display: isFunnel ? true : false, color:'#F2D9D4'}, 
+          ticks:{ color:'#8A4A55', font:{family:'Inter', size:11} } 
         },
-        y:{ grid:{color: isFunnel ? '#fff' : '#F2DEB8', display: (!isFunnel || true) && !isStream}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:11}, display: !isStream } }
+        y:{ grid:{color: isFunnel ? '#fff' : '#F2D9D4', display: (!isFunnel || true) && !isStream}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:11}, display: !isStream } }
       }
     }
   });
@@ -5125,13 +5121,13 @@ function renderSSComponentChart(perKategori, isTraditional){
     datasets = [
       { label:'NS', data:perKategori.map(r=>r.NS), backgroundColor:'#B98B27' },
       { label:'IM', data:perKategori.map(r=>r.IM), backgroundColor:'#3E6E8E' },
-      { label:'RS', data:perKategori.map(r=>r.RS), backgroundColor:'#FF9644' }
+      { label:'RS', data:perKategori.map(r=>r.RS), backgroundColor:'#D64553' }
     ];
   } else if(ssMethod==='em'){
     datasets = [
       { label:'NS', data:perKategori.map(r=>r.NS), backgroundColor:'#B98B27' },
       { label:'IM', data:perKategori.map(r=>r.IM), backgroundColor:'#3E6E8E' },
-      { label:'RS EM', data:perKategori.map(r=>r.RS_EM), backgroundColor:'#FF9644' },
+      { label:'RS EM', data:perKategori.map(r=>r.RS_EM), backgroundColor:'#D64553' },
       { label:'Allocation', data:perKategori.map(r=>r.Alokasi), backgroundColor:'#8C6BAF' }
     ];
   } else {
@@ -5140,7 +5136,7 @@ function renderSSComponentChart(perKategori, isTraditional){
       { label:'NSD', data:perKategori.map(r=>r.NSD), backgroundColor:'#D9B36C' },
       { label:'IME', data:perKategori.map(r=>r.IME), backgroundColor:'#3E6E8E' },
       { label:'IMD', data:perKategori.map(r=>r.IMD), backgroundColor:'#7FA7C2' },
-      { label:'RGE', data:perKategori.map(r=>r.RGE), backgroundColor:'#FF9644' },
+      { label:'RGE', data:perKategori.map(r=>r.RGE), backgroundColor:'#D64553' },
       { label:'RGD', data:perKategori.map(r=>r.RGD), backgroundColor:'#FFC08A' },
       { label:'RIE', data:perKategori.map(r=>r.RIE), backgroundColor:'#8C6BAF' },
       { label:'RID', data:perKategori.map(r=>r.RID), backgroundColor:'#BFA6D9' }
@@ -5152,10 +5148,10 @@ function renderSSComponentChart(perKategori, isTraditional){
     options:{
       indexAxis:'y',
       responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:11}, color:'#562F00' } } },
+      plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:11}, color:'#4A1620' } } },
       scales:{
-        x:{ stacked:true, grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } },
-        y:{ stacked:true, grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } }
+        x:{ stacked:true, grid:{color:'#F2D9D4'}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10.5} } },
+        y:{ stacked:true, grid:{display:false}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10.5} } }
       }
     }
   });
@@ -5210,8 +5206,8 @@ function renderSSQuadrantChart(perKategori, quadGroup, isTraditional){
         }
       },
       scales:{
-        x:{ min:-padX, max:padX, grid:{color:'#F2DEB8'}, title:{display:true, text:isTraditional?'Bauran Industri (IM)':'Spesialisasi (Σ eᵢ−h)', color:'#8A5A24', font:{family:'Inter', size:11}}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10} } },
-        y:{ min:-padY, max:padY, grid:{color:'#F2DEB8'}, title:{display:true, text:isTraditional?'Pergeseran Diferensial (RS)':'Keunggulan Kompetitif', color:'#8A5A24', font:{family:'Inter', size:11}}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10} } }
+        x:{ min:-padX, max:padX, grid:{color:'#F2D9D4'}, title:{display:true, text:isTraditional?'Bauran Industri (IM)':'Spesialisasi (Σ eᵢ−h)', color:'#8A4A55', font:{family:'Inter', size:11}}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10} } },
+        y:{ min:-padY, max:padY, grid:{color:'#F2D9D4'}, title:{display:true, text:isTraditional?'Pergeseran Diferensial (RS)':'Keunggulan Kompetitif', color:'#8A4A55', font:{family:'Inter', size:11}}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10} } }
       }
     },
     plugins:[ssCrosshairPlugin]
@@ -5535,10 +5531,10 @@ function renderLQBarChart(perKategori, isRaw){
   const labels = perKategori.map(r=>r.kategori);
   const datasets = isRaw ? [
     { label:'SLQ', data:perKategori.map(r=>r.SLQ), backgroundColor:'#3E6E8E' },
-    { label:'DLQ', data:perKategori.map(r=>r.DLQ), backgroundColor:'#FF9644' }
+    { label:'DLQ', data:perKategori.map(r=>r.DLQ), backgroundColor:'#D64553' }
   ] : [
     { label:'SSLQ', data:perKategori.map(r=>r.SSLQ), backgroundColor:'#3E6E8E' },
-    { label:'DSLQ', data:perKategori.map(r=>r.DSLQ), backgroundColor:'#FF9644' }
+    { label:'DSLQ', data:perKategori.map(r=>r.DSLQ), backgroundColor:'#D64553' }
   ];
   lqChart = new Chart(ctx, {
     type:'bar',
@@ -5546,10 +5542,10 @@ function renderLQBarChart(perKategori, isRaw){
     options:{
       indexAxis:'y',
       responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:11}, color:'#562F00' } } },
+      plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:11}, color:'#4A1620' } } },
       scales:{
-        x:{ grid:{color:'#F2DEB8'}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } },
-        y:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } }
+        x:{ grid:{color:'#F2D9D4'}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10.5} } },
+        y:{ grid:{display:false}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10.5} } }
       }
     }
   });
@@ -5608,8 +5604,8 @@ function renderLQQuadrantChart(perKategori, isRaw){
         }
       },
       scales:{
-        x:{ min:minX, max:(ref+(maxAbsX-ref)*1.15), grid:{color:'#F2DEB8'}, title:{display:true, text:isRaw?'SLQ':'SSLQ', color:'#8A5A24', font:{family:'Inter', size:11}}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10} } },
-        y:{ min:minY, max:(ref+(maxAbsY-ref)*1.15), grid:{color:'#F2DEB8'}, title:{display:true, text:isRaw?'DLQ':'DSLQ', color:'#8A5A24', font:{family:'Inter', size:11}}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10} } }
+        x:{ min:minX, max:(ref+(maxAbsX-ref)*1.15), grid:{color:'#F2D9D4'}, title:{display:true, text:isRaw?'SLQ':'SSLQ', color:'#8A4A55', font:{family:'Inter', size:11}}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10} } },
+        y:{ min:minY, max:(ref+(maxAbsY-ref)*1.15), grid:{color:'#F2D9D4'}, title:{display:true, text:isRaw?'DLQ':'DSLQ', color:'#8A4A55', font:{family:'Inter', size:11}}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10} } }
       }
     },
     plugins:[lqCrosshairPlugin(ref, ref)]
@@ -6060,11 +6056,11 @@ function renderDivTimeSeriesChart(series, showBali){
     options:{
       responsive:true, maintainAspectRatio:false,
       interaction:{ mode:'nearest', intersect:false },
-      plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:10.5}, color:'#562F00', boxWidth:14 } } },
+      plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:10.5}, color:'#4A1620', boxWidth:14 } } },
       scales:{
-        x:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } },
-        yEntropy:{ position:'left', grid:{color:'#F2DEB8'}, title:{display:true, text:'Entropy', color:'#3E6E8E', font:{size:10}}, ticks:{ color:'#8A5A24', font:{size:10} } },
-        yHhiRei:{ position:'right', min:0, max:1, grid:{display:false}, title:{display:true, text:'HHI / REI', color:'#C1440E', font:{size:10}}, ticks:{ color:'#8A5A24', font:{size:10} } },
+        x:{ grid:{display:false}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10.5} } },
+        yEntropy:{ position:'left', grid:{color:'#F2D9D4'}, title:{display:true, text:'Entropy', color:'#3E6E8E', font:{size:10}}, ticks:{ color:'#8A4A55', font:{size:10} } },
+        yHhiRei:{ position:'right', min:0, max:1, grid:{display:false}, title:{display:true, text:'HHI / REI', color:'#C1440E', font:{size:10}}, ticks:{ color:'#8A4A55', font:{size:10} } },
         yTress:{ display:false, min:0, max:100 }
       }
     }
@@ -6076,7 +6072,7 @@ function renderDivCompositionChart(s){
   const ctx = document.getElementById('divCompCanvas');
   if(divCompChart){ divCompChart.destroy(); divCompChart=null; }
   const entries = Object.entries(s.kShares).sort((a,b)=> b[1]-a[1]);
-  const datasets = [{ label:`Klungkung ${s.tahun}`, data:entries.map(e=>e[1]*100), backgroundColor:'#FF9644' }];
+  const datasets = [{ label:`Klungkung ${s.tahun}`, data:entries.map(e=>e[1]*100), backgroundColor:'#D64553' }];
   if(divCompareBali && s.bShares){
     datasets.push({ label:`Bali ${s.tahun}`, data:entries.map(e=> (s.bShares[e[0]]||0)*100), backgroundColor:'#3E6E8E' });
   }
@@ -6086,10 +6082,10 @@ function renderDivCompositionChart(s){
     options:{
       indexAxis:'y',
       responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ display: datasets.length>1, position:'bottom', labels:{font:{family:'Inter',size:11},color:'#562F00'} } },
+      plugins:{ legend:{ display: datasets.length>1, position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'} } },
       scales:{
-        x:{ grid:{color:'#F2DEB8'}, title:{display:true, text:'% terhadap Total PDRB', color:'#8A5A24', font:{size:10.5}}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5}, callback:v=>v+'%' } },
-        y:{ grid:{display:false}, ticks:{ color:'#8A5A24', font:{family:'Inter', size:10.5} } }
+        x:{ grid:{color:'#F2D9D4'}, title:{display:true, text:'% terhadap Total PDRB', color:'#8A4A55', font:{size:10.5}}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10.5}, callback:v=>v+'%' } },
+        y:{ grid:{display:false}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10.5} } }
       }
     }
   });
@@ -6317,7 +6313,7 @@ function renderAdvSimilarity(){
   advCharts.simTs = new Chart(ctx, {
     type:'line',
     data:{ labels: series.map(s=>s.tahun), datasets:[{ label:'SSI (%)', data: series.map(s=>s.ssiPct), borderColor:'#6F8F52', backgroundColor:'rgba(111,143,82,0.18)', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false}, ticks:{color:'#8A5A24',font:{family:'Inter',size:10.5}}}, y:{min:0,max:100,grid:{color:'#F2DEB8'}, ticks:{color:'#8A5A24',font:{size:10},callback:v=>v+'%'}} } }
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}}, y:{min:0,max:100,grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{size:10},callback:v=>v+'%'}} } }
   });
 
   renderAdvSimCompChart(series.find(s=>s.tahun===advCompYear.similarity));
@@ -6336,12 +6332,12 @@ function renderAdvSimCompChart(s){
   advCharts.simComp = new Chart(ctx, {
     type:'bar',
     data:{ labels: entries, datasets:[
-      {label:`Klungkung ${s.tahun}`, data: entries.map(k=>s.kShares[k]*100), backgroundColor:'#FF9644'},
+      {label:`Klungkung ${s.tahun}`, data: entries.map(k=>s.kShares[k]*100), backgroundColor:'#D64553'},
       {label:`Bali ${s.tahun}`, data: entries.map(k=>(s.bShares[k]||0)*100), backgroundColor:'#3E6E8E'}
     ]},
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#562F00'}}},
-      scales:{ x:{grid:{color:'#F2DEB8'}, ticks:{color:'#8A5A24',font:{family:'Inter',size:10.5},callback:v=>v+'%'}}, y:{grid:{display:false},ticks:{color:'#8A5A24',font:{family:'Inter',size:10.5}}} } }
+      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'}}},
+      scales:{ x:{grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5},callback:v=>v+'%'}}, y:{grid:{display:false},ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}} } }
   });
 }
 
@@ -6413,9 +6409,9 @@ function renderAdvGapForYear(rows){
   if(advCharts.gap){ advCharts.gap.destroy(); }
   advCharts.gap = new Chart(ctx, {
     type:'bar',
-    data:{ labels: yr.map(r=>r.sektor), datasets:[{ label:'Gap Contribution (%)', data: yr.map(r=>r.contrib*100), backgroundColor: yr.map((r,i)=> i===0?'#C1440E':'#FF9644') }] },
+    data:{ labels: yr.map(r=>r.sektor), datasets:[{ label:'Gap Contribution (%)', data: yr.map(r=>r.contrib*100), backgroundColor: yr.map((r,i)=> i===0?'#C1440E':'#D64553') }] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
-      scales:{ x:{grid:{color:'#F2DEB8'}, ticks:{color:'#8A5A24',font:{family:'Inter',size:10.5},callback:v=>v+'%'}}, y:{grid:{display:false},ticks:{color:'#8A5A24',font:{family:'Inter',size:10.5}}} } }
+      scales:{ x:{grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5},callback:v=>v+'%'}}, y:{grid:{display:false},ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}} } }
   });
   document.getElementById('advGapTable').innerHTML = `<thead><tr><th>Rank</th><th>Sektor</th><th>K Share</th><th>B Share</th><th>Absolute Gap</th><th>Kontribusi</th></tr></thead><tbody>${
     yr.map(r=>`<tr><td>${r.rank}</td><td>${escapeHtml(r.sektor)}</td><td>${(r.kShare*100).toFixed(2)}%</td><td>${(r.bShare*100).toFixed(2)}%</td><td>${r.gap.toFixed(4)}</td><td>${(r.contrib*100).toFixed(1)}%</td></tr>`).join('')
@@ -6493,7 +6489,7 @@ function renderAdvMarkov(){
     const cells = MARKOV_ORDER.map(b=>{
       const c = counts[a][b]; const p = rowTotals[a]? c/rowTotals[a] : 0;
       const alpha = maxProb>0 ? (0.12+0.65*(p/maxProb)) : 0.12;
-      return `<td style="background:rgba(255,150,68,${alpha.toFixed(2)});text-align:center;">${(p*100).toFixed(0)}%<br><span style="font-size:10px;color:var(--brown-soft);">(n=${c})</span></td>`;
+      return `<td style="background:rgba(214,69,83,${alpha.toFixed(2)});text-align:center;">${(p*100).toFixed(0)}%<br><span style="font-size:10px;color:var(--brown-soft);">(n=${c})</span></td>`;
     }).join('');
     return `<tr><td style="font-weight:700;">${a}</td>${cells}<td style="text-align:center;">${rowTotals[a]}</td></tr>`;
   }).join('');
@@ -6594,7 +6590,7 @@ function renderAdvComplexity(){
   advCharts.ecpTs = new Chart(ctx, {
     type:'line',
     data:{ labels: years, datasets:[{ label:'ECP Normalized', data: yearSeries.map(y=>y.ecpNorm), borderColor:'#8C6BAF', backgroundColor:'rgba(140,107,175,0.18)', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false},ticks:{color:'#8A5A24',font:{family:'Inter',size:10.5}}}, y:{min:0,max:100,grid:{color:'#F2DEB8'},ticks:{color:'#8A5A24',font:{size:10}}} } }
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false},ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}}, y:{min:0,max:100,grid:{color:'#F2D9D4'},ticks:{color:'#8A4A55',font:{size:10}}} } }
   });
 
   renderAdvEcpRcaChart(byYear[advCompYear.complexity]);
@@ -6614,7 +6610,7 @@ function renderAdvEcpRcaChart(yearData){
     type:'bar',
     data:{ labels: sorted.map(s=>s.sektor), datasets:[{ label:'RCA', data: sorted.map(s=>s.rca), backgroundColor: sorted.map(s=> s.rca>=1?'#6F8F52':'#C1440E') }] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
-      scales:{ x:{grid:{color:'#F2DEB8'}, ticks:{color:'#8A5A24',font:{family:'Inter',size:10.5}}}, y:{grid:{display:false},ticks:{color:'#8A5A24',font:{family:'Inter',size:10.5}}} } }
+      scales:{ x:{grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}}, y:{grid:{display:false},ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}} } }
   });
 }
 
@@ -6738,7 +6734,7 @@ function renderAdvReriChart(rows){
   const ctx = document.getElementById('advReriCanvas');
   if(advCharts.reri){ advCharts.reri.destroy(); }
   const allDatasets = [
-    { m:'reri', ds:{ label:'RERI', data: rows.map(r=>r.reri), borderColor:'#562F00', backgroundColor:'rgba(86,47,0,0.14)', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100' } },
+    { m:'reri', ds:{ label:'RERI', data: rows.map(r=>r.reri), borderColor:'#4A1620', backgroundColor:'rgba(74,22,32,0.14)', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100' } },
     { m:'de', ds:{ label:'Diversifikasi (DE)', data: rows.map(r=>r.de*100), borderColor:'#3E6E8E', backgroundColor:'transparent', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100' } },
     { m:'stability', ds:{ label:'Stabilitas', data: rows.map(r=>r.stability*100), borderColor:'#B98B27', backgroundColor:'transparent', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100' } },
     { m:'rc', ds:{ label:'Recovery Capacity', data: rows.map(r=>r.rc!==null?r.rc*100:null), borderColor:'#6F8F52', backgroundColor:'transparent', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100', spanGaps:false } }
@@ -6747,8 +6743,8 @@ function renderAdvReriChart(rows){
   advCharts.reri = new Chart(ctx, {
     type:'line',
     data:{ labels: rows.map(r=>r.tahun), datasets },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:10.5},color:'#562F00',boxWidth:14}}},
-      scales:{ x:{grid:{display:false},ticks:{color:'#8A5A24',font:{family:'Inter',size:10.5}}}, y100:{min:0,max:100,grid:{color:'#F2DEB8'},ticks:{color:'#8A5A24',font:{size:10}}} } }
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:10.5},color:'#4A1620',boxWidth:14}}},
+      scales:{ x:{grid:{display:false},ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}}, y100:{min:0,max:100,grid:{color:'#F2D9D4'},ticks:{color:'#8A4A55',font:{size:10}}} } }
   });
 }
 
@@ -6785,7 +6781,7 @@ const TRAJ_INFO = {
   'Persistent Leader': {color:'#6F8F52', desc:'Konsisten jadi sektor unggulan (SLQ≥1) sejak awal periode hingga sekarang.'},
   'Emerging': {color:'#3E6E8E', desc:'Awalnya bukan unggulan, tapi tren SLQ-nya naik — kandidat sektor unggulan baru.'},
   'Declining Specialist': {color:'#C1440E', desc:'Dulunya unggulan, tapi SLQ-nya menurun — berisiko kehilangan status basisnya.'},
-  'Persistent Non-specialist': {color:'#8A5A24', desc:'Konsisten bukan sektor unggulan sepanjang periode.'},
+  'Persistent Non-specialist': {color:'#8A4A55', desc:'Konsisten bukan sektor unggulan sepanjang periode.'},
   'Potential': {color:'#B98B27', desc:'Belum unggulan, tren belum cukup jelas naik/turun — perlu dipantau lebih lanjut.'}
 };
 function renderAdvTrajectory(){
@@ -6846,8 +6842,8 @@ function renderAdvTrajectory(){
       { label:`SLQ ${latestYear}`, data: summary.map(s=>s.slqLatest), backgroundColor: summary.map(s=>(TRAJ_INFO[s.trajectory]||{color:'#999'}).color) }
     ]},
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#562F00'}}},
-      scales:{ x:{grid:{color:'#F2DEB8'}, ticks:{color:'#8A5A24',font:{family:'Inter',size:10.5}}}, y:{grid:{display:false},ticks:{color:'#8A5A24',font:{family:'Inter',size:10.5}}} } }
+      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'}}},
+      scales:{ x:{grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}}, y:{grid:{display:false},ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}} } }
   });
 
   document.getElementById('dlAdvTraj').onclick = ()=> triggerJPGDownload(advCharts.traj, 'dynamic_specialization');
