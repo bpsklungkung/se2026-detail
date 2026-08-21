@@ -983,10 +983,10 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
   border-radius: 8px;
   padding: 6px 5px 5px;
   text-align: center;
-  color: #fff;
+  color: #F5EAEA;
   cursor: default;
   position: relative;
-  box-shadow: 0 1px 3px rgba(15,23,42,.08);
+  box-shadow: 0 1px 4px rgba(74,22,32,.08);
 }
 .hm-cell .hm-name {
   font-size: 9.5px;
@@ -1138,7 +1138,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
 
   <!-- Progres Cards (SubSLS & SLS 100%) -->
   <div class="section-header">
-    <div class="sh-bar" style="background:linear-gradient(180deg,#0891b2,#16a34a)"></div>
+    <div class="sh-bar" style="background:linear-gradient(180deg,#D64553,#7A3540)"></div>
     <div class="sh-title">Progres</div>
     <div class="sh-count" id="cntProgresGroup"></div>
   </div>
@@ -1146,7 +1146,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
 
   <!-- Kondisi Bangunan & Usaha (Cek Bangunan / Tidak Ditemukan / Usaha) -->
   <div class="section-header">
-    <div class="sh-bar" style="background:linear-gradient(180deg,#dc2626,#7c3aed)"></div>
+    <div class="sh-bar" style="background:linear-gradient(180deg,#C1440E,#7A3540)"></div>
     <div class="sh-title">Kondisi Bangunan &amp; Usaha</div>
     <div class="sh-count" id="cntKondisi"></div>
   </div>
@@ -1154,7 +1154,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
 
   <!-- User Cards -->
   <div class="section-header">
-    <div class="sh-bar" style="background:linear-gradient(180deg,#6610f2,#d63384)"></div>
+    <div class="sh-bar" style="background:linear-gradient(180deg,#B23244,#D64553)"></div>
     <div class="sh-title">User</div>
     <div class="sh-count" id="cntUser"></div>
   </div>
@@ -1162,14 +1162,14 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
 
   <!-- Progres & Capaian Cards -->
   <div class="section-header">
-    <div class="sh-bar" style="background:linear-gradient(180deg,#0ea5e9,#22c55e)"></div>
+    <div class="sh-bar" style="background:linear-gradient(180deg,#7A3540,#8A9A5B)"></div>
     <div class="sh-title">Progres &amp; Capaian Harian</div>
   </div>
   <div class="row g-2 mb-3" id="progresCards"></div>
 
   <!-- Pivot Table -->
   <div class="section-header">
-    <div class="sh-bar" style="background:linear-gradient(180deg,#0dcaf0,#20c997)"></div>
+    <div class="sh-bar" style="background:linear-gradient(180deg,#D64553,#B23244)"></div>
     <div class="sh-title">Pivot Tabel</div>
     <div class="sh-count" id="pvStatus"></div>
   </div>
@@ -1364,7 +1364,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
           <button type="button" class="btn btn-outline-success btn-sm" onclick="exportPivotCSV()">↓ CSV</button>
           <button type="button" class="btn btn-outline-success btn-sm" onclick="exportPivotExcel()" style="background:#e8f5e9;border-color:#2e7d32;color:#1b5e20" title="Download tabel pivot sebagai file Excel (.xlsx)">↓ Excel</button>
           <button type="button" class="btn btn-outline-warning btn-sm" onclick="openKolomModal()" title="Cari data di semua kolom CSV">🔍 Kolom</button>
-          <button type="button" class="btn btn-sm" onclick="printPivotJpg()" style="background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;border:none" title="Unduh pivot (sesuai filter saat ini, mis. Filter Pengawas Awal) sbg JPG & otomatis salin ke clipboard (Ctrl+V utk tempel)">🖼️ JPG</button>
+          <button type="button" class="btn btn-sm" onclick="printPivotJpg()" style="background:linear-gradient(135deg,#D64553,#B23244);color:#fff;border:none" title="Unduh pivot (sesuai filter saat ini, mis. Filter Pengawas Awal) sbg JPG & otomatis salin ke clipboard (Ctrl+V utk tempel)">🖼️ JPG</button>
         </div>
       </div>
     </div>
@@ -1376,7 +1376,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
 
     <!-- Heatmap Progres Kemarin (satu baris, per petugas) -->
     <div class="section-header" style="margin-top:14px">
-      <div class="sh-bar" style="background:linear-gradient(180deg,#16a34a,#dc2626)"></div>
+      <div class="sh-bar" style="background:linear-gradient(180deg,#8A9A5B,#C1440E)"></div>
       <div class="sh-title">Heatmap Progres Harian</div>
       <div class="sh-count" id="cntHeatmap"></div>
     </div>
@@ -1395,10 +1395,10 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
           </select>
         </div>
         <div class="heatmap-legend">
-          <span class="hm-leg-item"><i class="hm-dot" style="background:#1e293b"></i> Tidak ada progres</span>
-          <span class="hm-leg-item"><i class="hm-dot" style="background:#dc2626"></i> Rendah</span>
-          <span class="hm-leg-item"><i class="hm-dot" style="background:#f59e0b"></i> Sedang</span>
-          <span class="hm-leg-item"><i class="hm-dot" style="background:#16a34a"></i> Tinggi</span>
+          <span class="hm-leg-item"><i class="hm-dot" style="background:#4A3538"></i> Tidak ada progres</span>
+          <span class="hm-leg-item"><i class="hm-dot" style="background:#F0C9C6"></i> Rendah</span>
+          <span class="hm-leg-item"><i class="hm-dot" style="background:#F0DCB8"></i> Sedang</span>
+          <span class="hm-leg-item"><i class="hm-dot" style="background:#C9DCB0"></i> Tinggi</span>
         </div>
         <button type="button" id="exportHeatmapExcel" class="btn btn-outline-success btn-sm" onclick="exportHeatmapExcel()" style="background:#e8f5e9;border-color:#2e7d32;color:#1b5e20;margin-left:6px" title="Download data heatmap ini sebagai file Excel (.xlsx), sesuai filter yang sedang aktif">↓ Excel</button>
       </div>
@@ -1411,7 +1411,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
 
     <!-- Tren Harian -->
     <div class="section-header" style="margin-top:14px">
-      <div class="sh-bar" style="background:linear-gradient(180deg,#f59e0b,#ef4444)"></div>
+      <div class="sh-bar" style="background:linear-gradient(180deg,#D9A3A3,#C1440E)"></div>
       <div class="sh-title">Tren Harian (Histori)</div>
       <div class="sh-count" id="cntHistori"></div>
     </div>
@@ -1463,7 +1463,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
           <div style="position:relative;height:350px">
             <div style="position:absolute;top:4px;right:4px;z-index:10;display:flex;gap:4px">
               <button onclick="_downloadChartExcel(trendProgresChart,'Tren_Pencacahan_SE2026','Pencacahan')" title="Unduh Excel" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">📊 Excel</button>
-              <button onclick="_downloadCanvasJpg(document.getElementById('trendProgres'),'Tren_Pencacahan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+              <button onclick="_downloadCanvasJpg(document.getElementById('trendProgres'),'Tren_Pencacahan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#D64553,#B23244);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
             </div>
             <canvas id="trendProgres"></canvas>
           </div>
@@ -1511,7 +1511,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
           <div style="position:relative;height:350px">
             <div style="position:absolute;top:4px;right:4px;z-index:10;display:flex;gap:4px">
               <button onclick="_downloadChartExcel(trendCapaianChart,'Tren_Pemeriksaan_SE2026','Pemeriksaan')" title="Unduh Excel" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">📊 Excel</button>
-              <button onclick="_downloadCanvasJpg(document.getElementById('trendCapaian'),'Tren_Pemeriksaan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+              <button onclick="_downloadCanvasJpg(document.getElementById('trendCapaian'),'Tren_Pemeriksaan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#D64553,#B23244);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
             </div>
             <canvas id="trendCapaian"></canvas>
           </div>
@@ -1559,7 +1559,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
           <div style="position:relative;height:350px">
             <div style="position:absolute;top:4px;right:4px;z-index:10;display:flex;gap:4px">
               <button onclick="_downloadChartExcel(trendOpenChart,'Tren_Capaian_Gabungan_SE2026','Capaian Gabungan')" title="Unduh Excel" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">📊 Excel</button>
-              <button onclick="_downloadCanvasJpg(document.getElementById('trendOpen'),'Tren_Capaian_Gabungan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+              <button onclick="_downloadCanvasJpg(document.getElementById('trendOpen'),'Tren_Capaian_Gabungan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#D64553,#B23244);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
             </div>
             <canvas id="trendOpen"></canvas>
           </div>
@@ -1614,7 +1614,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
           <div style="position:relative;height:350px">
             <div style="position:absolute;top:4px;right:4px;z-index:10;display:flex;gap:4px">
               <button onclick="_downloadChartExcel(trendAssignChart,'Tren_Breakdown_Assignment_SE2026','Breakdown Assignment')" title="Unduh Excel" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">📊 Excel</button>
-              <button onclick="_downloadCanvasJpg(document.getElementById('trendAssignBreakdown'),'Tren_Breakdown_Assignment_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+              <button onclick="_downloadCanvasJpg(document.getElementById('trendAssignBreakdown'),'Tren_Breakdown_Assignment_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#D64553,#B23244);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
             </div>
             <canvas id="trendAssignBreakdown"></canvas>
           </div>
@@ -1625,7 +1625,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
 
   <!-- ══ STACKED BAR ASSIGNMENT ══ -->
   <div class="section-header" style="margin-top:4px">
-    <div class="sh-bar" style="background:linear-gradient(180deg,#8b5cf6,#ec4899)"></div>
+    <div class="sh-bar" style="background:linear-gradient(180deg,#7A3540,#D64553)"></div>
     <div class="sh-title">Distribusi Assignment per Wilayah &amp; Petugas</div>
   </div>
   <div class="row g-3 mb-4">
@@ -1634,11 +1634,11 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
     <div class="col-lg-6">
       <div class="panel h-100" style="display:flex;flex-direction:column">
         <div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:10px;display:flex;align-items:center;gap:6px">
-          <span style="width:3px;height:14px;background:linear-gradient(180deg,#8b5cf6,#ec4899);border-radius:2px;display:inline-block"></span>
+          <span style="width:3px;height:14px;background:linear-gradient(180deg,#7A3540,#D64553);border-radius:2px;display:inline-block"></span>
           Per Wilayah
           <span id="cntStackedBar" style="font-size:10px;color:#6c757d;background:#e9ecef;border-radius:12px;padding:2px 8px;font-weight:400"></span>
           <span style="margin-left:auto;display:inline-flex;gap:6px;align-items:center">
-            <button onclick="downloadChartJpg(1)" title="Unduh JPG (dengan legenda)" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;font-size:11px;font-weight:600;border:none;border-radius:8px;background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;cursor:pointer">🖼️ JPG</button>
+            <button onclick="downloadChartJpg(1)" title="Unduh JPG (dengan legenda)" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;font-size:11px;font-weight:600;border:none;border-radius:8px;background:linear-gradient(135deg,#D64553,#B23244);color:#fff;cursor:pointer">🖼️ JPG</button>
             <button onclick="printStackedBar(1)" title="Cetak / buka popup print" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;font-size:11px;font-weight:600;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb;color:#374151;cursor:pointer" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='#f9fafb'">🖨️ Cetak</button>
           </span>
         </div>
@@ -1705,11 +1705,11 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
     <div class="col-lg-6">
       <div class="panel h-100" style="display:flex;flex-direction:column">
         <div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:10px;display:flex;align-items:center;gap:6px">
-          <span style="width:3px;height:14px;background:linear-gradient(180deg,#0ea5e9,#22c55e);border-radius:2px;display:inline-block"></span>
+          <span style="width:3px;height:14px;background:linear-gradient(180deg,#7A3540,#8A9A5B);border-radius:2px;display:inline-block"></span>
           Per Petugas
           <span id="cntStackedBar2" style="font-size:10px;color:#6c757d;background:#e9ecef;border-radius:12px;padding:2px 8px;font-weight:400"></span>
           <span style="margin-left:auto;display:inline-flex;gap:6px;align-items:center">
-            <button onclick="downloadChartJpg(2)" title="Unduh JPG (dengan legenda)" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;font-size:11px;font-weight:600;border:none;border-radius:8px;background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;cursor:pointer">🖼️ JPG</button>
+            <button onclick="downloadChartJpg(2)" title="Unduh JPG (dengan legenda)" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;font-size:11px;font-weight:600;border:none;border-radius:8px;background:linear-gradient(135deg,#D64553,#B23244);color:#fff;cursor:pointer">🖼️ JPG</button>
             <button onclick="printStackedBar(2)" title="Cetak / buka popup print" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;font-size:11px;font-weight:600;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb;color:#374151;cursor:pointer" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='#f9fafb'">🖨️ Cetak</button>
           </span>
         </div>
@@ -1827,7 +1827,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
 
   <!-- Main filter + table -->
   <div class="section-header">
-    <div class="sh-bar" style="background:linear-gradient(180deg,#fd7e14,#ffc107)"></div>
+    <div class="sh-bar" style="background:linear-gradient(180deg,#D64553,#D9A3A3)"></div>
     <div class="sh-title">Data Detail</div>
     <div class="sh-count" id="cntDetail"></div>
     <button type="button" class="btn btn-outline-success btn-sm" onclick="exportDetailExcel()"
@@ -2108,7 +2108,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
 
   <!-- Map -->
   <div class="section-header">
-    <div class="sh-bar" style="background:linear-gradient(180deg,#10b981,#0ea5e9)"></div>
+    <div class="sh-bar" style="background:linear-gradient(180deg,#8A9A5B,#7A3540)"></div>
     <div class="sh-title">Peta Sebaran</div>
     <div class="sh-count" id="cntMap"></div>
   </div>
@@ -2143,7 +2143,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
         style="margin-left:auto;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600"
         title="Tampilkan posisi Anda saat ini di peta (butuh izin lokasi browser)">📍 Lokasi Saya</button>
       <button type="button" class="btn btn-sm" onclick="printMapJpg()"
-        style="background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;border:none;display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600"
+        style="background:linear-gradient(135deg,#D64553,#B23244);color:#fff;border:none;display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600"
         title="Cetak peta (sesuai layer & filter aktif) sbg JPG & otomatis salin ke clipboard (Ctrl+V utk tempel)">🖼️ Cetak JPG</button>
     </div>
     <div id="mapCaptureArea">
@@ -2173,7 +2173,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
 
   <!-- Scatter Plot Section -->
 <div class="section-header">
-  <div class="sh-bar" style="background:linear-gradient(180deg,#0dcaf0,#f97316)"></div>
+  <div class="sh-bar" style="background:linear-gradient(180deg,#B23244,#D64553)"></div>
   <div class="sh-title">Pola Capaian (Scatter Plot)</div>
 </div>
 <div class="row g-2 mb-3">
@@ -2288,7 +2288,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
     <div style="display:flex;align-items:center;margin:8px 0 4px">
       <div class="sh-title" style="font-size:12px;color:#f97316">📊 Pencacahan — per Username</div>
       <button onclick="_downloadScatterExcel(scatterCacahChart,'ScatterPlot_Pencacahan_SE2026','Pencacahan')" title="Unduh Excel" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">📊 Excel</button>
-      <button onclick="_downloadCanvasJpg(document.getElementById('scatterCacah'),'ScatterPlot_Pencacahan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+      <button onclick="_downloadCanvasJpg(document.getElementById('scatterCacah'),'ScatterPlot_Pencacahan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#D64553,#B23244);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
     </div>
     <div style="position:relative;height:370px">
       <canvas id="scatterCacah"></canvas>
@@ -2391,7 +2391,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
     <div style="display:flex;align-items:center;margin:8px 0 4px">
       <div class="sh-title" style="font-size:12px;color:#f97316">🔎 Pengawasan — per Username</div>
       <button onclick="_downloadScatterExcel(scatterRiksaChart,'ScatterPlot_Pengawasan_SE2026','Pengawasan')" title="Unduh Excel" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">📊 Excel</button>
-      <button onclick="_downloadCanvasJpg(document.getElementById('scatterRiksa'),'ScatterPlot_Pengawasan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+      <button onclick="_downloadCanvasJpg(document.getElementById('scatterRiksa'),'ScatterPlot_Pengawasan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#D64553,#B23244);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
     </div>
     <div style="position:relative;height:370px">
       <canvas id="scatterRiksa"></canvas>
@@ -3122,10 +3122,10 @@ function updateProgresCards(data){
   function diffBadge(now, prev, higherIsBetter = true){
     if(prev === null || prev === undefined || prev === '' || isNaN(+prev)) return '';
     const diff = now - (+prev);
-    if(Math.abs(diff) < 0.05) return '<span style="font-size:9px;color:#94a3b8;margin-top:2px;display:block">= sama dengan kemarin (' + f1(+prev) + ')</span>';
+    if(Math.abs(diff) < 0.05) return '<span style="font-size:9px;color:#9C8F89;margin-top:2px;display:block">= sama dengan kemarin (' + f1(+prev) + ')</span>';
     const up    = diff > 0;
     const good  = higherIsBetter ? up : !up;
-    const color = good ? '#22c55e' : '#ef4444';
+    const color = good ? '#8A9A5B' : '#B2524A';
     const arrow = up ? '▲' : '▼';
     const label = up ? 'naik' : 'turun';
     return '<span style="font-size:9px;color:' + color + ';margin-top:2px;display:block;font-weight:600">'
@@ -3140,65 +3140,65 @@ function updateProgresCards(data){
   const prevPctOpen = kemarinH ? kemarinH.totalPersenOpen            : null;
 
   el.innerHTML = '<div class="col-12">'
-    + '<div class="card" style="border:none;border-radius:14px;box-shadow:0 2px 16px rgba(30,58,95,.10);overflow:hidden">'
+    + '<div class="card" style="border:none;border-radius:14px;box-shadow:0 2px 16px rgba(74,22,32,.08);overflow:hidden;background:#fff">'
     + '<div class="card-body p-0">'
 
     /* ── Baris atas: 6 metrik sejajar ── */
     + '<div style="display:grid;grid-template-columns:repeat(6,1fr)">'
 
     /* Progres Pencacahan */
-    + '<div style="padding:14px 16px;border-right:1px solid #e2e8f0">'
-    + '<div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Progres Pencacahan</div>'
-    + '<div style="font-size:22px;font-weight:800;color:#3b82f6;line-height:1">' + f0(sumCacah) + '</div>'
+    + '<div style="padding:14px 16px;border-right:1px solid #ECECEC;background:#fff">'
+    + '<div style="font-size:10px;font-weight:600;color:#9C8F89;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Progres Pencacahan</div>'
+    + '<div style="font-family:\'Fraunces\',serif;font-size:24px;font-weight:600;color:#7A3540;line-height:1">' + f0(sumCacah) + '</div>'
     + diffBadge(sumCacah, prevCacah, true)
-    + '<div style="font-size:10px;color:#94a3b8;margin-top:3px">Assignment dicacah</div>'
+    + '<div style="font-size:10px;color:#B0A39C;margin-top:3px">Assignment dicacah</div>'
     + '</div>'
 
     /* Progres Pemeriksaan */
-    + '<div style="padding:14px 16px;border-right:1px solid #e2e8f0">'
-    + '<div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Progres Pemeriksaan</div>'
-    + '<div style="font-size:22px;font-weight:800;color:#22c55e;line-height:1">' + f0(sumRiksa) + '</div>'
+    + '<div style="padding:14px 16px;border-right:1px solid #ECECEC;background:#fff">'
+    + '<div style="font-size:10px;font-weight:600;color:#9C8F89;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Progres Pemeriksaan</div>'
+    + '<div style="font-family:\'Fraunces\',serif;font-size:24px;font-weight:600;color:#8A9A5B;line-height:1">' + f0(sumRiksa) + '</div>'
     + diffBadge(sumRiksa, prevRiksa, true)
-    + '<div style="font-size:10px;color:#94a3b8;margin-top:3px">Assignment diperiksa</div>'
+    + '<div style="font-size:10px;color:#B0A39C;margin-top:3px">Assignment diperiksa</div>'
     + '</div>'
 
     /* % OPEN / Target */
-    + '<div style="padding:14px 16px;border-right:1px solid #e2e8f0;background:#fff7ed">'
-    + '<div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">% OPEN / Target</div>'
-    + '<div style="font-size:22px;font-weight:800;color:#f97316;line-height:1">' + f1(pctOpen) + '%</div>'
+    + '<div style="padding:14px 16px;border-right:1px solid #ECECEC;background:#fff">'
+    + '<div style="font-size:10px;font-weight:600;color:#9C8F89;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">% OPEN / Target</div>'
+    + '<div style="font-family:\'Fraunces\',serif;font-size:24px;font-weight:600;color:#B2524A;line-height:1">' + f1(pctOpen) + '%</div>'
     + diffBadge(pctOpen, prevPctOpen, false)
-    + '<div style="font-size:10px;color:#94a3b8;margin-top:3px">' + f0(totalOpen) + ' dari ' + f0(totalTarget) + '</div>'
-    + '<div style="margin-top:5px;height:3px;border-radius:99px;background:#fed7aa;overflow:hidden">'
-    + '<div style="height:100%;width:' + Math.min(pctOpen,100) + '%;background:#f97316;border-radius:99px"></div></div>'
+    + '<div style="font-size:10px;color:#B0A39C;margin-top:3px">' + f0(totalOpen) + ' dari ' + f0(totalTarget) + '</div>'
+    + '<div style="margin-top:5px;height:3px;border-radius:99px;background:#F0DCDC;overflow:hidden">'
+    + '<div style="height:100%;width:' + Math.min(pctOpen,100) + '%;background:#D9A3A3;border-radius:99px"></div></div>'
     + '</div>'
 
     /* Rata-rata Capaian Pencacahan */
-    + '<div style="padding:14px 16px;border-right:1px solid #e2e8f0">'
-    + '<div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Rata-rata Capaian Pencacahan</div>'
-    + '<div style="font-size:22px;font-weight:800;color:#f59e0b;line-height:1">' + f1(avgCacah) + '</div>'
+    + '<div style="padding:14px 16px;border-right:1px solid #ECECEC;background:#fff">'
+    + '<div style="font-size:10px;font-weight:600;color:#9C8F89;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Rata-rata Capaian Pencacahan</div>'
+    + '<div style="font-family:\'Fraunces\',serif;font-size:24px;font-weight:600;color:#A9787E;line-height:1">' + f1(avgCacah) + '</div>'
     + diffBadge(avgCacah, prevAvgC, true)
-    + '<div style="font-size:10px;color:#94a3b8;margin-top:3px">Asgn/hari · ' + nCacah + ' Pencacah</div>'
+    + '<div style="font-size:10px;color:#B0A39C;margin-top:3px">Asgn/hari · ' + nCacah + ' Pencacah</div>'
     + '</div>'
 
     /* Rata-rata Capaian Pemeriksaan */
-    + '<div style="padding:14px 16px;border-right:1px solid #e2e8f0">'
-    + '<div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Rata-rata Capaian Pemeriksaan</div>'
-    + '<div style="font-size:22px;font-weight:800;color:#8b5cf6;line-height:1">' + f1(avgRiksa) + '</div>'
+    + '<div style="padding:14px 16px;border-right:1px solid #ECECEC;background:#fff">'
+    + '<div style="font-size:10px;font-weight:600;color:#9C8F89;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Rata-rata Capaian Pemeriksaan</div>'
+    + '<div style="font-family:\'Fraunces\',serif;font-size:24px;font-weight:600;color:#7A3540;line-height:1">' + f1(avgRiksa) + '</div>'
     + diffBadge(avgRiksa, prevAvgR, true)
-    + '<div style="font-size:10px;color:#94a3b8;margin-top:3px">Asgn/hari · ' + nRiksa + ' Pengawas</div>'
+    + '<div style="font-size:10px;color:#B0A39C;margin-top:3px">Asgn/hari · ' + nRiksa + ' Pengawas</div>'
     + '</div>'
 
     /* Sudah Diperiksa Pengawas */
     + (function(){
         const totalDiperiksa = totalSubmit + totalRejected + totalApproved;
         const pctDiperiksa   = totalTarget > 0 ? (totalDiperiksa / totalTarget * 100) : 0;
-        return '<div style="padding:14px 16px;background:#f0f9ff">'
-          + '<div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Sudah Diperiksa Pengawas</div>'
-          + '<div style="font-size:22px;font-weight:800;color:#1e3a5f;line-height:1">' + f0(totalDiperiksa) + '</div>'
-          + '<div style="font-size:9px;font-weight:700;color:#0284c7;margin-top:2px">' + f1(pctDiperiksa) + '% dari ' + f0(totalTarget) + '</div>'
-          + '<div style="margin-top:5px;height:3px;border-radius:99px;background:#bae6fd;overflow:hidden">'
-          + '<div style="height:100%;width:' + Math.min(pctDiperiksa,100) + '%;background:linear-gradient(90deg,#3b82f6,#22c55e);border-radius:99px"></div></div>'
-          + '<div style="font-size:9px;color:#64748b;margin-top:4px">📤 ' + f0(totalSubmit) + ' &nbsp;❌ ' + f0(totalRejected) + ' &nbsp;✅ ' + f0(totalApproved) + '</div>'
+        return '<div style="padding:14px 16px;background:#fff">'
+          + '<div style="font-size:10px;font-weight:600;color:#9C8F89;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Sudah Diperiksa Pengawas</div>'
+          + '<div style="font-family:\'Fraunces\',serif;font-size:24px;font-weight:600;color:#4A1620;line-height:1">' + f0(totalDiperiksa) + '</div>'
+          + '<div style="font-size:9px;font-weight:600;color:#B23244;margin-top:2px">' + f1(pctDiperiksa) + '% dari ' + f0(totalTarget) + '</div>'
+          + '<div style="margin-top:5px;height:3px;border-radius:99px;background:#F0DCDC;overflow:hidden">'
+          + '<div style="height:100%;width:' + Math.min(pctDiperiksa,100) + '%;background:linear-gradient(90deg,#D64553,#8A9A5B);border-radius:99px"></div></div>'
+          + '<div style="font-size:9px;color:#9C8F89;margin-top:4px">📤 ' + f0(totalSubmit) + ' &nbsp;❌ ' + f0(totalRejected) + ' &nbsp;✅ ' + f0(totalApproved) + '</div>'
           + '</div>';
       })()
 
@@ -3688,10 +3688,10 @@ function computeUsernameMetricsAsHistori(){
 }
 
 const SCATTER_COLORS = [
-  '#5b9bf5','#f0685f','#4cbd7d','#f5ab41','#a48ae8',
-  '#33bcd4','#ef7bab','#9cc251','#fb923c','#7c85e8',
-  '#3cc3ae','#d178d8','#e0b23a','#4bb3e6','#b083e0',
-  '#3fc19a','#f0708a','#8a97a8','#9575d9','#3aa8bd'
+  '#D64553','#7A3540','#C1440E','#D9A3A3','#8A9A5B',
+  '#B23244','#A9787E','#9C6B4E','#B08968','#6B7F4F',
+  '#D9946B','#8B5E3C','#C97B5C','#9C8F89','#E0A96D',
+  '#7A5C3E','#B5764A','#D4A5A5','#6E4B3A','#C77B4D'
 ];
 
 // Hitung % OPEN/Target per username dari rawData (tidak ada di sheet Histori Username)
@@ -3735,26 +3735,24 @@ function buildScatterKecMap(){
 // Map kecamatan ke warna
 function getKecamatanColor(kecamatan) {
   const colors = [
-    '#5b9bf5', // biru
-    '#f0685f', // merah
-    '#4cbd7d', // hijau
-    '#f5ab41', // kuning
-    '#a48ae8', // ungu
-    '#ef7bab', // pink
-    '#33bcd4', // cyan
-    '#fb923c', // oranye
-    '#9cc251', // hijau lime
-    '#7c85e8', // indigo
-    '#3cc3ae', // teal
-    '#d178d8', // magenta
-    '#e0b23a', // emas
-    '#4bb3e6', // biru langit
-    '#b083e0', // ungu terang
-    '#3fc19a', // hijau zamrud
-    '#f0708a', // merah muda
-    '#8a97a8', // abu-abu slate
-    '#9575d9', // ungu gelap
-    '#3aa8bd'  // cyan gelap
+    '#A8C5D9', // biru pastel
+    '#E0A3A3', // merah pastel
+    '#A8C99A', // hijau pastel
+    '#E0BFA0', // oranye pastel
+    '#B5C4A0', // sage muda
+    '#C7A3A8', // mauve pink
+    '#B8D0DE', // biru muda
+    '#E0C9A0', // krem-oranye
+    '#AAB89C', // sage terang
+    '#E0BFBF', // blush terang
+    '#9CB8C7', // biru abu
+    '#D9C4A0', // tan pastel
+    '#93A899', // abu-hijau
+    '#C68A8A', // clay rose
+    '#A0B8CC', // periwinkle pastel
+    '#DDB0B0', // powder pink
+    '#B0BDA0', // pale sage
+    '#E8CACA'  // very light pink
   ];
   
   if (!window.kecamatanColorMap) {
@@ -3906,9 +3904,9 @@ function buildScatterDatasets(metrics, xKey, yKey, colorMode, avgMode){
   // colorMode: 'kec' (default) | 'pgw' | 'username'
 
   const USER_COLORS = [
-    '#5b9bf5','#f0685f','#4cbd7d','#f5ab41','#a48ae8',
-    '#ef7bab','#3cc3ae','#fb923c','#7c85e8','#9cc251',
-    '#4bb3e6','#b083e0','#3fc19a','#f6a15c','#e0607a'
+    '#A8C5D9','#E0A3A3','#A8C99A','#E0BFA0','#B8D0DE',
+    '#C7A3A8','#9CB8C7','#D9C4A0','#AAB89C','#E0BFBF',
+    '#A0B8CC','#D4A8A8','#93A899','#C68A8A','#B5C4A0'
   ];
   const userColorMap = {};
   let userColorIdx = 0;
@@ -4740,9 +4738,9 @@ let historiPivotData = [];
 let historiCardData = [];
 
 const TREN_COLORS = [
-  '#5b9bf5','#f0685f','#4cbd7d','#f5ab41','#a48ae8',
-  '#ef7bab','#3cc3ae','#fb923c','#7c85e8','#9cc251',
-  '#4bb3e6','#b083e0','#3fc19a','#f6a15c','#e0607a'
+  '#D64553','#7A3540','#C1440E','#D9A3A3','#8A9A5B',
+  '#B23244','#9C6B4E','#B08968','#6B7F4F','#D9946B',
+  '#8B5E3C','#C97B5C','#9C8F89','#E0A96D','#B5764A'
 ];
 function getTrenColor(i){ return TREN_COLORS[i % TREN_COLORS.length]; }
 
@@ -4868,15 +4866,15 @@ function renderTrenChart(chartId){
 
     const seriesMap = {
       Progres: [
-        { label:'Progres Pencacahan Kemarin',    data:padN(data.map(d=>numOrNull(d.progresPencacahanKemarin))),  color:'#5b9bf5' },
-        { label:'Rata-rata Capaian Pencacahan',  data:padN(data.map(d=>numOrNull(d.rataCapaianPencacahan))),    color:'#f5ab41' }
+        { label:'Progres Pencacahan Kemarin',    data:padN(data.map(d=>numOrNull(d.progresPencacahanKemarin))),  color:'#A9787E' },
+        { label:'Rata-rata Capaian Pencacahan',  data:padN(data.map(d=>numOrNull(d.rataCapaianPencacahan))),    color:'#D64553' }
       ],
       Capaian: [
-        { label:'Progres Pemeriksaan Kemarin',   data:padN(data.map(d=>numOrNull(d.progresPemeriksaanKemarin))), color:'#4cbd7d' },
-        { label:'Rata-rata Capaian Pemeriksaan', data:padN(data.map(d=>numOrNull(d.rataCapaianPemeriksaan))),   color:'#fb923c' }
+        { label:'Progres Pemeriksaan Kemarin',   data:padN(data.map(d=>numOrNull(d.progresPemeriksaanKemarin))), color:'#8A9A5B' },
+        { label:'Rata-rata Capaian Pemeriksaan', data:padN(data.map(d=>numOrNull(d.rataCapaianPemeriksaan))),   color:'#D64553' }
       ],
       Open: [
-        { label:'Total % OPEN/Target', data:padN(data.map(d=>numOrNull(d.totalPersenOpen))), color:'#fb923c' }
+        { label:'Total % OPEN/Target', data:padN(data.map(d=>numOrNull(d.totalPersenOpen))), color:'#C1440E' }
       ]
     };
     const titleMap = { Progres:'Pencacahan', Capaian:'Pemeriksaan', Open:'Total % OPEN/Target' };
@@ -4903,12 +4901,12 @@ function renderTrenChart(chartId){
     persenOpenTarget:          '% OPEN/Target'
   };
   const colorMapTren = {
-    progresPencacahanKemarin:'#5b9bf5',  capaianHarianPencacahan:'#f5ab41',
-    progresPemeriksaanKemarin:'#4cbd7d', capaianHarianPengawasan:'#fb923c',
-    persenOpenTarget:'#f0685f'
+    progresPencacahanKemarin:'#A9787E',  capaianHarianPencacahan:'#D64553',
+    progresPemeriksaanKemarin:'#8A9A5B', capaianHarianPengawasan:'#D64553',
+    persenOpenTarget:'#C1440E'
   };
   const titleMap2 = { Progres:'Pencacahan (Filter)', Capaian:'Pemeriksaan (Filter)', Open:'% OPEN/Target (Filter)' };
-  const KEC_COLORS = ['#5b9bf5','#f0685f','#4cbd7d','#f5ab41','#a48ae8','#ef7bab','#33bcd4','#9cc251','#fb923c','#7c85e8'];
+  const KEC_COLORS = ['#D64553','#7A3540','#C1440E','#D9A3A3','#8A9A5B','#B23244','#9C6B4E','#B08968','#6B7F4F','#D9946B'];
 
   // Filter rows berdasarkan role — historiUsernameData sudah berisi live hari ini
   let baseRows = historiUsernameData.filter(r => String(r.user||'').trim() === role);
@@ -5108,14 +5106,14 @@ function renderCapaianPctChart(canvasId, existingChart, setChart, labels, series
     data: s.data,
     borderColor: s.color,
     backgroundColor: s.color + '22',
-    stepped: 'before',
+    tension: 0.35,
     fill: i === 0,
     spanGaps: true,
     borderWidth: 2,
-    pointRadius: 3,
+    pointRadius: 0,
     pointHoverRadius: 6,
     pointBackgroundColor: s.color,
-    borderDash: i === 1 ? [5, 3] : [],
+    borderDash: [],
     yAxisID: 'y'
   }));
 
@@ -5278,8 +5276,8 @@ function renderCapaianGabunganChart(){
   });
 
   const series = [
-    { label:'Capaian Pencacahan (Pencacah)',  data:padN(dataCacah), color:'#f97316' },
-    { label:'Capaian Pemeriksaan (Pengawas)', data:padN(dataPgw),   color:'#7c3aed' }
+    { label:'Capaian Pencacahan (Pencacah)',  data:padN(dataCacah), color:'#D64553' },
+    { label:'Capaian Pemeriksaan (Pengawas)', data:padN(dataPgw),   color:'#7A3540' }
   ];
   const title = hasFilter ? 'Capaian Pencacahan & Pemeriksaan (Filter)' : 'Capaian Pencacahan & Pemeriksaan';
   renderCapaianPctChart('trendOpen', trendOpenChart, c=>{ trendOpenChart=c; }, labels, series, title);
@@ -5336,17 +5334,17 @@ function ensureAssignTypeDefaults(){
 // selain itu (DRAFT/OPEN/REJECTED/REVOKED/dst — belum tuntas/bermasalah) = merah.
 // Palet warna per tipe assignment — tiap status dapat warna beda biar gampang dibedain di chart.
 const ASSIGN_TYPE_COLOR_MAP = [
-  { pat: /^open$/i,                    color: '#dc2626' }, // merah
-  { pat: /^draft$/i,                    color: '#f59e0b' }, // amber
-  { pat: /submit.+pencacah/i,           color: '#2563eb' }, // biru
-  { pat: /approved.+pengawas/i,         color: '#16a34a' }, // hijau
-  { pat: /rejected.+pengawas/i,         color: '#e11d48' }, // rose
-  { pat: /completed.+admin/i,           color: '#7c3aed' }, // ungu
-  { pat: /submit.+respon/i,             color: '#0d9488' }, // teal
-  { pat: /revoke/i,                     color: '#64748b' }, // abu-abu
+  { pat: /^open$/i,                    color: '#C1440E' }, // rust
+  { pat: /^draft$/i,                    color: '#D9A3A3' }, // ochre
+  { pat: /submit.+pencacah/i,           color: '#D64553' }, // rose
+  { pat: /approved.+pengawas/i,         color: '#8A9A5B' }, // olive
+  { pat: /rejected.+pengawas/i,         color: '#B23244' }, // deep rose
+  { pat: /completed.+admin/i,           color: '#7A3540' }, // maroon
+  { pat: /submit.+respon/i,             color: '#B08968' }, // sand
+  { pat: /revoke/i,                     color: '#9C8F89' }, // warm gray
 ];
 // Palet cadangan (rotasi) utk tipe assignment yg belum ada di peta warna di atas
-const ASSIGN_TYPE_COLOR_FALLBACK = ['#db2777','#0891b2','#65a30d','#9333ea','#ea580c','#0284c7'];
+const ASSIGN_TYPE_COLOR_FALLBACK = ['#D64553','#B23244','#7A3540','#C1440E','#D9A3A3','#8A9A5B'];
 function getAssignTypeColor(label){
   const hit = ASSIGN_TYPE_COLOR_MAP.find(m => m.pat.test(label));
   if(hit) return hit.color;
@@ -5362,8 +5360,8 @@ function toggleAssignBreakdownRole(role){
   const btnP = document.getElementById('btnAssignRolePencacah');
   const btnG = document.getElementById('btnAssignRolePengawas');
   if(btnP && btnG){
-    const active   = { background:'#f97316', color:'#fff' };
-    const inactive = { background:'#fff',    color:'#ea580c' };
+    const active   = { background:'#D64553', color:'#fff' };
+    const inactive = { background:'#fff',    color:'#B23244' };
     Object.assign(btnP.style, role === 'Pencacah Awal' ? active : inactive);
     Object.assign(btnG.style, role === 'Pengawas Awal' ? active : inactive);
   }
@@ -5527,7 +5525,7 @@ function renderAssignBreakdownChart(){
   // merah utk yg "belum tuntas/bermasalah" (Draft/Open/Rejected/dst).
   const seriesDefs = assignTypeSel.size > 0
     ? [...assignTypeSel].sort().map((t) => ({ label:t, color:getAssignTypeColor(t), keys:[t] }))
-    : [{ label:'Total Submitted', color:'#f97316', keys:null }]; // keys:null → regex /submit/i
+    : [{ label:'Total Submitted', color:'#D64553', keys:null }]; // keys:null → regex /submit/i
 
   // Lookup nilai count dgn toleransi beda kapitalisasi/spasi antar snapshot tanggal.
   // Beberapa snapshot harian punya penulisan key yg sedikit beda (mis. "Open" vs "OPEN",
@@ -5557,15 +5555,15 @@ function renderAssignBreakdownChart(){
       label: s.label,
       data,
       borderColor: s.color,
-      backgroundColor: isDone ? '#f9731633' : s.color + '2e', // arsiran status selesai/lanjut selalu oranye, garisnya tetap warna masing2
-      stepped: 'before',
+      backgroundColor: isDone ? s.color + '33' : s.color + '2e', // arsiran ikut warna dataset masing2
+      tension: 0.35,
       fill: isDone, // arsiran di bawah garis utk status "selesai/lanjut", biar kontras dgn status "belum" (open/draft)
       spanGaps: true,
       borderWidth: 2,
-      pointRadius: 3,
+      pointRadius: 0,
       pointHoverRadius: 6,
       pointBackgroundColor: s.color,
-      borderDash: /^open$|^draft$/i.test(s.label) && i % 2 === 1 ? [5,3] : []
+      borderDash: []
     };
   });
 
@@ -5769,20 +5767,20 @@ function renderTrendChart(canvasId, existingChart, setChart, labels, series, tit
   if(existingChart) existingChart.destroy();
 
   // Series pertama → axis kiri (yL), series kedua → axis kanan (yR)
-  // Keduanya pakai stepped line dengan dual axis
+  // Keduanya pakai smooth curve dengan dual axis
   const datasets = series.map((s, i) => ({
     label     : s.label,
     data      : s.data,
     borderColor     : s.color,
     backgroundColor : s.color + '22',
-    stepped   : 'before',        // stepped line
+    tension   : 0.35,        // smooth curve
     fill      : true,
     spanGaps  : true,
     borderWidth     : 2,
-    pointRadius     : 3,
+    pointRadius     : 0,
     pointHoverRadius: 6,
     pointBackgroundColor: s.color,
-    borderDash  : i === 1 ? [5, 3] : [],   // series ke-2 pakai dash agar bisa dibedakan selain warna
+    borderDash  : [],   // solid, dibedakan lewat warna saja
     yAxisID   : i === 0 ? 'yL' : 'yR'
   }));
 
@@ -5914,14 +5912,14 @@ function renderTrendChartMulti(canvasId, existingChart, setChart, labels, series
       data: s.data,
       borderColor: s.color,
       backgroundColor: s.color + '18',
-      stepped: 'before',
+      tension: 0.35,
       fill: true,
       spanGaps: true,
       borderWidth: 2,
-      pointRadius: 3,
+      pointRadius: 0,
       pointHoverRadius: 5,
       pointBackgroundColor: s.color,
-      borderDash: onRight ? [5,3] : [],
+      borderDash: [],
       yAxisID: onRight ? 'yR' : 'yL'
     };
   });
@@ -7647,18 +7645,18 @@ function renderHeatmapAllPeople(){
 
   let noProgresCount = 0;
   const html = entries.map(({nama, val, streakProgres, streakTanpaProgres, maxNoProgress}) => {
-    let bg, valTxt, subTxt;
+    let bg, font, badgeBg, valTxt, subTxt;
     if(val === null || val === undefined || val <= 0){
-      bg = '#1e293b'; // gelap = tidak ada data/progres kemarin
+      bg = '#4A3538'; font = '#F5EAEA'; badgeBg = 'rgba(255,255,255,.16)'; // gelap pastel = tidak ada data/progres kemarin
       valTxt = val === null || val === undefined ? '–' : '0';
       subTxt = 'tidak ada progres';
       noProgresCount++;
     } else if(val <= lowCut){
-      bg = '#dc2626'; valTxt = val.toLocaleString('id-ID'); subTxt = 'rendah';
+      bg = '#F0C9C6'; font = '#8B3A3A'; badgeBg = 'rgba(139,58,58,.10)'; valTxt = val.toLocaleString('id-ID'); subTxt = 'rendah';
     } else if(val <= highCut){
-      bg = '#f59e0b'; valTxt = val.toLocaleString('id-ID'); subTxt = 'sedang';
+      bg = '#F0DCB8'; font = '#8B6A2E'; badgeBg = 'rgba(139,106,46,.10)'; valTxt = val.toLocaleString('id-ID'); subTxt = 'sedang';
     } else {
-      bg = '#16a34a'; valTxt = val.toLocaleString('id-ID'); subTxt = 'tinggi';
+      bg = '#C9DCB0'; font = '#4F6B34'; badgeBg = 'rgba(79,107,52,.10)'; valTxt = val.toLocaleString('id-ID'); subTxt = 'tinggi';
     }
     const streakTxt = streakProgres > 0
       ? `🔥 ${streakProgres} hari beruntun`
@@ -7668,12 +7666,12 @@ function renderHeatmapAllPeople(){
       (streakProgres > 0 ? `Streak progres: ${streakProgres} hari berturut-turut` : `Streak tanpa progres: ${streakTanpaProgres} hari berturut-turut`) +
       `\nHari terlama tanpa progres (sepanjang periode): ${maxNoProgress} hari` +
       `\nKlik untuk lihat riwayat harian`;
-    return `<div class="hm-cell" style="background:${bg}" title="${title.replace(/"/g,'&quot;')}" onclick="selectHeatmapPetugas('${nama.replace(/'/g,"\\'")}')">
+    return `<div class="hm-cell" style="background:${bg};color:${font}" title="${title.replace(/"/g,'&quot;')}" onclick="selectHeatmapPetugas('${nama.replace(/'/g,"\\'")}')">
         <div class="hm-name">${nama}</div>
         <div class="hm-val">${valTxt}</div>
         <div class="hm-sub">${subTxt}</div>
-        ${streakTxt ? `<div class="hm-streak">${streakTxt}</div>` : ''}
-        ${worstTxt ? `<div class="hm-worst">${worstTxt}</div>` : ''}
+        ${streakTxt ? `<div class="hm-streak" style="background:${badgeBg}">${streakTxt}</div>` : ''}
+        ${worstTxt ? `<div class="hm-worst" style="background:${badgeBg}">${worstTxt}</div>` : ''}
       </div>`;
   }).join('');
 
@@ -7752,18 +7750,18 @@ function renderHeatmapPersonDetail(nama){
     const v = valByDate[dt];
     const dObj  = new Date(dt + 'T00:00:00');
     const label = dObj.toLocaleDateString('id-ID', {day:'2-digit', month:'short'});
-    let bg, valTxt, subTxt;
+    let bg, font, valTxt, subTxt;
     if(v === undefined || v <= 0){
-      bg = '#1e293b'; valTxt = '–'; subTxt = 'tidak ada progres';
+      bg = '#4A3538'; font = '#F5EAEA'; valTxt = '–'; subTxt = 'tidak ada progres';
     } else if(v <= lowCut){
-      bg = '#dc2626'; valTxt = v.toLocaleString('id-ID'); subTxt = 'rendah';
+      bg = '#F0C9C6'; font = '#8B3A3A'; valTxt = v.toLocaleString('id-ID'); subTxt = 'rendah';
     } else if(v <= highCut){
-      bg = '#f59e0b'; valTxt = v.toLocaleString('id-ID'); subTxt = 'sedang';
+      bg = '#F0DCB8'; font = '#8B6A2E'; valTxt = v.toLocaleString('id-ID'); subTxt = 'sedang';
     } else {
-      bg = '#16a34a'; valTxt = v.toLocaleString('id-ID'); subTxt = 'tinggi';
+      bg = '#C9DCB0'; font = '#4F6B34'; valTxt = v.toLocaleString('id-ID'); subTxt = 'tinggi';
     }
     const title = `${dObj.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})}\nNilai: ${v===undefined?'tidak ada data':v}`;
-    return `<div class="hm-cell" style="background:${bg}" title="${title.replace(/"/g,'&quot;')}">
+    return `<div class="hm-cell" style="background:${bg};color:${font}" title="${title.replace(/"/g,'&quot;')}">
       <div class="hm-name">${label}</div>
       <div class="hm-val">${valTxt}</div>
       <div class="hm-sub">${subTxt}</div>
@@ -7781,10 +7779,10 @@ async function exportHeatmapExcel(){
   try{
     const hex2argb = hex => 'FF' + hex.replace('#','').toUpperCase();
     const catInfo = {
-      'tidak ada progres': { bg:'#1e293b', font:'#FFFFFF' },
-      'rendah':            { bg:'#dc2626', font:'#FFFFFF' },
-      'sedang':            { bg:'#f59e0b', font:'#FFFFFF' },
-      'tinggi':            { bg:'#16a34a', font:'#FFFFFF' }
+      'tidak ada progres': { bg:'#4A3538', font:'#F5EAEA' },
+      'rendah':            { bg:'#F0C9C6', font:'#8B3A3A' },
+      'sedang':            { bg:'#F0DCB8', font:'#8B6A2E' },
+      'tinggi':            { bg:'#C9DCB0', font:'#4F6B34' }
     };
 
     const workbook = new ExcelJS.Workbook();
@@ -10825,21 +10823,21 @@ let sbChartInstance = null;
 // Ambil warna per assignment (sama dengan getAssignColor tapi fallback palette)
 // Palet warna dilembutkan (pastel/muted, nuansa hangat) supaya senada dengan
 // tema SE2026 (oranye-coklat) — tetap kontras cukup utk dibedakan, tidak norak.
-const SB_PALETTE = ['#c9986a','#9caf88','#c17f59','#8fa3ad','#b98b73','#899b7d','#d1a677','#a3927c','#c17f6f','#7ea3a0','#b08968','#93a899'];
+const SB_PALETTE = ['#D9A8A8','#B5C4A0','#D9A0A0','#B0BDC2','#E0BFBF','#AAB89C','#D4A8A8','#C3B7A5','#D9A99C','#A9C0BC','#DDB0B0','#B5C0AD'];
 const sbColorCache = {};
 function getSbAssignColor(asgn){
   const key = String(asgn||'').trim().toUpperCase();
   if(sbColorCache[key]) return sbColorCache[key];
   // Gunakan fixedColors sama seperti getAssignColor
   const fixed = {
-    'OPEN':'#a8a29e',
-    'APPROVED BY PENGAWAS':'#7fa876',
-    'REJECTED BY PENGAWAS':'#c97b5c',
-    'REJECTED BY ADMIN KABUPATEN':'#a85c3a',
-    'REVOKED BY PENGAWAS':'#d1a05a',
-    'SUBMITTED BY PENCACAH':'#7a97b3',
-    'SUBMITTED RESPONDENT':'#9c8bb0',
-    'DRAFT':'#d6cfc2'
+    'OPEN':'#BFB6AE',
+    'APPROVED BY PENGAWAS':'#9CB08A',
+    'REJECTED BY PENGAWAS':'#D9A3A3',
+    'REJECTED BY ADMIN KABUPATEN':'#C68A8A',
+    'REVOKED BY PENGAWAS':'#E0BFBF',
+    'SUBMITTED BY PENCACAH':'#D9A0A0',
+    'SUBMITTED RESPONDENT':'#C7A3A8',
+    'DRAFT':'#E8D6D3'
   };
   for(const [k,c] of Object.entries(fixed)){
     if(key === k || key.includes(k)){
