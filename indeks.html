@@ -1047,6 +1047,21 @@ let convSubTab = 'bali'; // bali | matrix | mr
 const CONV_BALI_URL   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vShd7ZjlrL_z9kABVhfhBGxIybNdJZ6DuA_WS8QaZAu6CHz4ufZs4RjuK0VFHYvuQxji17sSzb-OlWE/pub?gid=1300213745&single=true&output=csv';
 const CONV_ANTARSEKTOR_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vShd7ZjlrL_z9kABVhfhBGxIybNdJZ6DuA_WS8QaZAu6CHz4ufZs4RjuK0VFHYvuQxji17sSzb-OlWE/pub?gid=2137110792&single=true&output=csv';
 const CONV_MR_URL     = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vShd7ZjlrL_z9kABVhfhBGxIybNdJZ6DuA_WS8QaZAu6CHz4ufZs4RjuK0VFHYvuQxji17sSzb-OlWE/pub?gid=867324935&single=true&output=csv';
+
+/* --- Klungkung vs Bali (Sektoral): 6 sheet turunan dari spreadsheet analisis sektor --- */
+let convSektoralSubTab = 'detail'; // detail | trajectory | heatmap | snapshot | sync | yearly
+const CONV_SEKTOR_01_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT0V1HQd0RZOji8_frsMkpVMKT9vfDWuKATBJb0mfnDsE1LeqmnE4J1XLacVDo60wjSlTRK-V2F-1fW/pub?gid=2037827507&single=true&output=csv';
+const CONV_SEKTOR_02_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT0V1HQd0RZOji8_frsMkpVMKT9vfDWuKATBJb0mfnDsE1LeqmnE4J1XLacVDo60wjSlTRK-V2F-1fW/pub?gid=2090362015&single=true&output=csv';
+const CONV_SEKTOR_03_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT0V1HQd0RZOji8_frsMkpVMKT9vfDWuKATBJb0mfnDsE1LeqmnE4J1XLacVDo60wjSlTRK-V2F-1fW/pub?gid=98739619&single=true&output=csv';
+const CONV_SEKTOR_05_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT0V1HQd0RZOji8_frsMkpVMKT9vfDWuKATBJb0mfnDsE1LeqmnE4J1XLacVDo60wjSlTRK-V2F-1fW/pub?gid=529581453&single=true&output=csv';
+const CONV_SEKTOR_06_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT0V1HQd0RZOji8_frsMkpVMKT9vfDWuKATBJb0mfnDsE1LeqmnE4J1XLacVDo60wjSlTRK-V2F-1fW/pub?gid=2099310099&single=true&output=csv';
+let convSektor01LoadState = 'idle'; let convSektor01LoadError = ''; let convSektor01Rows = null; // long: Tahun x Sektor
+let convSektor02LoadState = 'idle'; let convSektor02LoadError = ''; let convSektor02Rows = null; // agregat per sektor
+let convSektor03LoadState = 'idle'; let convSektor03LoadError = ''; let convSektor03Data = null; // {sectors, years, matrix}
+let convSektor05LoadState = 'idle'; let convSektor05LoadError = ''; let convSektor05Rows = null; // long: Tahun x Sektor
+let convSektor06LoadState = 'idle'; let convSektor06LoadError = ''; let convSektor06Rows = null; // long: Tahun saja
+let convSektorYear = null; // tahun terpilih, dipakai bareng oleh Detail/Snapshot/Sync
+let convSektorChart1 = null; // chart per sub-view (didestroy & dipakai ulang)
 let convBaliLoadState = 'idle';   // idle | loading | error | ready
 let convBaliLoadError = '';
 let convBaliRows = null;
@@ -1660,6 +1675,20 @@ function changeBadge(entries){
   return `<span class="badge ${up?'up':'down'}">${up?'▲':'▼'} ${fmtNum(prev)}</span>`;
 }
 
+/* Badge pertumbuhan (%) year-on-year — dipakai khusus untuk subkelompok
+   "Harga Konstan" (nilai riil), sesuai permintaan: nilai + pertumbuhan
+   dibanding tahun sebelumnya, bukan nilai tahun sebelumnya. */
+function growthBadge(entries){
+  if(entries.length < 2) return `<span class="badge na">Data awal</span>`;
+  const latest = entries[entries.length-1].data;
+  const prev = entries[entries.length-2].data;
+  if(!prev){ return `<span class="badge na">n/a</span>`; }
+  const growth = (latest/prev - 1) * 100;
+  if(Math.abs(growth) < 0.005) return `<span class="badge flat">▬ 0,00%</span>`;
+  const up = growth > 0;
+  return `<span class="badge ${up?'up':'down'}">${up?'▲':'▼'} ${up?'+':''}${growth.toFixed(2).replace('.',',')}%</span>`;
+}
+
 function renderContent(periode){
   const main = document.getElementById('main');
   const katObj = STORE[periode];
@@ -1698,7 +1727,8 @@ function renderContent(periode){
           const key = encodeURIComponent(JSON.stringify([periode,kategori,kelompok,sub]));
           const subChartType = getGroupChartType(kategori, kelompok, sub);
           const styleKey = chartStyleKey(kategori, kelompok, sub);
-          
+          const isHargaKonstan = /harga\s+konstan/i.test(sub);
+
           const satuanTeks = SATUAN[sub] ? `<span class="card-unit">${escapeHtml(SATUAN[sub])}</span>` : '';
           const styleOptionsHtml = CHART_STYLE_OPTIONS.map(o=>`<option value="${o.value}" ${o.value===subChartType?'selected':''}>${o.label}</option>`).join('');
 
@@ -1711,7 +1741,7 @@ function renderContent(periode){
                 <div class="card-period">${periodLabel(latest)}</div>
                 <div class="card-value-row">
                   <div class="card-value">${fmtNum(latest.data)}${satuanTeks}</div>
-                  ${changeBadge(entries)}
+                  ${isHargaKonstan ? growthBadge(entries) : changeBadge(entries)}
                 </div>
               </div>
               ${makeSparkline(entries, kelColor, subChartType)}
@@ -1795,11 +1825,41 @@ function splitLevelGroups(subObj){
     .map(p=>({ label:p, segs:groups[p] }));
 }
 
+function longestCommonPrefix(strs){
+  if(!strs || !strs.length) return '';
+  let prefix = strs[0];
+  for(let i=1;i<strs.length;i++){
+    while(strs[i].indexOf(prefix) !== 0){
+      prefix = prefix.slice(0, -1);
+      if(!prefix) return '';
+    }
+  }
+  return prefix;
+}
+
+/* Subkelompok "Nilai Tambah Harga Berlaku Lapangan Usaha <Sektor>" digabung jadi
+   satu kartu komposit per Kelompok (nilai + proporsi tahun yang sama), sesuai
+   permintaan — beda dari Harga Konstan yang tetap kartu per sektor + growth badge. */
+function splitHargaBerlakuGroup(subObj){
+  const subs = Object.keys(subObj);
+  const candidates = subs.filter(s=> /harga\s+berlaku/i.test(s));
+  if(candidates.length < 2) return null;
+  const prefix = longestCommonPrefix(candidates).trim().replace(/[-–:\/]\s*$/,'').trim();
+  return { segs: candidates, label: prefix || 'Harga Berlaku' };
+}
+
 function getCompositionGroups(subObj, kelompok){
   const groups = [];
   const pctSegs = splitCompositionSegments(subObj);
   if(pctSegs) groups.push({ label:kelompok, segs:pctSegs, normalized:true });
   const claimed = new Set(pctSegs || []);
+
+  const hb = splitHargaBerlakuGroup(subObj);
+  if(hb){
+    const segs = hb.segs.filter(s=>!claimed.has(s));
+    if(segs.length >= 2){ groups.push({ label:hb.label, segs, normalized:true }); segs.forEach(s=>claimed.add(s)); }
+  }
+
   splitLevelGroups(subObj).forEach(g=>{
     const segs = g.segs.filter(s=>!claimed.has(s));
     if(segs.length >= 2) groups.push({ label:g.label, segs, normalized:false });
@@ -1831,7 +1891,8 @@ function renderCompositionCardHtml(periode,kategori,kelompok,subObj,group,katCol
       shortName = shortName.slice(label.length).trim().replace(/^[-–:\/]\s*/,'');
     }
     if(!shortName) shortName = x.sub;
-    return `<div class="comp-legend-item" title="${escapeHtml(x.sub)}: ${fmtNum(x.entry?x.entry.data:NaN)}"><span class="dot" style="background:${color}"></span>${escapeHtml(shortName)}</div>`;
+    const pct = x.entry ? (x.entry.data/total*100) : 0;
+    return `<div class="comp-legend-item" title="${escapeHtml(x.sub)}: ${fmtNum(x.entry?x.entry.data:NaN)}"><span class="dot" style="background:${color}"></span>${escapeHtml(shortName)} <b>${pct.toFixed(1).replace('.',',')}%</b></div>`;
   }).join('');
 
   const key = encodeURIComponent(JSON.stringify([periode,kategori,kelompok,label,segs]));
@@ -5661,7 +5722,12 @@ const CONV_STATUS_COLOR = {
   STABLE: '#3E6E8E',
   BASE: '#8A4A55',
   'MEAN-REVERTING': '#6F8F52',
-  PERSISTENT: '#3E6E8E'
+  PERSISTENT: '#3E6E8E',
+  HIGH: '#6F8F52',
+  MEDIUM: '#B98B27',
+  LOW: '#C1440E',
+  'SANGAT MIRIP': '#6F8F52',
+  BERBEDA: '#C1440E'
 };
 
 function convStatusBadge(status){
@@ -5761,6 +5827,7 @@ function renderKonvergensiView(){
 
   const subTabs = [
     {key:'bali',   label:'Klungkung vs Bali'},
+    {key:'baliSektoral', label:'Klungkung vs Bali (Sektoral)'},
     {key:'matrix', label:'Matriks Sektor'},
     {key:'mr',     label:'Mean Reversion'}
   ];
@@ -5782,7 +5849,7 @@ function renderKonvergensiView(){
     btn.onclick = ()=>{ convSubTab = btn.dataset.k; renderKonvergensiView(); };
   });
 
-  const renderers = { bali: renderConvBali, matrix: renderConvMatrix, mr: renderConvMr };
+  const renderers = { bali: renderConvBali, baliSektoral: renderConvBaliSektoral, matrix: renderConvMatrix, mr: renderConvMr };
   renderers[convSubTab]();
 }
 
@@ -5919,6 +5986,504 @@ function renderConvBali(){
   };
 }
 
+/* =========================================================
+   KLUNGKUNG VS BALI (SEKTORAL) — 6 sheet turunan:
+   01 detail per-sektor per-tahun, 02 trajectory agregat 2011-2025,
+   03 heatmap sektor x tahun, 04 snapshot (dihitung dari 01, karena
+   sheet aslinya cell-driven/snapshot sama seperti kasus 03_SEKTOR_MATRIX),
+   05 synchronization index per-sektor per-tahun, 06 ringkasan tahunan.
+   Loader ditulis generik & memakai header dinamis supaya kalau baris/
+   kolom tahun baru ditambahkan di sheet, otomatis ikut terbaca.
+   ========================================================= */
+
+function convLoadLongSheet(url, setState){
+  Papa.parse(url, {
+    download:true, header:true, skipEmptyLines:true,
+    complete:function(res){ setState('ready', null, res.data||[]); },
+    error:function(err){ setState('error', err.toString(), null); }
+  });
+}
+
+function loadConvSektor01(){
+  convSektor01LoadState = 'loading';
+  convLoadLongSheet(CONV_SEKTOR_01_URL, (state, err, data)=>{
+    if(state==='error'){ convSektor01LoadState='error'; convSektor01LoadError=err; }
+    else{
+      convSektor01Rows = data.map(r=>({
+        tahun: parseInt(r['Tahun']),
+        sektor: (r['Sektor']||'').toString().trim(),
+        growthK: lqParseNum(r['Growth_Klungkung']),
+        growthB: lqParseNum(r['Growth_Bali']),
+        growthDiff: lqParseNum(r['Growth_Differential_pp']),
+        absGap: lqParseNum(r['Absolute_Growth_Gap_pp']),
+        status: (r['Status']||'').toString().trim().toUpperCase()
+      })).filter(r=> r.sektor && !isNaN(r.tahun) && !isNaN(r.absGap) && r.growthK !== -1);
+      convSektor01LoadState = 'ready';
+    }
+    if(convMode && convSubTab==='baliSektoral') renderKonvergensiView();
+  });
+}
+
+function loadConvSektor02(){
+  convSektor02LoadState = 'loading';
+  convLoadLongSheet(CONV_SEKTOR_02_URL, (state, err, data)=>{
+    if(state==='error'){ convSektor02LoadState='error'; convSektor02LoadError=err; }
+    else{
+      convSektor02Rows = data.map(r=>({
+        sektor: (r['Sektor']||'').toString().trim(),
+        avgGap: lqParseNum(r['Avg_Absolute_Gap_pp']),
+        gapAwal: lqParseNum(r['2011_Absolute_Gap_pp']),
+        gapAkhir: lqParseNum(r['2025_Absolute_Gap_pp']),
+        gapChange: lqParseNum(r['Gap_Change_2011_2025_pp']),
+        convRate: lqParseNum(r['Convergence_Rate']),
+        yearsConv: parseInt(r['Years_Converging']),
+        yearsDiv: parseInt(r['Years_Diverging']),
+        yearsStable: parseInt(r['Years_Stable']),
+        trajectory: (r['Overall_Trajectory']||'').toString().trim().toUpperCase()
+      })).filter(r=> r.sektor);
+      convSektor02LoadState = 'ready';
+    }
+    if(convMode && convSubTab==='baliSektoral') renderKonvergensiView();
+  });
+}
+
+function loadConvSektor03(){
+  convSektor03LoadState = 'loading';
+  Papa.parse(CONV_SEKTOR_03_URL, {
+    download:true, header:true, skipEmptyLines:true,
+    complete:function(res){
+      try{
+        const data = res.data || [];
+        if(!data.length) throw new Error('Sheet kosong.');
+        const cols = Object.keys(data[0]);
+        const yearCols = cols.filter(c=> /^\d{4}$/.test((c||'').toString().trim())).sort((a,b)=>parseInt(a)-parseInt(b));
+        const sectors = []; const matrix = {};
+        data.forEach(r=>{
+          const s = (r['Sektor']||'').toString().trim();
+          if(!s) return;
+          sectors.push(s); matrix[s] = {};
+          yearCols.forEach(y=>{ matrix[s][y] = lqParseNum(r[y]); });
+        });
+        convSektor03Data = { sectors, years: yearCols, matrix };
+        convSektor03LoadState = 'ready';
+      }catch(err){ convSektor03LoadState='error'; convSektor03LoadError=err.message; }
+      if(convMode && convSubTab==='baliSektoral') renderKonvergensiView();
+    },
+    error:function(err){ convSektor03LoadState='error'; convSektor03LoadError=err.toString(); if(convMode && convSubTab==='baliSektoral') renderKonvergensiView(); }
+  });
+}
+
+function loadConvSektor05(){
+  convSektor05LoadState = 'loading';
+  convLoadLongSheet(CONV_SEKTOR_05_URL, (state, err, data)=>{
+    if(state==='error'){ convSektor05LoadState='error'; convSektor05LoadError=err; }
+    else{
+      convSektor05Rows = data.map(r=>({
+        tahun: parseInt(r['Tahun']),
+        sektor: (r['Sektor']||'').toString().trim(),
+        absGap: lqParseNum(r['Absolute_Growth_Gap_pp']),
+        maxGap: lqParseNum(r['Max_Gap_All_Sectors_pp']),
+        syncIndex: lqParseNum(r['Synchronization_Index']),
+        status: (r['Status']||'').toString().trim().toUpperCase()
+      })).filter(r=> r.sektor && !isNaN(r.tahun) && r.status !== '');
+      convSektor05LoadState = 'ready';
+    }
+    if(convMode && convSubTab==='baliSektoral') renderKonvergensiView();
+  });
+}
+
+function loadConvSektor06(){
+  convSektor06LoadState = 'loading';
+  convLoadLongSheet(CONV_SEKTOR_06_URL, (state, err, data)=>{
+    if(state==='error'){ convSektor06LoadState='error'; convSektor06LoadError=err; }
+    else{
+      convSektor06Rows = data.map(r=>({
+        tahun: parseInt(r['Tahun']),
+        meanGap: lqParseNum(r['Mean_Absolute_Gap_pp']),
+        medianGap: lqParseNum(r['Median_Absolute_Gap_pp']),
+        maxGap: lqParseNum(r['Max_Absolute_Gap_pp']),
+        minGap: lqParseNum(r['Min_Absolute_Gap_pp']),
+        sectorsConv: parseInt(r['Sectors_Converging']),
+        sectorsDiv: parseInt(r['Sectors_Diverging']),
+        status: (r['Overall_Status']||'').toString().trim().toUpperCase()
+      })).filter(r=> !isNaN(r.tahun) && r.meanGap > 0);
+      convSektor06LoadState = 'ready';
+    }
+    if(convMode && convSubTab==='baliSektoral') renderKonvergensiView();
+  });
+}
+
+function renderConvBaliSektoral(){
+  const body = document.getElementById('convBody');
+
+  const views = [
+    {key:'detail',     label:'01 Detail per Tahun'},
+    {key:'trajectory', label:'02 Trajectory Sektor'},
+    {key:'heatmap',    label:'03 Heatmap'},
+    {key:'snapshot',   label:'04 Snapshot Tahun'},
+    {key:'sync',       label:'05 Sinkronisasi'},
+    {key:'yearly',     label:'06 Ringkasan Tahunan'}
+  ];
+
+  body.innerHTML = `
+    <div class="ss-method-note">
+      <div><b>📖 Apa ini:</b> Rincian konvergensi Klungkung–Bali per <b>sektor</b> (17 sektor), dari enam sudut pandang: potret satu tahun, ringkasan tren tiap sektor 2011–2025, peta panas antar tahun, klasifikasi mirip/berbeda, seberapa serempak sektor bergerak (sinkronisasi), dan ringkasan tahunan seluruh sektor.</div>
+    </div>
+    <div class="ss-method-tabs" id="convSektoralSubTabs">
+      ${views.map(v=>`<button class="ss-method-tab" data-k="${v.key}">${escapeHtml(v.label)}</button>`).join('')}
+    </div>
+    <div id="convSektoralBody"></div>
+  `;
+
+  document.querySelectorAll('#convSektoralSubTabs .ss-method-tab').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.k===convSektoralSubTab);
+    btn.onclick = ()=>{ convSektoralSubTab = btn.dataset.k; renderConvBaliSektoral(); };
+  });
+
+  const renderers = {
+    detail: renderConvSektorDetail,
+    trajectory: renderConvSektorTrajectory,
+    heatmap: renderConvSektorHeatmap,
+    snapshot: renderConvSektorSnapshot,
+    sync: renderConvSektorSync,
+    yearly: renderConvSektorYearly
+  };
+  renderers[convSektoralSubTab]();
+}
+
+function convYearSelectHtml(id, years, selected){
+  return `<div class="ctrl-item"><label>Tahun</label><select id="${id}">${years.map(y=>`<option value="${y}" ${y===selected?'selected':''}>${y}</option>`).join('')}</select></div>`;
+}
+
+/* ---- 01. Detail per Tahun (per sektor) ---- */
+function renderConvSektorDetail(){
+  const el = document.getElementById('convSektoralBody');
+  if(convSektor01LoadState==='idle'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; loadConvSektor01(); return; }
+  if(convSektor01LoadState==='loading'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; return; }
+  if(convSektor01LoadState==='error'){ el.innerHTML = `<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(convSektor01LoadError)}<br><br><a href="${CONV_SEKTOR_01_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div>`; return; }
+  if(!convSektor01Rows || !convSektor01Rows.length){ el.innerHTML = `<div class="state-msg">Sumber data kosong.</div>`; return; }
+
+  const years = [...new Set(convSektor01Rows.map(r=>r.tahun))].sort((a,b)=>a-b);
+  if(!convSektorYear || !years.includes(convSektorYear)) convSektorYear = years[years.length-1];
+  const rows = convSektor01Rows.filter(r=>r.tahun===convSektorYear).sort((a,b)=> b.absGap - a.absGap);
+
+  const avgGap = rows.reduce((s,r)=>s+r.absGap,0)/(rows.length||1);
+  const cConv = rows.filter(r=>r.status==='CONVERGING').length;
+  const cDiv = rows.filter(r=>r.status==='DIVERGING').length;
+
+  el.innerHTML = `
+    <div class="ss-controls">${convYearSelectHtml('convSektorDetailYear', years, convSektorYear)}</div>
+    <div class="ss-kpi-grid">
+      <div class="stat-box"><div class="stat-label">Rata-rata Gap</div><div class="stat-value" style="font-size:15px;">${avgGap.toFixed(2)} pp</div></div>
+      <div class="stat-box"><div class="stat-label">Sektor Converging</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.CONVERGING};">${cConv}</div></div>
+      <div class="stat-box"><div class="stat-label">Sektor Diverging</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.DIVERGING};">${cDiv}</div></div>
+      <div class="stat-box"><div class="stat-label">Gap Terbesar</div><div class="stat-value" style="font-size:11px;line-height:1.4;">${rows[0]?escapeHtml(rows[0].sektor)+' ('+rows[0].absGap.toFixed(2)+' pp)':'-'}</div></div>
+    </div>
+    <div class="ss-section-title">Absolute Growth Gap per Sektor — ${convSektorYear}</div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlConvSektorDetailChart">⬇ JPG</button><div class="chart-box" style="height:340px;"><canvas id="convSektorDetailChart"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Detail Sektor — ${convSektorYear}</span><button class="dl-btn" id="convSektorDetailExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="convSektorDetailTable"></table></div>
+  `;
+
+  document.getElementById('convSektorDetailYear').onchange = (e)=>{ convSektorYear = parseInt(e.target.value); renderConvSektorDetail(); };
+
+  if(convSektorChart1) convSektorChart1.destroy();
+  convSektorChart1 = new Chart(document.getElementById('convSektorDetailChart'), {
+    type:'bar',
+    data:{ labels: rows.map(r=>r.sektor), datasets:[{ label:'Absolute Growth Gap (pp)', data: rows.map(r=>r.absGap), backgroundColor: rows.map(r=> CONV_STATUS_COLOR[r.status] || '#8A4A55') }] },
+    options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      plugins:{ legend:{ display:false } },
+      scales:{ x:{grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10}}}, y:{grid:{display:false}, ticks:{color:'#8A4A55',font:{family:'Inter',size:9.5}}} }
+    }
+  });
+
+  const head = `<tr><th>Sektor</th><th>Status</th><th>Growth K.</th><th>Growth Bali</th><th>Growth Diff. (pp)</th><th>Abs. Gap (pp)</th></tr>`;
+  const bodyRows = rows.map(r=>`<tr>
+    <td style="text-align:left;">${escapeHtml(r.sektor)}</td>
+    <td>${convStatusBadge(r.status)}</td>
+    <td class="${r.growthK>=0?'pos':'neg'}">${isNaN(r.growthK)?'-':(r.growthK*100).toFixed(2)+'%'}</td>
+    <td class="${r.growthB>=0?'pos':'neg'}">${isNaN(r.growthB)?'-':(r.growthB*100).toFixed(2)+'%'}</td>
+    <td class="${r.growthDiff>=0?'pos':'neg'}">${isNaN(r.growthDiff)?'-':(r.growthDiff>=0?'+':'')+r.growthDiff.toFixed(2)}</td>
+    <td>${r.absGap.toFixed(2)}</td>
+  </tr>`).join('');
+  document.getElementById('convSektorDetailTable').innerHTML = `<thead>${head}</thead><tbody>${bodyRows}</tbody>`;
+
+  document.getElementById('dlConvSektorDetailChart').onclick = ()=> triggerJPGDownload(convSektorChart1, `konvergensi_sektor_detail_${convSektorYear}`);
+  document.getElementById('convSektorDetailExcelBtn').onclick = async ()=>{
+    const header = ['Sektor','Status','Growth Klungkung','Growth Bali','Growth Differential (pp)','Absolute Growth Gap (pp)'];
+    const excelRows = rows.map(r=>[r.sektor, r.status, r.growthK, r.growthB, r.growthDiff, r.absGap]);
+    await exportStyledExcel(`konvergensi_sektor_detail_${convSektorYear}`, 'Detail Sektor', header, excelRows);
+  };
+}
+
+/* ---- 02. Trajectory Sektor (agregat 2011-2025) ---- */
+function renderConvSektorTrajectory(){
+  const el = document.getElementById('convSektoralBody');
+  if(convSektor02LoadState==='idle'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; loadConvSektor02(); return; }
+  if(convSektor02LoadState==='loading'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; return; }
+  if(convSektor02LoadState==='error'){ el.innerHTML = `<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(convSektor02LoadError)}<br><br><a href="${CONV_SEKTOR_02_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div>`; return; }
+  if(!convSektor02Rows || !convSektor02Rows.length){ el.innerHTML = `<div class="state-msg">Sumber data kosong.</div>`; return; }
+
+  const rows = [...convSektor02Rows].sort((a,b)=> a.avgGap - b.avgGap);
+  const nConv = rows.filter(r=>r.trajectory==='CONVERGING').length;
+  const nDiv = rows.filter(r=>r.trajectory==='DIVERGING').length;
+
+  el.innerHTML = `
+    <div class="ss-method-note"><div><b>💡 Cara membaca:</b> Ringkasan tren tiap sektor sepanjang 2011–2025. <b>Convergence Rate</b> negatif berarti gap makin melebar; positif berarti gap makin menyempit dari 2011 ke 2025.</div></div>
+    <div class="ss-kpi-grid">
+      <div class="stat-box"><div class="stat-label">Sektor Trajectory Converging</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.CONVERGING};">${nConv}</div></div>
+      <div class="stat-box"><div class="stat-label">Sektor Trajectory Diverging</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.DIVERGING};">${nDiv}</div></div>
+      <div class="stat-box"><div class="stat-label">Paling Konvergen</div><div class="stat-value" style="font-size:11px;line-height:1.4;">${rows[0]?escapeHtml(rows[0].sektor):'-'}</div></div>
+      <div class="stat-box"><div class="stat-label">Paling Divergen</div><div class="stat-value" style="font-size:11px;line-height:1.4;">${rows[rows.length-1]?escapeHtml(rows[rows.length-1].sektor):'-'}</div></div>
+    </div>
+    <div class="ss-section-title">Gap 2011 vs 2025 per Sektor</div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlConvSektorTrajChart">⬇ JPG</button><div class="chart-box" style="height:340px;"><canvas id="convSektorTrajChart"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Trajectory Sektor</span><button class="dl-btn" id="convSektorTrajExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="convSektorTrajTable"></table></div>
+  `;
+
+  if(convSektorChart1) convSektorChart1.destroy();
+  convSektorChart1 = new Chart(document.getElementById('convSektorTrajChart'), {
+    type:'bar',
+    data:{ labels: rows.map(r=>r.sektor), datasets:[
+      { label:'Gap 2011 (pp)', data: rows.map(r=>r.gapAwal), backgroundColor:'#3E6E8E' },
+      { label:'Gap 2025 (pp)', data: rows.map(r=>r.gapAkhir), backgroundColor:'#D64553' }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'} } },
+      scales:{ x:{grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10}}}, y:{grid:{display:false}, ticks:{color:'#8A4A55',font:{family:'Inter',size:9.5}}} }
+    }
+  });
+
+  const head = `<tr><th>Sektor</th><th>Trajectory</th><th>Avg. Gap</th><th>Gap 2011</th><th>Gap 2025</th><th>Perubahan</th><th>Conv. Rate</th><th>Th. Converging</th><th>Th. Diverging</th></tr>`;
+  const bodyRows = rows.map(r=>`<tr>
+    <td style="text-align:left;">${escapeHtml(r.sektor)}</td>
+    <td>${convStatusBadge(r.trajectory)}</td>
+    <td>${r.avgGap.toFixed(2)}</td>
+    <td>${r.gapAwal.toFixed(2)}</td>
+    <td>${r.gapAkhir.toFixed(2)}</td>
+    <td class="${r.gapChange<=0?'pos':'neg'}">${r.gapChange>=0?'+':''}${r.gapChange.toFixed(2)}</td>
+    <td class="${r.convRate>=0?'pos':'neg'}">${(r.convRate*100).toFixed(2)}%</td>
+    <td>${isNaN(r.yearsConv)?'-':r.yearsConv}</td>
+    <td>${isNaN(r.yearsDiv)?'-':r.yearsDiv}</td>
+  </tr>`).join('');
+  document.getElementById('convSektorTrajTable').innerHTML = `<thead>${head}</thead><tbody>${bodyRows}</tbody>`;
+
+  document.getElementById('dlConvSektorTrajChart').onclick = ()=> triggerJPGDownload(convSektorChart1, 'konvergensi_sektor_trajectory');
+  document.getElementById('convSektorTrajExcelBtn').onclick = async ()=>{
+    const header = ['Sektor','Overall Trajectory','Avg Absolute Gap (pp)','2011 Gap (pp)','2025 Gap (pp)','Gap Change (pp)','Convergence Rate','Years Converging','Years Diverging','Years Stable'];
+    const excelRows = rows.map(r=>[r.sektor, r.trajectory, r.avgGap, r.gapAwal, r.gapAkhir, r.gapChange, r.convRate, r.yearsConv, r.yearsDiv, r.yearsStable]);
+    await exportStyledExcel('konvergensi_sektor_trajectory', 'Trajectory Sektor', header, excelRows);
+  };
+}
+
+/* ---- 03. Heatmap Sektor x Tahun ---- */
+function renderConvSektorHeatmap(){
+  const el = document.getElementById('convSektoralBody');
+  if(convSektor03LoadState==='idle'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; loadConvSektor03(); return; }
+  if(convSektor03LoadState==='loading'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; return; }
+  if(convSektor03LoadState==='error'){ el.innerHTML = `<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(convSektor03LoadError)}<br><br><a href="${CONV_SEKTOR_03_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div>`; return; }
+  if(!convSektor03Data || !convSektor03Data.sectors.length){ el.innerHTML = `<div class="state-msg">Sumber data kosong.</div>`; return; }
+
+  const { sectors, years, matrix } = convSektor03Data;
+  let allVals = [];
+  sectors.forEach(s=> years.forEach(y=>{ const v = matrix[s][y]; if(!isNaN(v)) allVals.push(v); }));
+  const maxAbs = allVals.length ? Math.max(...allVals) : 1;
+
+  el.innerHTML = `
+    <div class="ss-method-note"><div><b>💡 Cara membaca:</b> Baris = sektor, kolom = tahun. Warna hijau → gap pertumbuhan sektor tsb terhadap Bali kecil di tahun itu; merah → gap besar. Kolom tahun baru otomatis muncul begitu ditambahkan di sheet sumber.</div></div>
+    <div class="table-head-row"><span class="table-head-label">Heatmap Absolute Growth Gap (pp)</span><button class="dl-btn" id="convSektorHeatmapExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="ss-table-wrap ss-table-scroll" style="max-height:560px;"><table class="ss-table" id="convSektorHeatmapTable" style="font-size:10.5px;"></table></div>
+  `;
+
+  const head = `<tr><th>Sektor</th>${years.map(y=>`<th>${y}</th>`).join('')}</tr>`;
+  const bodyRows = sectors.map(s=>{
+    const cells = years.map(y=>{
+      const v = matrix[s][y];
+      const bg = convMatrixColor(v, maxAbs);
+      return `<td style="background:${bg};text-align:center;color:var(--brown-deep);font-weight:600;">${isNaN(v)?'-':v.toFixed(2)}</td>`;
+    }).join('');
+    return `<tr><td style="text-align:left;">${escapeHtml(s)}</td>${cells}</tr>`;
+  }).join('');
+  document.getElementById('convSektorHeatmapTable').innerHTML = `<thead>${head}</thead><tbody>${bodyRows}</tbody>`;
+
+  document.getElementById('convSektorHeatmapExcelBtn').onclick = async ()=>{
+    const header = ['Sektor', ...years];
+    const excelRows = sectors.map(s=> [s, ...years.map(y=> isNaN(matrix[s][y])?'':matrix[s][y])]);
+    await exportStyledExcel('konvergensi_sektor_heatmap', 'Heatmap Sektor', header, excelRows);
+  };
+}
+
+/* ---- 04. Snapshot Tahun (dihitung dari sheet 01: |gap|>=1pp => BERBEDA) ---- */
+function renderConvSektorSnapshot(){
+  const el = document.getElementById('convSektoralBody');
+  if(convSektor01LoadState==='idle'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; loadConvSektor01(); return; }
+  if(convSektor01LoadState==='loading'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; return; }
+  if(convSektor01LoadState==='error'){ el.innerHTML = `<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(convSektor01LoadError)}<br><br><a href="${CONV_SEKTOR_01_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div>`; return; }
+  if(!convSektor01Rows || !convSektor01Rows.length){ el.innerHTML = `<div class="state-msg">Sumber data kosong.</div>`; return; }
+
+  const years = [...new Set(convSektor01Rows.map(r=>r.tahun))].sort((a,b)=>a-b);
+  if(!convSektorYear || !years.includes(convSektorYear)) convSektorYear = years[years.length-1];
+  const SNAPSHOT_THRESHOLD = 1; // pp — ambang batas sesuai sheet 04_SNAPSHOT_TAHUN asli
+  const rows = convSektor01Rows.filter(r=>r.tahun===convSektorYear).map(r=>({
+    ...r, snap: r.absGap >= SNAPSHOT_THRESHOLD ? 'BERBEDA' : 'SANGAT MIRIP'
+  })).sort((a,b)=> a.absGap - b.absGap);
+
+  const nMirip = rows.filter(r=>r.snap==='SANGAT MIRIP').length;
+  const nBeda = rows.length - nMirip;
+
+  el.innerHTML = `
+    <div class="ss-method-note"><div><b>📖 Apa ini:</b> Potret satu tahun: sektor mana yang laju pertumbuhannya <b>SANGAT MIRIP</b> dengan Bali (gap &lt; ${SNAPSHOT_THRESHOLD}pp) dan mana yang <b>BERBEDA</b> jauh (gap ≥ ${SNAPSHOT_THRESHOLD}pp). Dihitung langsung dari data per-tahun, jadi tahun bisa diganti bebas.</div></div>
+    <div class="ss-controls">${convYearSelectHtml('convSektorSnapYear', years, convSektorYear)}</div>
+    <div class="ss-kpi-grid">
+      <div class="stat-box"><div class="stat-label">Sangat Mirip</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR['SANGAT MIRIP']};">${nMirip}</div></div>
+      <div class="stat-box"><div class="stat-label">Berbeda</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.BERBEDA};">${nBeda}</div></div>
+    </div>
+    <div class="table-head-row"><span class="table-head-label">Snapshot ${convSektorYear}</span><button class="dl-btn" id="convSektorSnapExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="convSektorSnapTable"></table></div>
+  `;
+
+  document.getElementById('convSektorSnapYear').onchange = (e)=>{ convSektorYear = parseInt(e.target.value); renderConvSektorSnapshot(); };
+
+  const head = `<tr><th>Sektor</th><th>Growth K.</th><th>Growth Bali</th><th>Growth Diff. (pp)</th><th>Abs. Gap (pp)</th><th>Status</th></tr>`;
+  const bodyRows = rows.map(r=>`<tr>
+    <td style="text-align:left;">${escapeHtml(r.sektor)}</td>
+    <td class="${r.growthK>=0?'pos':'neg'}">${isNaN(r.growthK)?'-':(r.growthK*100).toFixed(2)+'%'}</td>
+    <td class="${r.growthB>=0?'pos':'neg'}">${isNaN(r.growthB)?'-':(r.growthB*100).toFixed(2)+'%'}</td>
+    <td class="${r.growthDiff>=0?'pos':'neg'}">${isNaN(r.growthDiff)?'-':(r.growthDiff>=0?'+':'')+r.growthDiff.toFixed(2)}</td>
+    <td>${r.absGap.toFixed(2)}</td>
+    <td>${convStatusBadge(r.snap)}</td>
+  </tr>`).join('');
+  document.getElementById('convSektorSnapTable').innerHTML = `<thead>${head}</thead><tbody>${bodyRows}</tbody>`;
+
+  document.getElementById('convSektorSnapExcelBtn').onclick = async ()=>{
+    const header = ['Sektor','Growth Klungkung','Growth Bali','Growth Differential (pp)','Absolute Growth Gap (pp)','Status'];
+    const excelRows = rows.map(r=>[r.sektor, r.growthK, r.growthB, r.growthDiff, r.absGap, r.snap]);
+    await exportStyledExcel(`konvergensi_sektor_snapshot_${convSektorYear}`, 'Snapshot Tahun', header, excelRows);
+  };
+}
+
+/* ---- 05. Sinkronisasi (Synchronization Index) ---- */
+function renderConvSektorSync(){
+  const el = document.getElementById('convSektoralBody');
+  if(convSektor05LoadState==='idle'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; loadConvSektor05(); return; }
+  if(convSektor05LoadState==='loading'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; return; }
+  if(convSektor05LoadState==='error'){ el.innerHTML = `<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(convSektor05LoadError)}<br><br><a href="${CONV_SEKTOR_05_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div>`; return; }
+  if(!convSektor05Rows || !convSektor05Rows.length){ el.innerHTML = `<div class="state-msg">Sumber data kosong.</div>`; return; }
+
+  const years = [...new Set(convSektor05Rows.map(r=>r.tahun))].sort((a,b)=>a-b);
+  if(!convSektorYear || !years.includes(convSektorYear)) convSektorYear = years[years.length-1];
+  const rows = convSektor05Rows.filter(r=>r.tahun===convSektorYear).sort((a,b)=> b.syncIndex - a.syncIndex);
+
+  const nHigh = rows.filter(r=>r.status==='HIGH').length;
+  const nMed = rows.filter(r=>r.status==='MEDIUM').length;
+  const nLow = rows.filter(r=>r.status==='LOW').length;
+
+  el.innerHTML = `
+    <div class="ss-method-note"><div><b>📖 Apa ini:</b> <b>Synchronization Index</b> = seberapa dekat gap pertumbuhan sektor tsb dibanding gap sektor paling ekstrem di tahun yang sama (1 = paling serempak, 0 = paling menyimpang).</div></div>
+    <div class="ss-controls">${convYearSelectHtml('convSektorSyncYear', years, convSektorYear)}</div>
+    <div class="ss-kpi-grid">
+      <div class="stat-box"><div class="stat-label">Sinkronisasi Tinggi</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.HIGH};">${nHigh}</div></div>
+      <div class="stat-box"><div class="stat-label">Sinkronisasi Sedang</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.MEDIUM};">${nMed}</div></div>
+      <div class="stat-box"><div class="stat-label">Sinkronisasi Rendah</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.LOW};">${nLow}</div></div>
+    </div>
+    <div class="ss-section-title">Synchronization Index per Sektor — ${convSektorYear}</div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlConvSektorSyncChart">⬇ JPG</button><div class="chart-box" style="height:340px;"><canvas id="convSektorSyncChart"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Sinkronisasi — ${convSektorYear}</span><button class="dl-btn" id="convSektorSyncExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="convSektorSyncTable"></table></div>
+  `;
+
+  document.getElementById('convSektorSyncYear').onchange = (e)=>{ convSektorYear = parseInt(e.target.value); renderConvSektorSync(); };
+
+  if(convSektorChart1) convSektorChart1.destroy();
+  convSektorChart1 = new Chart(document.getElementById('convSektorSyncChart'), {
+    type:'bar',
+    data:{ labels: rows.map(r=>r.sektor), datasets:[{ label:'Synchronization Index', data: rows.map(r=>r.syncIndex), backgroundColor: rows.map(r=> CONV_STATUS_COLOR[r.status] || '#8A4A55') }] },
+    options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      plugins:{ legend:{ display:false } },
+      scales:{ x:{min:0, max:1, grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10}}}, y:{grid:{display:false}, ticks:{color:'#8A4A55',font:{family:'Inter',size:9.5}}} }
+    }
+  });
+
+  const head = `<tr><th>Sektor</th><th>Status</th><th>Abs. Gap</th><th>Max Gap (semua sektor)</th><th>Sync. Index</th></tr>`;
+  const bodyRows = rows.map(r=>`<tr>
+    <td style="text-align:left;">${escapeHtml(r.sektor)}</td>
+    <td>${convStatusBadge(r.status)}</td>
+    <td>${isNaN(r.absGap)?'-':r.absGap.toFixed(2)}</td>
+    <td>${isNaN(r.maxGap)?'-':r.maxGap.toFixed(2)}</td>
+    <td>${isNaN(r.syncIndex)?'-':r.syncIndex.toFixed(3)}</td>
+  </tr>`).join('');
+  document.getElementById('convSektorSyncTable').innerHTML = `<thead>${head}</thead><tbody>${bodyRows}</tbody>`;
+
+  document.getElementById('dlConvSektorSyncChart').onclick = ()=> triggerJPGDownload(convSektorChart1, `konvergensi_sinkronisasi_${convSektorYear}`);
+  document.getElementById('convSektorSyncExcelBtn').onclick = async ()=>{
+    const header = ['Sektor','Status','Absolute Growth Gap (pp)','Max Gap Semua Sektor (pp)','Synchronization Index'];
+    const excelRows = rows.map(r=>[r.sektor, r.status, r.absGap, r.maxGap, r.syncIndex]);
+    await exportStyledExcel(`konvergensi_sinkronisasi_${convSektorYear}`, 'Sinkronisasi', header, excelRows);
+  };
+}
+
+/* ---- 06. Ringkasan Tahunan (semua sektor, per tahun) ---- */
+function renderConvSektorYearly(){
+  const el = document.getElementById('convSektoralBody');
+  if(convSektor06LoadState==='idle'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; loadConvSektor06(); return; }
+  if(convSektor06LoadState==='loading'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; return; }
+  if(convSektor06LoadState==='error'){ el.innerHTML = `<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(convSektor06LoadError)}<br><br><a href="${CONV_SEKTOR_06_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div>`; return; }
+  if(!convSektor06Rows || !convSektor06Rows.length){ el.innerHTML = `<div class="state-msg">Sumber data kosong.</div>`; return; }
+
+  const rows = [...convSektor06Rows].sort((a,b)=>a.tahun-b.tahun);
+  const last = rows[rows.length-1];
+
+  el.innerHTML = `
+    <div class="ss-method-note"><div><b>💡 Cara membaca:</b> Ringkasan seluruh 17 sektor tiap tahun: rata-rata/median gap, serta berapa sektor yang sedang converging vs diverging tahun itu.</div></div>
+    <div class="ss-kpi-grid">
+      <div class="stat-box"><div class="stat-label">Tahun Terbaru</div><div class="stat-value" style="font-size:15px;">${last.tahun}</div></div>
+      <div class="stat-box"><div class="stat-label">Mean Gap Terbaru</div><div class="stat-value" style="font-size:15px;">${last.meanGap.toFixed(2)} pp</div></div>
+      <div class="stat-box"><div class="stat-label">Sektor Converging</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.CONVERGING};">${isNaN(last.sectorsConv)?'-':last.sectorsConv}</div></div>
+      <div class="stat-box"><div class="stat-label">Sektor Diverging</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.DIVERGING};">${isNaN(last.sectorsDiv)?'-':last.sectorsDiv}</div></div>
+    </div>
+    <div class="ss-section-title">Mean & Median Absolute Gap per Tahun</div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlConvSektorYearlyChart">⬇ JPG</button><div class="chart-box" style="height:300px;"><canvas id="convSektorYearlyChart"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Ringkasan Tahunan</span><button class="dl-btn" id="convSektorYearlyExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="convSektorYearlyTable"></table></div>
+  `;
+
+  const labels = rows.map(r=>r.tahun);
+  if(convSektorChart1) convSektorChart1.destroy();
+  convSektorChart1 = new Chart(document.getElementById('convSektorYearlyChart'), {
+    type:'line',
+    data:{ labels, datasets:[
+      { label:'Mean Gap (pp)', data: rows.map(r=>r.meanGap), borderColor:'#D64553', backgroundColor:'#D64553', tension:0.35, pointRadius:3 },
+      { label:'Median Gap (pp)', data: rows.map(r=>r.medianGap), borderColor:'#3E6E8E', backgroundColor:'#3E6E8E', tension:0.35, pointRadius:3 }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'} } },
+      scales:{ x:{grid:{display:false}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}}, y:{grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}} }
+    }
+  });
+
+  const head = `<tr><th>Tahun</th><th>Status</th><th>Mean Gap</th><th>Median Gap</th><th>Max Gap</th><th>Min Gap</th><th>Converging</th><th>Diverging</th></tr>`;
+  const bodyRows = rows.map(r=>`<tr>
+    <td>${r.tahun}</td>
+    <td>${convStatusBadge(r.status)}</td>
+    <td>${r.meanGap.toFixed(2)}</td>
+    <td>${r.medianGap.toFixed(2)}</td>
+    <td>${isNaN(r.maxGap)?'-':r.maxGap.toFixed(2)}</td>
+    <td>${isNaN(r.minGap)?'-':r.minGap.toFixed(2)}</td>
+    <td class="pos">${isNaN(r.sectorsConv)?'-':r.sectorsConv}</td>
+    <td class="neg">${isNaN(r.sectorsDiv)?'-':r.sectorsDiv}</td>
+  </tr>`).join('');
+  document.getElementById('convSektorYearlyTable').innerHTML = `<thead>${head}</thead><tbody>${bodyRows}</tbody>`;
+
+  document.getElementById('dlConvSektorYearlyChart').onclick = ()=> triggerJPGDownload(convSektorChart1, 'konvergensi_ringkasan_tahunan');
+  document.getElementById('convSektorYearlyExcelBtn').onclick = async ()=>{
+    const header = ['Tahun','Overall Status','Mean Absolute Gap (pp)','Median Absolute Gap (pp)','Max Absolute Gap (pp)','Min Absolute Gap (pp)','Sectors Converging','Sectors Diverging'];
+    const excelRows = rows.map(r=>[r.tahun, r.status, r.meanGap, r.medianGap, r.maxGap, r.minGap, r.sectorsConv, r.sectorsDiv]);
+    await exportStyledExcel('konvergensi_ringkasan_tahunan', 'Ringkasan Tahunan', header, excelRows);
+  };
+}
+
+
 /* ---------- 2. MATRIKS SEKTOR ---------- */
 function convMatrixColor(v, maxAbs){
   if(v===null || v===undefined || isNaN(v)) return '#F5F5F5';
@@ -5962,8 +6527,8 @@ function renderConvMatrix(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b>📖 Apa ini:</b> Matriks <b>Absolute Growth Gap</b> (poin persentase) antar sektor — seberapa berbeda laju pertumbuhan satu sektor dibanding sektor lainnya. Dapat digunakan untuk melihat perbedaan perilaku antar sektor</div>
-      <div style="margin-top:6px"><b>💡 Cara membaca:</b> Angka kecil (cerah) → perubahan pertumbuhan kedua sektor relatif mirip. Angka besar (pekat) → perubahan pertumbuhan kedua sektor berbeda jauh.</div>
+      <div><b>📖 Apa ini:</b> Matriks 17×17 <b>Absolute Growth Gap</b> (poin persentase) antar sektor — seberapa berbeda laju pertumbuhan satu sektor dibanding sektor lainnya, dihitung ulang langsung dari data mentah 136 pasangan sektor untuk tahun yang dipilih.</div>
+      <div style="margin-top:6px"><b>💡 Cara membaca:</b> Angka kecil (hijau) → perubahan pertumbuhan kedua sektor relatif mirip. Angka besar (merah) → perubahan pertumbuhan kedua sektor berbeda jauh.</div>
     </div>
 
     <div class="ss-controls">
