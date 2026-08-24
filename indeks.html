@@ -1066,6 +1066,9 @@ let divResult = null;
 let advMode = false;
 let advSubTab = 'similarity';
 const ADV_URLS = {
+  growth_diff: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTKpA7qNMmrJ7aMD4SclhQOO5H7DXYQBP-XeEWSmbNBL-PVBgAHcfvQcsN1q_7g7hTF7-hjOOaquN_D/pub?gid=624063501&single=true&output=csv',
+  structural_change: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTKpA7qNMmrJ7aMD4SclhQOO5H7DXYQBP-XeEWSmbNBL-PVBgAHcfvQcsN1q_7g7hTF7-hjOOaquN_D/pub?gid=1631736750&single=true&output=csv',
+  krugman: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTKpA7qNMmrJ7aMD4SclhQOO5H7DXYQBP-XeEWSmbNBL-PVBgAHcfvQcsN1q_7g7hTF7-hjOOaquN_D/pub?gid=1382143495&single=true&output=csv',
   similarity: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRwkYQJ0hgpoLJKOdJS66e0gXnZO1EfzbISGThN6LEGByxgbwKb9KcvFSffqXssuHX5hSYkkf2-JGWu/pub?gid=534611480&single=true&output=csv',
   gap:        'https://docs.google.com/spreadsheets/d/e/2PACX-1vRwkYQJ0hgpoLJKOdJS66e0gXnZO1EfzbISGThN6LEGByxgbwKb9KcvFSffqXssuHX5hSYkkf2-JGWu/pub?gid=1780718029&single=true&output=csv',
   markov:     'https://docs.google.com/spreadsheets/d/e/2PACX-1vRwkYQJ0hgpoLJKOdJS66e0gXnZO1EfzbISGThN6LEGByxgbwKb9KcvFSffqXssuHX5hSYkkf2-JGWu/pub?gid=415024084&single=true&output=csv',
@@ -7606,6 +7609,9 @@ function renderAdvancedView(){
   const main = document.getElementById('main');
 
   const subTabs = [
+    {key:'growth_diff', label:'Diferensial Pertumbuhan'},
+    {key:'structural_change', label:'Perubahan Struktur'},
+    {key:'krugman', label:'Indeks Krugman'},
     {key:'similarity', label:'Kemiripan Struktur'},
     {key:'gap', label:'Kesenjangan Struktur'},
     {key:'markov', label:'Transisi Markov'},
@@ -7618,7 +7624,7 @@ function renderAdvancedView(){
     <section class="ss-wrap">
       <div class="ss-intro">
         <h2>Analisis Lanjutan</h2>
-        <p>Enam analisis pelengkap Shift-Share, LQ, dan Diversitas: seberapa mirip struktur ekonomi Klungkung dengan Bali, sektor mana penyumbang perbedaan terbesar, bagaimana sektor berpindah kelas dari waktu ke waktu, seberapa kompleks kapabilitas ekonominya, seberapa tahan terhadap guncangan, dan bagaimana pola spesialisasi tiap sektor sejak 2010.</p>
+        <p>Sembilan analisis pelengkap Shift-Share, LQ, dan Diversitas: selisih laju pertumbuhan Klungkung vs Bali, seberapa besar dan di sektor mana struktur ekonomi berubah tiap tahun, derajat spesialisasi ala Krugman, seberapa mirip struktur ekonomi Klungkung dengan Bali, sektor mana penyumbang perbedaan terbesar, bagaimana sektor berpindah kelas dari waktu ke waktu, seberapa kompleks kapabilitas ekonominya, seberapa tahan terhadap guncangan, dan bagaimana pola spesialisasi tiap sektor sejak 2010.</p>
       </div>
       <div class="ss-method-tabs" id="advSubTabs">
         ${subTabs.map(t=>`<button class="ss-method-tab" data-k="${t.key}">${escapeHtml(t.label)}</button>`).join('')}
@@ -7632,6 +7638,9 @@ function renderAdvancedView(){
   });
 
   const renderers = {
+    growth_diff: renderAdvGrowthDiff,
+    structural_change: renderAdvStructChange,
+    krugman: renderAdvKrugman,
     similarity: renderAdvSimilarity,
     gap: renderAdvGap,
     markov: renderAdvMarkov,
@@ -7688,6 +7697,314 @@ function advEnsureLoaded(key){
   }
   if(!advRaw[key] || !advRaw[key].length){ body.innerHTML = `<div class="state-msg">Sumber data kosong.</div>`; return false; }
   return true;
+}
+
+/* =========================================================
+   0a. GROWTH DIFFERENTIAL
+   ========================================================= */
+function advDetectGrowthDiffCols(){
+  const h = advHeaders.growth_diff;
+  const find = re=> h.find(x=> re.test(divNormalizeHeader(x)));
+  advMap.growth_diff = {
+    tahun: find(/^tahun$/i),
+    adhkK: find(/^ADHK_Klungkung$/i),
+    adhkB: find(/^ADHK_Bali$/i),
+    growthK: find(/^Growth_K$/i),
+    growthB: find(/^Growth_Bali$/i),
+    diffPp: find(/^Growth_Diff_pp$/i),
+    relDiff: find(/^Relative_Growth_Diff$/i),
+    cumGap: find(/^Cumulative_Relative_Gap$/i),
+    status: find(/^Status$/i)
+  };
+}
+function advBuildGrowthDiffSeries(){
+  const m = advMap.growth_diff;
+  const rows = [];
+  advRaw.growth_diff.forEach(r=>{
+    const tahun = divExtractYear(r[m.tahun]);
+    const adhkK = divToNumber(r[m.adhkK]);
+    if(!tahun || isNaN(adhkK) || adhkK===0) return; // lewati baris padding (2026+)
+    rows.push({
+      tahun, adhkK, adhkB: divToNumber(r[m.adhkB]),
+      growthK: divToNumber(r[m.growthK]), growthB: divToNumber(r[m.growthB]),
+      diffPp: divToNumber(r[m.diffPp]), relDiff: divToNumber(r[m.relDiff]),
+      cumGap: divToNumber(r[m.cumGap]), status: (r[m.status]||'').toString().trim()
+    });
+  });
+  rows.sort((a,b)=>a.tahun-b.tahun);
+  return rows;
+}
+function growthDiffBadge(status){
+  if(/lebih cepat/i.test(status)) return {label:'Klungkung Lebih Cepat', color:'#6F8F52'};
+  if(/lebih lambat/i.test(status)) return {label:'Klungkung Lebih Lambat', color:'#C1440E'};
+  return {label:status||'Sama', color:'#8A4A55'};
+}
+function renderAdvGrowthDiff(){
+  if(!advEnsureLoaded('growth_diff')) return;
+  if(!advMap.growth_diff) advDetectGrowthDiffCols();
+  const series = advBuildGrowthDiffSeries();
+  const body = document.getElementById('advBody');
+  if(!series.length){ body.innerHTML = `<div class="state-msg">Tidak ada data valid — periksa struktur kolom sumber data.</div>`; return; }
+
+  const latest = series[series.length-1];
+  const badge = growthDiffBadge(latest.status);
+
+  body.innerHTML = `
+    <div class="ss-method-note">
+      <div><b>📖 Apa itu analisis ini:</b> Growth Differential membandingkan laju pertumbuhan ekonomi (ADHK) Klungkung terhadap Bali dari tahun ke tahun — apakah Klungkung tumbuh lebih cepat, lebih lambat, atau setara Bali.</div>
+      <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+      <ul class="formula-list">
+        <li>Growth Diff (pp) = (Growthₖ − Growth_Bali) × 100</li>
+        <li>Cumulative Relative Gap = Σ Relative Growth Diff sejak tahun dasar</li>
+      </ul>
+      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> <b>Growth Diff (pp) positif</b> = pertumbuhan Klungkung tahun itu lebih cepat dari Bali dalam poin persentase. <b>Cumulative Relative Gap</b> menunjukkan akumulasi selisih sejak tahun dasar — tren naik berarti Klungkung perlahan mengejar/melampaui Bali, tren turun berarti sebaliknya.</div>
+    </div>
+    <div class="ss-kpi-grid">
+      <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
+      <div class="stat-box"><div class="stat-label">Growth Diff (pp)</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${latest.diffPp>=0?'+':''}${latest.diffPp.toFixed(3)} pp</div></div>
+      <div class="stat-box"><div class="stat-label">Status</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${escapeHtml(badge.label)}</div></div>
+    </div>
+    <div class="ss-section-title">Tren Pertumbuhan: Klungkung vs Bali</div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvGrowthTs">⬇ JPG</button><div class="chart-box" style="height:280px;"><canvas id="advGrowthTsCanvas"></canvas></div></div>
+    <div class="ss-section-title">Growth Differential & Cumulative Relative Gap</div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvGrowthDiff">⬇ JPG</button><div class="chart-box" style="height:280px;"><canvas id="advGrowthDiffCanvas"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Growth Differential per Tahun</span><button class="dl-btn" id="advGrowthExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advGrowthTable"></table></div>
+  `;
+
+  document.getElementById('advGrowthTable').innerHTML = `<thead><tr><th>Tahun</th><th>Growth K</th><th>Growth Bali</th><th>Diff (pp)</th><th>Cum. Relative Gap</th><th>Status</th></tr></thead><tbody>${
+    series.map(s=>{ const b=growthDiffBadge(s.status); return `<tr><td>${s.tahun}</td><td>${isNaN(s.growthK)?'-':(s.growthK*100).toFixed(2)+'%'}</td><td>${isNaN(s.growthB)?'-':(s.growthB*100).toFixed(2)+'%'}</td><td>${isNaN(s.diffPp)?'-':s.diffPp.toFixed(3)}</td><td>${isNaN(s.cumGap)?'-':(s.cumGap*100).toFixed(2)+'%'}</td><td><span class="ss-badge-quad" style="background:${b.color}">${escapeHtml(b.label)}</span></td></tr>`; }).join('')
+  }</tbody>`;
+
+  const tsCtx = document.getElementById('advGrowthTsCanvas');
+  if(advCharts.growthTs){ advCharts.growthTs.destroy(); }
+  advCharts.growthTs = new Chart(tsCtx, {
+    type:'line',
+    data:{ labels: series.map(s=>s.tahun), datasets:[
+      {label:'Klungkung', data: series.map(s=> isNaN(s.growthK)?null:s.growthK*100), borderColor:'#D64553', backgroundColor:'rgba(214,69,83,0.15)', fill:true, tension:0.4, spanGaps:true, pointRadius:0, pointHoverRadius:4, pointHitRadius:10},
+      {label:'Bali', data: series.map(s=> isNaN(s.growthB)?null:s.growthB*100), borderColor:'#3E6E8E', backgroundColor:'rgba(62,110,142,0.15)', fill:true, tension:0.4, spanGaps:true, pointRadius:0, pointHoverRadius:4, pointHitRadius:10}
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{intersect:false, mode:'index'},
+      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'}}},
+      scales:{ x:{grid:{display:false}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}}, y:{grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5},callback:v=>v+'%'}} } }
+  });
+
+  const diffCtx = document.getElementById('advGrowthDiffCanvas');
+  if(advCharts.growthDiff){ advCharts.growthDiff.destroy(); }
+  advCharts.growthDiff = new Chart(diffCtx, {
+    data:{ labels: series.map(s=>s.tahun), datasets:[
+      {type:'bar', label:'Growth Diff (pp)', data: series.map(s=>s.diffPp), backgroundColor: series.map(s=> s.diffPp>=0?'#6F8F52':'#C1440E'), yAxisID:'y'},
+      {type:'line', label:'Cumulative Relative Gap (%)', data: series.map(s=> isNaN(s.cumGap)?null:s.cumGap*100), borderColor:'#B98B27', backgroundColor:'rgba(185,139,39,0.18)', fill:true, tension:0.4, pointRadius:0, pointHoverRadius:4, pointHitRadius:10, yAxisID:'y1'}
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{intersect:false, mode:'index'},
+      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'}}},
+      scales:{
+        x:{grid:{display:false}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}},
+        y:{position:'left', grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}, title:{display:true,text:'pp',color:'#8A4A55',font:{family:'Inter',size:10.5}}},
+        y1:{position:'right', grid:{display:false}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5},callback:v=>v+'%'}}
+      } }
+  });
+
+  document.getElementById('dlAdvGrowthTs').onclick = ()=> triggerJPGDownload(advCharts.growthTs, `growth_differential_tren`);
+  document.getElementById('dlAdvGrowthDiff').onclick = ()=> triggerJPGDownload(advCharts.growthDiff, `growth_differential_gap`);
+  document.getElementById('advGrowthExcelBtn').onclick = async ()=>{
+    await exportStyledExcel('growth_differential', 'Growth Differential', ['Tahun','Growth K','Growth Bali','Diff (pp)','Relative Growth Diff','Cumulative Relative Gap','Status'], series.map(s=>[s.tahun,s.growthK,s.growthB,s.diffPp,s.relDiff,s.cumGap,s.status]));
+  };
+}
+
+/* =========================================================
+   0b. STRUCTURAL CHANGE (SCI antar tahun)
+   ========================================================= */
+function advDetectStructChangeCols(){
+  const h = advHeaders.structural_change;
+  const find = re=> h.find(x=> re.test(divNormalizeHeader(x)));
+  advMap.structural_change = {
+    tahun: find(/^tahun$/i), sektor: find(/^sektor$/i),
+    totalK: find(/^total_k$/i), shareK: find(/^share_k$/i),
+    totalB: find(/^total_bali$/i), shareB: find(/^share_bali$/i),
+    deltaK: find(/^delta\s*share\s*k$/i), deltaB: find(/^delta_share_b$/i),
+    sciK: find(/^sci_k$/i), sciB: find(/^sci_b$/i),
+    gapSektoral: find(/^structural_gap_sectoral$/i),
+    sciDiff: find(/^sci\s*difference$/i)
+  };
+}
+function advBuildStructChangeRows(){
+  const m = advMap.structural_change;
+  const rows = [];
+  advRaw.structural_change.forEach(r=>{
+    const tahun = divExtractYear(r[m.tahun]);
+    const sektor = (r[m.sektor]||'').toString().trim();
+    const totalK = divToNumber(r[m.totalK]);
+    if(!tahun || !sektor || isNaN(totalK) || totalK===0) return; // lewati baris padding (2026+)
+    rows.push({
+      tahun, sektor, shareK: divToNumber(r[m.shareK]), shareB: divToNumber(r[m.shareB]),
+      deltaK: divToNumber(r[m.deltaK]), deltaB: divToNumber(r[m.deltaB]),
+      sciK: divToNumber(r[m.sciK]), sciB: divToNumber(r[m.sciB]),
+      gap: divToNumber(r[m.gapSektoral]), sciDiff: divToNumber(r[m.sciDiff])
+    });
+  });
+  return rows;
+}
+function renderAdvStructChange(){
+  if(!advEnsureLoaded('structural_change')) return;
+  if(!advMap.structural_change) advDetectStructChangeCols();
+  const rows = advBuildStructChangeRows();
+  const body = document.getElementById('advBody');
+  if(!rows.length){ body.innerHTML = `<div class="state-msg">Tidak ada data valid.</div>`; return; }
+  const years = [...new Set(rows.map(r=>r.tahun))].sort((a,b)=>a-b);
+  if(!advCompYear.structural_change || !years.includes(advCompYear.structural_change)) advCompYear.structural_change = years[years.length-1];
+
+  // Deret SCI per tahun (satu nilai per tahun; ambil dari baris pertama tahun tsb)
+  const sciSeries = years.map(y=>{
+    const r = rows.find(x=>x.tahun===y);
+    return { tahun:y, sciK: r? r.sciK : NaN, sciB: r? r.sciB : NaN };
+  }).filter(s=> !isNaN(s.sciK));
+
+  body.innerHTML = `
+    <div class="ss-method-note">
+      <div><b>📖 Apa itu analisis ini:</b> Structural Change Index (SCI) mengukur seberapa besar komposisi sektoral berubah dari tahun ke tahun sebelumnya (bukan dibandingkan wilayah lain seperti SSI) — dan sektor mana yang paling bergeser pada tahun tertentu.</div>
+      <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+      <ul class="formula-list">
+        <li>SCIₜ = ½ × Σ |Shareᵢ,ₜ − Shareᵢ,ₜ₋₁|</li>
+        <li>Structural Gap Sektoral = ΔShareₖ − ΔShare_Bali untuk sektor tsb</li>
+      </ul>
+      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> <b>SCI</b> makin besar berarti struktur ekonomi berubah makin cepat tahun itu. <b>Structural Gap Sektoral</b> menunjukkan sektor mana yang pergeserannya paling berbeda arah/besaran antara Klungkung dan Bali. Pilih tahun untuk melihat detail per sektor.</div>
+    </div>
+    <div class="ss-section-title">Tren SCI: Klungkung vs Bali</div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvSciTs">⬇ JPG</button><div class="chart-box" style="height:280px;"><canvas id="advSciTsCanvas"></canvas></div></div>
+    <div class="ss-controls" style="margin-bottom:10px;"><div class="ctrl-item"><label>Tahun</label><select id="advSciYear"></select></div></div>
+    <div class="ss-section-title">Perubahan Share per Sektor</div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvSciSektor">⬇ JPG</button><div class="chart-box" style="height:400px;"><canvas id="advSciSektorCanvas"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Perubahan Struktur Sektoral</span><button class="dl-btn" id="advSciExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advSciTable"></table></div>
+  `;
+
+  const tsCtx = document.getElementById('advSciTsCanvas');
+  if(advCharts.sciTs){ advCharts.sciTs.destroy(); }
+  advCharts.sciTs = new Chart(tsCtx, {
+    type:'line',
+    data:{ labels: sciSeries.map(s=>s.tahun), datasets:[
+      {label:'SCI Klungkung', data: sciSeries.map(s=>s.sciK*100), borderColor:'#D64553', backgroundColor:'rgba(214,69,83,0.15)', fill:true, tension:0.4, pointRadius:0, pointHoverRadius:4, pointHitRadius:10},
+      {label:'SCI Bali', data: sciSeries.map(s=>s.sciB*100), borderColor:'#3E6E8E', backgroundColor:'rgba(62,110,142,0.15)', fill:true, tension:0.4, pointRadius:0, pointHoverRadius:4, pointHitRadius:10}
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{intersect:false, mode:'index'},
+      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'}}},
+      scales:{ x:{grid:{display:false}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}}, y:{grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5},callback:v=>v+'%'}} } }
+  });
+  document.getElementById('dlAdvSciTs').onclick = ()=> triggerJPGDownload(advCharts.sciTs, `sci_tren`);
+
+  const yearSel = document.getElementById('advSciYear');
+  years.forEach(y=> yearSel.innerHTML += `<option value="${y}" ${y===advCompYear.structural_change?'selected':''}>${y}</option>`);
+  yearSel.onchange = ()=>{ advCompYear.structural_change = parseInt(yearSel.value); renderAdvSciForYear(rows); };
+
+  renderAdvSciForYear(rows);
+
+  document.getElementById('advSciExcelBtn').onclick = async ()=>{
+    await exportStyledExcel('structural_change', 'SCI', ['Tahun','Sektor','Share K','Share Bali','Delta Share K','Delta Share Bali','Structural Gap Sektoral','SCI K','SCI Bali','SCI Difference'], rows.map(r=>[r.tahun,r.sektor,r.shareK,r.shareB,r.deltaK,r.deltaB,r.gap,r.sciK,r.sciB,r.sciDiff]));
+  };
+}
+function renderAdvSciForYear(rows){
+  const yr = rows.filter(r=>r.tahun===advCompYear.structural_change).slice().sort((a,b)=> Math.abs(b.gap||0)-Math.abs(a.gap||0));
+  const ctx = document.getElementById('advSciSektorCanvas');
+  if(advCharts.sciSektor){ advCharts.sciSektor.destroy(); }
+  advCharts.sciSektor = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: yr.map(r=>r.sektor), datasets:[
+      {label:'Δ Share Klungkung (pp)', data: yr.map(r=> isNaN(r.deltaK)?0:r.deltaK*100), backgroundColor:'#D64553'},
+      {label:'Δ Share Bali (pp)', data: yr.map(r=> isNaN(r.deltaB)?0:r.deltaB*100), backgroundColor:'#3E6E8E'}
+    ] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'}}},
+      scales:{ x:{grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5},callback:v=>v+' pp'}}, y:{grid:{display:false},ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}} } }
+  });
+  document.getElementById('dlAdvSciSektor').onclick = ()=> triggerJPGDownload(advCharts.sciSektor, `sci_sektor_${advCompYear.structural_change}`);
+  document.getElementById('advSciTable').innerHTML = `<thead><tr><th>Sektor</th><th>Share K</th><th>Share Bali</th><th>Δ Share K</th><th>Δ Share Bali</th><th>Gap Sektoral</th></tr></thead><tbody>${
+    yr.map(r=>`<tr><td>${escapeHtml(r.sektor)}</td><td>${isNaN(r.shareK)?'-':(r.shareK*100).toFixed(2)+'%'}</td><td>${isNaN(r.shareB)?'-':(r.shareB*100).toFixed(2)+'%'}</td><td>${isNaN(r.deltaK)?'-':(r.deltaK*100).toFixed(2)+' pp'}</td><td>${isNaN(r.deltaB)?'-':(r.deltaB*100).toFixed(2)+' pp'}</td><td>${isNaN(r.gap)?'-':(r.gap*100).toFixed(3)+' pp'}</td></tr>`).join('')
+  }</tbody>`;
+}
+
+/* =========================================================
+   0c. KRUGMAN SPECIALIZATION INDEX
+   ========================================================= */
+function advDetectKrugmanCols(){
+  const h = advHeaders.krugman;
+  const find = re=> h.find(x=> re.test(divNormalizeHeader(x)));
+  advMap.krugman = {
+    tahun: find(/^tahun$/i),
+    sumGap: find(/^sum_absolute_share_gap$/i),
+    half: find(/^krugman_index_half$/i),
+    status: find(/^status$/i)
+  };
+}
+function advBuildKrugmanSeries(){
+  const m = advMap.krugman;
+  const rows = [];
+  advRaw.krugman.forEach(r=>{
+    const tahun = divExtractYear(r[m.tahun]);
+    const half = divToNumber(r[m.half]);
+    const sumGap = divToNumber(r[m.sumGap]);
+    if(!tahun || isNaN(half) || (half===0 && sumGap===0)) return; // lewati baris padding (2026+)
+    rows.push({ tahun, sumGap, half, status: (r[m.status]||'').toString().trim() });
+  });
+  rows.sort((a,b)=>a.tahun-b.tahun);
+  return rows;
+}
+function krugmanBadge(status){
+  if(/very similar/i.test(status)) return {label:'Sangat Mirip', color:'#6F8F52'};
+  if(/similar/i.test(status)) return {label:'Mirip', color:'#B98B27'};
+  if(/different/i.test(status)) return {label:'Berbeda Struktural', color:'#C1440E'};
+  return {label:status||'-', color:'#8A4A55'};
+}
+function renderAdvKrugman(){
+  if(!advEnsureLoaded('krugman')) return;
+  if(!advMap.krugman) advDetectKrugmanCols();
+  const series = advBuildKrugmanSeries();
+  const body = document.getElementById('advBody');
+  if(!series.length){ body.innerHTML = `<div class="state-msg">Tidak ada data valid.</div>`; return; }
+  const latest = series[series.length-1];
+  const badge = krugmanBadge(latest.status);
+
+  body.innerHTML = `
+    <div class="ss-method-note">
+      <div><b>📖 Apa itu indeks ini:</b> Krugman Specialization Index mengukur derajat perbedaan struktur ekonomi antar wilayah — konsep klasik dari Paul Krugman untuk melihat seberapa terspesialisasi suatu wilayah dibanding wilayah pembanding.</div>
+      <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+      <ul class="formula-list">
+        <li>Krugman Index = Σ |Shareᵢ,Klungkung − Shareᵢ,Bali|</li>
+        <li>Krugman Index (Half) = ½ × Krugman Index</li>
+      </ul>
+      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> Nilai mendekati <b>0</b> = struktur ekonomi Klungkung sangat mirip Bali (tidak terspesialisasi khusus). Nilai mendekati <b>1</b> = struktur sangat berbeda/terspesialisasi. Secara matematis setara dengan SSI (Krugman Half = 1 − SSI), hanya arah tafsirnya dibalik: di sini makin tinggi = makin berbeda.</div>
+    </div>
+    <div class="ss-kpi-grid">
+      <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
+      <div class="stat-box"><div class="stat-label">Krugman Index (Half)</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${latest.half.toFixed(3)}</div></div>
+      <div class="stat-box"><div class="stat-label">Status</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${escapeHtml(badge.label)}</div></div>
+    </div>
+    <div class="ss-section-title">Tren Indeks Krugman Antar Tahun</div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvKrugman">⬇ JPG</button><div class="chart-box" style="height:280px;"><canvas id="advKrugmanCanvas"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Indeks Krugman per Tahun</span><button class="dl-btn" id="advKrugmanExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advKrugmanTable"></table></div>
+  `;
+
+  document.getElementById('advKrugmanTable').innerHTML = `<thead><tr><th>Tahun</th><th>Sum Absolute Share Gap</th><th>Krugman Index (Half)</th><th>Status</th></tr></thead><tbody>${
+    series.map(s=>{ const b=krugmanBadge(s.status); return `<tr><td>${s.tahun}</td><td>${s.sumGap.toFixed(4)}</td><td>${s.half.toFixed(4)}</td><td><span class="ss-badge-quad" style="background:${b.color}">${escapeHtml(b.label)}</span></td></tr>`; }).join('')
+  }</tbody>`;
+
+  const ctx = document.getElementById('advKrugmanCanvas');
+  if(advCharts.krugman){ advCharts.krugman.destroy(); }
+  advCharts.krugman = new Chart(ctx, {
+    type:'line',
+    data:{ labels: series.map(s=>s.tahun), datasets:[
+      {label:'Krugman Index (Half)', data: series.map(s=>s.half), borderColor:'#C1440E', backgroundColor:'rgba(193,68,14,0.18)', fill:true, tension:0.4, pointRadius:0, pointHoverRadius:4, pointHitRadius:10}
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{intersect:false, mode:'index'},
+      plugins:{legend:{display:false}},
+      scales:{ x:{grid:{display:false}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}}, y:{grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}} } }
+  });
+
+  document.getElementById('dlAdvKrugman').onclick = ()=> triggerJPGDownload(advCharts.krugman, `krugman_index_tren`);
+  document.getElementById('advKrugmanExcelBtn').onclick = async ()=>{
+    await exportStyledExcel('krugman_index', 'Krugman', ['Tahun','Sum Absolute Share Gap','Krugman Index (Half)','Status'], series.map(s=>[s.tahun,s.sumGap,s.half,s.status]));
+  };
 }
 
 /* =========================================================
