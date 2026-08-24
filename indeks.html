@@ -937,6 +937,9 @@ function subLabel(sub){ return SATUAN[sub] ? `${sub} (${SATUAN[sub]})` : sub; }
 let activePeriode = null;
 let ENABLED_KELOMPOK = null;
 let chartInstance = null;
+let hbChartInstance = null;
+let hkChartInstance = null;
+let hbChartType = 'bar'; // bar | donut | treemap
 let currentSeriesKey = null;
 let currentCompKey = null;
 let compCurrentChartType = 'stacked-bar';
@@ -1779,8 +1782,10 @@ function renderContent(periode){
 
   document.querySelectorAll('.comp-card').forEach(card=>{
     card.addEventListener('click', ()=>{
-      const [periode,kategori,kelompok,label,segs] = JSON.parse(decodeURIComponent(card.dataset.compkey));
-      openCompositionDetail(periode,kategori,kelompok,label,segs);
+      const [periode,kategori,kelompok,label,segs,kind] = JSON.parse(decodeURIComponent(card.dataset.compkey));
+      if(kind==='berlaku') openHargaBerlakuDetail(periode,kategori,kelompok,label,segs);
+      else if(kind==='konstan') openKonstanSektoralDetail(periode,kategori,kelompok,label,segs);
+      else openCompositionDetail(periode,kategori,kelompok,label,segs);
     });
   });
 }
@@ -1837,38 +1842,74 @@ function longestCommonPrefix(strs){
   return prefix;
 }
 
-/* Subkelompok "Nilai Tambah Harga Berlaku Lapangan Usaha <Sektor>" digabung jadi
-   satu kartu komposit per Kelompok (nilai + proporsi tahun yang sama), sesuai
-   permintaan — beda dari Harga Konstan yang tetap kartu per sektor + growth badge. */
-function splitHargaBerlakuGroup(subObj){
+/* Pola prefix PDRB yang dikenal — dipakai untuk deteksi grup DAN untuk memotong
+   label di grafik/legend (hanya sisakan nama sektor/komponen pengeluaran).
+   "Bruto" opsional supaya menangani variasi penamaan ("Nilai Tambah Bruto Harga
+   Berlaku Pengeluaran ..." vs "Nilai Tambah Harga Berlaku Lapangan Usaha ..."). */
+const HARGA_BERLAKU_DIMS = [
+  { re:/^Nilai\s+Tambah\s+(?:Bruto\s+)?Harga\s+Berlaku\s+Lapangan\s+Usaha\s+/i, label:'Harga Berlaku' },
+  { re:/^Nilai\s+Tambah\s+(?:Bruto\s+)?Harga\s+Berlaku\s+Komponen\s+/i, label:'Harga Berlaku (Pengeluaran)' }
+];
+const HARGA_KONSTAN_DIMS = [
+  { re:/^Nilai\s+Tambah\s+(?:Bruto\s+)?Harga\s+Konstan\s+2010\s+Lapangan\s+Usaha\s+/i, label:'Harga Konstan' },
+  { re:/^Nilai\s+Tambah\s+(?:Bruto\s+)?Harga\s+Konstan\s+2010\s+Komponen\s+/i, label:'Harga Konstan (Pengeluaran)' }
+];
+const PRICE_PREFIX_PATTERNS = [...HARGA_BERLAKU_DIMS, ...HARGA_KONSTAN_DIMS].map(d=>d.re);
+
+/* Subkelompok "Nilai Tambah [Bruto] Harga Berlaku <Dimensi> <Komponen>" digabung
+   jadi kartu komposit per dimensi (nilai + proporsi tahun yang sama). Bisa lebih
+   dari satu kartu kalau ada beberapa dimensi (Lapangan Usaha, Pengeluaran, dst).
+   Baris total "PDRB Menurut Harga Berlaku" SENGAJA dikecualikan (tidak cocok pola
+   di atas) supaya tidak ikut dihitung sebagai salah satu komponen. */
+function splitHargaBerlakuGroups(subObj){
   const subs = Object.keys(subObj);
-  const candidates = subs.filter(s=> /harga\s+berlaku/i.test(s));
-  if(candidates.length < 2) return null;
-  const prefix = longestCommonPrefix(candidates).trim().replace(/[-–:\/]\s*$/,'').trim();
-  return { segs: candidates, label: prefix || 'Harga Berlaku' };
+  const groups = [];
+  HARGA_BERLAKU_DIMS.forEach(d=>{
+    const candidates = subs.filter(s=> d.re.test(s));
+    if(candidates.length >= 2) groups.push({ segs:candidates, label:d.label });
+  });
+  return groups;
+}
+
+/* Sama seperti di atas tapi untuk Harga Konstan — dibuka dengan tampilan nilai +
+   pertumbuhan (bukan proporsi), karena harga konstan dipakai untuk melihat
+   pertumbuhan riil. Baris total "PDRB Menurut Harga Konstan 2010" dikecualikan
+   dengan alasan sama. */
+function splitHargaKonstanGroups(subObj){
+  const subs = Object.keys(subObj);
+  const groups = [];
+  HARGA_KONSTAN_DIMS.forEach(d=>{
+    const candidates = subs.filter(s=> d.re.test(s));
+    if(candidates.length >= 2) groups.push({ segs:candidates, label:d.label });
+  });
+  return groups;
 }
 
 function getCompositionGroups(subObj, kelompok){
   const groups = [];
   const pctSegs = splitCompositionSegments(subObj);
-  if(pctSegs) groups.push({ label:kelompok, segs:pctSegs, normalized:true });
+  if(pctSegs) groups.push({ label:kelompok, segs:pctSegs, normalized:true, kind:'pct' });
   const claimed = new Set(pctSegs || []);
 
-  const hb = splitHargaBerlakuGroup(subObj);
-  if(hb){
+  splitHargaBerlakuGroups(subObj).forEach(hb=>{
     const segs = hb.segs.filter(s=>!claimed.has(s));
-    if(segs.length >= 2){ groups.push({ label:hb.label, segs, normalized:true }); segs.forEach(s=>claimed.add(s)); }
-  }
+    if(segs.length >= 2){ groups.push({ label:hb.label, segs, normalized:true, kind:'berlaku' }); segs.forEach(s=>claimed.add(s)); }
+  });
+
+  splitHargaKonstanGroups(subObj).forEach(hk=>{
+    const segs = hk.segs.filter(s=>!claimed.has(s));
+    if(segs.length >= 2){ groups.push({ label:hk.label, segs, normalized:false, kind:'konstan' }); segs.forEach(s=>claimed.add(s)); }
+  });
 
   splitLevelGroups(subObj).forEach(g=>{
     const segs = g.segs.filter(s=>!claimed.has(s));
-    if(segs.length >= 2) groups.push({ label:g.label, segs, normalized:false });
+    if(segs.length >= 2) groups.push({ label:g.label, segs, normalized:false, kind:'level' });
   });
   return groups;
 }
 
 function renderCompositionCardHtml(periode,kategori,kelompok,subObj,group,katColor){
-  const { label, segs, normalized } = group;
+  const { label, segs, normalized, kind } = group;
   let maxSK = -Infinity;
   segs.forEach(s=> subObj[s].forEach(e=>{ maxSK = Math.max(maxSK, sortKey(e)); }));
   const latestEntries = segs.map(s=>{
@@ -1895,7 +1936,14 @@ function renderCompositionCardHtml(periode,kategori,kelompok,subObj,group,katCol
     return `<div class="comp-legend-item" title="${escapeHtml(x.sub)}: ${fmtNum(x.entry?x.entry.data:NaN)}"><span class="dot" style="background:${color}"></span>${escapeHtml(shortName)} <b>${pct.toFixed(1).replace('.',',')}%</b></div>`;
   }).join('');
 
-  const key = encodeURIComponent(JSON.stringify([periode,kategori,kelompok,label,segs]));
+  const subtitle = kind==='konstan' ? `${segs.length} sektor · Klik untuk nilai &amp; pertumbuhan per tahun`
+    : kind==='berlaku' ? `${segs.length} sektor · Klik untuk nilai &amp; proporsi per tahun`
+    : (normalized ? 'Komposisi' : 'Rincian per Jenjang');
+
+  const satuanTeks = SATUAN[segs[0]] ? ` ${SATUAN[segs[0]]}` : '';
+  const isSimpleCard = kind==='berlaku' || kind==='konstan';
+
+  const key = encodeURIComponent(JSON.stringify([periode,kategori,kelompok,label,segs,kind||'pct']));
   const gradientColors = latestEntries.map((_,i)=>COMPARE_COLORS[i % COMPARE_COLORS.length]);
   let stripGradient = gradientColors[0] || katColor;
   if(gradientColors.length > 1){
@@ -1907,10 +1955,22 @@ function renderCompositionCardHtml(periode,kategori,kelompok,subObj,group,katCol
     }).join(', ');
     stripGradient = `linear-gradient(90deg, ${stops})`;
   }
+
+  if(isSimpleCard){
+    return `<div class="card comp-card" data-compkey='${key}'>
+        <div class="comp-color-strip" style="background:${stripGradient}"></div>
+        <div class="card-label">${escapeHtml(label)}</div>
+        <div class="card-period">${latestLabel} · ${subtitle}</div>
+        <div class="card-value-row" style="margin-top:8px;">
+          <div class="card-value">${fmtNum(total)}<span class="card-unit">${escapeHtml(satuanTeks)}</span></div>
+        </div>
+      </div>`;
+  }
+
   return `<div class="card comp-card" data-compkey='${key}'>
       <div class="comp-color-strip" style="background:${stripGradient}"></div>
       <div class="card-label">${escapeHtml(label)}</div>
-      <div class="card-period">${latestLabel} · ${normalized ? 'Komposisi' : 'Rincian per Jenjang'}</div>
+      <div class="card-period">${latestLabel} · ${subtitle}</div>
       <div class="comp-bar">${barSegs}</div>
       <div class="comp-legend">${legend}</div>
     </div>`;
@@ -2310,6 +2370,248 @@ function openCompositionDetail(periode,kategori,kelompok,label,segs){
   };
 
   refreshCompositionDetail(subObj, segs, years[0], years[years.length-1]);
+}
+
+function shortSegName(sub, label){
+  for(const re of PRICE_PREFIX_PATTERNS){
+    if(re.test(sub)) return sub.replace(re,'').trim();
+  }
+  let s = sub;
+  if(s.startsWith(label)) s = s.slice(label.length).trim().replace(/^[-–:\/]\s*/,'');
+  return s || sub;
+}
+
+/* ---- Kartu "Harga Berlaku": pilih tahun -> nilai & proporsi (komposit) ---- */
+function openHargaBerlakuDetail(periode,kategori,kelompok,label,segs){
+  const subObj = STORE[periode][kategori][kelompok];
+  if(!segs || segs.length < 2) return;
+  currentCompKey = {periode,kategori,kelompok,label};
+  currentSeriesKey = null;
+
+  let allEntries = [];
+  segs.forEach(s=>{ allEntries = allEntries.concat(subObj[s]); });
+  const years = [...new Set(allEntries.map(e=>e.tahun))].sort((a,b)=>a-b);
+  const selYear = years[years.length-1];
+
+  const drawer = document.getElementById('drawer');
+  drawer.innerHTML = `
+    <div class="drawer-top">
+      <div>
+        <div class="drawer-eyebrow">${escapeHtml(kategori)} · ${escapeHtml(kelompok)}</div>
+        <h3>${escapeHtml(label)}</h3>
+      </div>
+      <button class="drawer-close" id="closeDrawer">✕</button>
+    </div>
+
+    <div class="filter-row">
+      <div class="ctrl-item"><label>Tahun</label><select id="hbYear"></select></div>
+      <div class="ctrl-item"><label>Tampilan</label><select id="hbChartTypeSel">
+        <option value="bar">Horizontal Bar</option>
+        <option value="donut">Donut</option>
+        <option value="treemap">Treemap</option>
+      </select></div>
+    </div>
+
+    <div class="chart-box-wrap">
+      <button class="dl-btn" id="dlHbChart" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+      <div class="chart-box" id="hbChartBox" style="height:380px;"><canvas id="hbChartCanvas"></canvas></div>
+    </div>
+
+    <div class="table-head-row">
+      <span class="table-head-label">Nilai &amp; Proporsi per Sektor</span>
+      <button class="dl-btn" id="dlHbExcel" title="Unduh tabel sebagai Excel">⬇ Excel</button>
+    </div>
+    <div class="table-scroll">
+      <table class="drawer-table" id="hbTable"></table>
+    </div>
+  `;
+
+  const yearSel = drawer.querySelector('#hbYear');
+  years.forEach(y=> yearSel.innerHTML += `<option value="${y}" ${y===selYear?'selected':''}>${y}</option>`);
+  yearSel.onchange = ()=> refreshHargaBerlaku(subObj, segs, label, parseInt(yearSel.value));
+
+  const typeSel = drawer.querySelector('#hbChartTypeSel');
+  typeSel.value = hbChartType;
+  typeSel.onchange = ()=>{ hbChartType = typeSel.value; refreshHargaBerlaku(subObj, segs, label, parseInt(yearSel.value)); };
+
+  document.getElementById('closeDrawer').onclick = closeDetail;
+  document.getElementById('overlay').classList.add('show');
+
+  refreshHargaBerlaku(subObj, segs, label, selYear);
+}
+
+function refreshHargaBerlaku(subObj, segs, label, year){
+  const rows = segs.map(s=>{
+    const arr = subObj[s];
+    const matches = arr.filter(e=>e.tahun===year);
+    const entry = matches.length ? matches[matches.length-1] : null;
+    return { sub:s, short: shortSegName(s,label), value: entry?entry.data:null, satuan: SATUAN[s]||'' };
+  }).filter(r=>r.value!==null).sort((a,b)=> b.value - a.value);
+
+  const total = rows.reduce((s,r)=>s+r.value,0) || 1;
+  const chartBox = document.getElementById('hbChartBox');
+
+  if(hbChartType==='treemap'){
+    if(hbChartInstance){ hbChartInstance.destroy(); hbChartInstance = null; }
+    chartBox.style.height = 'auto';
+    const items = rows.map((r,i)=>({ name:r.short, value:r.value, color: COMPARE_COLORS[i % COMPARE_COLORS.length] }));
+    const W = 600, H = 320;
+    const rects = buildTreemapLayout(items, 0, 0, W, H);
+    let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" id="hbTreemapSvg" style="width:100%;height:320px;display:block;background:#fff;">`;
+    rects.forEach(r=>{
+      const rw = Math.max(0, r.w-3), rh = Math.max(0, r.h-3);
+      const pct = (r.value/total*100).toFixed(1);
+      svg += `<rect x="${r.x.toFixed(1)}" y="${r.y.toFixed(1)}" width="${rw.toFixed(1)}" height="${rh.toFixed(1)}" fill="${r.color}" rx="5"><title>${escapeHtml(r.name)}: ${fmtNum(r.value)} (${pct}%)</title></rect>`;
+      if(r.w > 70 && r.h > 34){
+        const shortName = r.name.length > 24 ? r.name.slice(0,22)+'…' : r.name;
+        svg += `<text x="${(r.x+9).toFixed(1)}" y="${(r.y+19).toFixed(1)}" font-size="11" font-family="Inter,sans-serif" fill="#fff" font-weight="700">${escapeHtml(shortName)}</text>`;
+        svg += `<text x="${(r.x+9).toFixed(1)}" y="${(r.y+36).toFixed(1)}" font-size="13" font-family="Inter,sans-serif" fill="#fff" font-weight="700">${pct}%</text>`;
+      }else if(r.w > 34 && r.h > 20){
+        svg += `<text x="${(r.x+r.w/2).toFixed(1)}" y="${(r.y+r.h/2+4).toFixed(1)}" font-size="10" font-family="Inter,sans-serif" fill="#fff" font-weight="700" text-anchor="middle">${pct}%</text>`;
+      }
+    });
+    svg += `</svg>`;
+    chartBox.innerHTML = svg;
+  }else{
+    chartBox.style.height = '380px';
+    if(!document.getElementById('hbChartCanvas')){ chartBox.innerHTML = '<canvas id="hbChartCanvas"></canvas>'; }
+    if(hbChartInstance) hbChartInstance.destroy();
+    const canvas = document.getElementById('hbChartCanvas');
+
+    if(hbChartType==='donut'){
+      hbChartInstance = new Chart(canvas, {
+        type:'doughnut',
+        data:{ labels: rows.map(r=>r.short), datasets:[{
+          data: rows.map(r=>r.value),
+          backgroundColor: rows.map((_,i)=> COMPARE_COLORS[i % COMPARE_COLORS.length]),
+          borderWidth:1, borderColor:'#fff'
+        }]},
+        options:{ responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ position:'right', labels:{font:{family:'Inter',size:10.5},color:'#4A1620', boxWidth:12} },
+            tooltip:{ callbacks:{ label:(it)=> `${it.label}: ${fmtNum(it.parsed)} (${(it.parsed/total*100).toFixed(1)}%)` } } }
+        }
+      });
+    }else{
+      hbChartInstance = new Chart(canvas, {
+        type:'bar',
+        data:{ labels: rows.map(r=>r.short), datasets:[{
+          label:'Proporsi (%)',
+          data: rows.map(r=> r.value/total*100),
+          backgroundColor: rows.map((_,i)=> COMPARE_COLORS[i % COMPARE_COLORS.length])
+        }]},
+        options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
+          plugins:{ legend:{ display:false }, tooltip:{ callbacks:{
+            label:(it)=> `${it.parsed.x.toFixed(2)}% (${fmtNum(rows[it.dataIndex].value)} ${rows[it.dataIndex].satuan})`
+          } } },
+          scales:{ x:{ ticks:{ callback:(v)=>v+'%', color:'#8A4A55', font:{family:'Inter',size:10} }, grid:{color:'#F2D9D4'} }, y:{ ticks:{color:'#8A4A55',font:{family:'Inter',size:9.5}}, grid:{display:false} } }
+        }
+      });
+    }
+  }
+
+  const head = `<tr><th>Sektor</th><th>Nilai</th><th>Persentase</th></tr>`;
+  const bodyRows = rows.map(r=>`<tr><td>${escapeHtml(r.short)}</td><td>${fmtNum(r.value)} ${escapeHtml(r.satuan)}</td><td>${(r.value/total*100).toFixed(2).replace('.',',')}%</td></tr>`).join('');
+  document.getElementById('hbTable').innerHTML = `<thead>${head}</thead><tbody>${bodyRows}</tbody><tfoot><tr><td>Total</td><td>${fmtNum(total)} ${escapeHtml(rows[0]?rows[0].satuan:'')}</td><td>100%</td></tr></tfoot>`;
+
+  document.getElementById('dlHbChart').onclick = ()=>{
+    if(hbChartType==='treemap'){ exportSvgAsJPG(document.getElementById('hbTreemapSvg'), `${label}_${year}`); }
+    else{ triggerJPGDownload(hbChartInstance, `${label}_${year}`); }
+  };
+  document.getElementById('dlHbExcel').onclick = async ()=>{
+    const header = ['Sektor','Nilai','Persentase (%)'];
+    const excelRows = rows.map(r=>[r.short, r.value, +(r.value/total*100).toFixed(2)]);
+    await exportStyledExcel(`${label}_${year}`.replace(/[^a-z0-9]+/gi,'_'), label.slice(0,31), header, excelRows);
+  };
+}
+
+/* ---- Kartu "Harga Konstan": pilih tahun -> nilai & pertumbuhan tiap sektor ---- */
+function openKonstanSektoralDetail(periode,kategori,kelompok,label,segs){
+  const subObj = STORE[periode][kategori][kelompok];
+  if(!segs || segs.length < 2) return;
+  currentCompKey = {periode,kategori,kelompok,label};
+  currentSeriesKey = null;
+
+  let allEntries = [];
+  segs.forEach(s=>{ allEntries = allEntries.concat(subObj[s]); });
+  const years = [...new Set(allEntries.map(e=>e.tahun))].sort((a,b)=>a-b);
+  const selYear = years[years.length-1];
+
+  const drawer = document.getElementById('drawer');
+  drawer.innerHTML = `
+    <div class="drawer-top">
+      <div>
+        <div class="drawer-eyebrow">${escapeHtml(kategori)} · ${escapeHtml(kelompok)}</div>
+        <h3>${escapeHtml(label)}</h3>
+      </div>
+      <button class="drawer-close" id="closeDrawer">✕</button>
+    </div>
+
+    <div class="filter-row">
+      <div class="ctrl-item"><label>Tahun</label><select id="hkYear"></select></div>
+    </div>
+
+    <div class="chart-box-wrap">
+      <button class="dl-btn" id="dlHkChart" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+      <div class="chart-box" style="height:380px;"><canvas id="hkChartCanvas"></canvas></div>
+    </div>
+
+    <div class="table-head-row">
+      <span class="table-head-label">Nilai &amp; Pertumbuhan per Sektor</span>
+      <button class="dl-btn" id="dlHkExcel" title="Unduh tabel sebagai Excel">⬇ Excel</button>
+    </div>
+    <div class="table-scroll">
+      <table class="drawer-table" id="hkTable"></table>
+    </div>
+  `;
+
+  const yearSel = drawer.querySelector('#hkYear');
+  years.forEach(y=> yearSel.innerHTML += `<option value="${y}" ${y===selYear?'selected':''}>${y}</option>`);
+  yearSel.onchange = ()=> refreshKonstanSektoral(subObj, segs, label, parseInt(yearSel.value));
+
+  document.getElementById('closeDrawer').onclick = closeDetail;
+  document.getElementById('overlay').classList.add('show');
+
+  refreshKonstanSektoral(subObj, segs, label, selYear);
+}
+
+function refreshKonstanSektoral(subObj, segs, label, year){
+  const rows = segs.map(s=>{
+    const arr = subObj[s];
+    const curMatches = arr.filter(e=>e.tahun===year);
+    const prevMatches = arr.filter(e=>e.tahun===year-1);
+    const curEntry = curMatches.length ? curMatches[curMatches.length-1] : null;
+    const prevEntry = prevMatches.length ? prevMatches[prevMatches.length-1] : null;
+    const growth = (curEntry && prevEntry && prevEntry.data) ? (curEntry.data/prevEntry.data - 1)*100 : null;
+    return { sub:s, short: shortSegName(s,label), value: curEntry?curEntry.data:null, growth, satuan: SATUAN[s]||'' };
+  }).filter(r=>r.value!==null).sort((a,b)=> b.value - a.value);
+
+  if(hkChartInstance) hkChartInstance.destroy();
+  hkChartInstance = new Chart(document.getElementById('hkChartCanvas'), {
+    data:{ labels: rows.map(r=>r.short), datasets:[
+      { type:'line', label:'Nilai', data: rows.map(r=>r.value), borderColor:'#3E6E8E', backgroundColor:'rgba(62,110,142,0.28)', fill:true, tension:0.35, pointRadius:0, yAxisID:'y' },
+      { type:'line', label:'Pertumbuhan (%)', data: rows.map(r=>r.growth), borderColor:'#D64553', backgroundColor:'rgba(214,69,83,0.28)', fill:true, tension:0.35, pointRadius:0, yAxisID:'y1', spanGaps:true }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'} },
+        tooltip:{ callbacks:{ label:(it)=> it.dataset.label==='Pertumbuhan (%)' ? `Pertumbuhan: ${it.parsed.y===null?'n/a':it.parsed.y.toFixed(2)+'%'}` : `Nilai: ${fmtNum(it.parsed.y)}` } } },
+      scales:{
+        x:{ ticks:{ font:{family:'Inter',size:9.5}, color:'#8A4A55', maxRotation:60, minRotation:40 }, grid:{display:false} },
+        y:{ position:'left', ticks:{color:'#8A4A55'}, grid:{color:'#F2D9D4'}, title:{display:true,text:'Nilai'} },
+        y1:{ position:'right', ticks:{color:'#8A4A55', callback:(v)=>v+'%'}, grid:{display:false}, title:{display:true,text:'Pertumbuhan (%)'} }
+      }
+    }
+  });
+
+  const head = `<tr><th>Sektor</th><th>Nilai</th><th>Pertumbuhan</th></tr>`;
+  const bodyRows = rows.map(r=>`<tr><td>${escapeHtml(r.short)}</td><td>${fmtNum(r.value)} ${escapeHtml(r.satuan)}</td><td>${r.growth===null?'-':`<span class="badge ${r.growth>=0?'up':'down'}">${r.growth>=0?'▲ +':'▼ '}${r.growth.toFixed(2).replace('.',',')}%</span>`}</td></tr>`).join('');
+  document.getElementById('hkTable').innerHTML = `<thead>${head}</thead><tbody>${bodyRows}</tbody>`;
+
+  document.getElementById('dlHkChart').onclick = ()=> triggerJPGDownload(hkChartInstance, `${label}_${year}`);
+  document.getElementById('dlHkExcel').onclick = async ()=>{
+    const header = ['Sektor','Nilai','Pertumbuhan (%)'];
+    const excelRows = rows.map(r=>[r.short, r.value, r.growth===null?'':+r.growth.toFixed(2)]);
+    await exportStyledExcel(`${label}_${year}`.replace(/[^a-z0-9]+/gi,'_'), label.slice(0,31), header, excelRows);
+  };
 }
 
 function buildCompositionInsight(label, segs, bySegSK, sortedSK, skMap){
@@ -5931,8 +6233,8 @@ function renderConvBali(){
   convBaliChart1 = new Chart(document.getElementById('convChart1'), {
     type:'line',
     data:{ labels, datasets:[
-      { label:'Growth Klungkung', data:rows.map(r=> isNaN(r.growthK)?null:r.growthK*100), borderColor:'#D64553', backgroundColor:'#D64553', tension:0.35, pointRadius:3 },
-      { label:'Growth Bali', data:rows.map(r=> isNaN(r.growthB)?null:r.growthB*100), borderColor:'#3E6E8E', backgroundColor:'#3E6E8E', tension:0.35, pointRadius:3 }
+      { label:'Growth Klungkung', data:rows.map(r=> isNaN(r.growthK)?null:r.growthK*100), borderColor:'#D64553', backgroundColor:'#D64553', tension:0.35, pointRadius:0 },
+      { label:'Growth Bali', data:rows.map(r=> isNaN(r.growthB)?null:r.growthB*100), borderColor:'#3E6E8E', backgroundColor:'#3E6E8E', tension:0.35, pointRadius:0 }
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'} }, tooltip:{ callbacks:{ label:(it)=> `${it.dataset.label}: ${it.parsed.y.toFixed(2)}%` } } },
@@ -5956,7 +6258,7 @@ function renderConvBali(){
   convBaliChart3 = new Chart(document.getElementById('convChart3'), {
     type:'line',
     data:{ labels, datasets:[
-      { label:'Absolute Log Gap', data:rows.map(r=> isNaN(r.absLogGap)?null:r.absLogGap), borderColor:'#B98B27', backgroundColor:'rgba(185,139,39,0.15)', fill:true, tension:0.35, pointRadius:3 }
+      { label:'Absolute Log Gap', data:rows.map(r=> isNaN(r.absLogGap)?null:r.absLogGap), borderColor:'#B98B27', backgroundColor:'rgba(185,139,39,0.15)', fill:true, tension:0.35, pointRadius:0 }
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ display:false } },
@@ -6453,8 +6755,8 @@ function renderConvSektorYearly(){
   convSektorChart1 = new Chart(document.getElementById('convSektorYearlyChart'), {
     type:'line',
     data:{ labels, datasets:[
-      { label:'Mean Gap (pp)', data: rows.map(r=>r.meanGap), borderColor:'#D64553', backgroundColor:'#D64553', tension:0.35, pointRadius:3 },
-      { label:'Median Gap (pp)', data: rows.map(r=>r.medianGap), borderColor:'#3E6E8E', backgroundColor:'#3E6E8E', tension:0.35, pointRadius:3 }
+      { label:'Mean Gap (pp)', data: rows.map(r=>r.meanGap), borderColor:'#D64553', backgroundColor:'#D64553', tension:0.35, pointRadius:0 },
+      { label:'Median Gap (pp)', data: rows.map(r=>r.medianGap), borderColor:'#3E6E8E', backgroundColor:'#3E6E8E', tension:0.35, pointRadius:0 }
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'} } },
