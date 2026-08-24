@@ -80,6 +80,34 @@
   .stat-pill .num{ color:var(--brown-deep); font-family:'Fraunces',serif; font-size:20px; font-weight:600; line-height:1; }
   .stat-pill .lbl{ color:var(--brown-mid); font-size:10px; margin-top:3px; letter-spacing:.05em; }
 
+  /* ===== Tabbar sticky wrap: tab kiri + ringkasan statistik kanan, sama-sama freeze ===== */
+  .tabbar-sticky-wrap{
+    position:sticky; top:0; z-index:60;
+    background:var(--page-bg);
+    margin-top:-22px;
+    padding:14px 0 10px;
+    display:flex; align-items:center; gap:14px;
+  }
+  .tabbar-sticky-wrap .tabbar{ flex:1; min-width:0; margin-top:0; }
+  .tabbar-stats{
+    display:flex; gap:8px; flex-shrink:0;
+  }
+  .stat-pill-mini{
+    background:var(--white);
+    border:1px solid #ECECEC;
+    border-radius:12px;
+    box-shadow:var(--shadow);
+    padding:8px 14px;
+    min-width:74px;
+    text-align:center;
+  }
+  .stat-pill-mini .num{ color:var(--brown-deep); font-family:'Fraunces',serif; font-size:17px; font-weight:600; line-height:1; }
+  .stat-pill-mini .lbl{ color:var(--brown-mid); font-size:8.5px; margin-top:2px; letter-spacing:.05em; }
+  @media (max-width: 860px){
+    .tabbar-sticky-wrap{ flex-wrap:wrap; }
+    .tabbar-stats{ order:2; width:100%; }
+  }
+
   /* ===== Layout ===== */
   .page-wrap{ max-width:1280px; margin:0 auto; padding:0 24px; }
 
@@ -564,6 +592,14 @@
     font-weight:600;
     margin-bottom:4px;
   }
+  .card-hint{
+    font-size:10px;
+    color:var(--brown-soft);
+    opacity:.65;
+    font-weight:500;
+    margin-top:auto;
+    padding-top:2px;
+  }
   .badge{
     display:inline-flex;
     align-items:center;
@@ -869,16 +905,18 @@
       <h1>Dashboard Indikator</h1>
       <p>Kumpulan Data Sosial Ekonomi dan Analisis Terkait Ekonomi Pembangunan</p>
     </div>
-    <div class="hero-stats">
-      <div class="stat-pill"><div class="num" id="statIndikator">–</div><div class="lbl">INDIKATOR</div></div>
-      <div class="stat-pill"><div class="num" id="statKategori">–</div><div class="lbl">KATEGORI</div></div>
-      <div class="stat-pill"><div class="num" id="statTerbaru">–</div><div class="lbl">DATA TERBARU</div></div>
-    </div>
   </div>
 </div>
 
 <div class="page-wrap">
-  <div class="tabbar" id="tabs"></div>
+  <div class="tabbar-sticky-wrap">
+    <div class="tabbar" id="tabs"></div>
+    <div class="tabbar-stats">
+      <div class="stat-pill-mini"><div class="num" id="statIndikator">–</div><div class="lbl">INDIKATOR</div></div>
+      <div class="stat-pill-mini"><div class="num" id="statKategori">–</div><div class="lbl">KATEGORI</div></div>
+      <div class="stat-pill-mini"><div class="num" id="statTerbaru">–</div><div class="lbl">DATA TERBARU</div></div>
+    </div>
+  </div>
 
   <div class="content-row">
     <aside class="kel-filter-panel" id="kelFilterPanel"></aside>
@@ -940,6 +978,7 @@ let chartInstance = null;
 let hbChartInstance = null;
 let hkChartInstance = null;
 let hbChartType = 'bar'; // bar | donut | treemap
+let hkGrowthMode = 'qtq'; // qtq | yoy | kumulatif — hanya relevan untuk periode Triwulanan
 let currentSeriesKey = null;
 let currentCompKey = null;
 let compCurrentChartType = 'stacked-bar';
@@ -1748,6 +1787,7 @@ function renderContent(periode){
                 </div>
               </div>
               ${makeSparkline(entries, kelColor, subChartType)}
+              <div class="card-hint">Klik untuk lihat data</div>
             </div>`;
       });
 
@@ -1964,6 +2004,7 @@ function renderCompositionCardHtml(periode,kategori,kelompok,subObj,group,katCol
         <div class="card-value-row" style="margin-top:8px;">
           <div class="card-value">${fmtNum(total)}<span class="card-unit">${escapeHtml(satuanTeks)}</span></div>
         </div>
+        <div class="card-hint">Klik untuk lihat data</div>
       </div>`;
   }
 
@@ -1973,6 +2014,7 @@ function renderCompositionCardHtml(periode,kategori,kelompok,subObj,group,katCol
       <div class="card-period">${latestLabel} · ${subtitle}</div>
       <div class="comp-bar">${barSegs}</div>
       <div class="comp-legend">${legend}</div>
+      <div class="card-hint">Klik untuk lihat data</div>
     </div>`;
 }
 
@@ -2381,17 +2423,30 @@ function shortSegName(sub, label){
   return s || sub;
 }
 
-/* ---- Kartu "Harga Berlaku": pilih tahun -> nilai & proporsi (komposit) ---- */
+/* Daftar periode unik (Tahunan: {tahun}; Triwulanan: {tahun,triwulan}) di antara
+   segs, terurut kronologis via sortKey() — dipakai bareng oleh drawer Harga
+   Berlaku & Harga Konstan supaya otomatis mendukung periode apa pun. */
+function getSubPeriods(subObj, segs){
+  const map = new Map();
+  segs.forEach(s=>{
+    (subObj[s]||[]).forEach(e=>{
+      const k = sortKey(e);
+      if(!map.has(k)) map.set(k, { key:k, tahun:e.tahun, triwulan:e.triwulan, label: periodLabel(e) });
+    });
+  });
+  return [...map.values()].sort((a,b)=>a.key-b.key);
+}
+
+/* ---- Kartu "Harga Berlaku": pilih periode -> nilai & proporsi (komposit) ---- */
 function openHargaBerlakuDetail(periode,kategori,kelompok,label,segs){
   const subObj = STORE[periode][kategori][kelompok];
   if(!segs || segs.length < 2) return;
   currentCompKey = {periode,kategori,kelompok,label};
   currentSeriesKey = null;
 
-  let allEntries = [];
-  segs.forEach(s=>{ allEntries = allEntries.concat(subObj[s]); });
-  const years = [...new Set(allEntries.map(e=>e.tahun))].sort((a,b)=>a-b);
-  const selYear = years[years.length-1];
+  const periods = getSubPeriods(subObj, segs);
+  if(!periods.length) return;
+  const selKey = periods[periods.length-1].key;
 
   const drawer = document.getElementById('drawer');
   drawer.innerHTML = `
@@ -2404,7 +2459,7 @@ function openHargaBerlakuDetail(periode,kategori,kelompok,label,segs){
     </div>
 
     <div class="filter-row">
-      <div class="ctrl-item"><label>Tahun</label><select id="hbYear"></select></div>
+      <div class="ctrl-item"><label>Periode</label><select id="hbYear"></select></div>
       <div class="ctrl-item"><label>Tampilan</label><select id="hbChartTypeSel">
         <option value="bar">Horizontal Bar</option>
         <option value="donut">Donut</option>
@@ -2427,29 +2482,30 @@ function openHargaBerlakuDetail(periode,kategori,kelompok,label,segs){
   `;
 
   const yearSel = drawer.querySelector('#hbYear');
-  years.forEach(y=> yearSel.innerHTML += `<option value="${y}" ${y===selYear?'selected':''}>${y}</option>`);
-  yearSel.onchange = ()=> refreshHargaBerlaku(subObj, segs, label, parseInt(yearSel.value));
+  periods.forEach(p=> yearSel.innerHTML += `<option value="${p.key}" ${p.key===selKey?'selected':''}>${p.label}</option>`);
+  yearSel.onchange = ()=> refreshHargaBerlaku(subObj, segs, label, parseInt(yearSel.value), periods);
 
   const typeSel = drawer.querySelector('#hbChartTypeSel');
   typeSel.value = hbChartType;
-  typeSel.onchange = ()=>{ hbChartType = typeSel.value; refreshHargaBerlaku(subObj, segs, label, parseInt(yearSel.value)); };
+  typeSel.onchange = ()=>{ hbChartType = typeSel.value; refreshHargaBerlaku(subObj, segs, label, parseInt(yearSel.value), periods); };
 
   document.getElementById('closeDrawer').onclick = closeDetail;
   document.getElementById('overlay').classList.add('show');
 
-  refreshHargaBerlaku(subObj, segs, label, selYear);
+  refreshHargaBerlaku(subObj, segs, label, selKey, periods);
 }
 
-function refreshHargaBerlaku(subObj, segs, label, year){
+function refreshHargaBerlaku(subObj, segs, label, periodKey, periods){
+  const pInfo = periods.find(p=>p.key===periodKey) || periods[periods.length-1];
   const rows = segs.map(s=>{
     const arr = subObj[s];
-    const matches = arr.filter(e=>e.tahun===year);
-    const entry = matches.length ? matches[matches.length-1] : null;
+    const entry = arr.find(e=>sortKey(e)===periodKey) || null;
     return { sub:s, short: shortSegName(s,label), value: entry?entry.data:null, satuan: SATUAN[s]||'' };
   }).filter(r=>r.value!==null).sort((a,b)=> b.value - a.value);
 
   const total = rows.reduce((s,r)=>s+r.value,0) || 1;
   const chartBox = document.getElementById('hbChartBox');
+  const fileTag = pInfo.label.replace(/[^a-z0-9]+/gi,'_');
 
   if(hbChartType==='treemap'){
     if(hbChartInstance){ hbChartInstance.destroy(); hbChartInstance = null; }
@@ -2514,27 +2570,38 @@ function refreshHargaBerlaku(subObj, segs, label, year){
   document.getElementById('hbTable').innerHTML = `<thead>${head}</thead><tbody>${bodyRows}</tbody><tfoot><tr><td>Total</td><td>${fmtNum(total)} ${escapeHtml(rows[0]?rows[0].satuan:'')}</td><td>100%</td></tr></tfoot>`;
 
   document.getElementById('dlHbChart').onclick = ()=>{
-    if(hbChartType==='treemap'){ exportSvgAsJPG(document.getElementById('hbTreemapSvg'), `${label}_${year}`); }
-    else{ triggerJPGDownload(hbChartInstance, `${label}_${year}`); }
+    if(hbChartType==='treemap'){ exportSvgAsJPG(document.getElementById('hbTreemapSvg'), `${label}_${fileTag}`); }
+    else{ triggerJPGDownload(hbChartInstance, `${label}_${fileTag}`); }
   };
   document.getElementById('dlHbExcel').onclick = async ()=>{
     const header = ['Sektor','Nilai','Persentase (%)'];
     const excelRows = rows.map(r=>[r.short, r.value, +(r.value/total*100).toFixed(2)]);
-    await exportStyledExcel(`${label}_${year}`.replace(/[^a-z0-9]+/gi,'_'), label.slice(0,31), header, excelRows);
+    await exportStyledExcel(`${label}_${fileTag}`.replace(/[^a-z0-9]+/gi,'_'), label.slice(0,31), header, excelRows);
   };
 }
 
-/* ---- Kartu "Harga Konstan": pilih tahun -> nilai & pertumbuhan tiap sektor ---- */
+/* Total kumulatif TW1..maxTriwulanNum untuk satu sub di satu tahun — dipakai
+   untuk mode pertumbuhan "Kumulatif (c-to-c)" pada data Triwulanan. */
+function cumulativeSum(arr, tahun, maxTriwulanNum){
+  let sum = 0, found = false;
+  arr.forEach(e=>{
+    const tn = triwulanToNum(e.triwulan);
+    if(e.tahun===tahun && tn>=1 && tn<=maxTriwulanNum){ sum += e.data; found = true; }
+  });
+  return found ? sum : null;
+}
+
+/* ---- Kartu "Harga Konstan": pilih periode -> nilai & pertumbuhan tiap sektor ---- */
 function openKonstanSektoralDetail(periode,kategori,kelompok,label,segs){
   const subObj = STORE[periode][kategori][kelompok];
   if(!segs || segs.length < 2) return;
   currentCompKey = {periode,kategori,kelompok,label};
   currentSeriesKey = null;
 
-  let allEntries = [];
-  segs.forEach(s=>{ allEntries = allEntries.concat(subObj[s]); });
-  const years = [...new Set(allEntries.map(e=>e.tahun))].sort((a,b)=>a-b);
-  const selYear = years[years.length-1];
+  const periods = getSubPeriods(subObj, segs);
+  if(!periods.length) return;
+  const selKey = periods[periods.length-1].key;
+  const isTriwulanan = periods.some(p=>p.triwulan);
 
   const drawer = document.getElementById('drawer');
   drawer.innerHTML = `
@@ -2547,7 +2614,12 @@ function openKonstanSektoralDetail(periode,kategori,kelompok,label,segs){
     </div>
 
     <div class="filter-row">
-      <div class="ctrl-item"><label>Tahun</label><select id="hkYear"></select></div>
+      <div class="ctrl-item"><label>Periode</label><select id="hkYear"></select></div>
+      ${isTriwulanan ? `<div class="ctrl-item"><label>Jenis Pertumbuhan</label><select id="hkGrowthModeSel">
+        <option value="qtq">Triwulan Sebelumnya (q-to-q)</option>
+        <option value="yoy">Triwulan Sama Tahun Lalu (y-o-y)</option>
+        <option value="kumulatif">Kumulatif (c-to-c)</option>
+      </select></div>` : ''}
     </div>
 
     <div class="chart-box-wrap">
@@ -2565,25 +2637,55 @@ function openKonstanSektoralDetail(periode,kategori,kelompok,label,segs){
   `;
 
   const yearSel = drawer.querySelector('#hkYear');
-  years.forEach(y=> yearSel.innerHTML += `<option value="${y}" ${y===selYear?'selected':''}>${y}</option>`);
-  yearSel.onchange = ()=> refreshKonstanSektoral(subObj, segs, label, parseInt(yearSel.value));
+  periods.forEach(p=> yearSel.innerHTML += `<option value="${p.key}" ${p.key===selKey?'selected':''}>${p.label}</option>`);
+  yearSel.onchange = ()=> refreshKonstanSektoral(subObj, segs, label, parseInt(yearSel.value), periods);
+
+  const modeSel = drawer.querySelector('#hkGrowthModeSel');
+  if(modeSel){
+    modeSel.value = hkGrowthMode;
+    modeSel.onchange = ()=>{ hkGrowthMode = modeSel.value; refreshKonstanSektoral(subObj, segs, label, parseInt(yearSel.value), periods); };
+  }
 
   document.getElementById('closeDrawer').onclick = closeDetail;
   document.getElementById('overlay').classList.add('show');
 
-  refreshKonstanSektoral(subObj, segs, label, selYear);
+  refreshKonstanSektoral(subObj, segs, label, selKey, periods);
 }
 
-function refreshKonstanSektoral(subObj, segs, label, year){
+function refreshKonstanSektoral(subObj, segs, label, periodKey, periods){
+  const idx = periods.findIndex(p=>p.key===periodKey);
+  const cur = periods[idx] || periods[periods.length-1];
+  const prevPeriod = idx > 0 ? periods[idx-1] : null;
+  const fileTag = cur.label.replace(/[^a-z0-9]+/gi,'_');
+  const isTriwulanan = periods.some(p=>p.triwulan);
+  const mode = isTriwulanan ? hkGrowthMode : 'qtq'; // Tahunan selalu dibanding periode sebelumnya
+
+  let compareLabel = prevPeriod ? prevPeriod.label : '';
+  if(mode==='yoy') compareLabel = `${cur.tahun-1} TW ${cur.triwulan}`;
+  if(mode==='kumulatif') compareLabel = `Kumulatif s.d. TW ${triwulanToNum(cur.triwulan)} ${cur.tahun-1}`;
+
   const rows = segs.map(s=>{
     const arr = subObj[s];
-    const curMatches = arr.filter(e=>e.tahun===year);
-    const prevMatches = arr.filter(e=>e.tahun===year-1);
-    const curEntry = curMatches.length ? curMatches[curMatches.length-1] : null;
-    const prevEntry = prevMatches.length ? prevMatches[prevMatches.length-1] : null;
-    const growth = (curEntry && prevEntry && prevEntry.data) ? (curEntry.data/prevEntry.data - 1)*100 : null;
+    const curEntry = arr.find(e=>sortKey(e)===cur.key) || null;
+    let growth = null;
+    if(curEntry){
+      if(mode==='yoy'){
+        const yoyEntry = arr.find(e=> e.tahun===cur.tahun-1 && triwulanToNum(e.triwulan)===triwulanToNum(cur.triwulan)) || null;
+        growth = (yoyEntry && yoyEntry.data) ? (curEntry.data/yoyEntry.data - 1)*100 : null;
+      }else if(mode==='kumulatif'){
+        const maxQ = triwulanToNum(cur.triwulan);
+        const curCum = cumulativeSum(arr, cur.tahun, maxQ);
+        const prevCum = cumulativeSum(arr, cur.tahun-1, maxQ);
+        growth = (curCum!==null && prevCum) ? (curCum/prevCum - 1)*100 : null;
+      }else{
+        const prevEntry = prevPeriod ? (arr.find(e=>sortKey(e)===prevPeriod.key)||null) : null;
+        growth = (prevEntry && prevEntry.data) ? (curEntry.data/prevEntry.data - 1)*100 : null;
+      }
+    }
     return { sub:s, short: shortSegName(s,label), value: curEntry?curEntry.data:null, growth, satuan: SATUAN[s]||'' };
   }).filter(r=>r.value!==null).sort((a,b)=> b.value - a.value);
+
+  const growthColLabel = compareLabel ? `Pertumbuhan vs ${escapeHtml(compareLabel)}` : 'Pertumbuhan';
 
   if(hkChartInstance) hkChartInstance.destroy();
   hkChartInstance = new Chart(document.getElementById('hkChartCanvas'), {
@@ -2602,15 +2704,15 @@ function refreshKonstanSektoral(subObj, segs, label, year){
     }
   });
 
-  const head = `<tr><th>Sektor</th><th>Nilai</th><th>Pertumbuhan</th></tr>`;
+  const head = `<tr><th>Sektor</th><th>Nilai</th><th>${growthColLabel}</th></tr>`;
   const bodyRows = rows.map(r=>`<tr><td>${escapeHtml(r.short)}</td><td>${fmtNum(r.value)} ${escapeHtml(r.satuan)}</td><td>${r.growth===null?'-':`<span class="badge ${r.growth>=0?'up':'down'}">${r.growth>=0?'▲ +':'▼ '}${r.growth.toFixed(2).replace('.',',')}%</span>`}</td></tr>`).join('');
   document.getElementById('hkTable').innerHTML = `<thead>${head}</thead><tbody>${bodyRows}</tbody>`;
 
-  document.getElementById('dlHkChart').onclick = ()=> triggerJPGDownload(hkChartInstance, `${label}_${year}`);
+  document.getElementById('dlHkChart').onclick = ()=> triggerJPGDownload(hkChartInstance, `${label}_${fileTag}`);
   document.getElementById('dlHkExcel').onclick = async ()=>{
     const header = ['Sektor','Nilai','Pertumbuhan (%)'];
     const excelRows = rows.map(r=>[r.short, r.value, r.growth===null?'':+r.growth.toFixed(2)]);
-    await exportStyledExcel(`${label}_${year}`.replace(/[^a-z0-9]+/gi,'_'), label.slice(0,31), header, excelRows);
+    await exportStyledExcel(`${label}_${fileTag}`.replace(/[^a-z0-9]+/gi,'_'), label.slice(0,31), header, excelRows);
   };
 }
 
