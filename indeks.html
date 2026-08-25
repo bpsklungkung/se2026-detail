@@ -478,10 +478,33 @@
     gap:12px;
   }
 
+  .insight-card{
+    background:linear-gradient(120deg, var(--kat-accent, var(--orange))17, var(--card-bg) 55%);
+    border:1px solid var(--line);
+    border-top:4px solid var(--kat-accent, var(--orange));
+    border-left:5px solid var(--kat-accent, var(--orange));
+    cursor:default;
+    justify-content:center;
+  }
+  .insight-card:hover{ transform:none; box-shadow:var(--shadow); }
+  .insight-card-head{
+    display:flex; align-items:center; gap:7px;
+  }
+  .insight-card-icon{ font-size:15px; }
+  .insight-card-title{
+    font-weight:800; font-size:12.5px; letter-spacing:.02em;
+    color:var(--kat-accent, var(--orange-deep));
+    text-transform:uppercase;
+  }
+  .insight-card-text{
+    font-size:13px; line-height:1.6; color:var(--brown-mid);
+  }
+  .insight-card-text b{ color:var(--brown); }
+
   .card{
     background:var(--card-bg);
     border:1px solid var(--line);
-    border-top:3px solid var(--kat-accent, var(--orange));
+    border-top:4px solid var(--kat-accent, var(--orange));
     border-radius:var(--radius);
     padding:15px 19px 15px;
     cursor:pointer;
@@ -572,11 +595,11 @@
     gap:8px;
   }
   .card-value{
-    font-family:'Fraunces',serif;
-    font-weight:600;
-    font-size:27px;
+    font-family:'Inter',sans-serif;
+    font-weight:800;
+    font-size:26px;
     color:var(--brown-deep);
-    letter-spacing:-.01em;
+    letter-spacing:-.02em;
   }
   .card-unit {
     font-family: 'Inter', sans-serif;
@@ -1734,6 +1757,86 @@ function growthBadge(entries){
   return `<span class="badge ${up?'up':'down'}">${up?'▲':'▼'} ${up?'+':''}${growth.toFixed(2).replace('.',',')}%</span>`;
 }
 
+/* Kartu ringkasan/insight otomatis — mengisi slot kosong di baris terakhir grid kartu
+   sebuah kelompok, berisi 2-3 kalimat insight dari indikator-indikator di kelompok itu. */
+function buildKelompokInsightHtml(kelompok, subObj, normalSubs, kelColor, span){
+  const items = normalSubs.map(sub=>{
+    const entries = subObj[sub];
+    if(!entries || !entries.length) return null;
+    const latest = entries[entries.length-1];
+    let pct = null;
+    if(entries.length>=2){
+      const prev = entries[entries.length-2].data;
+      if(prev){ pct = (latest.data/prev - 1)*100; }
+    }
+    return { sub, value:latest.data, satuan:SATUAN[sub]||'', pct };
+  }).filter(Boolean);
+  if(!items.length) return '';
+
+  const movers = items.filter(it=>it.pct!==null && isFinite(it.pct));
+  let sentence2 = '';
+  if(movers.length){
+    const best = movers.slice().sort((a,b)=>b.pct-a.pct)[0];
+    const worst = movers.slice().sort((a,b)=>a.pct-b.pct)[0];
+    if(best && best.pct>0 && (!worst || worst.sub!==best.sub || worst.pct<=0)){
+      sentence2 += `<b>${escapeHtml(best.sub)}</b> naik paling tinggi (${best.pct>=0?'+':''}${best.pct.toFixed(2).replace('.',',')}%) dibanding periode sebelumnya. `;
+    }
+    if(worst && worst.pct<0){
+      sentence2 += `<b>${escapeHtml(worst.sub)}</b> turun paling dalam (${worst.pct.toFixed(2).replace('.',',')}%).`;
+    }
+  }
+  if(!sentence2){
+    sentence2 = `Nilai terbaru relatif stabil dibanding periode sebelumnya di seluruh indikator kelompok ini.`;
+  }
+  const countTxt = `${items.length} indikator`;
+
+  return `<div class="card insight-card" style="--kat-accent:${kelColor}; grid-column: span ${span};">
+      <div class="insight-card-head"><span class="insight-card-icon">💡</span><span class="insight-card-title">Ringkasan ${escapeHtml(kelompok)}</span></div>
+      <div class="insight-card-text">Kelompok ini memuat ${countTxt}. ${sentence2}</div>
+    </div>`;
+}
+
+/* Kartu ringkasan/insight untuk kelompok yang isinya kartu komposisi saja (mis. PDRB
+   Lapangan Usaha: Harga Berlaku + Harga Konstan) — dominan sektor berdasar kontribusi (Harga
+   Berlaku) dan sektor pertumbuhan tertinggi (Harga Konstan). */
+function buildCompInsightHtml(kelompok, compGroups, subObj, kelColor, span){
+  const parts = [];
+  compGroups.forEach(g=>{
+    if(g.kind!=='berlaku' && g.kind!=='konstan') return;
+    let maxSK = -Infinity;
+    g.segs.forEach(s=> (subObj[s]||[]).forEach(e=>{ maxSK = Math.max(maxSK, sortKey(e)); }));
+    const latestEntries = g.segs.map(s=>{
+      const arr = subObj[s] || [];
+      const entry = arr.find(e=>sortKey(e)===maxSK) || arr[arr.length-1];
+      if(!entry) return null;
+      const prevEntry = arr.filter(e=>sortKey(e)<sortKey(entry)).sort((a,b)=>sortKey(b)-sortKey(a))[0] || null;
+      return { sub:s, entry, prevEntry };
+    }).filter(Boolean);
+    if(!latestEntries.length) return;
+    const total = latestEntries.reduce((sum,x)=>sum+(x.entry.data||0),0) || 1;
+    const withShare = latestEntries.map(x=>({...x, share: x.entry.data/total*100}));
+    const dominant = withShare.slice().sort((a,b)=>b.share-a.share)[0];
+    const dominantShort = shortSegName(dominant.sub, g.label);
+    if(g.kind==='berlaku'){
+      parts.push(`Di <b>${escapeHtml(g.label)}</b>, kontribusi terbesar berasal dari <b>${escapeHtml(dominantShort)}</b> (${dominant.share.toFixed(1).replace('.',',')}% dari total).`);
+    }else if(g.kind==='konstan'){
+      const growthList = latestEntries.filter(x=> x.prevEntry && x.prevEntry.data && !NO_GROWTH_LABELS.test(shortSegName(x.sub, g.label))).map(x=>({...x, growth: (x.entry.data/x.prevEntry.data - 1)*100}));
+      if(growthList.length){
+        const top = growthList.slice().sort((a,b)=>b.growth-a.growth)[0];
+        const topShort = shortSegName(top.sub, g.label);
+        parts.push(`Pertumbuhan tertinggi di <b>${escapeHtml(g.label)}</b> dicatat oleh <b>${escapeHtml(topShort)}</b> (${top.growth>=0?'+':''}${top.growth.toFixed(2).replace('.',',')}%).`);
+      }else{
+        parts.push(`Kontribusi terbesar di <b>${escapeHtml(g.label)}</b> berasal dari <b>${escapeHtml(dominantShort)}</b> (${dominant.share.toFixed(1).replace('.',',')}% dari total).`);
+      }
+    }
+  });
+  if(!parts.length) return '';
+  return `<div class="card insight-card" style="--kat-accent:${kelColor}; grid-column: span ${span};">
+      <div class="insight-card-head"><span class="insight-card-icon">💡</span><span class="insight-card-title">Ringkasan ${escapeHtml(kelompok)}</span></div>
+      <div class="insight-card-text">${parts.join(' ')}</div>
+    </div>`;
+}
+
 function renderContent(periode){
   const main = document.getElementById('main');
   const katObj = STORE[periode];
@@ -1756,7 +1859,9 @@ function renderContent(periode){
       const subObj = kelObj[kelompok];
       const compGroups = getCompositionGroups(subObj, kelompok);
       const kelColor = getGroupColor(kategori, kelompok);
-      
+      const claimedSubs = new Set(compGroups.flatMap(g=>g.segs));
+      const normalSubs = Object.keys(subObj).filter(s=>!claimedSubs.has(s));
+
       html += `<div class="kelompok-block" style="--kat-accent:${kelColor}">
         <div class="kelompok-chip" style="background:${kelColor}22;color:${kelColor}">${escapeHtml(kelompok)}</div>
         <div class="card-grid">`;
@@ -1764,8 +1869,6 @@ function renderContent(periode){
       compGroups.forEach(g=>{
         html += renderCompositionCardHtml(periode,kategori,kelompok,subObj,g,kelColor);
       });
-      const claimedSubs = new Set(compGroups.flatMap(g=>g.segs));
-      const normalSubs = Object.keys(subObj).filter(s=>!claimedSubs.has(s));
       normalSubs.forEach(sub=>{
           const entries = subObj[sub];
           const latest = entries[entries.length-1];
@@ -1783,7 +1886,7 @@ function renderContent(periode){
                 <select class="chart-style-select" data-stylekey="${escapeHtml(styleKey)}" title="Ubah gaya grafik">${styleOptionsHtml}</select>
               </div>
               <div>
-                <div class="card-period">${periodLabel(latest)}</div>
+                <div class="card-period">Diperbarui: ${periodLabel(latest)}</div>
                 <div class="card-value-row">
                   <div class="card-value">${fmtNum(latest.data)}${satuanTeks}</div>
                   ${isHargaKonstan ? growthBadge(entries) : changeBadge(entries)}
@@ -1793,6 +1896,21 @@ function renderContent(periode){
               <div class="card-hint">Klik untuk lihat data</div>
             </div>`;
       });
+
+      // Kartu ringkasan/insight mengisi slot kosong di baris terakhir (kalau ada).
+      const totalCardCount = compGroups.length + normalSubs.length;
+      const remainder = totalCardCount % 3;
+      const insightSpan = remainder===1 ? 2 : (remainder===2 ? 1 : 0);
+      if(insightSpan>0){
+        let insightHtml = '';
+        if(normalSubs.length>0){
+          insightHtml = buildKelompokInsightHtml(kelompok, subObj, normalSubs, kelColor, insightSpan);
+        }
+        if(!insightHtml && compGroups.length>0){
+          insightHtml = buildCompInsightHtml(kelompok, compGroups, subObj, kelColor, insightSpan);
+        }
+        html += insightHtml;
+      }
 
       html += `</div></div>`;
     });
@@ -2003,7 +2121,7 @@ function renderCompositionCardHtml(periode,kategori,kelompok,subObj,group,katCol
     return `<div class="card comp-card" data-compkey='${key}'>
         <div class="comp-color-strip" style="background:${stripGradient}"></div>
         <div class="card-label">${escapeHtml(label)}</div>
-        <div class="card-period">${latestLabel} · ${subtitle}</div>
+        <div class="card-period">Diperbarui: ${latestLabel} · ${subtitle}</div>
         <div class="card-value-row" style="margin-top:8px;">
           <div class="card-value">${fmtNum(total)}<span class="card-unit">${escapeHtml(satuanTeks)}</span></div>
         </div>
@@ -2014,7 +2132,7 @@ function renderCompositionCardHtml(periode,kategori,kelompok,subObj,group,katCol
   return `<div class="card comp-card" data-compkey='${key}'>
       <div class="comp-color-strip" style="background:${stripGradient}"></div>
       <div class="card-label">${escapeHtml(label)}</div>
-      <div class="card-period">${latestLabel} · ${subtitle}</div>
+      <div class="card-period">Diperbarui: ${latestLabel} · ${subtitle}</div>
       <div class="comp-bar">${barSegs}</div>
       <div class="comp-legend">${legend}</div>
       <div class="card-hint">Klik untuk lihat data</div>
@@ -2417,6 +2535,10 @@ function openCompositionDetail(periode,kategori,kelompok,label,segs){
   refreshCompositionDetail(subObj, segs, years[0], years[years.length-1]);
 }
 
+/* Dua komponen sisi pengeluaran yang basisnya bisa mendekati nol/negatif, sehingga
+   persentase pertumbuhannya tidak bermakna — dikecualikan dari semua tampilan pertumbuhan. */
+const NO_GROWTH_LABELS = /perubahan\s*inventori|net\s*ekspor/i;
+
 function shortSegName(sub, label){
   for(const re of PRICE_PREFIX_PATTERNS){
     if(re.test(sub)) return sub.replace(re,'').trim();
@@ -2670,8 +2792,10 @@ function refreshKonstanSektoral(subObj, segs, label, periodKey, periods){
   const rows = segs.map(s=>{
     const arr = subObj[s];
     const curEntry = arr.find(e=>sortKey(e)===cur.key) || null;
+    const short = shortSegName(s,label);
+    const isNoGrowth = NO_GROWTH_LABELS.test(short);
     let growth = null;
-    if(curEntry){
+    if(curEntry && !isNoGrowth){
       if(mode==='yoy'){
         const yoyEntry = arr.find(e=> e.tahun===cur.tahun-1 && triwulanToNum(e.triwulan)===triwulanToNum(cur.triwulan)) || null;
         growth = (yoyEntry && yoyEntry.data) ? (curEntry.data/yoyEntry.data - 1)*100 : null;
@@ -2685,7 +2809,7 @@ function refreshKonstanSektoral(subObj, segs, label, periodKey, periods){
         growth = (prevEntry && prevEntry.data) ? (curEntry.data/prevEntry.data - 1)*100 : null;
       }
     }
-    return { sub:s, short: shortSegName(s,label), value: curEntry?curEntry.data:null, growth, satuan: SATUAN[s]||'' };
+    return { sub:s, short, value: curEntry?curEntry.data:null, growth, isNoGrowth, satuan: SATUAN[s]||'' };
   }).filter(r=>r.value!==null).sort((a,b)=> b.value - a.value);
 
   const growthColLabel = compareLabel ? `Pertumbuhan vs ${escapeHtml(compareLabel)}` : 'Pertumbuhan';
@@ -2694,7 +2818,7 @@ function refreshKonstanSektoral(subObj, segs, label, periodKey, periods){
   hkChartInstance = new Chart(document.getElementById('hkChartCanvas'), {
     data:{ labels: rows.map(r=>r.short), datasets:[
       { type:'line', label:'Nilai', data: rows.map(r=>r.value), borderColor:'#3E6E8E', backgroundColor:'rgba(62,110,142,0.28)', fill:true, tension:0.35, pointRadius:0, yAxisID:'y' },
-      { type:'line', label:'Pertumbuhan (%)', data: rows.map(r=>r.growth), borderColor:'#D64553', backgroundColor:'rgba(214,69,83,0.28)', fill:true, tension:0.35, pointRadius:0, yAxisID:'y1', spanGaps:true }
+      { type:'line', label:'Pertumbuhan (%)', data: rows.map(r=>r.growth), borderColor:'#D64553', backgroundColor:'rgba(214,69,83,0.28)', fill:true, tension:0.35, pointRadius:0, yAxisID:'y1', spanGaps:false }
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'} },
@@ -2708,13 +2832,13 @@ function refreshKonstanSektoral(subObj, segs, label, periodKey, periods){
   });
 
   const head = `<tr><th>Sektor</th><th>Nilai</th><th>${growthColLabel}</th></tr>`;
-  const bodyRows = rows.map(r=>`<tr><td>${escapeHtml(r.short)}</td><td>${fmtNum(r.value)} ${escapeHtml(r.satuan)}</td><td>${r.growth===null?'-':`<span class="badge ${r.growth>=0?'up':'down'}">${r.growth>=0?'▲ +':'▼ '}${r.growth.toFixed(2).replace('.',',')}%</span>`}</td></tr>`).join('');
+  const bodyRows = rows.map(r=>`<tr><td>${escapeHtml(r.short)}</td><td>${fmtNum(r.value)} ${escapeHtml(r.satuan)}</td><td>${r.isNoGrowth ? '<span style="color:#8A4A55;">— nilai konstan</span>' : (r.growth===null?'-':`<span class="badge ${r.growth>=0?'up':'down'}">${r.growth>=0?'▲ +':'▼ '}${r.growth.toFixed(2).replace('.',',')}%</span>`)}</td></tr>`).join('');
   document.getElementById('hkTable').innerHTML = `<thead>${head}</thead><tbody>${bodyRows}</tbody>`;
 
   document.getElementById('dlHkChart').onclick = ()=> triggerJPGDownload(hkChartInstance, `${label}_${fileTag}`);
   document.getElementById('dlHkExcel').onclick = async ()=>{
     const header = ['Sektor','Nilai','Pertumbuhan (%)'];
-    const excelRows = rows.map(r=>[r.short, r.value, r.growth===null?'':+r.growth.toFixed(2)]);
+    const excelRows = rows.map(r=>[r.short, r.value, r.isNoGrowth ? '' : (r.growth===null?'':+r.growth.toFixed(2))]);
     await exportStyledExcel(`${label}_${fileTag}`.replace(/[^a-z0-9]+/gi,'_'), label.slice(0,31), header, excelRows);
   };
 }
@@ -6424,7 +6548,7 @@ function loadConvSektor01(){
         growthDiff: lqParseNum(r['Growth_Differential_pp']),
         absGap: lqParseNum(r['Absolute_Growth_Gap_pp']),
         status: (r['Status']||'').toString().trim().toUpperCase()
-      })).filter(r=> r.sektor && !isNaN(r.tahun) && !isNaN(r.absGap) && r.growthK !== -1);
+      })).filter(r=> r.sektor && !isNaN(r.tahun) && !isNaN(r.absGap) && r.growthK !== -1 && r.tahun <= 2025);
       convSektor01LoadState = 'ready';
     }
     if(convMode && convSubTab==='baliSektoral') renderKonvergensiView();
@@ -6492,7 +6616,7 @@ function loadConvSektor05(){
         maxGap: lqParseNum(r['Max_Gap_All_Sectors_pp']),
         syncIndex: lqParseNum(r['Synchronization_Index']),
         status: (r['Status']||'').toString().trim().toUpperCase()
-      })).filter(r=> r.sektor && !isNaN(r.tahun) && r.status !== '');
+      })).filter(r=> r.sektor && !isNaN(r.tahun) && r.status !== '' && r.tahun <= 2025);
       convSektor05LoadState = 'ready';
     }
     if(convMode && convSubTab==='baliSektoral') renderKonvergensiView();
