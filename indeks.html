@@ -5,33 +5,33 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard Indikator — BPS Klungkung</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';document.head.appendChild(s);"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';document.head.appendChild(s);"></script>
 <style>
   :root{
-    --cream:#FFF9F5;
-    --cream-deep:#FFEFE3;
-    --peach:#F0AFAE;
-    --peach-soft:#FBDCDA;
-    --orange:#D64553;
-    --orange-deep:#B23244;
-    --brown:#4A1620;
-    --brown-deep:#2E0D14;
-    --brown-mid:#7A3540;
-    --brown-soft:#A9787E;
-    --green:#6F8F52;
-    --green-bg:#E9EEDD;
-    --rust:#C1440E;
-    --rust-bg:#FCE1CB;
+    --cream:#F5F6F3;
+    --cream-deep:#E8EAE5;
+    --peach:#B9D9D3;
+    --peach-soft:#E0EEEA;
+    --orange:#1F6F6B;
+    --orange-deep:#154E4B;
+    --brown:#22333A;
+    --brown-deep:#101A1E;
+    --brown-mid:#51666C;
+    --brown-soft:#84999E;
+    --green:#5C8A5A;
+    --green-bg:#E7EFE4;
+    --rust:#B8622A;
+    --rust-bg:#F5E4D3;
     --white:#FFFFFF;
     --card-bg:#FFFFFF;
     --page-bg:#FFFFFF;
-    --line:#E5E5E5;
-    --border:#E5E5E5;
-    --shadow: 0 6px 20px rgba(0,0,0,0.08);
-    --radius:16px;
+    --line:#E1E4E2;
+    --border:#E1E4E2;
+    --shadow: 0 1px 2px rgba(16,26,30,.05), 0 6px 16px rgba(16,26,30,.06);
+    --radius:11px;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -45,7 +45,7 @@
   ::selection{background:var(--peach);}
 
   h1,h2,h3,.display{
-    font-family:'Fraunces',serif;
+    font-family:'Sora',sans-serif;
     color:var(--brown-deep);
     margin:0;
   }
@@ -77,7 +77,7 @@
     padding:9px 15px;
     min-width:88px;
   }
-  .stat-pill .num{ color:var(--brown-deep); font-family:'Fraunces',serif; font-size:20px; font-weight:600; line-height:1; }
+  .stat-pill .num{ color:var(--brown-deep); font-family:'Sora',sans-serif; font-size:20px; font-weight:600; line-height:1; }
   .stat-pill .lbl{ color:var(--brown-mid); font-size:10px; margin-top:3px; letter-spacing:.05em; }
 
   /* ===== Tabbar sticky wrap: tab kiri + ringkasan statistik kanan, sama-sama freeze ===== */
@@ -101,7 +101,7 @@
     min-width:74px;
     text-align:center;
   }
-  .stat-pill-mini .num{ color:var(--brown-deep); font-family:'Fraunces',serif; font-size:17px; font-weight:600; line-height:1; }
+  .stat-pill-mini .num{ color:var(--brown-deep); font-family:'Sora',sans-serif; font-size:17px; font-weight:600; line-height:1; }
   .stat-pill-mini .lbl{ color:var(--brown-mid); font-size:8.5px; margin-top:2px; letter-spacing:.05em; }
   @media (max-width: 860px){
     .tabbar-sticky-wrap{ flex-wrap:wrap; }
@@ -217,7 +217,7 @@
   /* Compare view */
   .compare-wrap{ margin-top:20px; }
   .compare-intro h2{
-    font-family:'Fraunces',serif; font-weight:600; font-size:19px;
+    font-family:'Sora',sans-serif; font-weight:600; font-size:19px;
     margin:0 0 3px; color:var(--brown);
   }
   .compare-intro p{ margin:0 0 14px; color:var(--brown-mid); font-size:12.5px; max-width:560px; line-height:1.45; }
@@ -325,7 +325,7 @@
   /* ===== Shift-Share Dinamis ===== */
   .ss-wrap{ margin-top:20px; }
   .ss-intro h2{
-    font-family:'Fraunces',serif; font-weight:600; font-size:19px;
+    font-family:'Sora',sans-serif; font-weight:600; font-size:19px;
     margin:0 0 3px; color:var(--brown);
   }
   .ss-intro p{ margin:0 0 14px; color:var(--brown-mid); font-size:12.5px; max-width:680px; line-height:1.5; }
@@ -382,7 +382,7 @@
   .ms-dropdown-panel{
     display:none; position:absolute; top:calc(100% + 6px); left:0; z-index:20;
     background:var(--card-bg); border:1.5px solid var(--border); border-radius:10px;
-    padding:8px; min-width:160px; box-shadow:0 6px 20px rgba(74,22,32,0.12);
+    padding:8px; min-width:160px; box-shadow:0 6px 20px rgba(16,26,30,0.12);
   }
   .ms-dropdown-panel.open{ display:block; }
   .ms-dropdown-item{
@@ -517,7 +517,7 @@
   .card:hover{
     transform:translateY(-2px);
     border-color:var(--orange);
-    box-shadow:0 3px 6px rgba(74,22,32,.08), 0 10px 22px rgba(74,22,32,.12);
+    box-shadow:0 3px 6px rgba(16,26,30,.08), 0 10px 22px rgba(16,26,30,.12);
   }
   .card.comp-card{
     display:flex;
@@ -700,7 +700,7 @@
     color:var(--orange-deep); font-weight:700; margin-bottom:4px;
   }
   .drawer h3{
-    font-family:'Fraunces',serif;
+    font-family:'Sora',sans-serif;
     font-weight:600;
     font-size:19px;
     margin:0 0 13px;
@@ -720,7 +720,7 @@
     padding:9px 11px;
   }
   .stat-box .stat-label{ font-size:10px; color:var(--brown-soft); font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
-  .stat-box .stat-value{ font-family:'Fraunces',serif; font-size:16px; font-weight:600; margin-top:3px; color:var(--brown); }
+  .stat-box .stat-value{ font-family:'Sora',sans-serif; font-size:16px; font-weight:600; margin-top:3px; color:var(--brown); }
 
   .filter-row{
     display:flex; gap:8px; align-items:center; margin-bottom:10px; flex-wrap:wrap;
@@ -1015,7 +1015,7 @@ let compareTo = null;
 let normalizeCompare = false;
 let compareChart = null;
 let compareChartType = 'line';
-const COMPARE_COLORS = ['#D64553','#4E7D5A','#A63A50','#3E6E8E','#8C6BAF','#B98B27','#4A1620','#5C8C8C'];
+const COMPARE_COLORS = ['#1F6F6B','#4E7D5A','#A63A50','#3E6E8E','#8C6BAF','#B98B27','#22333A','#5C8C8C'];
 
 /* ===== Shift-Share Dinamis ===== */
 const SS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcl1gMindMWTFT3LgR_k72Le9Gm94rR2F5kvJYHzMgfW9SNrwa-8xuZsaAtw649uyBfskx3A9VoYR1/pub?gid=78489782&single=true&output=csv";
@@ -1147,7 +1147,7 @@ let convBaliChart2 = null;    // Growth Differential
 let convBaliChart3 = null;    // Absolute Log Gap
 let convMrChart = null;
 
-const KATEGORI_PALETTE = ['#FF6B6B','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#D64553','#008080','#4C5C7D','#C1440E'];
+const KATEGORI_PALETTE = ['#FF6B6B','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#1F6F6B','#008080','#4C5C7D','#C1440E'];
 let GROUP_COLOR_MAP = {};
 function getGroupColor(kategori, kelompok){
   const key = kategori + '|||' + kelompok;
@@ -1199,7 +1199,7 @@ function getGroupChartType(kategori, kelompok, sub){
   return types[idx % types.length];
 }
 
-let currentDetailColor = '#D64553';
+let currentDetailColor = '#1F6F6B';
 let currentDetailChartType = 'filled-area';
 
 function toNumber(v){
@@ -1698,7 +1698,7 @@ function makeSparkline(entries, color, type){
       const y = h - pad - pct * (h - pad*2);
       return `${xPos.toFixed(1)},${y.toFixed(1)}`;
     }).join(' ');
-    svgContent = bars + `<polyline points="${cumPts}" fill="none" stroke="#4A1620" stroke-width="1.4"></polyline>`;
+    svgContent = bars + `<polyline points="${cumPts}" fill="none" stroke="#22333A" stroke-width="1.4"></polyline>`;
   } else if (type === 'stream') {
     const midY = h / 2;
     const scaleY = range > 0 ? (h - pad*2) / 2 / (range/2) : 1;
@@ -2668,7 +2668,7 @@ function refreshHargaBerlaku(subObj, segs, label, periodKey, periods){
           borderWidth:1, borderColor:'#fff'
         }]},
         options:{ responsive:true, maintainAspectRatio:false,
-          plugins:{ legend:{ position:'right', labels:{font:{family:'Inter',size:10.5},color:'#4A1620', boxWidth:12} },
+          plugins:{ legend:{ position:'right', labels:{font:{family:'Inter',size:10.5},color:'#22333A', boxWidth:12} },
             tooltip:{ callbacks:{ label:(it)=> `${it.label}: ${fmtNum(it.parsed)} (${(it.parsed/total*100).toFixed(1)}%)` } } }
         }
       });
@@ -2818,10 +2818,10 @@ function refreshKonstanSektoral(subObj, segs, label, periodKey, periods){
   hkChartInstance = new Chart(document.getElementById('hkChartCanvas'), {
     data:{ labels: rows.map(r=>r.short), datasets:[
       { type:'line', label:'Nilai', data: rows.map(r=>r.value), borderColor:'#3E6E8E', backgroundColor:'rgba(62,110,142,0.28)', fill:true, tension:0.35, pointRadius:0, yAxisID:'y' },
-      { type:'line', label:'Pertumbuhan (%)', data: rows.map(r=>r.growth), borderColor:'#D64553', backgroundColor:'rgba(214,69,83,0.28)', fill:true, tension:0.35, pointRadius:0, yAxisID:'y1', spanGaps:false }
+      { type:'line', label:'Pertumbuhan (%)', data: rows.map(r=>r.growth), borderColor:'#1F6F6B', backgroundColor:'rgba(31,111,107,0.28)', fill:true, tension:0.35, pointRadius:0, yAxisID:'y1', spanGaps:false }
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'} },
+      plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:'#22333A'} },
         tooltip:{ callbacks:{ label:(it)=> it.dataset.label==='Pertumbuhan (%)' ? `Pertumbuhan: ${it.parsed.y===null?'n/a':it.parsed.y.toFixed(2)+'%'}` : `Nilai: ${fmtNum(it.parsed.y)}` } } },
       scales:{
         x:{ ticks:{ font:{family:'Inter',size:9.5}, color:'#8A4A55', maxRotation:60, minRotation:40 }, grid:{display:false} },
@@ -3257,7 +3257,7 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
             labels: items.map(it=>it.name),
             datasets:[
               { type:'bar', data: items.map(it=>it.value), backgroundColor: items.map((_,i)=>COMPARE_COLORS[i % COMPARE_COLORS.length]), borderWidth:0, borderRadius:4, maxBarThickness:44, yAxisID:'y', order:2 },
-              { type:'line', data: cumPct, borderColor:'#4A1620', backgroundColor:'#4A1620', borderWidth:2.2, pointRadius:4, tension:0, fill:false, yAxisID:'y1', order:1 }
+              { type:'line', data: cumPct, borderColor:'#22333A', backgroundColor:'#22333A', borderWidth:2.2, pointRadius:4, tension:0, fill:false, yAxisID:'y1', order:1 }
             ]
           },
           options:{
@@ -3305,7 +3305,7 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
               },
               {
                 data:[totalSum],
-                backgroundColor:[currentCompKey ? getGroupColor(currentCompKey.kategori, currentCompKey.kelompok) : '#D64553'],
+                backgroundColor:[currentCompKey ? getGroupColor(currentCompKey.kategori, currentCompKey.kelompok) : '#1F6F6B'],
                 borderColor:'#fff', borderWidth:2, weight:0.55
               }
             ]
@@ -3742,7 +3742,7 @@ function renderCompareRadarChart(keys){
     options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{
-        legend:{ position:'bottom', labels:{ color:'#4A1620', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } }
+        legend:{ position:'bottom', labels:{ color:'#22333A', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } }
       },
       scales:{
         r:{
@@ -3769,7 +3769,7 @@ function renderComparePolarArea(keys, seriesAnalysisData){
     options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{
-        legend:{ position:'bottom', labels:{ color:'#4A1620', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } },
+        legend:{ position:'bottom', labels:{ color:'#22333A', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } },
         tooltip:{ callbacks:{ label:(c)=>`${c.label}: ${fmtNum(c.parsed.r ?? c.parsed)}` } }
       },
       scales:{
@@ -3824,7 +3824,7 @@ function renderComparePareto(keys, seriesAnalysisData){
       labels: pLabels,
       datasets:[
         { type:'bar', data: pData, backgroundColor: colors, borderWidth:0, borderRadius:4, maxBarThickness:44, yAxisID:'y', order:2 },
-        { type:'line', data: cumPct, borderColor:'#4A1620', backgroundColor:'#4A1620', borderWidth:2.2, pointRadius:4, tension:0, fill:false, yAxisID:'y1', order:1 }
+        { type:'line', data: cumPct, borderColor:'#22333A', backgroundColor:'#22333A', borderWidth:2.2, pointRadius:4, tension:0, fill:false, yAxisID:'y1', order:1 }
       ]
     },
     options:{
@@ -3891,7 +3891,7 @@ function renderCompareBump(keys){
     options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{
-        legend:{ position:'bottom', labels:{ color:'#4A1620', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } },
+        legend:{ position:'bottom', labels:{ color:'#22333A', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } },
         tooltip:{ callbacks:{ label:(c)=>`${c.dataset.label}: Peringkat ${c.parsed.y}` } }
       },
       scales:{
@@ -4133,7 +4133,7 @@ function renderCompareCategoricalScatter(keys, seriesAnalysisData){
     options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{
-        legend:{ position:'bottom', labels:{ color:'#4A1620', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } },
+        legend:{ position:'bottom', labels:{ color:'#22333A', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } },
         tooltip:{ callbacks:{ label:(c)=> `${c.raw.y} · ${c.raw.x}: ${fmtNum(c.raw._raw)}` } }
       },
       scales:{
@@ -4259,7 +4259,7 @@ function renderCompareRangePlot(keys, seriesAnalysisData){
       },
       scales:{
         x:{ grid:{color:'#F2D9D4'}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:11} } },
-        y:{ grid:{display:false}, ticks:{ color:'#4A1620', font:{family:'Inter', size:11} } }
+        y:{ grid:{display:false}, ticks:{ color:'#22333A', font:{family:'Inter', size:11} } }
       }
     }
   });
@@ -4390,10 +4390,10 @@ function buildCompareBulletSVG(keys){
     svg += `<rect x="${xAt(gMin).toFixed(1)}" y="${barY}" width="${Math.max(0,xAt(r.latest)-xAt(gMin)).toFixed(1)}" height="10" fill="${r.color}"><title>${escapeHtml(r.label)}: ${fmtNum(r.latest)}</title></rect>`;
 
     const tx = xAt(r.target).toFixed(1);
-    svg += `<line x1="${tx}" y1="${bandY-4}" x2="${tx}" y2="${bandY+bandH+4}" stroke="#4A1620" stroke-width="2.5"><title>Periode sebelumnya: ${fmtNum(r.target)}</title></line>`;
+    svg += `<line x1="${tx}" y1="${bandY-4}" x2="${tx}" y2="${bandY+bandH+4}" stroke="#22333A" stroke-width="2.5"><title>Periode sebelumnya: ${fmtNum(r.target)}</title></line>`;
 
     const shortLabel = r.label.length > 24 ? r.label.slice(0,22)+'…' : r.label;
-    svg += `<text x="${padLeft-10}" y="${(bandY+bandH/2+4).toFixed(1)}" font-size="10.5" text-anchor="end" fill="#4A1620">${escapeHtml(shortLabel)}</text>`;
+    svg += `<text x="${padLeft-10}" y="${(bandY+bandH/2+4).toFixed(1)}" font-size="10.5" text-anchor="end" fill="#22333A">${escapeHtml(shortLabel)}</text>`;
   });
 
   svg += `</svg>`;
@@ -4672,7 +4672,7 @@ function renderCompareChart(){
         legend:{
           position:'bottom',
           labels:{
-            color:'#4A1620', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true,
+            color:'#22333A', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true,
             filter: (legendItem)=> compareChartType !== 'lollipop' || legendItem.datasetIndex % 2 === 1
           }
         },
@@ -4964,7 +4964,7 @@ function refreshDetail(entries, fromYear, toYear){
   const ctx = canvasEl.getContext('2d');
   if(chartInstance) chartInstance.destroy();
 
-  const accent = currentDetailColor || '#D64553';
+  const accent = currentDetailColor || '#1F6F6B';
   const isBar = currentDetailChartType === 'bar' || currentDetailChartType === 'rounded-bar';
   const isLollipop = currentDetailChartType === 'lollipop';
   const isSpline = currentDetailChartType === 'spline';
@@ -5016,7 +5016,7 @@ function refreshDetail(entries, fromYear, toYear){
     const movingAvg = values.map((v,i)=>{ running += v; return running/(i+1); });
     datasets = [
       { type:'bar', data: values, backgroundColor: hexToRgba(accent,0.45), borderWidth:0, borderRadius:3, maxBarThickness:32, order:2 },
-      { type:'line', data: movingAvg, borderColor:'#4A1620', backgroundColor:'#4A1620', borderWidth:2, pointRadius:2, tension:0.25, fill:false, order:1 }
+      { type:'line', data: movingAvg, borderColor:'#22333A', backgroundColor:'#22333A', borderWidth:2, pointRadius:2, tension:0.25, fill:false, order:1 }
     ];
   } else if (isPareto) {
     const idxSorted = values.map((v,i)=>i).sort((a,b)=>values[b]-values[a]);
@@ -5027,7 +5027,7 @@ function refreshDetail(entries, fromYear, toYear){
     const cumPct = sortedVals.map(v=>{ cum += v; return (cum/total*100); });
     datasets = [
       { type:'bar', data: sortedVals, backgroundColor: hexToRgba(accent,0.6), borderWidth:0, borderRadius:3, maxBarThickness:34, yAxisID:'y', order:2 },
-      { type:'line', data: cumPct, borderColor:'#4A1620', backgroundColor:'#4A1620', borderWidth:2, pointRadius:3, tension:0, fill:false, yAxisID:'y1', order:1 }
+      { type:'line', data: cumPct, borderColor:'#22333A', backgroundColor:'#22333A', borderWidth:2, pointRadius:3, tension:0, fill:false, yAxisID:'y1', order:1 }
     ];
   } else if (isLollipop) {
     datasets = [
@@ -5742,13 +5742,13 @@ function renderSSComponentChart(perKategori, isTraditional){
     datasets = [
       { label:'NS', data:perKategori.map(r=>r.NS), backgroundColor:'#B98B27' },
       { label:'IM', data:perKategori.map(r=>r.IM), backgroundColor:'#3E6E8E' },
-      { label:'RS', data:perKategori.map(r=>r.RS), backgroundColor:'#D64553' }
+      { label:'RS', data:perKategori.map(r=>r.RS), backgroundColor:'#1F6F6B' }
     ];
   } else if(ssMethod==='em'){
     datasets = [
       { label:'NS', data:perKategori.map(r=>r.NS), backgroundColor:'#B98B27' },
       { label:'IM', data:perKategori.map(r=>r.IM), backgroundColor:'#3E6E8E' },
-      { label:'RS EM', data:perKategori.map(r=>r.RS_EM), backgroundColor:'#D64553' },
+      { label:'RS EM', data:perKategori.map(r=>r.RS_EM), backgroundColor:'#1F6F6B' },
       { label:'Allocation', data:perKategori.map(r=>r.Alokasi), backgroundColor:'#8C6BAF' }
     ];
   } else {
@@ -5757,7 +5757,7 @@ function renderSSComponentChart(perKategori, isTraditional){
       { label:'NSD', data:perKategori.map(r=>r.NSD), backgroundColor:'#D9B36C' },
       { label:'IME', data:perKategori.map(r=>r.IME), backgroundColor:'#3E6E8E' },
       { label:'IMD', data:perKategori.map(r=>r.IMD), backgroundColor:'#7FA7C2' },
-      { label:'RGE', data:perKategori.map(r=>r.RGE), backgroundColor:'#D64553' },
+      { label:'RGE', data:perKategori.map(r=>r.RGE), backgroundColor:'#1F6F6B' },
       { label:'RGD', data:perKategori.map(r=>r.RGD), backgroundColor:'#FFC08A' },
       { label:'RIE', data:perKategori.map(r=>r.RIE), backgroundColor:'#8C6BAF' },
       { label:'RID', data:perKategori.map(r=>r.RID), backgroundColor:'#BFA6D9' }
@@ -5769,7 +5769,7 @@ function renderSSComponentChart(perKategori, isTraditional){
     options:{
       indexAxis:'y',
       responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:11}, color:'#4A1620' } } },
+      plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:11}, color:'#22333A' } } },
       scales:{
         x:{ stacked:true, grid:{color:'#F2D9D4'}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10.5} } },
         y:{ stacked:true, grid:{display:false}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10.5} } }
@@ -6152,10 +6152,10 @@ function renderLQBarChart(perKategori, isRaw){
   const labels = perKategori.map(r=>r.kategori);
   const datasets = isRaw ? [
     { label:'SLQ', data:perKategori.map(r=>r.SLQ), backgroundColor:'#3E6E8E' },
-    { label:'DLQ', data:perKategori.map(r=>r.DLQ), backgroundColor:'#D64553' }
+    { label:'DLQ', data:perKategori.map(r=>r.DLQ), backgroundColor:'#1F6F6B' }
   ] : [
     { label:'SSLQ', data:perKategori.map(r=>r.SSLQ), backgroundColor:'#3E6E8E' },
-    { label:'DSLQ', data:perKategori.map(r=>r.DSLQ), backgroundColor:'#D64553' }
+    { label:'DSLQ', data:perKategori.map(r=>r.DSLQ), backgroundColor:'#1F6F6B' }
   ];
   lqChart = new Chart(ctx, {
     type:'bar',
@@ -6163,7 +6163,7 @@ function renderLQBarChart(perKategori, isRaw){
     options:{
       indexAxis:'y',
       responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:11}, color:'#4A1620' } } },
+      plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:11}, color:'#22333A' } } },
       scales:{
         x:{ grid:{color:'#F2D9D4'}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10.5} } },
         y:{ grid:{display:false}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10.5} } }
@@ -6462,11 +6462,11 @@ function renderConvBali(){
   convBaliChart1 = new Chart(document.getElementById('convChart1'), {
     type:'line',
     data:{ labels, datasets:[
-      { label:'Growth Klungkung', data:rows.map(r=> isNaN(r.growthK)?null:r.growthK*100), borderColor:'#D64553', backgroundColor:'#D64553', tension:0.35, pointRadius:0 },
+      { label:'Growth Klungkung', data:rows.map(r=> isNaN(r.growthK)?null:r.growthK*100), borderColor:'#1F6F6B', backgroundColor:'#1F6F6B', tension:0.35, pointRadius:0 },
       { label:'Growth Bali', data:rows.map(r=> isNaN(r.growthB)?null:r.growthB*100), borderColor:'#3E6E8E', backgroundColor:'#3E6E8E', tension:0.35, pointRadius:0 }
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'} }, tooltip:{ callbacks:{ label:(it)=> `${it.dataset.label}: ${it.parsed.y.toFixed(2)}%` } } },
+      plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:'#22333A'} }, tooltip:{ callbacks:{ label:(it)=> `${it.dataset.label}: ${it.parsed.y.toFixed(2)}%` } } },
       scales:{ x:{grid:{display:false}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}}, y:{grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}, callback:(v)=>v+'%'}} }
     }
   });
@@ -6778,10 +6778,10 @@ function renderConvSektorTrajectory(){
     type:'bar',
     data:{ labels: rows.map(r=>r.sektor), datasets:[
       { label:'Gap 2011 (pp)', data: rows.map(r=>r.gapAwal), backgroundColor:'#3E6E8E' },
-      { label:'Gap 2025 (pp)', data: rows.map(r=>r.gapAkhir), backgroundColor:'#D64553' }
+      { label:'Gap 2025 (pp)', data: rows.map(r=>r.gapAkhir), backgroundColor:'#1F6F6B' }
     ]},
     options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
-      plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'} } },
+      plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:'#22333A'} } },
       scales:{ x:{grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10}}}, y:{grid:{display:false}, ticks:{color:'#8A4A55',font:{family:'Inter',size:9.5}}} }
     }
   });
@@ -6984,11 +6984,11 @@ function renderConvSektorYearly(){
   convSektorChart1 = new Chart(document.getElementById('convSektorYearlyChart'), {
     type:'line',
     data:{ labels, datasets:[
-      { label:'Mean Gap (pp)', data: rows.map(r=>r.meanGap), borderColor:'#D64553', backgroundColor:'#D64553', tension:0.35, pointRadius:0 },
+      { label:'Mean Gap (pp)', data: rows.map(r=>r.meanGap), borderColor:'#1F6F6B', backgroundColor:'#1F6F6B', tension:0.35, pointRadius:0 },
       { label:'Median Gap (pp)', data: rows.map(r=>r.medianGap), borderColor:'#3E6E8E', backgroundColor:'#3E6E8E', tension:0.35, pointRadius:0 }
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'} } },
+      plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:'#22333A'} } },
       scales:{ x:{grid:{display:false}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}}, y:{grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}} }
     }
   });
@@ -7644,7 +7644,7 @@ function renderDivTimeSeriesChart(series, showBali){
     options:{
       responsive:true, maintainAspectRatio:false,
       interaction:{ mode:'nearest', intersect:false },
-      plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:10.5}, color:'#4A1620', boxWidth:14 } } },
+      plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:10.5}, color:'#22333A', boxWidth:14 } } },
       scales:{
         x:{ grid:{display:false}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10.5} } },
         yEntropy:{ position:'left', grid:{color:'#F2D9D4'}, title:{display:true, text:'Entropy', color:'#3E6E8E', font:{size:10}}, ticks:{ color:'#8A4A55', font:{size:10} } },
@@ -7660,7 +7660,7 @@ function renderDivCompositionChart(s){
   const ctx = document.getElementById('divCompCanvas');
   if(divCompChart){ divCompChart.destroy(); divCompChart=null; }
   const entries = Object.entries(s.kShares).sort((a,b)=> b[1]-a[1]);
-  const datasets = [{ label:`Klungkung ${s.tahun}`, data:entries.map(e=>e[1]*100), backgroundColor:'#D64553' }];
+  const datasets = [{ label:`Klungkung ${s.tahun}`, data:entries.map(e=>e[1]*100), backgroundColor:'#1F6F6B' }];
   if(divCompareBali && s.bShares){
     datasets.push({ label:`Bali ${s.tahun}`, data:entries.map(e=> (s.bShares[e[0]]||0)*100), backgroundColor:'#3E6E8E' });
   }
@@ -7670,7 +7670,7 @@ function renderDivCompositionChart(s){
     options:{
       indexAxis:'y',
       responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ display: datasets.length>1, position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'} } },
+      plugins:{ legend:{ display: datasets.length>1, position:'bottom', labels:{font:{family:'Inter',size:11},color:'#22333A'} } },
       scales:{
         x:{ grid:{color:'#F2D9D4'}, title:{display:true, text:'% terhadap Total PDRB', color:'#8A4A55', font:{size:10.5}}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10.5}, callback:v=>v+'%' } },
         y:{ grid:{display:false}, ticks:{ color:'#8A4A55', font:{family:'Inter', size:10.5} } }
@@ -7905,11 +7905,11 @@ function renderAdvGrowthDiff(){
   advCharts.growthTs = new Chart(tsCtx, {
     type:'line',
     data:{ labels: series.map(s=>s.tahun), datasets:[
-      {label:'Klungkung', data: series.map(s=> isNaN(s.growthK)?null:s.growthK*100), borderColor:'#D64553', backgroundColor:'rgba(214,69,83,0.15)', fill:true, tension:0.4, spanGaps:true, pointRadius:0, pointHoverRadius:4, pointHitRadius:10},
+      {label:'Klungkung', data: series.map(s=> isNaN(s.growthK)?null:s.growthK*100), borderColor:'#1F6F6B', backgroundColor:'rgba(31,111,107,0.15)', fill:true, tension:0.4, spanGaps:true, pointRadius:0, pointHoverRadius:4, pointHitRadius:10},
       {label:'Bali', data: series.map(s=> isNaN(s.growthB)?null:s.growthB*100), borderColor:'#3E6E8E', backgroundColor:'rgba(62,110,142,0.15)', fill:true, tension:0.4, spanGaps:true, pointRadius:0, pointHoverRadius:4, pointHitRadius:10}
     ]},
     options:{ responsive:true, maintainAspectRatio:false, interaction:{intersect:false, mode:'index'},
-      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'}}},
+      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#22333A'}}},
       scales:{ x:{grid:{display:false}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}}, y:{grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5},callback:v=>v+'%'}} } }
   });
 
@@ -7921,7 +7921,7 @@ function renderAdvGrowthDiff(){
       {type:'line', label:'Cumulative Relative Gap (%)', data: series.map(s=> isNaN(s.cumGap)?null:s.cumGap*100), borderColor:'#B98B27', backgroundColor:'rgba(185,139,39,0.18)', fill:true, tension:0.4, pointRadius:0, pointHoverRadius:4, pointHitRadius:10, yAxisID:'y1'}
     ]},
     options:{ responsive:true, maintainAspectRatio:false, interaction:{intersect:false, mode:'index'},
-      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'}}},
+      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#22333A'}}},
       scales:{
         x:{grid:{display:false}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}},
         y:{position:'left', grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}, title:{display:true,text:'pp',color:'#8A4A55',font:{family:'Inter',size:10.5}}},
@@ -8008,11 +8008,11 @@ function renderAdvStructChange(){
   advCharts.sciTs = new Chart(tsCtx, {
     type:'line',
     data:{ labels: sciSeries.map(s=>s.tahun), datasets:[
-      {label:'SCI Klungkung', data: sciSeries.map(s=>s.sciK*100), borderColor:'#D64553', backgroundColor:'rgba(214,69,83,0.15)', fill:true, tension:0.4, pointRadius:0, pointHoverRadius:4, pointHitRadius:10},
+      {label:'SCI Klungkung', data: sciSeries.map(s=>s.sciK*100), borderColor:'#1F6F6B', backgroundColor:'rgba(31,111,107,0.15)', fill:true, tension:0.4, pointRadius:0, pointHoverRadius:4, pointHitRadius:10},
       {label:'SCI Bali', data: sciSeries.map(s=>s.sciB*100), borderColor:'#3E6E8E', backgroundColor:'rgba(62,110,142,0.15)', fill:true, tension:0.4, pointRadius:0, pointHoverRadius:4, pointHitRadius:10}
     ]},
     options:{ responsive:true, maintainAspectRatio:false, interaction:{intersect:false, mode:'index'},
-      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'}}},
+      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#22333A'}}},
       scales:{ x:{grid:{display:false}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}}, y:{grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5},callback:v=>v+'%'}} } }
   });
   document.getElementById('dlAdvSciTs').onclick = ()=> triggerJPGDownload(advCharts.sciTs, `sci_tren`);
@@ -8034,11 +8034,11 @@ function renderAdvSciForYear(rows){
   advCharts.sciSektor = new Chart(ctx, {
     type:'bar',
     data:{ labels: yr.map(r=>r.sektor), datasets:[
-      {label:'Δ Share Klungkung (pp)', data: yr.map(r=> isNaN(r.deltaK)?0:r.deltaK*100), backgroundColor:'#D64553'},
+      {label:'Δ Share Klungkung (pp)', data: yr.map(r=> isNaN(r.deltaK)?0:r.deltaK*100), backgroundColor:'#1F6F6B'},
       {label:'Δ Share Bali (pp)', data: yr.map(r=> isNaN(r.deltaB)?0:r.deltaB*100), backgroundColor:'#3E6E8E'}
     ] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'}}},
+      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#22333A'}}},
       scales:{ x:{grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5},callback:v=>v+' pp'}}, y:{grid:{display:false},ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}} } }
   });
   document.getElementById('dlAdvSciSektor').onclick = ()=> triggerJPGDownload(advCharts.sciSektor, `sci_sektor_${advCompYear.structural_change}`);
@@ -8234,11 +8234,11 @@ function renderAdvSimCompChart(s){
   advCharts.simComp = new Chart(ctx, {
     type:'bar',
     data:{ labels: entries, datasets:[
-      {label:`Klungkung ${s.tahun}`, data: entries.map(k=>s.kShares[k]*100), backgroundColor:'#D64553'},
+      {label:`Klungkung ${s.tahun}`, data: entries.map(k=>s.kShares[k]*100), backgroundColor:'#1F6F6B'},
       {label:`Bali ${s.tahun}`, data: entries.map(k=>(s.bShares[k]||0)*100), backgroundColor:'#3E6E8E'}
     ]},
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'}}},
+      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#22333A'}}},
       scales:{ x:{grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5},callback:v=>v+'%'}}, y:{grid:{display:false},ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}} } }
   });
 }
@@ -8311,7 +8311,7 @@ function renderAdvGapForYear(rows){
   if(advCharts.gap){ advCharts.gap.destroy(); }
   advCharts.gap = new Chart(ctx, {
     type:'bar',
-    data:{ labels: yr.map(r=>r.sektor), datasets:[{ label:'Gap Contribution (%)', data: yr.map(r=>r.contrib*100), backgroundColor: yr.map((r,i)=> i===0?'#C1440E':'#D64553') }] },
+    data:{ labels: yr.map(r=>r.sektor), datasets:[{ label:'Gap Contribution (%)', data: yr.map(r=>r.contrib*100), backgroundColor: yr.map((r,i)=> i===0?'#C1440E':'#1F6F6B') }] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
       scales:{ x:{grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5},callback:v=>v+'%'}}, y:{grid:{display:false},ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}} } }
   });
@@ -8391,7 +8391,7 @@ function renderAdvMarkov(){
     const cells = MARKOV_ORDER.map(b=>{
       const c = counts[a][b]; const p = rowTotals[a]? c/rowTotals[a] : 0;
       const alpha = maxProb>0 ? (0.12+0.65*(p/maxProb)) : 0.12;
-      return `<td style="background:rgba(214,69,83,${alpha.toFixed(2)});text-align:center;">${(p*100).toFixed(0)}%<br><span style="font-size:10px;color:var(--brown-soft);">(n=${c})</span></td>`;
+      return `<td style="background:rgba(31,111,107,${alpha.toFixed(2)});text-align:center;">${(p*100).toFixed(0)}%<br><span style="font-size:10px;color:var(--brown-soft);">(n=${c})</span></td>`;
     }).join('');
     return `<tr><td style="font-weight:700;">${a}</td>${cells}<td style="text-align:center;">${rowTotals[a]}</td></tr>`;
   }).join('');
@@ -8636,7 +8636,7 @@ function renderAdvReriChart(rows){
   const ctx = document.getElementById('advReriCanvas');
   if(advCharts.reri){ advCharts.reri.destroy(); }
   const allDatasets = [
-    { m:'reri', ds:{ label:'RERI', data: rows.map(r=>r.reri), borderColor:'#4A1620', backgroundColor:'rgba(74,22,32,0.14)', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100' } },
+    { m:'reri', ds:{ label:'RERI', data: rows.map(r=>r.reri), borderColor:'#22333A', backgroundColor:'rgba(16,26,30,0.14)', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100' } },
     { m:'de', ds:{ label:'Diversifikasi (DE)', data: rows.map(r=>r.de*100), borderColor:'#3E6E8E', backgroundColor:'transparent', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100' } },
     { m:'stability', ds:{ label:'Stabilitas', data: rows.map(r=>r.stability*100), borderColor:'#B98B27', backgroundColor:'transparent', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100' } },
     { m:'rc', ds:{ label:'Recovery Capacity', data: rows.map(r=>r.rc!==null?r.rc*100:null), borderColor:'#6F8F52', backgroundColor:'transparent', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100', spanGaps:false } }
@@ -8645,7 +8645,7 @@ function renderAdvReriChart(rows){
   advCharts.reri = new Chart(ctx, {
     type:'line',
     data:{ labels: rows.map(r=>r.tahun), datasets },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:10.5},color:'#4A1620',boxWidth:14}}},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:10.5},color:'#22333A',boxWidth:14}}},
       scales:{ x:{grid:{display:false},ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}}, y100:{min:0,max:100,grid:{color:'#F2D9D4'},ticks:{color:'#8A4A55',font:{size:10}}} } }
   });
 }
@@ -8744,7 +8744,7 @@ function renderAdvTrajectory(){
       { label:`SLQ ${latestYear}`, data: summary.map(s=>s.slqLatest), backgroundColor: summary.map(s=>(TRAJ_INFO[s.trajectory]||{color:'#999'}).color) }
     ]},
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'}}},
+      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#22333A'}}},
       scales:{ x:{grid:{color:'#F2D9D4'}, ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}}, y:{grid:{display:false},ticks:{color:'#8A4A55',font:{family:'Inter',size:10.5}}} } }
   });
 
