@@ -145,8 +145,12 @@
     padding:9px 10px;
     margin-top:-22px;
     position:relative; z-index:5;
-    display:flex; gap:6px; flex-wrap:wrap; align-items:center;
+    display:flex; gap:6px; flex-wrap:nowrap; align-items:center;
+    overflow-x:auto;
+    scrollbar-width:thin;
   }
+  .tabbar::-webkit-scrollbar{ height:5px; }
+  .tabbar::-webkit-scrollbar-thumb{ background:var(--cream-deep); border-radius:10px; }
   .tab{
     font-family:'Inter',sans-serif;
     font-weight:600;
@@ -158,6 +162,8 @@
     cursor:pointer;
     color:var(--brown);
     transition:background .15s, color .15s;
+    flex-shrink:0;
+    white-space:nowrap;
   }
   .tab.active{ background:var(--orange); color:#fff; }
   .tab:hover:not(.active){ background:var(--peach-soft); }
@@ -166,6 +172,7 @@
     align-self:stretch;
     background:var(--peach-soft);
     margin:4px 4px;
+    flex-shrink:0;
   }
 
   main{ padding-top:22px; }
@@ -1617,7 +1624,7 @@ function renderTabs(){
 
   const advBtn = document.createElement('button');
   advBtn.className = 'tab' + (advMode ? ' active' : '');
-  advBtn.textContent = 'Lanjutan';
+  advBtn.textContent = 'Struktural';
   advBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = true; renderTabs(); renderAdvancedView(); };
   tabsEl.appendChild(advBtn);
 }
@@ -5790,7 +5797,7 @@ function updateSSMethodNote(){
         <li>RS = eᵢ(t−1) × (gᵢ − Gᵢ)</li>
       </ul>
       <div class="formula-caption">Kuadran dibentuk dari IM (sumbu-x) vs RS (sumbu-y).</div>
-      <div class="mn-row"><b class="mn-label">💡 Cara membaca angka</b><ul class="mn-points"><li><b>NS</b> besar bukan berarti sektor itu hebat — itu cuma menunjukkan seberapa besar dorongan pertumbuhan ekonomi Bali secara umum.</li><li><b>IM</b> positif berarti sektor ini termasuk yang sedang tumbuh cepat di level provinsi (iklim sektoralnya bagus), IM negatif berarti sektor ini secara nasional/provinsi memang sedang lesu. Yang paling penting untuk menilai daya saing lokal murni adalah <b>RS (Pergeseran Diferensial)</b>: RS positif = Klungkung unggul kompetitif dibanding Bali pada sektor ini (tumbuh lebih cepat dari yang "seharusnya"); RS negatif = sektor ini kalah saing di Klungkung dibanding rata-rata Bali, meski secara nasional sektornya sendiri mungkin sedang bagus.</li></ul></div>`,
+      <div class="mn-row"><b class="mn-label">💡 Cara membaca angka</b><ul class="mn-points"><li><b>NS</b> besar bukan berarti sektor itu hebat — itu cuma menunjukkan seberapa besar dorongan pertumbuhan ekonomi Bali secara umum.</li><li><b>IM</b> positif berarti sektor ini termasuk yang sedang tumbuh cepat di level provinsi (iklim sektoralnya bagus), IM negatif berarti sektor ini secara nasional/provinsi memang sedang lesu.</li><li><b>RS (Pergeseran Diferensial)</b> paling penting untuk menilai daya saing lokal murni: RS positif = Klungkung unggul kompetitif dibanding Bali pada sektor ini (tumbuh lebih cepat dari yang "seharusnya"); RS negatif = sektor ini kalah saing di Klungkung dibanding rata-rata Bali, meski secara nasional sektornya sendiri mungkin sedang bagus.</li></ul></div>`,
     em: `
       <div><b class="mn-label">📖 Apa itu model ini</b> Perbaikan dari model Tradisional (Esteban-Marquilas, 1972). Masalah pada RS versi Tradisional adalah nilainya bisa "tertipu" oleh besar-kecilnya porsi sektor tersebut di ekonomi Klungkung (spesialisasi), bukan murni oleh daya saingnya. Model ini memisahkan nilai aktual sektor (eᵢ) menjadi nilai homotetik <b>h</b> — porsi yang "seharusnya" dimiliki Klungkung seandainya struktur ekonominya sama persis dengan Bali — supaya efek kompetitif bisa dihitung bersih dari bias spesialisasi.</div>
       <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
@@ -6304,7 +6311,7 @@ function updateLQMethodNote(){
         <li>DLQ = [((1+gᵢ)/(1+g)) / ((1+Gᵢ)/(1+G))]ᵗ</li>
       </ul>
       <div class="formula-caption">gᵢ & g = laju pertumbuhan rata-rata tahunan sektor & total Klungkung, Gᵢ & G = laju pertumbuhan rata-rata tahunan sektor & total Bali, t = jumlah tahun. Ambang klasifikasi: 1.</div>
-      <div class="mn-row"><b class="mn-label">💡 Cara membaca angka</b><ul class="mn-points"><li><b>SLQ = 1</b> berarti porsi sektor itu di Klungkung persis sama dengan di Bali (netral, tidak istimewa).</li><li><b>SLQ &gt; 1</b> berarti Klungkung lebih terkonsentrasi/terspesialisasi pada sektor itu dibanding Bali — sektor ini menjadi basis ekonomi Klungkung, bukan sekadar melayani kebutuhan lokal.</li><li><b>SLQ &lt; 1</b> berarti porsinya di Klungkung lebih kecil dari Bali — sektor ini belum jadi andalan. Untuk <b>DLQ</b>: <b>DLQ &gt; 1</b> berarti sektor ini di Klungkung tumbuh lebih cepat secara relatif dibanding Bali (berpotensi makin unggul ke depan), sedangkan <b>DLQ &lt; 1</b> berarti tumbuh lebih lambat (berisiko makin tertinggal/despesialisasi). Kombinasi keduanya menghasilkan klasifikasi Unggulan/Andalan/Prospektif/Tertinggal.</li></ul></div>`,
+      <div class="mn-row"><b class="mn-label">💡 Cara membaca angka</b><ul class="mn-points"><li><b>SLQ = 1</b> berarti porsi sektor itu di Klungkung persis sama dengan di Bali (netral, tidak istimewa).</li><li><b>SLQ &gt; 1</b> berarti Klungkung lebih terkonsentrasi/terspesialisasi pada sektor itu dibanding Bali — sektor ini menjadi basis ekonomi Klungkung, bukan sekadar melayani kebutuhan lokal.</li><li><b>SLQ &lt; 1</b> berarti porsinya di Klungkung lebih kecil dari Bali — sektor ini belum jadi andalan.</li><li><b>DLQ</b>: <b>DLQ &gt; 1</b> berarti sektor ini di Klungkung tumbuh lebih cepat secara relatif dibanding Bali (berpotensi makin unggul ke depan), sedangkan <b>DLQ &lt; 1</b> berarti tumbuh lebih lambat (berisiko makin tertinggal/despesialisasi). Kombinasi SLQ &amp; DLQ menghasilkan klasifikasi Unggulan/Andalan/Prospektif/Tertinggal.</li></ul></div>`,
     symmetric: `
       <div><b class="mn-label">📖 Apa itu model ini</b> Transformasi dari SLQ/DLQ (Dalum et al., 1998) untuk mengatasi kelemahan statistik SLQ/DLQ asli: karena rentangnya 0 sampai tak terhingga dengan titik netral di angka 1, penyimpangan di ATAS 1 (misal dari 1 ke 3) dan di BAWAH 1 (misal dari 1 ke 0,2) tidak dibobot setara secara matematis, sehingga kurang cocok dipakai untuk perbandingan statistik lanjutan (korelasi, regresi, dsb).</div>
       <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
@@ -6313,7 +6320,7 @@ function updateLQMethodNote(){
         <li>DSLQ = (DLQ − 1) / (DLQ + 1)</li>
       </ul>
       <div class="formula-caption">Transformasi ke rentang −1 s.d. 1 dengan titik netral di 0. Ambang klasifikasi: 0. Menghasilkan klasifikasi sektor yang identik dengan SLQ-DLQ (terbukti lewat korelasi Spearman = 1 pada studi rujukan).</div>
-      <div class="mn-row"><b class="mn-label">💡 Cara membaca angka</b><ul class="mn-points"><li><b>SSLQ = 0</b> setara dengan SLQ = 1 (netral).</li><li><b>SSLQ mendekati +1</b> berarti spesialisasi sangat kuat (SLQ jauh di atas 1); <b>SSLQ mendekati −1</b> berarti sangat tidak terspesialisasi (SLQ mendekati 0). Pola yang sama berlaku untuk <b>DSLQ</b> terhadap DLQ: mendekati +1 = tumbuh jauh lebih cepat dari Bali, mendekati −1 = tumbuh jauh lebih lambat. Karena skalanya simetris & seragam antar sektor, versi ini lebih adil dipakai untuk membandingkan "seberapa jauh" posisi tiap sektor dari titik netral, bukan cuma arah unggul/tidaknya saja.</li></ul></div>`
+      <div class="mn-row"><b class="mn-label">💡 Cara membaca angka</b><ul class="mn-points"><li><b>SSLQ = 0</b> setara dengan SLQ = 1 (netral).</li><li><b>SSLQ mendekati +1</b> berarti spesialisasi sangat kuat (SLQ jauh di atas 1); <b>SSLQ mendekati −1</b> berarti sangat tidak terspesialisasi (SLQ mendekati 0).</li><li><b>DSLQ</b> mengikuti pola yang sama terhadap DLQ: mendekati +1 = tumbuh jauh lebih cepat dari Bali, mendekati −1 = tumbuh jauh lebih lambat. Karena skalanya simetris & seragam antar sektor, versi ini lebih adil dipakai untuk membandingkan "seberapa jauh" posisi tiap sektor dari titik netral, bukan cuma arah unggul/tidaknya saja.</li></ul></div>`
   };
   document.getElementById('lqMethodNote').innerHTML = `<b>${lqMethod==='raw'?'LQ Asli (SLQ · DLQ)':'LQ Simetris (SSLQ · DSLQ)'}</b><br><br>${notes[lqMethod]}`;
 }
@@ -7991,7 +7998,7 @@ function renderAdvancedView(){
   main.innerHTML = `
     <section class="ss-wrap">
       <div class="ss-intro">
-        <h2>Analisis Lanjutan</h2>
+        <h2>Analisis Struktural</h2>
         <p>Sembilan analisis pelengkap Shift-Share, LQ, dan Diversitas: selisih laju pertumbuhan Klungkung vs Bali, seberapa besar dan di sektor mana struktur ekonomi berubah tiap tahun, derajat spesialisasi ala Krugman, seberapa mirip struktur ekonomi Klungkung dengan Bali, sektor mana penyumbang perbedaan terbesar, bagaimana sektor berpindah kelas dari waktu ke waktu, seberapa kompleks kapabilitas ekonominya, seberapa tahan terhadap guncangan, dan bagaimana pola spesialisasi tiap sektor sejak 2010.</p>
       </div>
       <div class="ss-method-tabs" id="advSubTabs">
@@ -8959,7 +8966,7 @@ function renderAdvTrajectory(){
         <li>DSS = skor lintasan relatif terhadap tahun dasar 2010</li>
       </ul>
       <div class="formula-caption">Klasifikasi: <b>Persistent Leader</b> (konsisten unggul), <b>Emerging</b> (tren naik menuju unggul), <b>Declining Specialist</b> (dulu unggul, kini menurun), <b>Persistent Non-specialist</b> (konsisten tidak unggul), <b>Potential</b> (belum jelas arahnya).</div>
-      <div class="mn-row"><b class="mn-label">💡 Cara membaca angka</b><ul class="mn-points"><li>Sektor <b>Persistent Leader</b> adalah fondasi ekonomi yang paling bisa diandalkan karena keunggulannya teruji lama. Sektor <b>Emerging</b> patut diperhatikan sebagai calon sektor unggulan baru — sering jadi target kebijakan pengembangan. Sektor <b>Declining Specialist</b> perlu perhatian karena keunggulan yang dulu dimiliki sedang terkikis.</li><li><b>DSS</b> yang lebih tinggi menunjukkan lintasan yang lebih positif dibanding kondisi awal 2010.</li></ul></div>
+      <div class="mn-row"><b class="mn-label">💡 Cara membaca angka</b><ul class="mn-points"><li>Sektor <b>Persistent Leader</b> adalah fondasi ekonomi yang paling bisa diandalkan karena keunggulannya teruji lama.</li><li>Sektor <b>Emerging</b> patut diperhatikan sebagai calon sektor unggulan baru — sering jadi target kebijakan pengembangan.</li><li>Sektor <b>Declining Specialist</b> perlu perhatian karena keunggulan yang dulu dimiliki sedang terkikis.</li><li><b>DSS</b> yang lebih tinggi menunjukkan lintasan yang lebih positif dibanding kondisi awal 2010.</li></ul></div>
     </div>
     <div class="ss-section-title">Distribusi Klasifikasi Lintasan Sektor</div>
     <div class="ss-quad-legend" style="margin-bottom:16px;">
