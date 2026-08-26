@@ -52,8 +52,8 @@
 
   /* ===== Hero ===== */
   .hero{
-    background: var(--white);
-    border-bottom:1px solid #ECECEC;
+    background: linear-gradient(120deg, var(--orange-deep) 0%, var(--orange) 60%, #2E8983 100%);
+    border-bottom:none;
     padding:30px 24px 40px;
     position:relative;
     overflow:hidden;
@@ -63,22 +63,23 @@
     display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap;
   }
   .hero-eyebrow{
-    color:var(--orange); font-weight:600; letter-spacing:.13em; text-transform:uppercase;
+    color:rgba(255,255,255,.82); font-weight:700; letter-spacing:.13em; text-transform:uppercase;
     font-size:11px; margin-bottom:8px; font-family:'Inter',sans-serif;
   }
-  .hero h1{ color:var(--brown-deep); font-size:clamp(22px,3vw,32px); font-weight:600; line-height:1.15; }
-  .hero p{ color:var(--brown-mid); margin-top:6px; font-size:12.5px; max-width:480px; line-height:1.45; }
+  .hero h1{ color:#fff; font-family:'Sora',sans-serif; font-size:clamp(22px,3vw,32px); font-weight:700; line-height:1.15; }
+  .hero p{ color:rgba(255,255,255,.82); margin-top:6px; font-size:12.5px; max-width:480px; line-height:1.45; }
 
   .hero-stats{ display:flex; gap:10px; flex-wrap:wrap; }
   .stat-pill{
-    background:#F7F7F7;
-    border:1px solid #ECECEC;
+    background:rgba(255,255,255,.13);
+    border:1px solid rgba(255,255,255,.28);
     border-radius:12px;
     padding:9px 15px;
     min-width:88px;
+    backdrop-filter:blur(2px);
   }
-  .stat-pill .num{ color:var(--brown-deep); font-family:'Sora',sans-serif; font-size:20px; font-weight:600; line-height:1; }
-  .stat-pill .lbl{ color:var(--brown-mid); font-size:10px; margin-top:3px; letter-spacing:.05em; }
+  .stat-pill .num{ color:#fff; font-family:'Sora',sans-serif; font-size:20px; font-weight:700; line-height:1; }
+  .stat-pill .lbl{ color:rgba(255,255,255,.78); font-size:10px; margin-top:3px; letter-spacing:.05em; }
 
   /* ===== Tabbar sticky wrap: tab kiri + ringkasan statistik kanan, sama-sama freeze ===== */
   .tabbar-sticky-wrap{
@@ -234,6 +235,27 @@
     border:1px solid var(--line); background:var(--cream); color:var(--brown);
   }
   .cmp-normalize{ display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; color:var(--brown-mid); cursor:pointer; }
+
+  .cmp-suggest{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    background:linear-gradient(160deg, var(--peach-soft) 0%, var(--card-bg) 60%);
+    border:1px solid var(--border); border-left:3px solid var(--orange);
+    border-radius:10px; padding:9px 14px; margin-bottom:14px;
+    font-size:12.5px; color:var(--brown); line-height:1.5;
+  }
+  .cmp-suggest-icon{ font-size:14px; }
+  .cmp-suggest b{ color:var(--orange-deep); }
+  .cmp-suggest-btn{
+    margin-left:auto; font-family:'Inter',sans-serif; font-size:11.5px; font-weight:700;
+    padding:5px 12px; border-radius:999px; border:1px solid var(--orange); background:var(--orange);
+    color:#fff; cursor:pointer; white-space:nowrap;
+  }
+  .cmp-suggest-btn:hover{ background:var(--orange-deep); border-color:var(--orange-deep); }
+  .cmp-suggest.cmp-suggest-match{
+    background:linear-gradient(160deg, var(--green-bg) 0%, var(--card-bg) 60%);
+    border-left-color:var(--green);
+  }
+  .cmp-suggest.cmp-suggest-match b{ color:var(--green); }
   .cmp-normalize input{ accent-color:var(--orange-deep); width:14px; height:14px; }
   .cmp-clear{
     margin-left:auto; font-size:12px; font-weight:700; color:var(--rust);
@@ -284,22 +306,30 @@
     gap:12px;
   }
   .ai-insight-box{
-    background: #FAFAFA;
-    border:1px solid var(--border);
+    background: linear-gradient(160deg, var(--peach-soft) 0%, var(--card-bg) 55%);
+    border:1px solid var(--border); border-left:3px solid var(--orange);
     border-radius:12px;
-    padding:18px;
+    padding:16px 18px;
   }
   .ai-insight-title{
+    font-family:'Sora',sans-serif;
     font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; font-weight:700;
-    color:var(--orange-deep); margin-bottom:8px; display:flex; align-items:center; gap:6px;
+    color:var(--orange-deep); margin-bottom:10px; display:flex; align-items:center; gap:6px;
   }
   .ai-insight-content{
     font-size:12.5px; line-height:1.6; color:var(--brown);
   }
   .ai-insight-content b{ color:var(--brown-deep); }
   .insight-section-title{
-    font-weight:700; color:var(--brown-deep); margin-top:10px; margin-bottom:4px; display:block;
+    font-family:'Sora',sans-serif; font-weight:700; font-size:11px; letter-spacing:.03em;
+    text-transform:uppercase; color:var(--brown-deep); margin-top:16px; margin-bottom:7px; display:block;
   }
+  .insight-section-title:first-child{ margin-top:0; }
+  .insight-intro{ margin-bottom:8px; color:var(--brown-mid); }
+  .insight-list{ margin:0 0 4px; padding-left:18px; list-style:disc; }
+  .insight-list li{ margin-bottom:9px; line-height:1.6; }
+  .insight-list li:last-child{ margin-bottom:0; }
+  .insight-note{ color:var(--brown-mid); }
 
   .compare-defs-box{
     background:var(--card-bg);
@@ -341,14 +371,19 @@
   .ss-method-tab:hover:not(.active){ background:var(--peach-soft); }
 
   .ss-method-note{
-    background:#FAFAFA;
-    border:1px solid var(--border); border-radius:12px; padding:12px 16px; margin-bottom:14px;
+    background:linear-gradient(160deg, var(--peach-soft) 0%, var(--card-bg) 55%);
+    border:1px solid var(--border); border-left:3px solid var(--orange); border-radius:12px; padding:13px 17px; margin-bottom:14px;
     font-size:12px; line-height:1.55; color:var(--brown);
   }
   .ss-method-note b{ color:var(--brown-deep); }
-  .ss-method-note .formula-list{ margin:4px 0 2px 20px; padding:0; }
+  .ss-method-note .mn-label{
+    display:block; font-family:'Sora',sans-serif;
+    font-weight:700; font-size:11px; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--orange-deep); margin-bottom:5px;
+  }
+  .ss-method-note .formula-list{ margin:4px 0 2px 0; padding:9px 16px 9px 32px; background:var(--cream-deep); border-radius:8px; }
   .ss-method-note .formula-list li{ margin-bottom:4px; font-family:'Menlo','Consolas',monospace; font-size:15px; font-weight:700; color:var(--brown-deep); }
-  .ss-method-note .formula-caption{ margin:6px 0 2px 20px; font-size:11.5px; font-style:italic; color:var(--brown-soft); line-height:1.5; }
+  .ss-method-note .formula-caption{ margin:6px 0 2px 4px; font-size:11.5px; font-style:italic; color:var(--brown-soft); line-height:1.5; }
   .ss-method-note .component-list{ margin:4px 0 8px 20px; padding:0; }
   .ss-method-note .component-list li{ margin-bottom:5px; }
 
@@ -989,6 +1024,14 @@
 </div>
 
 <script>
+/* Default global Chart.js: semua line chart tanpa titik/dot, garis mulus (smooth).
+   Chart individual yang butuh titik tetap bisa override pointRadius sendiri. */
+if(typeof Chart !== 'undefined'){
+  Chart.defaults.elements.point.radius = 0;
+  Chart.defaults.elements.point.hoverRadius = 4;
+  Chart.defaults.elements.point.hitRadius = 10;
+  Chart.defaults.elements.line.tension = 0.4;
+}
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS0IHQMxQuwLfTdSgKoXUqA8guCT788uBZ4cwlE72X6co3LMRcGU6tk1PSMbi7nVeEB2g-kTVXYBPyv/pub?output=csv";
 
 let STORE = {};        
@@ -3257,7 +3300,7 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
             labels: items.map(it=>it.name),
             datasets:[
               { type:'bar', data: items.map(it=>it.value), backgroundColor: items.map((_,i)=>COMPARE_COLORS[i % COMPARE_COLORS.length]), borderWidth:0, borderRadius:4, maxBarThickness:44, yAxisID:'y', order:2 },
-              { type:'line', data: cumPct, borderColor:'#22333A', backgroundColor:'#22333A', borderWidth:2.2, pointRadius:4, tension:0, fill:false, yAxisID:'y1', order:1 }
+              { type:'line', data: cumPct, borderColor:'#22333A', backgroundColor:'#22333A', borderWidth:2.2, pointRadius:0, pointHoverRadius:4, tension:0.35, fill:false, yAxisID:'y1', order:1 }
             ]
           },
           options:{
@@ -3490,6 +3533,11 @@ function renderCompareView(){
         </select></div>
         <label class="cmp-normalize"><input type="checkbox" id="cmpNormalize"> Indeks (awal = 100)</label>
         <button class="cmp-clear" id="cmpClear">Hapus pilihan</button>
+      </div>
+      <div class="cmp-suggest" id="cmpSuggest" style="display:none;">
+        <span class="cmp-suggest-icon" id="cmpSuggestIcon">💡</span>
+        <span><span id="cmpSuggestPrefix">Disarankan:</span> <b id="cmpSuggestLabel"></b> — <span id="cmpSuggestReason"></span></span>
+        <button class="cmp-suggest-btn" id="cmpSuggestApply">Pakai saran</button>
       </div>
       <div class="compare-body">
         <div class="compare-picker" id="cmpPicker"></div>
@@ -3824,7 +3872,7 @@ function renderComparePareto(keys, seriesAnalysisData){
       labels: pLabels,
       datasets:[
         { type:'bar', data: pData, backgroundColor: colors, borderWidth:0, borderRadius:4, maxBarThickness:44, yAxisID:'y', order:2 },
-        { type:'line', data: cumPct, borderColor:'#22333A', backgroundColor:'#22333A', borderWidth:2.2, pointRadius:4, tension:0, fill:false, yAxisID:'y1', order:1 }
+        { type:'line', data: cumPct, borderColor:'#22333A', backgroundColor:'#22333A', borderWidth:2.2, pointRadius:0, pointHoverRadius:4, tension:0.35, fill:false, yAxisID:'y1', order:1 }
       ]
     },
     options:{
@@ -4401,11 +4449,76 @@ function buildCompareBulletSVG(keys){
   return svg + `<div class="comp-chart-note">Bar berwarna = nilai periode terakhir dalam rentang yang dipilih. Garis tegak gelap = nilai periode sebelumnya (pembanding/target). Pita latar menunjukkan rentang minimum–rata-rata–maksimum historis pada rentang tersebut.</div>`;
 }
 
+/* Menyarankan 1 jenis grafik yang paling cocok berdasarkan jumlah indikator yang dipilih,
+   kesamaan satuan, dan panjang rentang waktu — lalu ditampilkan sebagai hint di atas grafik. */
+const CMP_CHART_LABELS = {
+  line:'Garis', area:'Area Terisi', spline:'Kurva Halus', bar:'Batang', 'rounded-bar':'Batang Bulat',
+  'stacked-bar':'Stacked Bar', 'stacked-bar-100':'Stacked Bar 100%', bullet:'Bullet Chart',
+  'stepped-area':'Tangga', 'dashed-area':'Putus-putus', scatter:'Sebar (Scatter)',
+  'categorical-scatter':'Sebar Kategorikal', 'dot-plot':'Dot Plot', lollipop:'Lollipop',
+  'bubble-ts':'Bubble Time Series', 'pure-bubble':'Bubble Murni', slope:'Slope (Awal vs Akhir)',
+  'range-plot':'Range Plot', waterfall:'Waterfall (Bridge)', funnel:'Funnel (Ranking)',
+  surface:'Surface (Heatmap)', radar:'Radar', 'polar-area':'Polar Area', 'radial-bar':'Radial Bar',
+  'diverging-bar':'Diverging Bar', combo:'Combo Bar+Garis', pareto:'Pareto', bump:'Bump (Ranking)',
+  'stacked-area':'Stacked Area', stream:'Stream', marimekko:'Marimekko'
+};
+function recommendCompareChartType(keys){
+  const n = keys.length;
+  if(n===0) return null;
+  const periodSpan = Math.max(1, (compareTo||0) - (compareFrom||0) + 1);
+  const satuanSet = new Set(keys.map(k=>{ const [,,sub] = k.split('|||'); return SATUAN[sub]||''; }));
+  const mixedUnit = satuanSet.size > 1;
+
+  if(n===1){
+    if(periodSpan<=2) return { type:'bar', reason:'satu indikator, rentang waktu pendek — batang lebih mudah dibaca daripada garis 1-2 titik.' };
+    return { type:'spline', reason:'satu indikator dengan tren waktu yang cukup panjang — kurva halus menonjolkan arah trennya.' };
+  }
+  if(periodSpan<=2){
+    return { type:'slope', reason:`membandingkan ${n} indikator hanya di 2 titik waktu — slope chart paling jelas menunjukkan naik/turunnya.` };
+  }
+  if(mixedUnit && !normalizeCompare){
+    return { type:'line', reason:`${n} indikator dengan satuan berbeda — aktifkan "Indeks (awal = 100)" juga supaya skalanya sebanding.` };
+  }
+  if(n>=5){
+    return { type:'line', reason:`${n} indikator dengan tren waktu panjang — garis tetap paling jelas untuk banyak seri sekaligus.` };
+  }
+  return { type:'line', reason:`${n} indikator, satuan sama, rentang waktu panjang — garis paling pas untuk membandingkan trennya.` };
+}
+function updateCompareChartSuggestion(keys){
+  const box = document.getElementById('cmpSuggest');
+  if(!box) return;
+  const rec = recommendCompareChartType(keys);
+  if(!rec){ box.style.display = 'none'; return; }
+  box.style.display = 'flex';
+  const applyBtn = document.getElementById('cmpSuggestApply');
+  if(rec.type===compareChartType){
+    box.classList.add('cmp-suggest-match');
+    document.getElementById('cmpSuggestIcon').textContent = '✓';
+    document.getElementById('cmpSuggestPrefix').textContent = 'Sudah pas:';
+    document.getElementById('cmpSuggestLabel').textContent = CMP_CHART_LABELS[rec.type] || rec.type;
+    document.getElementById('cmpSuggestReason').textContent = rec.reason;
+    applyBtn.style.display = 'none';
+  }else{
+    box.classList.remove('cmp-suggest-match');
+    document.getElementById('cmpSuggestIcon').textContent = '💡';
+    document.getElementById('cmpSuggestPrefix').textContent = 'Disarankan:';
+    document.getElementById('cmpSuggestLabel').textContent = CMP_CHART_LABELS[rec.type] || rec.type;
+    document.getElementById('cmpSuggestReason').textContent = rec.reason;
+    applyBtn.style.display = 'inline-block';
+    applyBtn.onclick = ()=>{
+      compareChartType = rec.type;
+      document.getElementById('cmpChartType').value = rec.type;
+      renderCompareChart();
+    };
+  }
+}
+
 function renderCompareChart(){
   const wrap = document.getElementById('cmpChartWrap');
   const empty = document.getElementById('cmpEmpty');
   const infoGrid = document.getElementById('cmpInfoGrid');
   const keys = [...compareSelected];
+  updateCompareChartSuggestion(keys);
 
   if(keys.length === 0){
     wrap.style.display = 'none';
@@ -4646,7 +4759,7 @@ function renderCompareChart(){
       }else{
         datasets.push({
           type:'line', label: subLabel(info.sub), data:values, borderColor:color, backgroundColor:color,
-          pointRadius:3, pointHoverRadius:5, borderWidth:2.2, tension:0.22, fill:false, yAxisID, order:1, spanGaps:true
+          pointRadius:0, pointHoverRadius:4, borderWidth:2.2, tension:0.3, fill:false, yAxisID, order:1, spanGaps:true
         });
       }
     }else{
@@ -4720,24 +4833,24 @@ function getCompareTypeStyle(type, color){
     case 'rounded-bar':
       return { type:'bar', backgroundColor: hexToRgba(color,0.68), borderRadius:6, borderWidth:0 };
     case 'area':
-      return { type:'line', backgroundColor: hexToRgba(color,0.28), fill:true, tension:0.25, borderWidth:2.2, pointRadius:3, pointHoverRadius:5 };
+      return { type:'line', backgroundColor: hexToRgba(color,0.28), fill:true, tension:0.35, borderWidth:2.2, pointRadius:0, pointHoverRadius:4 };
     case 'spline':
-      return { type:'line', backgroundColor: color, fill:false, tension:0.42, borderWidth:2.2, pointRadius:3, pointHoverRadius:5 };
+      return { type:'line', backgroundColor: color, fill:false, tension:0.42, borderWidth:2.2, pointRadius:0, pointHoverRadius:4 };
     case 'stepped-area':
-      return { type:'line', backgroundColor: hexToRgba(color,0.22), fill:true, stepped:true, tension:0, borderWidth:2.2, pointRadius:2, pointHoverRadius:5 };
+      return { type:'line', backgroundColor: hexToRgba(color,0.22), fill:true, stepped:true, tension:0, borderWidth:2.2, pointRadius:0, pointHoverRadius:4 };
     case 'dashed-area':
-      return { type:'line', backgroundColor: 'transparent', fill:false, borderDash:[6,4], tension:0, borderWidth:2.2, pointRadius:2, pointHoverRadius:5 };
+      return { type:'line', backgroundColor: 'transparent', fill:false, borderDash:[6,4], tension:0, borderWidth:2.2, pointRadius:0, pointHoverRadius:4 };
     case 'scatter':
       return { type:'line', backgroundColor: color, fill:false, showLine:false, borderWidth:0, pointRadius:4, pointHoverRadius:6 };
     case 'stacked-area':
-      return { type:'line', backgroundColor: hexToRgba(color,0.55), fill:true, tension:0, pointRadius:0, borderWidth:1.5, stack:'cmp' };
+      return { type:'line', backgroundColor: hexToRgba(color,0.55), fill:true, tension:0.35, pointRadius:0, borderWidth:1.5, stack:'cmp' };
     case 'stacked-bar':
       return { type:'bar', backgroundColor: hexToRgba(color,0.78), borderRadius:0, borderWidth:0, stack:'cmp' };
     case 'stacked-bar-100':
       return { type:'bar', backgroundColor: hexToRgba(color,0.78), borderRadius:0, borderWidth:0, stack:'cmp' };
     case 'line':
     default:
-      return { type:'line', backgroundColor: color, fill:false, tension:0.22, borderWidth:2.2, pointRadius:3, pointHoverRadius:5 };
+      return { type:'line', backgroundColor: color, fill:false, tension:0.35, borderWidth:2.2, pointRadius:0, pointHoverRadius:4 };
   }
 }
 
@@ -4769,18 +4882,20 @@ function generateAdvancedAIInsight(dataList){
     return;
   }
 
-  let html = `<span class="insight-section-title">📊 Rangkuman Kinerja & Tren Multi-Indikator</span>`;
-  html += `Analisis mencakup rentang waktu <b>${compareFrom}</b> hingga <b>${compareTo}</b>:<br><br>`;
+  let html = `<span class="insight-section-title">📊 Rangkuman Kinerja &amp; Tren Multi-Indikator</span>`;
+  html += `<div class="insight-intro">Analisis mencakup rentang waktu <b>${compareFrom}</b> hingga <b>${compareTo}</b>:</div>`;
 
+  html += `<ul class="insight-list">`;
   dataList.forEach(item=>{
     const arah = item.pct > 0 ? 'menunjukkan tren kenaikan' : (item.pct < 0 ? 'menunjukkan tren penurunan' : 'cenderung stagnan');
     const warnaArah = item.pct > 0 ? 'color:var(--rust);' : (item.pct < 0 ? 'color:var(--green);' : '');
-    
-    html += `• <b>${escapeHtml(item.name)}</b>: <span style="${warnaArah}font-weight:700;">${arah}</span> sebesar <b>${item.pct > 0 ? '+' : ''}${item.pct.toFixed(1)}%</b> secara kumulatif (Laju rata-rata tahunan/CAGR: <b>${item.cagr > 0 ? '+' : ''}${item.cagr.toFixed(2)}%/tahun</b>). Nilai tertinggi tercatat pada <b>${item.maxLabel}</b> (${fmtNum(item.max)} ${item.unit}), sementara titik terendahnya berada di <b>${item.minLabel}</b> (${fmtNum(item.min)} ${item.unit}).<br>`;
+
+    html += `<li><b>${escapeHtml(item.name)}</b>: <span style="${warnaArah}font-weight:700;">${arah}</span> sebesar <b>${item.pct > 0 ? '+' : ''}${item.pct.toFixed(1)}%</b> secara kumulatif (Laju rata-rata tahunan/CAGR: <b>${item.cagr > 0 ? '+' : ''}${item.cagr.toFixed(2)}%/tahun</b>). Nilai tertinggi tercatat pada <b>${item.maxLabel}</b> (${fmtNum(item.max)} ${item.unit}), sementara titik terendahnya berada di <b>${item.minLabel}</b> (${fmtNum(item.min)} ${item.unit}).</li>`;
   });
+  html += `</ul>`;
 
   if(dataList.some(d=>d.rawValues && d.rawValues.filter(v=>v!==null&&v!==undefined).length >= 3)){
-    html += `<span class="insight-section-title" style="margin-top:14px;">📈 Volatilitas Tiap Indikator</span>`;
+    html += `<span class="insight-section-title">📈 Volatilitas Tiap Indikator</span>`;
     const volList = dataList.map(item=>{
       const vals = (item.rawValues||[]).filter(v=>v!==null && v!==undefined);
       if(vals.length < 3) return {name:item.name, cv:null};
@@ -4791,12 +4906,12 @@ function generateAdvancedAIInsight(dataList){
     }).filter(v=>v.cv !== null);
     volList.sort((a,b)=>b.cv-a.cv);
     if(volList.length > 0){
-      html += volList.map(v=>{
+      html += `<ul class="insight-list">` + volList.map(v=>{
         let w = 'stabil';
         if(v.cv >= 25) w = 'cukup fluktuatif';
         else if(v.cv >= 10) w = 'sedikit berfluktuasi';
-        return `• <b>${escapeHtml(v.name)}</b>: ${w} (CV ≈ ${v.cv.toFixed(1)}%)`;
-      }).join('<br>') + '<br>';
+        return `<li><b>${escapeHtml(v.name)}</b>: ${w} (CV ≈ ${v.cv.toFixed(1)}%)</li>`;
+      }).join('') + `</ul>`;
     }
   }
 
@@ -4810,7 +4925,8 @@ function generateAdvancedAIInsight(dataList){
     }
     if(corrPairs.length > 0){
       corrPairs.sort((x,y)=>Math.abs(y.r)-Math.abs(x.r));
-      html += `<span class="insight-section-title" style="margin-top:14px;">🔗 Korelasi Antar Indikator</span>`;
+      html += `<span class="insight-section-title">🔗 Korelasi Antar Indikator</span>`;
+      html += `<ul class="insight-list">`;
       corrPairs.slice(0,4).forEach(p=>{
         let word = 'nyaris tidak berkorelasi';
         let cls = 'trend-flat';
@@ -4818,16 +4934,17 @@ function generateAdvancedAIInsight(dataList){
         else if(p.r >= 0.3){ word = 'cenderung bergerak searah'; cls='trend-up'; }
         else if(p.r <= -0.7){ word = 'bergerak berlawanan arah dengan kuat (trade-off)'; cls='trend-down'; }
         else if(p.r <= -0.3){ word = 'cenderung bergerak berlawanan arah'; cls='trend-down'; }
-        html += `• <b>${escapeHtml(p.a)}</b> vs <b>${escapeHtml(p.b)}</b>: <span class="${cls}" style="font-weight:700;">${word}</span> (r = ${p.r.toFixed(2)})<br>`;
+        html += `<li><b>${escapeHtml(p.a)}</b> vs <b>${escapeHtml(p.b)}</b>: <span class="${cls}" style="font-weight:700;">${word}</span> (r = ${p.r.toFixed(2)})</li>`;
       });
+      html += `</ul>`;
     }
   }
 
-  html += `<span class="insight-section-title" style="margin-top:14px;">🔍 Catatan Komparasi & Rekomendasi Analisis</span>`;
+  html += `<span class="insight-section-title">🔍 Catatan Komparasi &amp; Rekomendasi Analisis</span>`;
   if(dataList.length === 1){
-    html += `Anda sedang memantau satu indikator tunggal. Tambahkan indikator pembanding lain di panel sebelah kiri untuk melihat pola korelasi atau divergensi antar variabel.`;
+    html += `<div class="insight-note">Anda sedang memantau satu indikator tunggal. Tambahkan indikator pembanding lain di panel sebelah kiri untuk melihat pola korelasi atau divergensi antar variabel.</div>`;
   } else {
-    html += `Dengan membandingkan <b>${dataList.length} indikator terpilih</b>, Anda dapat mengamati apakah pergerakan variabel-variabel ini saling sejalan (sinkron) atau bergerak secara berlawanan (trade-off). Perhatikan bahwa korelasi statistik di atas tidak selalu menunjukkan hubungan sebab-akibat.`;
+    html += `<div class="insight-note">Dengan membandingkan <b>${dataList.length} indikator terpilih</b>, Anda dapat mengamati apakah pergerakan variabel-variabel ini saling sejalan (sinkron) atau bergerak secara berlawanan (trade-off). Perhatikan bahwa korelasi statistik di atas tidak selalu menunjukkan hubungan sebab-akibat.</div>`;
   }
 
   textEl.innerHTML = html;
@@ -5016,7 +5133,7 @@ function refreshDetail(entries, fromYear, toYear){
     const movingAvg = values.map((v,i)=>{ running += v; return running/(i+1); });
     datasets = [
       { type:'bar', data: values, backgroundColor: hexToRgba(accent,0.45), borderWidth:0, borderRadius:3, maxBarThickness:32, order:2 },
-      { type:'line', data: movingAvg, borderColor:'#22333A', backgroundColor:'#22333A', borderWidth:2, pointRadius:2, tension:0.25, fill:false, order:1 }
+      { type:'line', data: movingAvg, borderColor:'#22333A', backgroundColor:'#22333A', borderWidth:2, pointRadius:0, pointHoverRadius:4, tension:0.35, fill:false, order:1 }
     ];
   } else if (isPareto) {
     const idxSorted = values.map((v,i)=>i).sort((a,b)=>values[b]-values[a]);
@@ -5027,7 +5144,7 @@ function refreshDetail(entries, fromYear, toYear){
     const cumPct = sortedVals.map(v=>{ cum += v; return (cum/total*100); });
     datasets = [
       { type:'bar', data: sortedVals, backgroundColor: hexToRgba(accent,0.6), borderWidth:0, borderRadius:3, maxBarThickness:34, yAxisID:'y', order:2 },
-      { type:'line', data: cumPct, borderColor:'#22333A', backgroundColor:'#22333A', borderWidth:2, pointRadius:3, tension:0, fill:false, yAxisID:'y1', order:1 }
+      { type:'line', data: cumPct, borderColor:'#22333A', backgroundColor:'#22333A', borderWidth:2, pointRadius:0, pointHoverRadius:4, tension:0.35, fill:false, yAxisID:'y1', order:1 }
     ];
   } else if (isLollipop) {
     datasets = [
@@ -5543,29 +5660,29 @@ function renderShiftShareView(){
 function updateSSMethodNote(){
   const notes = {
     tradisional: `
-      <div><b>📖 Apa itu model ini:</b> Model paling dasar (Dunn, 1960) untuk memecah pertumbuhan tiap sektor menjadi tiga sumber terpisah: seberapa besar sektor itu tumbuh karena terbawa arus pertumbuhan ekonomi Bali secara umum, seberapa besar karena sektor itu memang sedang "booming"/lesu di tingkat provinsi, dan seberapa besar murni karena daya saing Klungkung sendiri di sektor tersebut.</div>
-      <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+      <div><b class="mn-label">📖 Apa itu model ini</b> Model paling dasar (Dunn, 1960) untuk memecah pertumbuhan tiap sektor menjadi tiga sumber terpisah: seberapa besar sektor itu tumbuh karena terbawa arus pertumbuhan ekonomi Bali secara umum, seberapa besar karena sektor itu memang sedang "booming"/lesu di tingkat provinsi, dan seberapa besar murni karena daya saing Klungkung sendiri di sektor tersebut.</div>
+      <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
       <ul class="formula-list">
         <li>NS = eᵢ(t−1) × G</li>
         <li>IM = eᵢ(t−1) × (Gᵢ − G)</li>
         <li>RS = eᵢ(t−1) × (gᵢ − Gᵢ)</li>
       </ul>
       <div class="formula-caption">Kuadran dibentuk dari IM (sumbu-x) vs RS (sumbu-y).</div>
-      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> <b>NS</b> besar bukan berarti sektor itu hebat — itu cuma menunjukkan seberapa besar dorongan pertumbuhan ekonomi Bali secara umum. <b>IM</b> positif berarti sektor ini termasuk yang sedang tumbuh cepat di level provinsi (iklim sektoralnya bagus), IM negatif berarti sektor ini secara nasional/provinsi memang sedang lesu. Yang paling penting untuk menilai daya saing lokal murni adalah <b>RS (Pergeseran Diferensial)</b>: RS positif = Klungkung unggul kompetitif dibanding Bali pada sektor ini (tumbuh lebih cepat dari yang "seharusnya"); RS negatif = sektor ini kalah saing di Klungkung dibanding rata-rata Bali, meski secara nasional sektornya sendiri mungkin sedang bagus.</div>`,
+      <div style="margin-top:8px"><b class="mn-label">💡 Cara membaca angka</b> <b>NS</b> besar bukan berarti sektor itu hebat — itu cuma menunjukkan seberapa besar dorongan pertumbuhan ekonomi Bali secara umum.<br><br><b>IM</b> positif berarti sektor ini termasuk yang sedang tumbuh cepat di level provinsi (iklim sektoralnya bagus), IM negatif berarti sektor ini secara nasional/provinsi memang sedang lesu. Yang paling penting untuk menilai daya saing lokal murni adalah <b>RS (Pergeseran Diferensial)</b>: RS positif = Klungkung unggul kompetitif dibanding Bali pada sektor ini (tumbuh lebih cepat dari yang "seharusnya"); RS negatif = sektor ini kalah saing di Klungkung dibanding rata-rata Bali, meski secara nasional sektornya sendiri mungkin sedang bagus.</div>`,
     em: `
-      <div><b>📖 Apa itu model ini:</b> Perbaikan dari model Tradisional (Esteban-Marquilas, 1972). Masalah pada RS versi Tradisional adalah nilainya bisa "tertipu" oleh besar-kecilnya porsi sektor tersebut di ekonomi Klungkung (spesialisasi), bukan murni oleh daya saingnya. Model ini memisahkan nilai aktual sektor (eᵢ) menjadi nilai homotetik <b>h</b> — porsi yang "seharusnya" dimiliki Klungkung seandainya struktur ekonominya sama persis dengan Bali — supaya efek kompetitif bisa dihitung bersih dari bias spesialisasi.</div>
-      <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+      <div><b class="mn-label">📖 Apa itu model ini</b> Perbaikan dari model Tradisional (Esteban-Marquilas, 1972). Masalah pada RS versi Tradisional adalah nilainya bisa "tertipu" oleh besar-kecilnya porsi sektor tersebut di ekonomi Klungkung (spesialisasi), bukan murni oleh daya saingnya. Model ini memisahkan nilai aktual sektor (eᵢ) menjadi nilai homotetik <b>h</b> — porsi yang "seharusnya" dimiliki Klungkung seandainya struktur ekonominya sama persis dengan Bali — supaya efek kompetitif bisa dihitung bersih dari bias spesialisasi.</div>
+      <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
       <ul class="formula-list">
         <li>h = e(t−1) × Eᵢ(t−1) / E(t−1)  <span style="font-family:'Inter',sans-serif;color:var(--brown-mid);">(nilai homotetik)</span></li>
         <li>RS EM = h × (gᵢ − Gᵢ)  <span style="font-family:'Inter',sans-serif;color:var(--brown-mid);">(efek kompetitif murni)</span></li>
         <li>Allocation = (eᵢ − h) × (gᵢ − Gᵢ)</li>
       </ul>
       <div class="formula-caption">Kuadran dibentuk dari akumulasi (eᵢ − h) — spesialisasi (sumbu-x) — vs RS EM — keunggulan kompetitif (sumbu-y).</div>
-      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> <b>RS EM</b> positif = daya saing sektor itu sendiri sedang bagus, terlepas dari besar-kecilnya porsi sektor itu di ekonomi Klungkung. <b>Allocation (Efek Alokasi)</b> positif berarti spesialisasi Klungkung "pas sasaran" — sektor yang porsinya besar (eᵢ &gt; h) memang juga sektor yang kompetitif, atau sebaliknya sektor kecil memang kurang kompetitif sehingga wajar porsinya kecil. Allocation <b>negatif</b> adalah sinyal "salah spesialisasi": sektor dengan porsi besar justru kurang kompetitif (sumber daya terlalu banyak ditaruh di sektor yang lemah), atau sektor kompetitif justru porsinya kecil (potensi belum digarap maksimal) — ini bisa jadi dasar rekomendasi realokasi sumber daya.</div>`,
+      <div style="margin-top:8px"><b class="mn-label">💡 Cara membaca angka</b> <b>RS EM</b> positif = daya saing sektor itu sendiri sedang bagus, terlepas dari besar-kecilnya porsi sektor itu di ekonomi Klungkung.<br><br><b>Allocation (Efek Alokasi)</b> positif berarti spesialisasi Klungkung "pas sasaran" — sektor yang porsinya besar (eᵢ &gt; h) memang juga sektor yang kompetitif, atau sebaliknya sektor kecil memang kurang kompetitif sehingga wajar porsinya kecil. Allocation <b>negatif</b> adalah sinyal "salah spesialisasi": sektor dengan porsi besar justru kurang kompetitif (sumber daya terlalu banyak ditaruh di sektor yang lemah), atau sektor kompetitif justru porsinya kecil (potensi belum digarap maksimal) — ini bisa jadi dasar rekomendasi realokasi sumber daya.</div>`,
     arcelus: `
-      <div><b>📖 Apa itu model ini:</b> Perluasan dari Esteban-Marquilas (Arcelus, 1984). Kalau EM hanya memisahkan komponen kompetitif menjadi "sesuai struktur standar" (Effect) vs "menyimpang karena struktur khas Klungkung" (Deviation), Arcelus menerapkan pemisahan yang sama ke <b>seluruh</b> komponen — Nasional, Bauran Industri, sampai Regional.</div>
+      <div><b class="mn-label">📖 Apa itu model ini</b> Perluasan dari Esteban-Marquilas (Arcelus, 1984). Kalau EM hanya memisahkan komponen kompetitif menjadi "sesuai struktur standar" (Effect) vs "menyimpang karena struktur khas Klungkung" (Deviation), Arcelus menerapkan pemisahan yang sama ke <b>seluruh</b> komponen — Nasional, Bauran Industri, sampai Regional.</div>
       <div style="margin-top:8px;padding:10px 12px;background:rgba(255,255,255,0.5);border-radius:9px;">
-        <b>🧠 Analogi sederhana:</b> Bayangkan ada Klungkung "kembar imajiner" yang struktur ekonominya (porsi tiap sektor) persis sama dengan Bali. <b>Effect</b> = perubahan yang akan dialami sektor itu <i>seandainya</i> Klungkung memang seperti si kembar imajiner ini. <b>Deviation</b> = koreksi tambahan karena Klungkung yang sesungguhnya <i>tidak</i> persis seperti itu — porsi sektornya lebih besar atau lebih kecil dari "standar". Effect + Deviation selalu kembali menjadi angka perubahan yang sama seperti dihitung biasa, hanya saja sekarang dipecah supaya kelihatan mana yang murni soal tren pertumbuhan, dan mana yang soal struktur khas Klungkung sendiri.
+        <b class="mn-label">🧠 Analogi sederhana</b> Bayangkan ada Klungkung "kembar imajiner" yang struktur ekonominya (porsi tiap sektor) persis sama dengan Bali.<br><br><b>Effect</b> = perubahan yang akan dialami sektor itu <i>seandainya</i> Klungkung memang seperti si kembar imajiner ini.<br><br><b>Deviation</b> = koreksi tambahan karena Klungkung yang sesungguhnya <i>tidak</i> persis seperti itu — porsi sektornya lebih besar atau lebih kecil dari "standar". Effect + Deviation selalu kembali menjadi angka perubahan yang sama seperti dihitung biasa, hanya saja sekarang dipecah supaya kelihatan mana yang murni soal tren pertumbuhan, dan mana yang soal struktur khas Klungkung sendiri.
       </div>
       <div style="margin-top:8px"><b>🔍 Empat pasang komponennya:</b></div>
       <ul class="component-list">
@@ -5574,7 +5691,7 @@ function updateSSMethodNote(){
         <li><b>RGE &amp; RGD (Efek Pertumbuhan Regional):</b> dorongan dari seberapa cepat/lambat <i>Klungkung secara keseluruhan</i> (semua sektor digabung) dibanding Bali — bukan soal sektor tertentu, tapi soal daerahnya.</li>
         <li><b>RIE &amp; RID (Efek Interaksi Regional):</b> sisa yang tidak dijelaskan tiga efek di atas — murni keunggulan/kelemahan <i>sektor itu khusus di Klungkung</i>, setelah semua faktor makro dikeluarkan. Biasanya paling menarik dicermati.</li>
       </ul>
-      <div><b>🧮 Formula:</b></div>
+      <div><b class="mn-label">🧮 Formula</b></div>
       <ul class="formula-list">
         <li>NSE = h × G &nbsp;·&nbsp; NSD = (eᵢ − h) × G</li>
         <li>IME = h × (Gᵢ − G) &nbsp;·&nbsp; IMD = (eᵢ − h) × (Gᵢ − G)</li>
@@ -5582,7 +5699,7 @@ function updateSSMethodNote(){
         <li>RIE = h × (gᵢ − g − Gᵢ + G) &nbsp;·&nbsp; RID = (eᵢ − h) × (gᵢ − g − Gᵢ + G)</li>
       </ul>
       <div class="formula-caption">g = laju pertumbuhan total Klungkung. Kuadran dibentuk dari akumulasi (eᵢ − h) — spesialisasi — vs (RGE+RGD+RIE+RID) — keunggulan kompetitif total.</div>
-      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> Untuk tiap pasangan, kalau Effect dan Deviation <b>searah</b> (sama-sama positif atau sama-sama negatif) berarti struktur khas Klungkung <b>memperkuat</b> efek itu; kalau <b>berlawanan arah</b>, struktur khas Klungkung justru <b>meredam/mengoreksi</b> efek tersebut. Contoh: kalau RGE positif (Klungkung tumbuh lebih cepat dari Bali secara umum) dan RGD <i>juga</i> positif, sektor ini ikut diuntungkan lebih besar oleh pertumbuhan Klungkung yang cepat itu. Tapi kalau RGE positif sementara RGD <i>negatif</i>, sektor ini justru "ketinggalan" menikmati keuntungan tersebut dibanding sektor-sektor lain di Klungkung. Total tiap sektor (jumlah kedelapan komponen) tetap sama persis dengan perubahan riilnya, seperti model lain.</div>`
+      <div style="margin-top:8px"><b class="mn-label">💡 Cara membaca angka</b> Untuk tiap pasangan, kalau Effect dan Deviation <b>searah</b> (sama-sama positif atau sama-sama negatif) berarti struktur khas Klungkung <b>memperkuat</b> efek itu; kalau <b>berlawanan arah</b>, struktur khas Klungkung justru <b>meredam/mengoreksi</b> efek tersebut. Contoh: kalau RGE positif (Klungkung tumbuh lebih cepat dari Bali secara umum) dan RGD <i>juga</i> positif, sektor ini ikut diuntungkan lebih besar oleh pertumbuhan Klungkung yang cepat itu. Tapi kalau RGE positif sementara RGD <i>negatif</i>, sektor ini justru "ketinggalan" menikmati keuntungan tersebut dibanding sektor-sektor lain di Klungkung. Total tiap sektor (jumlah kedelapan komponen) tetap sama persis dengan perubahan riilnya, seperti model lain.</div>`
   };
   document.getElementById('ssMethodNote').innerHTML = `<b>${ssMethod==='tradisional'?'Dynamic Traditional':ssMethod==='em'?'Dynamic Esteban-Marquilas':'Dynamic Arcelus'}</b><br><br>${notes[ssMethod]}`;
 }
@@ -5974,7 +6091,7 @@ function renderLQView(){
   const introHtml = `
     <div class="ss-intro">
       <h2>Location Quotient (SLQ &amp; DLQ)</h2>
-      <p>Location Quotient mengukur derajat spesialisasi/keunggulan suatu sektor di Klungkung dibanding Bali. <b>Static LQ (SLQ)</b> membandingkan pangsa sektor di dua wilayah pada tahun terpilih; <b>Dynamic LQ (DLQ)</b> melakukan hal serupa namun memakai laju pertumbuhan tahunan (tahun terpilih vs tahun sebelumnya), sehingga menangkap potensi sektor ke depan, bukan hanya kontribusinya saat ini. Karena nilai SLQ/DLQ tidak simetris di sekitar 1 (rentang 0 s.d. tak terhingga), tersedia pula versi <b>simetris (SSLQ &amp; DSLQ)</b> yang mentransformasikannya ke rentang -1 s.d. 1 agar lebih adil secara statistik. Kedua versi menghasilkan klasifikasi sektor yang identik. Sektor diklasifikasikan menjadi <b>Unggulan</b>, <b>Andalan</b>, <b>Prospektif</b>, atau <b>Tertinggal</b> berdasarkan kombinasi SLQ &amp; DLQ.</p>
+      <p>Location Quotient mengukur derajat spesialisasi/keunggulan suatu sektor di Klungkung dibanding Bali.<br><br><b>Static LQ (SLQ)</b> membandingkan pangsa sektor di dua wilayah pada tahun terpilih; <b>Dynamic LQ (DLQ)</b> melakukan hal serupa namun memakai laju pertumbuhan tahunan (tahun terpilih vs tahun sebelumnya), sehingga menangkap potensi sektor ke depan, bukan hanya kontribusinya saat ini. Karena nilai SLQ/DLQ tidak simetris di sekitar 1 (rentang 0 s.d. tak terhingga), tersedia pula versi <b>simetris (SSLQ &amp; DSLQ)</b> yang mentransformasikannya ke rentang -1 s.d. 1 agar lebih adil secara statistik. Kedua versi menghasilkan klasifikasi sektor yang identik. Sektor diklasifikasikan menjadi <b>Unggulan</b>, <b>Andalan</b>, <b>Prospektif</b>, atau <b>Tertinggal</b> berdasarkan kombinasi SLQ &amp; DLQ.</p>
     </div>`;
 
   if(lqLoadState==='idle'){
@@ -6053,23 +6170,23 @@ function renderLQView(){
 function updateLQMethodNote(){
   const notes = {
     raw: `
-      <div><b>📖 Apa itu model ini:</b> Location Quotient asli — bentuk paling umum dipakai. <b>SLQ</b> (Static) membandingkan porsi sektor di Klungkung vs Bali pada satu titik/rentang waktu (potret keunggulan saat ini). <b>DLQ</b> (Dynamic) membandingkan laju pertumbuhan relatif sektor tersebut, sehingga menangkap ke mana arah sektor itu menuju, bukan cuma posisinya sekarang.</div>
-      <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+      <div><b class="mn-label">📖 Apa itu model ini</b> Location Quotient asli — bentuk paling umum dipakai.<br><br><b>SLQ</b> (Static) membandingkan porsi sektor di Klungkung vs Bali pada satu titik/rentang waktu (potret keunggulan saat ini).<br><br><b>DLQ</b> (Dynamic) membandingkan laju pertumbuhan relatif sektor tersebut, sehingga menangkap ke mana arah sektor itu menuju, bukan cuma posisinya sekarang.</div>
+      <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
       <ul class="formula-list">
         <li>SLQ = (rata-rata pangsa sektor di Klungkung) / (rata-rata pangsa sektor di Bali)</li>
         <li>DLQ = [((1+gᵢ)/(1+g)) / ((1+Gᵢ)/(1+G))]ᵗ</li>
       </ul>
       <div class="formula-caption">gᵢ & g = laju pertumbuhan rata-rata tahunan sektor & total Klungkung, Gᵢ & G = laju pertumbuhan rata-rata tahunan sektor & total Bali, t = jumlah tahun. Ambang klasifikasi: 1.</div>
-      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> <b>SLQ = 1</b> berarti porsi sektor itu di Klungkung persis sama dengan di Bali (netral, tidak istimewa). <b>SLQ &gt; 1</b> berarti Klungkung lebih terkonsentrasi/terspesialisasi pada sektor itu dibanding Bali — sektor ini menjadi basis ekonomi Klungkung, bukan sekadar melayani kebutuhan lokal. <b>SLQ &lt; 1</b> berarti porsinya di Klungkung lebih kecil dari Bali — sektor ini belum jadi andalan. Untuk <b>DLQ</b>: <b>DLQ &gt; 1</b> berarti sektor ini di Klungkung tumbuh lebih cepat secara relatif dibanding Bali (berpotensi makin unggul ke depan), sedangkan <b>DLQ &lt; 1</b> berarti tumbuh lebih lambat (berisiko makin tertinggal/despesialisasi). Kombinasi keduanya menghasilkan klasifikasi Unggulan/Andalan/Prospektif/Tertinggal.</div>`,
+      <div style="margin-top:8px"><b class="mn-label">💡 Cara membaca angka</b> <b>SLQ = 1</b> berarti porsi sektor itu di Klungkung persis sama dengan di Bali (netral, tidak istimewa).<br><br><b>SLQ &gt; 1</b> berarti Klungkung lebih terkonsentrasi/terspesialisasi pada sektor itu dibanding Bali — sektor ini menjadi basis ekonomi Klungkung, bukan sekadar melayani kebutuhan lokal.<br><br><b>SLQ &lt; 1</b> berarti porsinya di Klungkung lebih kecil dari Bali — sektor ini belum jadi andalan. Untuk <b>DLQ</b>: <b>DLQ &gt; 1</b> berarti sektor ini di Klungkung tumbuh lebih cepat secara relatif dibanding Bali (berpotensi makin unggul ke depan), sedangkan <b>DLQ &lt; 1</b> berarti tumbuh lebih lambat (berisiko makin tertinggal/despesialisasi). Kombinasi keduanya menghasilkan klasifikasi Unggulan/Andalan/Prospektif/Tertinggal.</div>`,
     symmetric: `
-      <div><b>📖 Apa itu model ini:</b> Transformasi dari SLQ/DLQ (Dalum et al., 1998) untuk mengatasi kelemahan statistik SLQ/DLQ asli: karena rentangnya 0 sampai tak terhingga dengan titik netral di angka 1, penyimpangan di ATAS 1 (misal dari 1 ke 3) dan di BAWAH 1 (misal dari 1 ke 0,2) tidak dibobot setara secara matematis, sehingga kurang cocok dipakai untuk perbandingan statistik lanjutan (korelasi, regresi, dsb).</div>
-      <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+      <div><b class="mn-label">📖 Apa itu model ini</b> Transformasi dari SLQ/DLQ (Dalum et al., 1998) untuk mengatasi kelemahan statistik SLQ/DLQ asli: karena rentangnya 0 sampai tak terhingga dengan titik netral di angka 1, penyimpangan di ATAS 1 (misal dari 1 ke 3) dan di BAWAH 1 (misal dari 1 ke 0,2) tidak dibobot setara secara matematis, sehingga kurang cocok dipakai untuk perbandingan statistik lanjutan (korelasi, regresi, dsb).</div>
+      <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
       <ul class="formula-list">
         <li>SSLQ = (SLQ − 1) / (SLQ + 1)</li>
         <li>DSLQ = (DLQ − 1) / (DLQ + 1)</li>
       </ul>
       <div class="formula-caption">Transformasi ke rentang −1 s.d. 1 dengan titik netral di 0. Ambang klasifikasi: 0. Menghasilkan klasifikasi sektor yang identik dengan SLQ-DLQ (terbukti lewat korelasi Spearman = 1 pada studi rujukan).</div>
-      <div style="margin-top:6px"><b>💡 Cara membaca angka:</b> <b>SSLQ = 0</b> setara dengan SLQ = 1 (netral). <b>SSLQ mendekati +1</b> berarti spesialisasi sangat kuat (SLQ jauh di atas 1); <b>SSLQ mendekati −1</b> berarti sangat tidak terspesialisasi (SLQ mendekati 0). Pola yang sama berlaku untuk <b>DSLQ</b> terhadap DLQ: mendekati +1 = tumbuh jauh lebih cepat dari Bali, mendekati −1 = tumbuh jauh lebih lambat. Karena skalanya simetris & seragam antar sektor, versi ini lebih adil dipakai untuk membandingkan "seberapa jauh" posisi tiap sektor dari titik netral, bukan cuma arah unggul/tidaknya saja.</div>`
+      <div style="margin-top:6px"><b class="mn-label">💡 Cara membaca angka</b> <b>SSLQ = 0</b> setara dengan SLQ = 1 (netral).<br><br><b>SSLQ mendekati +1</b> berarti spesialisasi sangat kuat (SLQ jauh di atas 1); <b>SSLQ mendekati −1</b> berarti sangat tidak terspesialisasi (SLQ mendekati 0). Pola yang sama berlaku untuk <b>DSLQ</b> terhadap DLQ: mendekati +1 = tumbuh jauh lebih cepat dari Bali, mendekati −1 = tumbuh jauh lebih lambat. Karena skalanya simetris & seragam antar sektor, versi ini lebih adil dipakai untuk membandingkan "seberapa jauh" posisi tiap sektor dari titik netral, bukan cuma arah unggul/tidaknya saja.</div>`
   };
   document.getElementById('lqMethodNote').innerHTML = `<b>${lqMethod==='raw'?'LQ Asli (SLQ · DLQ)':'LQ Simetris (SSLQ · DSLQ)'}</b><br><br>${notes[lqMethod]}`;
 }
@@ -6416,8 +6533,8 @@ function renderConvBali(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b>📖 Cara membaca:</b> <b>Relative Level</b> = PDRB Klungkung ÷ PDRB Bali (seberapa besar ekonomi Klungkung dibanding Bali). <b>Absolute Log Gap</b> = |ln(Klungkung/Bali)| — makin kecil, makin dekat secara relatif ke Bali (konvergen). <b>Growth Differential</b> = selisih laju pertumbuhan Klungkung dikurangi Bali dalam poin persentase (pp): positif berarti Klungkung tumbuh lebih cepat.</div>
-      <div style="margin-top:6px"><b>💡 Status:</b> <span style="color:${CONV_STATUS_COLOR.CONVERGING};font-weight:700;">CONVERGING</span> — gap terhadap Bali mengecil dibanding tahun sebelumnya. <span style="color:${CONV_STATUS_COLOR.DIVERGING};font-weight:700;">DIVERGING</span> — gap melebar. <span style="color:${CONV_STATUS_COLOR.STABLE};font-weight:700;">STABLE</span> — relatif tidak berubah.</div>
+      <div><b class="mn-label">📖 Cara membaca</b> <b>Relative Level</b> = PDRB Klungkung ÷ PDRB Bali (seberapa besar ekonomi Klungkung dibanding Bali).<br><br><b>Absolute Log Gap</b> = |ln(Klungkung/Bali)| — makin kecil, makin dekat secara relatif ke Bali (konvergen).<br><br><b>Growth Differential</b> = selisih laju pertumbuhan Klungkung dikurangi Bali dalam poin persentase (pp): positif berarti Klungkung tumbuh lebih cepat.</div>
+      <div style="margin-top:6px"><b class="mn-label">💡 Status</b> <span style="color:${CONV_STATUS_COLOR.CONVERGING};font-weight:700;">CONVERGING</span> — gap terhadap Bali mengecil dibanding tahun sebelumnya. <span style="color:${CONV_STATUS_COLOR.DIVERGING};font-weight:700;">DIVERGING</span> — gap melebar. <span style="color:${CONV_STATUS_COLOR.STABLE};font-weight:700;">STABLE</span> — relatif tidak berubah.</div>
     </div>
 
     <div class="ss-kpi-grid">
@@ -6658,7 +6775,7 @@ function renderConvBaliSektoral(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b>📖 Apa ini:</b> Rincian konvergensi Klungkung–Bali per <b>sektor</b> (17 sektor), dari enam sudut pandang: potret satu tahun, ringkasan tren tiap sektor 2011–2025, peta panas antar tahun, klasifikasi mirip/berbeda, seberapa serempak sektor bergerak (sinkronisasi), dan ringkasan tahunan seluruh sektor.</div>
+      <div><b class="mn-label">📖 Apa ini</b> Rincian konvergensi Klungkung–Bali per <b>sektor</b> (17 sektor), dari enam sudut pandang: potret satu tahun, ringkasan tren tiap sektor 2011–2025, peta panas antar tahun, klasifikasi mirip/berbeda, seberapa serempak sektor bergerak (sinkronisasi), dan ringkasan tahunan seluruh sektor.</div>
     </div>
     <div class="ss-method-tabs" id="convSektoralSubTabs">
       ${views.map(v=>`<button class="ss-method-tab" data-k="${v.key}">${escapeHtml(v.label)}</button>`).join('')}
@@ -6760,7 +6877,7 @@ function renderConvSektorTrajectory(){
   const nDiv = rows.filter(r=>r.trajectory==='DIVERGING').length;
 
   el.innerHTML = `
-    <div class="ss-method-note"><div><b>💡 Cara membaca:</b> Ringkasan tren tiap sektor sepanjang 2011–2025. <b>Convergence Rate</b> negatif berarti gap makin melebar; positif berarti gap makin menyempit dari 2011 ke 2025.</div></div>
+    <div class="ss-method-note"><div><b class="mn-label">💡 Cara membaca</b> Ringkasan tren tiap sektor sepanjang 2011–2025.<br><br><b>Convergence Rate</b> negatif berarti gap makin melebar; positif berarti gap makin menyempit dari 2011 ke 2025.</div></div>
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Sektor Trajectory Converging</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.CONVERGING};">${nConv}</div></div>
       <div class="stat-box"><div class="stat-label">Sektor Trajectory Diverging</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.DIVERGING};">${nDiv}</div></div>
@@ -6822,7 +6939,7 @@ function renderConvSektorHeatmap(){
   const maxAbs = allVals.length ? Math.max(...allVals) : 1;
 
   el.innerHTML = `
-    <div class="ss-method-note"><div><b>💡 Cara membaca:</b> Baris = sektor, kolom = tahun. Warna hijau → gap pertumbuhan sektor tsb terhadap Bali kecil di tahun itu; merah → gap besar. Kolom tahun baru otomatis muncul begitu ditambahkan di sheet sumber.</div></div>
+    <div class="ss-method-note"><div><b class="mn-label">💡 Cara membaca</b> Baris = sektor, kolom = tahun. Warna hijau → gap pertumbuhan sektor tsb terhadap Bali kecil di tahun itu; merah → gap besar. Kolom tahun baru otomatis muncul begitu ditambahkan di sheet sumber.</div></div>
     <div class="table-head-row"><span class="table-head-label">Heatmap Absolute Growth Gap (pp)</span><button class="dl-btn" id="convSektorHeatmapExcelBtn" style="position:static;">⬇ Excel</button></div>
     <div class="ss-table-wrap ss-table-scroll" style="max-height:560px;"><table class="ss-table" id="convSektorHeatmapTable" style="font-size:10.5px;"></table></div>
   `;
@@ -6864,7 +6981,7 @@ function renderConvSektorSnapshot(){
   const nBeda = rows.length - nMirip;
 
   el.innerHTML = `
-    <div class="ss-method-note"><div><b>📖 Apa ini:</b> Potret satu tahun: sektor mana yang laju pertumbuhannya <b>SANGAT MIRIP</b> dengan Bali (gap &lt; ${SNAPSHOT_THRESHOLD}pp) dan mana yang <b>BERBEDA</b> jauh (gap ≥ ${SNAPSHOT_THRESHOLD}pp). Dihitung langsung dari data per-tahun, jadi tahun bisa diganti bebas.</div></div>
+    <div class="ss-method-note"><div><b class="mn-label">📖 Apa ini</b> Potret satu tahun: sektor mana yang laju pertumbuhannya <b>SANGAT MIRIP</b> dengan Bali (gap &lt; ${SNAPSHOT_THRESHOLD}pp) dan mana yang <b>BERBEDA</b> jauh (gap ≥ ${SNAPSHOT_THRESHOLD}pp). Dihitung langsung dari data per-tahun, jadi tahun bisa diganti bebas.</div></div>
     <div class="ss-controls">${convYearSelectHtml('convSektorSnapYear', years, convSektorYear)}</div>
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Sangat Mirip</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR['SANGAT MIRIP']};">${nMirip}</div></div>
@@ -6911,7 +7028,7 @@ function renderConvSektorSync(){
   const nLow = rows.filter(r=>r.status==='LOW').length;
 
   el.innerHTML = `
-    <div class="ss-method-note"><div><b>📖 Apa ini:</b> <b>Synchronization Index</b> = seberapa dekat gap pertumbuhan sektor tsb dibanding gap sektor paling ekstrem di tahun yang sama (1 = paling serempak, 0 = paling menyimpang).</div></div>
+    <div class="ss-method-note"><div><b class="mn-label">📖 Apa ini</b> <b>Synchronization Index</b> = seberapa dekat gap pertumbuhan sektor tsb dibanding gap sektor paling ekstrem di tahun yang sama (1 = paling serempak, 0 = paling menyimpang).</div></div>
     <div class="ss-controls">${convYearSelectHtml('convSektorSyncYear', years, convSektorYear)}</div>
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Sinkronisasi Tinggi</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.HIGH};">${nHigh}</div></div>
@@ -6966,7 +7083,7 @@ function renderConvSektorYearly(){
   const last = rows[rows.length-1];
 
   el.innerHTML = `
-    <div class="ss-method-note"><div><b>💡 Cara membaca:</b> Ringkasan seluruh 17 sektor tiap tahun: rata-rata/median gap, serta berapa sektor yang sedang converging vs diverging tahun itu.</div></div>
+    <div class="ss-method-note"><div><b class="mn-label">💡 Cara membaca</b> Ringkasan seluruh 17 sektor tiap tahun: rata-rata/median gap, serta berapa sektor yang sedang converging vs diverging tahun itu.</div></div>
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Tahun Terbaru</div><div class="stat-value" style="font-size:15px;">${last.tahun}</div></div>
       <div class="stat-box"><div class="stat-label">Mean Gap Terbaru</div><div class="stat-value" style="font-size:15px;">${last.meanGap.toFixed(2)} pp</div></div>
@@ -7058,8 +7175,8 @@ function renderConvMatrix(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b>📖 Apa ini:</b> Matriks 17×17 <b>Absolute Growth Gap</b> (poin persentase) antar sektor — seberapa berbeda laju pertumbuhan satu sektor dibanding sektor lainnya, dihitung ulang langsung dari data mentah 136 pasangan sektor untuk tahun yang dipilih.</div>
-      <div style="margin-top:6px"><b>💡 Cara membaca:</b> Angka kecil (hijau) → perubahan pertumbuhan kedua sektor relatif mirip. Angka besar (merah) → perubahan pertumbuhan kedua sektor berbeda jauh.</div>
+      <div><b class="mn-label">📖 Apa ini</b> Matriks 17×17 <b>Absolute Growth Gap</b> (poin persentase) antar sektor — seberapa berbeda laju pertumbuhan satu sektor dibanding sektor lainnya, dihitung ulang langsung dari data mentah 136 pasangan sektor untuk tahun yang dipilih.</div>
+      <div style="margin-top:6px"><b class="mn-label">💡 Cara membaca</b> Angka kecil (hijau) → perubahan pertumbuhan kedua sektor relatif mirip. Angka besar (merah) → perubahan pertumbuhan kedua sektor berbeda jauh.</div>
     </div>
 
     <div class="ss-controls">
@@ -7139,7 +7256,7 @@ function renderConvMr(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b>📖 Apa ini:</b> Melihat apakah penyimpangan pertumbuhan Klungkung dari rata-rata historisnya (Growth Gap) cenderung <b>kembali normal</b> atau <b>makin melebar</b> dari tahun ke tahun. Ada 3 status, bukan 2:</div>
+      <div><b class="mn-label">📖 Apa ini</b> Melihat apakah penyimpangan pertumbuhan Klungkung dari rata-rata historisnya (Growth Gap) cenderung <b>kembali normal</b> atau <b>makin melebar</b> dari tahun ke tahun. Ada 3 status, bukan 2:</div>
       <ul class="formula-list" style="font-family:'Inter',sans-serif !important;font-weight:600 !important;font-size:12.5px !important;">
         <li style="color:${CONV_STATUS_COLOR['MEAN-REVERTING']}">MEAN-REVERTING — gap terhadap rata-rata mengecil. Contoh: +5pp → +3pp → +1pp.</li>
         <li style="color:${CONV_STATUS_COLOR.PERSISTENT}">PERSISTENT — gap relatif bertahan. Contoh: +5pp → +5,1pp → +4,9pp.</li>
@@ -7461,8 +7578,8 @@ function renderDiversityView(){
 
 function updateDivMethodNote(){
   document.getElementById('divMethodNote').innerHTML = `
-    <div><b>📖 Apa itu indeks-indeks ini:</b> Keempatnya sama-sama dihitung dari pangsa (share) pᵢ tiap sektor terhadap total PDRB tiap tahun, tapi menyorot sisi berbeda: <b>Entropy/Shannon-Weaver</b> & <b>HHI</b> mengukur tingkat keberagaman/konsentrasi struktur ekonomi pada satu titik waktu, <b>REI</b> mengukur seberapa besar struktur itu bergeser dibanding tahun sebelumnya, dan <b>Tress Index</b> mengukur konsentrasi dengan bobot ranking sehingga lebih peka terhadap dominasi sektor terbesar.</div>
-    <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+    <div><b class="mn-label">📖 Apa itu indeks-indeks ini</b> Keempatnya sama-sama dihitung dari pangsa (share) pᵢ tiap sektor terhadap total PDRB tiap tahun, tapi menyorot sisi berbeda: <b>Entropy/Shannon-Weaver</b> & <b>HHI</b> mengukur tingkat keberagaman/konsentrasi struktur ekonomi pada satu titik waktu, <b>REI</b> mengukur seberapa besar struktur itu bergeser dibanding tahun sebelumnya, dan <b>Tress Index</b> mengukur konsentrasi dengan bobot ranking sehingga lebih peka terhadap dominasi sektor terbesar.</div>
+    <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
     <ul class="formula-list">
       <li>Entropy = −Σ pᵢ ln(pᵢ)</li>
       <li>HHI = Σ pᵢ²</li>
@@ -7470,7 +7587,7 @@ function updateDivMethodNote(){
       <li>Tress = [(Σ(shareᵢ × rankᵢ) − (n+1)/2) / (n − (n+1)/2)] × 100</li>
     </ul>
     <div class="formula-caption">rank 1 = share terkecil, rank n = share terbesar, n = ${DIV_N_SEKTOR}.</div>
-    <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> <b>Entropy</b> makin tinggi (mendekati ln(${DIV_N_SEKTOR})≈${Math.log(DIV_N_SEKTOR).toFixed(2)}) = ekonomi makin merata/terdiversifikasi antar sektor; mendekati 0 = sangat bertumpu pada segelintir sektor. <b>HHI</b> arahnya kebalikan: mendekati 1/${DIV_N_SEKTOR}≈${(1/DIV_N_SEKTOR).toFixed(2)} = merata; mendekati 1 = sangat terkonsentrasi (ambang umum: &lt;0,15 terdiversifikasi baik, 0,15–0,25 konsentrasi sedang, &gt;0,25 sangat terkonsentrasi). <b>REI</b> mendekati 0 = struktur ekonomi stabil dari tahun sebelumnya; makin tinggi = terjadi pergeseran porsi sektor yang signifikan dalam setahun. <b>Tress</b> 0 = seluruh sektor porsinya sama besar; mendekati 100 = ekonomi sangat bertumpu pada satu sektor dominan.</div>`;
+    <div style="margin-top:8px"><b class="mn-label">💡 Cara membaca angka</b> <b>Entropy</b> makin tinggi (mendekati ln(${DIV_N_SEKTOR})≈${Math.log(DIV_N_SEKTOR).toFixed(2)}) = ekonomi makin merata/terdiversifikasi antar sektor; mendekati 0 = sangat bertumpu pada segelintir sektor.<br><br><b>HHI</b> arahnya kebalikan: mendekati 1/${DIV_N_SEKTOR}≈${(1/DIV_N_SEKTOR).toFixed(2)} = merata; mendekati 1 = sangat terkonsentrasi (ambang umum: &lt;0,15 terdiversifikasi baik, 0,15–0,25 konsentrasi sedang, &gt;0,25 sangat terkonsentrasi).<br><br><b>REI</b> mendekati 0 = struktur ekonomi stabil dari tahun sebelumnya; makin tinggi = terjadi pergeseran porsi sektor yang signifikan dalam setahun.<br><br><b>Tress</b> 0 = seluruh sektor porsinya sama besar; mendekati 100 = ekonomi sangat bertumpu pada satu sektor dominan.</div>`;
 }
 
 function renderDivMappingInfo(){
@@ -7875,13 +7992,13 @@ function renderAdvGrowthDiff(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b>📖 Apa itu analisis ini:</b> Growth Differential membandingkan laju pertumbuhan ekonomi (ADHK) Klungkung terhadap Bali dari tahun ke tahun — apakah Klungkung tumbuh lebih cepat, lebih lambat, atau setara Bali.</div>
-      <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+      <div><b class="mn-label">📖 Apa itu analisis ini</b> Growth Differential membandingkan laju pertumbuhan ekonomi (ADHK) Klungkung terhadap Bali dari tahun ke tahun — apakah Klungkung tumbuh lebih cepat, lebih lambat, atau setara Bali.</div>
+      <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
       <ul class="formula-list">
         <li>Growth Diff (pp) = (Growthₖ − Growth_Bali) × 100</li>
         <li>Cumulative Relative Gap = Σ Relative Growth Diff sejak tahun dasar</li>
       </ul>
-      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> <b>Growth Diff (pp) positif</b> = pertumbuhan Klungkung tahun itu lebih cepat dari Bali dalam poin persentase. <b>Cumulative Relative Gap</b> menunjukkan akumulasi selisih sejak tahun dasar — tren naik berarti Klungkung perlahan mengejar/melampaui Bali, tren turun berarti sebaliknya.</div>
+      <div style="margin-top:8px"><b class="mn-label">💡 Cara membaca angka</b> <b>Growth Diff (pp) positif</b> = pertumbuhan Klungkung tahun itu lebih cepat dari Bali dalam poin persentase.<br><br><b>Cumulative Relative Gap</b> menunjukkan akumulasi selisih sejak tahun dasar — tren naik berarti Klungkung perlahan mengejar/melampaui Bali, tren turun berarti sebaliknya.</div>
     </div>
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
@@ -7986,13 +8103,13 @@ function renderAdvStructChange(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b>📖 Apa itu analisis ini:</b> Structural Change Index (SCI) mengukur seberapa besar komposisi sektoral berubah dari tahun ke tahun sebelumnya (bukan dibandingkan wilayah lain seperti SSI) — dan sektor mana yang paling bergeser pada tahun tertentu.</div>
-      <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+      <div><b class="mn-label">📖 Apa itu analisis ini</b> Structural Change Index (SCI) mengukur seberapa besar komposisi sektoral berubah dari tahun ke tahun sebelumnya (bukan dibandingkan wilayah lain seperti SSI) — dan sektor mana yang paling bergeser pada tahun tertentu.</div>
+      <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
       <ul class="formula-list">
         <li>SCIₜ = ½ × Σ |Shareᵢ,ₜ − Shareᵢ,ₜ₋₁|</li>
         <li>Structural Gap Sektoral = ΔShareₖ − ΔShare_Bali untuk sektor tsb</li>
       </ul>
-      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> <b>SCI</b> makin besar berarti struktur ekonomi berubah makin cepat tahun itu. <b>Structural Gap Sektoral</b> menunjukkan sektor mana yang pergeserannya paling berbeda arah/besaran antara Klungkung dan Bali. Pilih tahun untuk melihat detail per sektor.</div>
+      <div style="margin-top:8px"><b class="mn-label">💡 Cara membaca angka</b> <b>SCI</b> makin besar berarti struktur ekonomi berubah makin cepat tahun itu.<br><br><b>Structural Gap Sektoral</b> menunjukkan sektor mana yang pergeserannya paling berbeda arah/besaran antara Klungkung dan Bali. Pilih tahun untuk melihat detail per sektor.</div>
     </div>
     <div class="ss-section-title">Tren SCI: Klungkung vs Bali</div>
     <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvSciTs">⬇ JPG</button><div class="chart-box" style="height:280px;"><canvas id="advSciTsCanvas"></canvas></div></div>
@@ -8090,13 +8207,13 @@ function renderAdvKrugman(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b>📖 Apa itu indeks ini:</b> Krugman Specialization Index mengukur derajat perbedaan struktur ekonomi antar wilayah — konsep klasik dari Paul Krugman untuk melihat seberapa terspesialisasi suatu wilayah dibanding wilayah pembanding.</div>
-      <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+      <div><b class="mn-label">📖 Apa itu indeks ini</b> Krugman Specialization Index mengukur derajat perbedaan struktur ekonomi antar wilayah — konsep klasik dari Paul Krugman untuk melihat seberapa terspesialisasi suatu wilayah dibanding wilayah pembanding.</div>
+      <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
       <ul class="formula-list">
         <li>Krugman Index = Σ |Shareᵢ,Klungkung − Shareᵢ,Bali|</li>
         <li>Krugman Index (Half) = ½ × Krugman Index</li>
       </ul>
-      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> Nilai mendekati <b>0</b> = struktur ekonomi Klungkung sangat mirip Bali (tidak terspesialisasi khusus). Nilai mendekati <b>1</b> = struktur sangat berbeda/terspesialisasi. Secara matematis setara dengan SSI (Krugman Half = 1 − SSI), hanya arah tafsirnya dibalik: di sini makin tinggi = makin berbeda.</div>
+      <div style="margin-top:8px"><b class="mn-label">💡 Cara membaca angka</b> Nilai mendekati <b>0</b> = struktur ekonomi Klungkung sangat mirip Bali (tidak terspesialisasi khusus). Nilai mendekati <b>1</b> = struktur sangat berbeda/terspesialisasi. Secara matematis setara dengan SSI (Krugman Half = 1 − SSI), hanya arah tafsirnya dibalik: di sini makin tinggi = makin berbeda.</div>
     </div>
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
@@ -8182,11 +8299,11 @@ function renderAdvSimilarity(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b>📖 Apa itu indeks ini:</b> Structural Similarity Index (SSI) mengukur seberapa mirip struktur ekonomi Klungkung dengan Bali — bukan soal siapa "lebih maju", tapi seberapa mirip komposisi sektoralnya.</div>
-      <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+      <div><b class="mn-label">📖 Apa itu indeks ini</b> Structural Similarity Index (SSI) mengukur seberapa mirip struktur ekonomi Klungkung dengan Bali — bukan soal siapa "lebih maju", tapi seberapa mirip komposisi sektoralnya.</div>
+      <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
       <ul class="formula-list"><li>SSI = 1 − ½ × Σ |Shareᵢ,Klungkung − Shareᵢ,Bali|</li></ul>
       <div class="formula-caption">Identik dengan REI di tab Diversitas, hanya sumbu pembandingnya diganti dari "antar tahun" menjadi "antar wilayah".</div>
-      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> SSI (%) mendekati <b>100%</b> = struktur ekonomi Klungkung nyaris identik dengan Bali. Mendekati <b>0%</b> = struktur sangat berbeda — Klungkung punya "wajah ekonomi" sendiri, bukan sekadar mengikuti pola Bali. Ini indikator kemiripan struktural saja, bukan pernyataan sebab-akibat atau ketergantungan.</div>
+      <div style="margin-top:8px"><b class="mn-label">💡 Cara membaca angka</b> SSI (%) mendekati <b>100%</b> = struktur ekonomi Klungkung nyaris identik dengan Bali. Mendekati <b>0%</b> = struktur sangat berbeda — Klungkung punya "wajah ekonomi" sendiri, bukan sekadar mengikuti pola Bali. Ini indikator kemiripan struktural saja, bukan pernyataan sebab-akibat atau ketergantungan.</div>
     </div>
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
@@ -8278,13 +8395,13 @@ function renderAdvGap(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b>📖 Apa itu analisis ini:</b> Kalau SSI cuma kasih satu angka ringkasan kemiripan struktur, analisis ini membedah <b>sektor mana</b> yang paling menyumbang perbedaan struktur Klungkung vs Bali di tahun tertentu.</div>
-      <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+      <div><b class="mn-label">📖 Apa itu analisis ini</b> Kalau SSI cuma kasih satu angka ringkasan kemiripan struktur, analisis ini membedah <b>sektor mana</b> yang paling menyumbang perbedaan struktur Klungkung vs Bali di tahun tertentu.</div>
+      <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
       <ul class="formula-list">
         <li>Gap = |Shareᵢ,Klungkung − Shareᵢ,Bali|</li>
         <li>Gap Contribution = Gapᵢ / Σ Gap</li>
       </ul>
-      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> Sektor dengan <b>Gap Contribution</b> terbesar (Rank 1) paling membuat struktur ekonomi Klungkung berbeda dari Bali — entah karena porsinya jauh lebih besar di Klungkung (basis kuat/unik) atau jauh lebih kecil (kurang berkembang dibanding Bali).</div>
+      <div style="margin-top:8px"><b class="mn-label">💡 Cara membaca angka</b> Sektor dengan <b>Gap Contribution</b> terbesar (Rank 1) paling membuat struktur ekonomi Klungkung berbeda dari Bali — entah karena porsinya jauh lebih besar di Klungkung (basis kuat/unik) atau jauh lebih kecil (kurang berkembang dibanding Bali).</div>
     </div>
     <div class="ss-controls" style="margin-bottom:10px;"><div class="ctrl-item"><label>Tahun</label><select id="advGapYear"></select></div></div>
     <div class="ss-section-title">Kontribusi Sektor terhadap Kesenjangan Struktur</div>
@@ -8364,13 +8481,13 @@ function renderAdvMarkov(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b>📖 Apa itu analisis ini:</b> Rantai Markov melihat bagaimana sektor "berpindah kelas" dari tahun ke tahun berdasarkan status LQ-nya, lalu memperkirakan probabilitas perpindahan tersebut — mirip konsep mobilitas kelas sosial, tapi untuk sektor ekonomi.</div>
-      <div style="margin-top:8px"><b>🧮 Aturan Kelas &amp; Formula:</b></div>
+      <div><b class="mn-label">📖 Apa itu analisis ini</b> Rantai Markov melihat bagaimana sektor "berpindah kelas" dari tahun ke tahun berdasarkan status LQ-nya, lalu memperkirakan probabilitas perpindahan tersebut — mirip konsep mobilitas kelas sosial, tapi untuk sektor ekonomi.</div>
+      <div style="margin-top:8px"><b class="mn-label">🧮 Aturan Kelas &amp; Formula</b></div>
       <ul class="formula-list">
         <li>Kelas: Rendah (SLQ &lt; 0,75) · Menengah (0,75 ≤ SLQ &lt; 1) · Tinggi/Basis (SLQ ≥ 1)</li>
         <li>P(i→j) = jumlah transisi kelas i ke kelas j / total transisi dari kelas i</li>
       </ul>
-      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> Baris matriks = kelas <b>tahun sebelumnya</b>, kolom = kelas <b>tahun berjalan</b>. Angka di diagonal (Rendah→Rendah, dst.) menunjukkan seberapa stabil/persisten kelas suatu sektor. Angka tinggi di luar diagonal menandakan sektor sering naik/turun kelas. <b>Mobility Rate</b> = persentase transisi yang BUKAN "Tetap" — makin tinggi, makin sering sektor berpindah status dari tahun ke tahun.</div>
+      <div style="margin-top:8px"><b class="mn-label">💡 Cara membaca angka</b> Baris matriks = kelas <b>tahun sebelumnya</b>, kolom = kelas <b>tahun berjalan</b>. Angka di diagonal (Rendah→Rendah, dst.) menunjukkan seberapa stabil/persisten kelas suatu sektor. Angka tinggi di luar diagonal menandakan sektor sering naik/turun kelas.<br><br><b>Mobility Rate</b> = persentase transisi yang BUKAN "Tetap" — makin tinggi, makin sering sektor berpindah status dari tahun ke tahun.</div>
     </div>
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Total Transisi Diamati</div><div class="stat-value" style="font-size:15px;">${withPrev.length}</div></div>
@@ -8454,15 +8571,15 @@ function renderAdvComplexity(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b>📖 Apa itu indeks ini:</b> Economic Complexity Proxy (ECP) — proksi sederhana dari konsep Economic Complexity Index (Hidalgo &amp; Hausmann) yang biasanya dipakai untuk data ekspor antarnegara, di sini diadaptasi untuk 17 sektor PDRB. Mengukur seberapa banyak &amp; seberapa kuat sektor "unggul" (RCA≥1) yang dimiliki Klungkung dibanding Bali.</div>
-      <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+      <div><b class="mn-label">📖 Apa itu indeks ini</b> Economic Complexity Proxy (ECP) — proksi sederhana dari konsep Economic Complexity Index (Hidalgo &amp; Hausmann) yang biasanya dipakai untuk data ekspor antarnegara, di sini diadaptasi untuk 17 sektor PDRB. Mengukur seberapa banyak &amp; seberapa kuat sektor "unggul" (RCA≥1) yang dimiliki Klungkung dibanding Bali.</div>
+      <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
       <ul class="formula-list">
         <li>RCA = (K Shareᵢ) / (B Shareᵢ) <span style="font-family:'Inter',sans-serif;color:var(--brown-mid);">— identik dengan SLQ</span></li>
         <li>D* (Diversifikasi) = jumlah sektor RCA≥1 / total sektor</li>
         <li>ECP = normalized(D* × rata-rata RCA sektor unggulan)</li>
       </ul>
       <div class="formula-caption">ECP Normalized 0–100 dinormalisasi min-max lintas seluruh tahun yang tersedia (bukan skala absolut) — tahun dengan ECP=100 adalah tahun PALING kompleks dalam rentang data ini, bukan patokan mutlak. Ini bukan ECI perdagangan klasik.</div>
-      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> ECP makin tinggi = Klungkung punya makin banyak sektor unggulan (RCA≥1) DAN sektor-sektor itu unggul secara meyakinkan (RCA jauh di atas 1) — tanda ekonomi yang lebih terdiversifikasi &amp; punya banyak kapabilitas sekaligus. ECP rendah = mengandalkan sedikit sektor saja, atau sektor unggulannya cuma sedikit di atas ambang RCA=1.</div>
+      <div style="margin-top:8px"><b class="mn-label">💡 Cara membaca angka</b> ECP makin tinggi = Klungkung punya makin banyak sektor unggulan (RCA≥1) DAN sektor-sektor itu unggul secara meyakinkan (RCA jauh di atas 1) — tanda ekonomi yang lebih terdiversifikasi &amp; punya banyak kapabilitas sekaligus. ECP rendah = mengandalkan sedikit sektor saja, atau sektor unggulannya cuma sedikit di atas ambang RCA=1.</div>
     </div>
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
@@ -8565,11 +8682,11 @@ function renderAdvResilience(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b>📖 Apa itu indeks ini:</b> Regional Economic Resilience Index (RERI) — indeks komposit yang mengukur seberapa tahan struktur ekonomi Klungkung: apakah cukup terdiversifikasi, stabil dari waktu ke waktu, tidak terlalu terkonsentrasi, dan mampu pulih setelah guncangan (mis. pandemi).</div>
-      <div style="margin-top:8px"><b>🧮 Formula:</b></div>
+      <div><b class="mn-label">📖 Apa itu indeks ini</b> Regional Economic Resilience Index (RERI) — indeks komposit yang mengukur seberapa tahan struktur ekonomi Klungkung: apakah cukup terdiversifikasi, stabil dari waktu ke waktu, tidak terlalu terkonsentrasi, dan mampu pulih setelah guncangan (mis. pandemi).</div>
+      <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
       <ul class="formula-list"><li>RERI = 100 × (0,25×DE + 0,25×Stability + 0,25×HHI_Diversification + 0,25×RC)</li></ul>
       <div class="formula-caption">DE = Entropy ternormalisasi; Stability = 1 − REI struktur (kebalikan pergeseran struktur antar tahun, lihat tab Diversitas); HHI_Diversification = 1 − HHI; RC (Recovery Capacity) dihitung untuk 2021–2025 terhadap baseline 2019, tahun lain N/A. Bobot keempatnya sama rata (25%).</div>
-      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> RERI tinggi (mendekati 100) = ekonomi Klungkung terdiversifikasi baik, strukturnya stabil dari tahun ke tahun, tidak bertumpu pada satu-dua sektor, dan (untuk tahun setelah 2021) sudah pulih dari guncangan sebelumnya. RERI rendah menandakan salah satu atau lebih aspek itu lemah — cek komponen mana yang paling menekan skornya lewat grafik di bawah.</div>
+      <div style="margin-top:8px"><b class="mn-label">💡 Cara membaca angka</b> RERI tinggi (mendekati 100) = ekonomi Klungkung terdiversifikasi baik, strukturnya stabil dari tahun ke tahun, tidak bertumpu pada satu-dua sektor, dan (untuk tahun setelah 2021) sudah pulih dari guncangan sebelumnya. RERI rendah menandakan salah satu atau lebih aspek itu lemah — cek komponen mana yang paling menekan skornya lewat grafik di bawah.</div>
     </div>
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
@@ -8708,14 +8825,14 @@ function renderAdvTrajectory(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b>📖 Apa itu analisis ini:</b> Menggabungkan status LQ sepanjang waktu untuk melihat lintasan tiap sektor — bukan cuma "unggul atau tidak sekarang", tapi "menuju ke arah mana" dari 2010 sampai tahun terakhir.</div>
-      <div style="margin-top:8px"><b>🧮 Formula &amp; Klasifikasi:</b></div>
+      <div><b class="mn-label">📖 Apa itu analisis ini</b> Menggabungkan status LQ sepanjang waktu untuk melihat lintasan tiap sektor — bukan cuma "unggul atau tidak sekarang", tapi "menuju ke arah mana" dari 2010 sampai tahun terakhir.</div>
+      <div style="margin-top:8px"><b class="mn-label">🧮 Formula &amp; Klasifikasi</b></div>
       <ul class="formula-list">
         <li>DLQ &amp; ΔSLQ dihitung tiap tahun (lihat tab LQ untuk detail DLQ)</li>
         <li>DSS = skor lintasan relatif terhadap tahun dasar 2010</li>
       </ul>
       <div class="formula-caption">Klasifikasi: <b>Persistent Leader</b> (konsisten unggul), <b>Emerging</b> (tren naik menuju unggul), <b>Declining Specialist</b> (dulu unggul, kini menurun), <b>Persistent Non-specialist</b> (konsisten tidak unggul), <b>Potential</b> (belum jelas arahnya).</div>
-      <div style="margin-top:8px"><b>💡 Cara membaca angka:</b> Sektor <b>Persistent Leader</b> adalah fondasi ekonomi yang paling bisa diandalkan karena keunggulannya teruji lama. Sektor <b>Emerging</b> patut diperhatikan sebagai calon sektor unggulan baru — sering jadi target kebijakan pengembangan. Sektor <b>Declining Specialist</b> perlu perhatian karena keunggulan yang dulu dimiliki sedang terkikis. <b>DSS</b> yang lebih tinggi menunjukkan lintasan yang lebih positif dibanding kondisi awal 2010.</div>
+      <div style="margin-top:8px"><b class="mn-label">💡 Cara membaca angka</b> Sektor <b>Persistent Leader</b> adalah fondasi ekonomi yang paling bisa diandalkan karena keunggulannya teruji lama. Sektor <b>Emerging</b> patut diperhatikan sebagai calon sektor unggulan baru — sering jadi target kebijakan pengembangan. Sektor <b>Declining Specialist</b> perlu perhatian karena keunggulan yang dulu dimiliki sedang terkikis.<br><br><b>DSS</b> yang lebih tinggi menunjukkan lintasan yang lebih positif dibanding kondisi awal 2010.</div>
     </div>
     <div class="ss-section-title">Distribusi Klasifikasi Lintasan Sektor</div>
     <div class="ss-quad-legend" style="margin-bottom:16px;">
