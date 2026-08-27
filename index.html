@@ -6,7 +6,7 @@
 <title>IDEAS (Inovasi Dashboard Evaluasi Sensus Ekonomi)</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <!-- leaflet.css hanya dibutuhkan saat tab Peta dibuka; dimuat non-blocking
      (media=print trick) supaya tidak menunda render awal tabel/card/grafik -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'"/>
@@ -37,44 +37,56 @@
 *, *::before, *::after { box-sizing: border-box; }
 body {
   background: var(--cream);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: 13px;
   color: var(--brown-deep);
 }
-h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
+h1,h2,h3,.display { font-family:'Sora',sans-serif; color: var(--brown-deep); }
 
 /* ── Topbar ── */
 .topbar {
-  background: var(--white);
-  color: var(--brown-deep);
-  padding: 14px 24px;
+  background: linear-gradient(120deg, var(--orange-deep) 0%, var(--orange) 55%, #E8776F 100%);
+  color: var(--white);
+  padding: 16px 24px;
   display: flex;
   align-items: center;
   gap: 14px;
-  border-bottom: 1px solid var(--border-soft);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border-bottom: none;
+  box-shadow: 0 4px 16px rgba(178,50,68,.25);
   margin-bottom: 24px;
+  border-radius: 0 0 16px 16px;
+  position: relative;
+  overflow: hidden;
+}
+.topbar::after{
+  content:"";
+  position:absolute; top:-40%; right:-6%;
+  width: 220px; height: 220px;
+  background: radial-gradient(circle, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 70%);
+  pointer-events:none;
 }
 .topbar-logo {
-  width: 40px; height: 40px;
-  background: var(--peach-soft);
-  color: var(--brown);
-  border-radius: 10px;
+  width: 42px; height: 42px;
+  background: rgba(255,255,255,.22);
+  color: var(--white);
+  border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 20px; flex-shrink: 0;
+  font-size: 21px; flex-shrink: 0;
+  backdrop-filter: blur(2px);
 }
-.topbar-title { font-size: 17px; font-weight: 700; line-height: 1.2; color: var(--brown-deep); }
-.topbar-sub { font-size: 12px; opacity: .65; margin-top: 1px; color: var(--brown-mid); }
+.topbar-title { font-family:'Sora',sans-serif; font-size: 18px; font-weight: 700; line-height: 1.2; color: var(--white); letter-spacing: -.01em; }
+.topbar-sub { font-size: 12px; opacity: .85; margin-top: 1px; color: var(--white); }
 .topbar-badge {
   margin-left: auto;
-  background: var(--peach-soft);
-  color: var(--brown);
-  border: 1px solid var(--border-soft);
+  background: rgba(255,255,255,.9);
+  color: var(--orange-deep);
+  border: none;
   border-radius: 20px;
-  padding: 4px 12px;
+  padding: 5px 13px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: .04em;
+  position: relative; z-index: 1;
 }
 
 /* ── Section header ── */
@@ -91,7 +103,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
   flex-shrink: 0;
 }
 .section-header .sh-title {
-  font-family:'Fraunces',serif;
+  font-family:'Sora',sans-serif;
   font-size: 15px;
   font-weight: 600;
   color: var(--brown-deep);
@@ -110,19 +122,19 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
 .summary-card {
   border: 1px solid var(--border-soft);
   border-radius: 14px;
-  box-shadow: 0 1px 2px rgba(74,22,32,.05);
+  box-shadow: 0 1px 2px rgba(74,22,32,.04);
   transition: transform .15s, box-shadow .15s, border-color .15s;
   overflow: hidden;
   background: var(--white);
 }
 .summary-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow);
-  border-color: var(--orange);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(74,22,32,.08);
+  border-color: var(--peach);
 }
 .summary-card .card-body { padding: 10px 12px; position: relative; }
-.summary-card .sc-label { font-size: 10px; font-weight: 600; color: var(--brown); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; padding-right: 30px; }
-.summary-card .sc-val { font-size: 20px; font-weight: 700; line-height: 1.1; color: var(--brown-deep); font-family:'Fraunces',serif; }
+.summary-card .sc-label { font-size: 10px; font-weight: 600; color: var(--brown-mid); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; padding-right: 62px; }
+.summary-card .sc-val { font-size: 20px; font-weight: 700; line-height: 1.1; color: var(--brown-deep); font-family:'Sora',sans-serif; }
 .summary-card .sc-pct { font-size: 10px; color: #A9787E; margin-top: 1px; }
 .summary-card .sc-bar {
   height: 3px;
@@ -131,17 +143,15 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
   background: var(--peach-soft);
   overflow: hidden;
 }
-.summary-card .sc-bar-fill { height: 100%; border-radius: 2px; background: var(--orange); }
-.summary-card .sc-icon {
+.summary-card .sc-bar-fill { height: 100%; border-radius: 2px; background: var(--peach); opacity: .85; }
+.summary-card .sc-hint {
   position: absolute;
-  top: 8px; right: 8px;
-  width: 26px; height: 26px;
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px;
-  color: #fff;
-  box-shadow: 0 2px 6px rgba(74,22,32,.15);
-  background: var(--orange);
+  top: 10px; right: 12px;
+  font-size: 9.5px;
+  font-weight: 500;
+  color: #C4A8A2;
+  letter-spacing: .01em;
+  white-space: nowrap;
 }
 /* single consistent accent for all summary cards — no rainbow */
 .summary-card .sc-val { color: var(--brown-deep); }
@@ -214,7 +224,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
 .pivot-table thead tr th {
   background: var(--brown);
   color: var(--cream);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-weight: 600;
   font-size: 11.5px;
   text-transform: uppercase;
@@ -478,7 +488,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
   color: var(--cream) !important;
   font-weight: 600 !important;
   font-size: 10px !important;
-  font-family: 'Inter', system-ui, sans-serif !important;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
   text-transform: uppercase !important;
   letter-spacing: .06em !important;
   padding: 8px 10px !important;
@@ -499,7 +509,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
   vertical-align: middle !important;
   font-size: 11px !important;
   font-weight: 400 !important;
-  font-family: 'Inter', system-ui, sans-serif !important;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
   color: var(--brown-deep) !important;
   border-bottom: 1px solid var(--border-soft) !important;
   border-right: 1px solid var(--border-soft) !important;
@@ -554,6 +564,43 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
   font-weight: 600 !important;
 }
 .btn-secondary { background: #f1f5f9 !important; border-color: #cbd5e1 !important; color: #334155 !important; }
+/* ── Warna aksi dilembutkan: biru/hijau/merah default Bootstrap diganti nuansa yang lebih kalem ── */
+.btn-primary {
+  background: #7C93AD !important;
+  border-color: #7C93AD !important;
+  color: #fff !important;
+}
+.btn-primary:hover, .btn-primary:focus {
+  background: #6A8099 !important;
+  border-color: #6A8099 !important;
+}
+.btn-success {
+  background: #8FA579 !important;
+  border-color: #8FA579 !important;
+  color: #fff !important;
+}
+.btn-success:hover, .btn-success:focus {
+  background: #7C9268 !important;
+  border-color: #7C9268 !important;
+}
+.btn-outline-success {
+  border-color: #9CB088 !important;
+  color: #5F7350 !important;
+}
+.btn-outline-success:hover {
+  background: #EEF1E8 !important;
+  border-color: #9CB088 !important;
+  color: #5F7350 !important;
+}
+.btn-outline-danger {
+  border-color: #C99B9B !important;
+  color: #A3706E !important;
+}
+.btn-outline-danger:hover {
+  background: #F5EAEA !important;
+  border-color: #C99B9B !important;
+  color: #A3706E !important;
+}
 .btn-secondary:hover { background: #e2e8f0 !important; }
 
 
@@ -602,7 +649,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
 /* SLS blankspot legend */
 .sls-legend {
   font-size: 11px; line-height: 1.7;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 .sls-legend b { font-size: 11px; font-weight:700; display:block; margin-bottom:3px; color:#1e293b; }
 .sls-legend-item { display:flex; align-items:center; gap:5px; margin-bottom:2px; }
@@ -680,7 +727,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
 }
 .ms-trigger-text.placeholder { color: #9ca3af; }
 .ms-badge {
-  background: var(--orange);
+  background: #C99B9B;
   color: #fff;
   border-radius: 10px;
   padding: 1px 6px;
@@ -995,6 +1042,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
   height: 22px;
   overflow: hidden;
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   margin-bottom: 3px;
@@ -1068,7 +1116,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
       <a href="https://drive.google.com/drive/folders/1mPGqB-w-yq-7Z5F7_wy1m0mIOkAN1Xrj?usp=sharing"
          target="_blank"
          style="color:#fed7aa; text-decoration:underline; font-weight:500;">
-        Google Drive ↗
+        Google Drive 
       </a>
     </div>
   </div>
@@ -1100,28 +1148,28 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
   <!-- Tab Navigation -->
   <div id="mainTabBar" style="display:flex;gap:4px;margin-bottom:16px;border-bottom:2px solid #e2e8f0;padding-bottom:0">
     <button type="button" id="tabBtnMain" onclick="switchTab('main')"
-      style="padding:8px 22px;border:none;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;background:#f97316;color:#fff;border-bottom:2px solid #f97316;margin-bottom:-2px">
+      style="padding:8px 22px;border:none;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;background:#D64553;color:#fff;border-bottom:2px solid #D64553;margin-bottom:-2px">
       Main
     </button>
     <button type="button" id="tabBtnAnomali" onclick="window.open('https://bpsklungkung.github.io/se2026-detail/anomali.html', '_blank')"
       style="padding:8px 22px;border:none;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;background:#f1f5f9;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px">
-      Anomali ↗
+      Anomali 
     </button>
     <button type="button" id="tabBtnCekLokasi" onclick="window.open('https://bpsklungkung.github.io/se2026-detail/ceklokasi.html', '_blank')"
       style="padding:8px 22px;border:none;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;background:#f1f5f9;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px">
-      Cek Lokasi ↗
+      Cek Lokasi 
     </button>
     <button type="button" id="tabBtnMetabase" onclick="window.open('https://bpsklungkung.github.io/se2026-chart/', '_blank')"
       style="padding:8px 22px;border:none;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;background:#f1f5f9;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px">
-      Metabase ↗
+      Metabase 
     </button>
     <button type="button" id="tabBtnDigital" onclick="window.open('https://bpsklungkung.github.io/se2026-detail/digital.html', '_blank')"
       style="padding:8px 22px;border:none;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;background:#f1f5f9;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px">
-      Digital ↗
+      Digital 
     </button>
     <button type="button" id="tabBtnCekKeberadaan" onclick="window.open('https://bpsklungkung.github.io/se2026-detail/monitoring.html', '_blank')"
       style="padding:8px 22px;border:none;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;background:#f1f5f9;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px">
-      Cek Keberadaan ↗
+      Cek Keberadaan 
     </button>
   </div>
 
@@ -1362,9 +1410,9 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
           <button type="button" class="btn btn-primary btn-sm" onclick="renderPivot()">Terapkan</button>
           <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetPivot()">Reset</button>
           <button type="button" class="btn btn-outline-success btn-sm" onclick="exportPivotCSV()">↓ CSV</button>
-          <button type="button" class="btn btn-outline-success btn-sm" onclick="exportPivotExcel()" style="background:#e8f5e9;border-color:#2e7d32;color:#1b5e20" title="Download tabel pivot sebagai file Excel (.xlsx)">↓ Excel</button>
+          <button type="button" class="btn btn-outline-success btn-sm" onclick="exportPivotExcel()" style="background:#EEF1E8;border-color:#9CB088;color:#5F7350" title="Download tabel pivot sebagai file Excel (.xlsx)">↓ Excel</button>
           <button type="button" class="btn btn-outline-warning btn-sm" onclick="openKolomModal()" title="Cari data di semua kolom CSV">🔍 Kolom</button>
-          <button type="button" class="btn btn-sm" onclick="printPivotJpg()" style="background:linear-gradient(135deg,#D64553,#B23244);color:#fff;border:none" title="Unduh pivot (sesuai filter saat ini, mis. Filter Pengawas Awal) sbg JPG & otomatis salin ke clipboard (Ctrl+V utk tempel)">🖼️ JPG</button>
+          <button type="button" class="btn btn-sm" onclick="printPivotJpg()" style="background:linear-gradient(135deg,#C48884,#AD716D);color:#fff;border:none" title="Unduh pivot (sesuai filter saat ini, mis. Filter Pengawas Awal) sbg JPG & otomatis salin ke clipboard (Ctrl+V utk tempel)">🖼️ JPG</button>
         </div>
       </div>
     </div>
@@ -1400,7 +1448,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
           <span class="hm-leg-item"><i class="hm-dot" style="background:#F0DCB8"></i> Sedang</span>
           <span class="hm-leg-item"><i class="hm-dot" style="background:#C9DCB0"></i> Tinggi</span>
         </div>
-        <button type="button" id="exportHeatmapExcel" class="btn btn-outline-success btn-sm" onclick="exportHeatmapExcel()" style="background:#e8f5e9;border-color:#2e7d32;color:#1b5e20;margin-left:6px" title="Download data heatmap ini sebagai file Excel (.xlsx), sesuai filter yang sedang aktif">↓ Excel</button>
+        <button type="button" id="exportHeatmapExcel" class="btn btn-outline-success btn-sm" onclick="exportHeatmapExcel()" style="background:#EEF1E8;border-color:#9CB088;color:#5F7350;margin-left:6px" title="Download data heatmap ini sebagai file Excel (.xlsx), sesuai filter yang sedang aktif">↓ Excel</button>
       </div>
       <div id="hmSubtitle" class="heatmap-subtitle"></div>
       <div id="heatmapRow" class="heatmap-row"></div>
@@ -1421,7 +1469,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
     <div id="historiChartsWrap" style="display:none">
       <div class="row g-2">
         <div class="col-lg-3">
-      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end;margin-bottom:6px;padding:7px 10px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;font-size:11px">
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end;margin-bottom:6px;padding:7px 10px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;font-size:11px;min-height:64px">
           <div>
             <label style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:3px">Kecamatan</label>
             <div class="ms-scatter" id="ms-trenProgresKec" style="min-width:120px">
@@ -1463,13 +1511,13 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
           <div style="position:relative;height:350px">
             <div style="position:absolute;top:4px;right:4px;z-index:10;display:flex;gap:4px">
               <button onclick="_downloadChartExcel(trendProgresChart,'Tren_Pencacahan_SE2026','Pencacahan')" title="Unduh Excel" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">📊 Excel</button>
-              <button onclick="_downloadCanvasJpg(document.getElementById('trendProgres'),'Tren_Pencacahan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#D64553,#B23244);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+              <button onclick="_downloadCanvasJpg(document.getElementById('trendProgres'),'Tren_Pencacahan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#C48884,#AD716D);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
             </div>
             <canvas id="trendProgres"></canvas>
           </div>
         </div>
         <div class="col-lg-3">
-      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end;margin-bottom:6px;padding:7px 10px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;font-size:11px">
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end;margin-bottom:6px;padding:7px 10px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;font-size:11px;min-height:64px">
           <div>
             <label style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:3px">Kecamatan</label>
             <div class="ms-scatter" id="ms-trenCapaianKec" style="min-width:120px">
@@ -1511,13 +1559,13 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
           <div style="position:relative;height:350px">
             <div style="position:absolute;top:4px;right:4px;z-index:10;display:flex;gap:4px">
               <button onclick="_downloadChartExcel(trendCapaianChart,'Tren_Pemeriksaan_SE2026','Pemeriksaan')" title="Unduh Excel" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">📊 Excel</button>
-              <button onclick="_downloadCanvasJpg(document.getElementById('trendCapaian'),'Tren_Pemeriksaan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#D64553,#B23244);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+              <button onclick="_downloadCanvasJpg(document.getElementById('trendCapaian'),'Tren_Pemeriksaan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#C48884,#AD716D);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
             </div>
             <canvas id="trendCapaian"></canvas>
           </div>
         </div>
         <div class="col-lg-3">
-      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end;margin-bottom:6px;padding:7px 10px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;font-size:11px">
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end;margin-bottom:6px;padding:7px 10px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;font-size:11px;min-height:64px">
           <div>
             <label style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:3px">Kecamatan</label>
             <div class="ms-scatter" id="ms-trenOpenKec" style="min-width:120px">
@@ -1559,18 +1607,18 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
           <div style="position:relative;height:350px">
             <div style="position:absolute;top:4px;right:4px;z-index:10;display:flex;gap:4px">
               <button onclick="_downloadChartExcel(trendOpenChart,'Tren_Capaian_Gabungan_SE2026','Capaian Gabungan')" title="Unduh Excel" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">📊 Excel</button>
-              <button onclick="_downloadCanvasJpg(document.getElementById('trendOpen'),'Tren_Capaian_Gabungan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#D64553,#B23244);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+              <button onclick="_downloadCanvasJpg(document.getElementById('trendOpen'),'Tren_Capaian_Gabungan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#C48884,#AD716D);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
             </div>
             <canvas id="trendOpen"></canvas>
           </div>
         </div>
         <div class="col-lg-3">
-      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end;margin-bottom:6px;padding:7px 10px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;font-size:11px">
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end;margin-bottom:6px;padding:7px 10px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;font-size:11px;min-height:64px">
         <div>
           <label style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:3px">Peran</label>
           <div style="display:inline-flex;border:1px solid #fdba74;border-radius:7px;overflow:hidden">
-            <button id="btnAssignRolePencacah" onclick="toggleAssignBreakdownRole('Pencacah Awal')" style="padding:4px 10px;font-size:10px;font-weight:600;border:none;cursor:pointer;background:#f97316;color:#fff">Pencacah</button>
-            <button id="btnAssignRolePengawas" onclick="toggleAssignBreakdownRole('Pengawas Awal')" style="padding:4px 10px;font-size:10px;font-weight:600;border:none;cursor:pointer;background:#fff;color:#ea580c">Pengawas</button>
+            <button id="btnAssignRolePencacah" onclick="toggleAssignBreakdownRole('Pencacah Awal')" style="padding:4px 10px;font-size:10px;font-weight:600;border:none;cursor:pointer;background:#C48884;color:#fff">Pencacah</button>
+            <button id="btnAssignRolePengawas" onclick="toggleAssignBreakdownRole('Pengawas Awal')" style="padding:4px 10px;font-size:10px;font-weight:600;border:none;cursor:pointer;background:#fff;color:#B98A5A">Pengawas</button>
           </div>
         </div>
         <div>
@@ -1614,7 +1662,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
           <div style="position:relative;height:350px">
             <div style="position:absolute;top:4px;right:4px;z-index:10;display:flex;gap:4px">
               <button onclick="_downloadChartExcel(trendAssignChart,'Tren_Breakdown_Assignment_SE2026','Breakdown Assignment')" title="Unduh Excel" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">📊 Excel</button>
-              <button onclick="_downloadCanvasJpg(document.getElementById('trendAssignBreakdown'),'Tren_Breakdown_Assignment_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#D64553,#B23244);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+              <button onclick="_downloadCanvasJpg(document.getElementById('trendAssignBreakdown'),'Tren_Breakdown_Assignment_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#C48884,#AD716D);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
             </div>
             <canvas id="trendAssignBreakdown"></canvas>
           </div>
@@ -1638,7 +1686,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
           Per Wilayah
           <span id="cntStackedBar" style="font-size:10px;color:#6c757d;background:#e9ecef;border-radius:12px;padding:2px 8px;font-weight:400"></span>
           <span style="margin-left:auto;display:inline-flex;gap:6px;align-items:center">
-            <button onclick="downloadChartJpg(1)" title="Unduh JPG (dengan legenda)" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;font-size:11px;font-weight:600;border:none;border-radius:8px;background:linear-gradient(135deg,#D64553,#B23244);color:#fff;cursor:pointer">🖼️ JPG</button>
+            <button onclick="downloadChartJpg(1)" title="Unduh JPG (dengan legenda)" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;font-size:11px;font-weight:600;border:none;border-radius:8px;background:linear-gradient(135deg,#C48884,#AD716D);color:#fff;cursor:pointer">🖼️ JPG</button>
             <button onclick="printStackedBar(1)" title="Cetak / buka popup print" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;font-size:11px;font-weight:600;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb;color:#374151;cursor:pointer" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='#f9fafb'">🖨️ Cetak</button>
           </span>
         </div>
@@ -1709,7 +1757,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
           Per Petugas
           <span id="cntStackedBar2" style="font-size:10px;color:#6c757d;background:#e9ecef;border-radius:12px;padding:2px 8px;font-weight:400"></span>
           <span style="margin-left:auto;display:inline-flex;gap:6px;align-items:center">
-            <button onclick="downloadChartJpg(2)" title="Unduh JPG (dengan legenda)" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;font-size:11px;font-weight:600;border:none;border-radius:8px;background:linear-gradient(135deg,#D64553,#B23244);color:#fff;cursor:pointer">🖼️ JPG</button>
+            <button onclick="downloadChartJpg(2)" title="Unduh JPG (dengan legenda)" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;font-size:11px;font-weight:600;border:none;border-radius:8px;background:linear-gradient(135deg,#C48884,#AD716D);color:#fff;cursor:pointer">🖼️ JPG</button>
             <button onclick="printStackedBar(2)" title="Cetak / buka popup print" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;font-size:11px;font-weight:600;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb;color:#374151;cursor:pointer" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='#f9fafb'">🖨️ Cetak</button>
           </span>
         </div>
@@ -1831,7 +1879,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
     <div class="sh-title">Data Detail</div>
     <div class="sh-count" id="cntDetail"></div>
     <button type="button" class="btn btn-outline-success btn-sm" onclick="exportDetailExcel()"
-      style="background:#e8f5e9;border-color:#2e7d32;color:#1b5e20"
+      style="background:#EEF1E8;border-color:#9CB088;color:#5F7350"
       title="Download seluruh data detail (sesuai filter aktif) sebagai file Excel (.xlsx)">↓ Excel</button>
   </div>
   <div class="panel">
@@ -2143,7 +2191,7 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
         style="margin-left:auto;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600"
         title="Tampilkan posisi Anda saat ini di peta (butuh izin lokasi browser)">📍 Lokasi Saya</button>
       <button type="button" class="btn btn-sm" onclick="printMapJpg()"
-        style="background:linear-gradient(135deg,#D64553,#B23244);color:#fff;border:none;display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600"
+        style="background:linear-gradient(135deg,#C48884,#AD716D);color:#fff;border:none;display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600"
         title="Cetak peta (sesuai layer & filter aktif) sbg JPG & otomatis salin ke clipboard (Ctrl+V utk tempel)">🖼️ Cetak JPG</button>
     </div>
     <div id="mapCaptureArea">
@@ -2286,9 +2334,9 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
       </div>
     </div>
     <div style="display:flex;align-items:center;margin:8px 0 4px">
-      <div class="sh-title" style="font-size:12px;color:#f97316">📊 Pencacahan — per Username</div>
+      <div class="sh-title" style="font-size:12px;color:#D64553">📊 Pencacahan — per Username</div>
       <button onclick="_downloadScatterExcel(scatterCacahChart,'ScatterPlot_Pencacahan_SE2026','Pencacahan')" title="Unduh Excel" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">📊 Excel</button>
-      <button onclick="_downloadCanvasJpg(document.getElementById('scatterCacah'),'ScatterPlot_Pencacahan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#D64553,#B23244);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+      <button onclick="_downloadCanvasJpg(document.getElementById('scatterCacah'),'ScatterPlot_Pencacahan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#C48884,#AD716D);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
     </div>
     <div style="position:relative;height:370px">
       <canvas id="scatterCacah"></canvas>
@@ -2389,9 +2437,9 @@ h1,h2,h3,.display { font-family:'Fraunces',serif; color: var(--brown-deep); }
       </div>
     </div>
     <div style="display:flex;align-items:center;margin:8px 0 4px">
-      <div class="sh-title" style="font-size:12px;color:#f97316">🔎 Pengawasan — per Username</div>
+      <div class="sh-title" style="font-size:12px;color:#D64553">🔎 Pengawasan — per Username</div>
       <button onclick="_downloadScatterExcel(scatterRiksaChart,'ScatterPlot_Pengawasan_SE2026','Pengawasan')" title="Unduh Excel" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">📊 Excel</button>
-      <button onclick="_downloadCanvasJpg(document.getElementById('scatterRiksa'),'ScatterPlot_Pengawasan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#D64553,#B23244);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+      <button onclick="_downloadCanvasJpg(document.getElementById('scatterRiksa'),'ScatterPlot_Pengawasan_SE2026')" title="Unduh JPG" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#C48884,#AD716D);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
     </div>
     <div style="position:relative;height:370px">
       <canvas id="scatterRiksa"></canvas>
@@ -2941,7 +2989,7 @@ function makeCard(label, jumlah, persen, prevJumlah){
   const badge = (prevJumlah !== undefined) ? cardDiffBadge(jumlah, prevJumlah) : '';
   return `<div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
     <div class="card summary-card"><div class="card-body">
-      <div class="sc-icon">📊</div>
+      <div class="sc-hint">Klik untuk detail</div>
       <div class="sc-label">${label}</div>
       <div class="sc-val">${jumlah.toLocaleString()}</div>
       <div class="sc-pct">${persen}% dari total</div>
@@ -2958,7 +3006,7 @@ function makeProgresPctCard(label, progresPct, count, unitLabel){
   const pct = Math.max(0, Math.min(100, progresPct));
   return `<div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
     <div class="card summary-card"><div class="card-body">
-      <div class="sc-icon">📊</div>
+      <div class="sc-hint">Klik untuk detail</div>
       <div class="sc-label">${label}</div>
       <div class="sc-val">${pct.toFixed(1)}%</div>
       <div class="sc-pct">${count.toLocaleString('id-ID')} ${unitLabel} sedang dikerjakan</div>
@@ -2970,7 +3018,7 @@ function makeProgresPctCard(label, progresPct, count, unitLabel){
 function makeStatCard(label, valDisplay, subText, color){
   return '<div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">'
     + '<div class="card summary-card"><div class="card-body">'
-    + '<div class="sc-icon" style="background:' + color + '">📊</div>'
+    + '<div class="sc-hint">Klik untuk detail</div>'
     + '<div class="sc-label">' + label + '</div>'
     + '<div class="sc-val" style="color:' + color + '">' + valDisplay + '</div>'
     + '<div class="sc-pct">' + subText + '</div>'
@@ -3149,7 +3197,7 @@ function updateProgresCards(data){
     /* Progres Pencacahan */
     + '<div style="padding:14px 16px;border-right:1px solid #ECECEC;background:#fff">'
     + '<div style="font-size:10px;font-weight:600;color:#9C8F89;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Progres Pencacahan</div>'
-    + '<div style="font-family:\'Fraunces\',serif;font-size:24px;font-weight:600;color:#7A3540;line-height:1">' + f0(sumCacah) + '</div>'
+    + '<div style="font-family:\'Sora\',sans-serif;font-size:24px;font-weight:600;color:#7A3540;line-height:1">' + f0(sumCacah) + '</div>'
     + diffBadge(sumCacah, prevCacah, true)
     + '<div style="font-size:10px;color:#B0A39C;margin-top:3px">Assignment dicacah</div>'
     + '</div>'
@@ -3157,7 +3205,7 @@ function updateProgresCards(data){
     /* Progres Pemeriksaan */
     + '<div style="padding:14px 16px;border-right:1px solid #ECECEC;background:#fff">'
     + '<div style="font-size:10px;font-weight:600;color:#9C8F89;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Progres Pemeriksaan</div>'
-    + '<div style="font-family:\'Fraunces\',serif;font-size:24px;font-weight:600;color:#8A9A5B;line-height:1">' + f0(sumRiksa) + '</div>'
+    + '<div style="font-family:\'Sora\',sans-serif;font-size:24px;font-weight:600;color:#8A9A5B;line-height:1">' + f0(sumRiksa) + '</div>'
     + diffBadge(sumRiksa, prevRiksa, true)
     + '<div style="font-size:10px;color:#B0A39C;margin-top:3px">Assignment diperiksa</div>'
     + '</div>'
@@ -3165,7 +3213,7 @@ function updateProgresCards(data){
     /* % OPEN / Target */
     + '<div style="padding:14px 16px;border-right:1px solid #ECECEC;background:#fff">'
     + '<div style="font-size:10px;font-weight:600;color:#9C8F89;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">% OPEN / Target</div>'
-    + '<div style="font-family:\'Fraunces\',serif;font-size:24px;font-weight:600;color:#B2524A;line-height:1">' + f1(pctOpen) + '%</div>'
+    + '<div style="font-family:\'Sora\',sans-serif;font-size:24px;font-weight:600;color:#B2524A;line-height:1">' + f1(pctOpen) + '%</div>'
     + diffBadge(pctOpen, prevPctOpen, false)
     + '<div style="font-size:10px;color:#B0A39C;margin-top:3px">' + f0(totalOpen) + ' dari ' + f0(totalTarget) + '</div>'
     + '<div style="margin-top:5px;height:3px;border-radius:99px;background:#F0DCDC;overflow:hidden">'
@@ -3175,7 +3223,7 @@ function updateProgresCards(data){
     /* Rata-rata Capaian Pencacahan */
     + '<div style="padding:14px 16px;border-right:1px solid #ECECEC;background:#fff">'
     + '<div style="font-size:10px;font-weight:600;color:#9C8F89;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Rata-rata Capaian Pencacahan</div>'
-    + '<div style="font-family:\'Fraunces\',serif;font-size:24px;font-weight:600;color:#A9787E;line-height:1">' + f1(avgCacah) + '</div>'
+    + '<div style="font-family:\'Sora\',sans-serif;font-size:24px;font-weight:600;color:#A9787E;line-height:1">' + f1(avgCacah) + '</div>'
     + diffBadge(avgCacah, prevAvgC, true)
     + '<div style="font-size:10px;color:#B0A39C;margin-top:3px">Asgn/hari · ' + nCacah + ' Pencacah</div>'
     + '</div>'
@@ -3183,7 +3231,7 @@ function updateProgresCards(data){
     /* Rata-rata Capaian Pemeriksaan */
     + '<div style="padding:14px 16px;border-right:1px solid #ECECEC;background:#fff">'
     + '<div style="font-size:10px;font-weight:600;color:#9C8F89;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Rata-rata Capaian Pemeriksaan</div>'
-    + '<div style="font-family:\'Fraunces\',serif;font-size:24px;font-weight:600;color:#7A3540;line-height:1">' + f1(avgRiksa) + '</div>'
+    + '<div style="font-family:\'Sora\',sans-serif;font-size:24px;font-weight:600;color:#7A3540;line-height:1">' + f1(avgRiksa) + '</div>'
     + diffBadge(avgRiksa, prevAvgR, true)
     + '<div style="font-size:10px;color:#B0A39C;margin-top:3px">Asgn/hari · ' + nRiksa + ' Pengawas</div>'
     + '</div>'
@@ -3194,7 +3242,7 @@ function updateProgresCards(data){
         const pctDiperiksa   = totalTarget > 0 ? (totalDiperiksa / totalTarget * 100) : 0;
         return '<div style="padding:14px 16px;background:#fff">'
           + '<div style="font-size:10px;font-weight:600;color:#9C8F89;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Sudah Diperiksa Pengawas</div>'
-          + '<div style="font-family:\'Fraunces\',serif;font-size:24px;font-weight:600;color:#4A1620;line-height:1">' + f0(totalDiperiksa) + '</div>'
+          + '<div style="font-family:\'Sora\',sans-serif;font-size:24px;font-weight:600;color:#4A1620;line-height:1">' + f0(totalDiperiksa) + '</div>'
           + '<div style="font-size:9px;font-weight:600;color:#B23244;margin-top:2px">' + f1(pctDiperiksa) + '% dari ' + f0(totalTarget) + '</div>'
           + '<div style="margin-top:5px;height:3px;border-radius:99px;background:#F0DCDC;overflow:hidden">'
           + '<div style="height:100%;width:' + Math.min(pctDiperiksa,100) + '%;background:linear-gradient(90deg,#D64553,#8A9A5B);border-radius:99px"></div></div>'
@@ -4738,9 +4786,9 @@ let historiPivotData = [];
 let historiCardData = [];
 
 const TREN_COLORS = [
-  '#D64553','#7A3540','#C1440E','#D9A3A3','#8A9A5B',
-  '#B23244','#9C6B4E','#B08968','#6B7F4F','#D9946B',
-  '#8B5E3C','#C97B5C','#9C8F89','#E0A96D','#B5764A'
+  '#D64553','#7A3540','#C1440E','#D9A3A3','#B98A5A',
+  '#B23244','#9C6B4E','#B08968','#D9946B','#8B5E3C',
+  '#C97B5C','#9C8F89','#E0A96D','#B5764A','#A9787E'
 ];
 function getTrenColor(i){ return TREN_COLORS[i % TREN_COLORS.length]; }
 
@@ -4870,7 +4918,7 @@ function renderTrenChart(chartId){
         { label:'Rata-rata Capaian Pencacahan',  data:padN(data.map(d=>numOrNull(d.rataCapaianPencacahan))),    color:'#D64553' }
       ],
       Capaian: [
-        { label:'Progres Pemeriksaan Kemarin',   data:padN(data.map(d=>numOrNull(d.progresPemeriksaanKemarin))), color:'#8A9A5B' },
+        { label:'Progres Pemeriksaan Kemarin',   data:padN(data.map(d=>numOrNull(d.progresPemeriksaanKemarin))), color:'#B98A5A' },
         { label:'Rata-rata Capaian Pemeriksaan', data:padN(data.map(d=>numOrNull(d.rataCapaianPemeriksaan))),   color:'#D64553' }
       ],
       Open: [
@@ -4902,11 +4950,11 @@ function renderTrenChart(chartId){
   };
   const colorMapTren = {
     progresPencacahanKemarin:'#A9787E',  capaianHarianPencacahan:'#D64553',
-    progresPemeriksaanKemarin:'#8A9A5B', capaianHarianPengawasan:'#D64553',
+    progresPemeriksaanKemarin:'#B98A5A', capaianHarianPengawasan:'#D64553',
     persenOpenTarget:'#C1440E'
   };
   const titleMap2 = { Progres:'Pencacahan (Filter)', Capaian:'Pemeriksaan (Filter)', Open:'% OPEN/Target (Filter)' };
-  const KEC_COLORS = ['#D64553','#7A3540','#C1440E','#D9A3A3','#8A9A5B','#B23244','#9C6B4E','#B08968','#6B7F4F','#D9946B'];
+  const KEC_COLORS = ['#D64553','#7A3540','#C1440E','#D9A3A3','#B98A5A','#B23244','#9C6B4E','#B08968','#8B5E3C','#D9946B'];
 
   // Filter rows berdasarkan role — historiUsernameData sudah berisi live hari ini
   let baseRows = historiUsernameData.filter(r => String(r.user||'').trim() === role);
@@ -5106,8 +5154,8 @@ function renderCapaianPctChart(canvasId, existingChart, setChart, labels, series
     data: s.data,
     borderColor: s.color,
     backgroundColor: s.color + '22',
-    tension: 0.35,
-    fill: i === 0,
+    stepped: true,
+    fill: false,
     spanGaps: true,
     borderWidth: 2,
     pointRadius: 0,
@@ -5127,7 +5175,7 @@ function renderCapaianPctChart(canvasId, existingChart, setChart, labels, series
       plugins: {
         title: {
           display: true, text: title,
-          font: { size:12, weight:'600', family:"'Inter',sans-serif" },
+          font: { size:12, weight:'600', family:"'Plus Jakarta Sans',sans-serif" },
           color: '#1e293b', padding: { bottom:8 }
         },
         legend: {
@@ -5313,8 +5361,10 @@ function resolveDefaultAssignTypes(role){
   });
   const keys = Object.keys(totals);
   const find = pat => keys.filter(k=>pat.test(k)).sort((a,b)=>totals[b]-totals[a])[0];
+  
   if(role === 'Pencacah Awal'){
-    return [find(/^open$/i), find(/^draft$/i), find(/submit.+pencacah/i), find(/approved.+pengawas/i)].filter(Boolean);
+    // Hanya sisakan Submit by Pencacah dan Approved by Pengawas
+    return [find(/submit.+pencacah/i), find(/approved.+pengawas/i)].filter(Boolean);
   }
   return [find(/approved.+pengawas/i), find(/rejected.+pengawas/i)].filter(Boolean);
 }
@@ -5337,14 +5387,14 @@ const ASSIGN_TYPE_COLOR_MAP = [
   { pat: /^open$/i,                    color: '#C1440E' }, // rust
   { pat: /^draft$/i,                    color: '#D9A3A3' }, // ochre
   { pat: /submit.+pencacah/i,           color: '#D64553' }, // rose
-  { pat: /approved.+pengawas/i,         color: '#8A9A5B' }, // olive
+  { pat: /approved.+pengawas/i,         color: '#B98A5A' }, // gold
   { pat: /rejected.+pengawas/i,         color: '#B23244' }, // deep rose
   { pat: /completed.+admin/i,           color: '#7A3540' }, // maroon
   { pat: /submit.+respon/i,             color: '#B08968' }, // sand
   { pat: /revoke/i,                     color: '#9C8F89' }, // warm gray
 ];
 // Palet cadangan (rotasi) utk tipe assignment yg belum ada di peta warna di atas
-const ASSIGN_TYPE_COLOR_FALLBACK = ['#D64553','#B23244','#7A3540','#C1440E','#D9A3A3','#8A9A5B'];
+const ASSIGN_TYPE_COLOR_FALLBACK = ['#D64553','#B23244','#7A3540','#C1440E','#D9A3A3','#B98A5A'];
 function getAssignTypeColor(label){
   const hit = ASSIGN_TYPE_COLOR_MAP.find(m => m.pat.test(label));
   if(hit) return hit.color;
@@ -5556,8 +5606,8 @@ function renderAssignBreakdownChart(){
       data,
       borderColor: s.color,
       backgroundColor: isDone ? s.color + '33' : s.color + '2e', // arsiran ikut warna dataset masing2
-      tension: 0.35,
-      fill: isDone, // arsiran di bawah garis utk status "selesai/lanjut", biar kontras dgn status "belum" (open/draft)
+      stepped: true,
+      fill: false,
       spanGaps: true,
       borderWidth: 2,
       pointRadius: 0,
@@ -5581,7 +5631,7 @@ function renderAssignBreakdownChart(){
         title: {
           display: true,
           text: 'Breakdown Assignment — ' + roleLabel + titleSuffix,
-          font: { size:12, weight:'600', family:"'Inter',sans-serif" },
+          font: { size:12, weight:'600', family:"'Plus Jakarta Sans',sans-serif" },
           color: '#1e293b',
           padding: { bottom:8 }
         },
@@ -5767,14 +5817,14 @@ function renderTrendChart(canvasId, existingChart, setChart, labels, series, tit
   if(existingChart) existingChart.destroy();
 
   // Series pertama → axis kiri (yL), series kedua → axis kanan (yR)
-  // Keduanya pakai smooth curve dengan dual axis
+  // Garis pakai mode stepped (bukan curve halus), tanpa arsiran/area
   const datasets = series.map((s, i) => ({
     label     : s.label,
     data      : s.data,
     borderColor     : s.color,
     backgroundColor : s.color + '22',
-    tension   : 0.35,        // smooth curve
-    fill      : true,
+    stepped   : true,
+    fill      : false,
     spanGaps  : true,
     borderWidth     : 2,
     pointRadius     : 0,
@@ -5801,7 +5851,7 @@ function renderTrendChart(canvasId, existingChart, setChart, labels, series, tit
         title: {
           display : true,
           text    : title,
-          font    : { size:12, weight:'600', family:"'Inter',sans-serif" },
+          font    : { size:12, weight:'600', family:"'Plus Jakarta Sans',sans-serif" },
           color   : '#1e293b',
           padding : { bottom:8 }
         },
@@ -5912,8 +5962,8 @@ function renderTrendChartMulti(canvasId, existingChart, setChart, labels, series
       data: s.data,
       borderColor: s.color,
       backgroundColor: s.color + '18',
-      tension: 0.35,
-      fill: true,
+      stepped: true,
+      fill: false,
       spanGaps: true,
       borderWidth: 2,
       pointRadius: 0,
@@ -5941,7 +5991,7 @@ function renderTrendChartMulti(canvasId, existingChart, setChart, labels, series
         title: {
           display: true,
           text: title,
-          font: { size:12, weight:'600', family:"'Inter',sans-serif" },
+          font: { size:12, weight:'600', family:"'Plus Jakarta Sans',sans-serif" },
           color: '#1e293b',
           padding: { bottom:8 }
         },
@@ -9387,7 +9437,7 @@ function switchTab(tab){
   // Hanya tab "main" yang tersisa; Metabase kini membuka tab baru, bukan tab internal.
   document.getElementById('tabMain').style.display = '';
 
-  const styleActive = 'padding:8px 22px;border:none;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;background:#f97316;color:#fff;border-bottom:2px solid #f97316;margin-bottom:-2px';
+  const styleActive = 'padding:8px 22px;border:none;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;background:#D64553;color:#fff;border-bottom:2px solid #D64553;margin-bottom:-2px';
   document.getElementById('tabBtnMain').setAttribute('style', styleActive);
 }
 
@@ -9876,7 +9926,7 @@ Object.defineProperty(window, 'DESA_PROGRES_GEOJSON', { get: getDesaProgresGeojs
 
 const SLS_COLORS = {
   'SANGAT TINGGI': '#ef4444',
-  'TINGGI':        '#f97316',
+  'TINGGI':        '#D64553',
   'SEDANG':        '#eab308',
   'RENDAH':        '#22c55e',
   'TIDAK ADA DATA':'#94a3b8'
@@ -10073,7 +10123,7 @@ function buildMyLocationPopupHtml(latitude, longitude, accuracy){
         Titik ini berada di luar batas wilayah SubSLS yang terdata.
       </div>`;
   }
-  return `<div style="font-size:12px;font-family:'Inter',sans-serif;min-width:190px">
+  return `<div style="font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;min-width:190px">
       <b>📍 Lokasi Anda</b><br>
       Akurasi ± ${Math.round(accuracy)} m
       ${wilayahHtml}
@@ -10224,7 +10274,7 @@ function initMap(){
       const kat = p.kat_baru || 'TIDAK ADA DATA';
       const col = SLS_COLORS[kat] || '#94a3b8';
       layer.bindTooltip(`
-        <div style="font-size:12px;font-family:'Inter',sans-serif;min-width:170px">
+        <div style="font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;min-width:170px">
           <b style="color:#1e293b">${p.sls_name||'-'}</b><br>
           <span style="color:#64748b">${p.nmdesa} · ${p.nmkec}</span><br>
           <span style="display:inline-block;margin-top:3px;padding:1px 7px;border-radius:10px;
@@ -10267,10 +10317,10 @@ function initMap(){
       const isSelected = hasFilter && selSubSLS.has(subslsName);
       const isDimmed   = hasFilter && !isSelected;
       return {
-        color      : isSelected ? '#f97316' : (isDimmed ? '#94a3b8' : '#1e3a5f'),
+        color      : isSelected ? '#D64553' : (isDimmed ? '#94a3b8' : '#1e3a5f'),
         weight     : isSelected ? 5 : (isDimmed ? 0.8 : 2.2),
         opacity    : isSelected ? 1 : (isDimmed ? 0.3 : 0.75),
-        fillColor  : isSelected ? '#f97316' : (isDimmed ? '#94a3b8' : 'transparent'),
+        fillColor  : isSelected ? '#D64553' : (isDimmed ? '#94a3b8' : 'transparent'),
         fillOpacity: isSelected ? 0.12 : (isDimmed ? 0.08 : 0),
         dashArray  : isDimmed ? '3,3' : null
       };
@@ -10429,7 +10479,7 @@ function buildProgresLayer(){
       const pencacahTxt = s ? formatNameSet(s.pencacah) : '-';
       const pengawasTxt = s ? formatNameSet(s.pengawas) : '-';
       layer.bindTooltip(`
-        <div style="font-size:12px;font-family:'Inter',sans-serif;min-width:190px">
+        <div style="font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;min-width:190px">
           <b style="color:#1e293b">${p.nmsls||'-'} (SubSLS ${p.subsls||'-'})</b><br>
           <span style="color:#64748b">${p.nmdesa||''} · ${p.nmkec||''}</span><br>
           <b style="color:${col}">${pctTxt}</b> Progres Pendataan<br>
@@ -10517,7 +10567,7 @@ function buildProgresSlsLayer(){
       const col = s && s.target > 0 ? progresColor(s.progres) : '#94a3b8';
       const pengawasTxt = s ? formatNameSet(s.pengawas) : '-';
       layer.bindTooltip(`
-        <div style="font-size:12px;font-family:'Inter',sans-serif;min-width:190px">
+        <div style="font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;min-width:190px">
           <b style="color:#1e293b">${p.nmsls||'-'}</b><br>
           <span style="color:#64748b">${p.nmdesa||''} · ${p.nmkec||''}</span><br>
           <b style="color:${col}">${pctTxt}</b> Capaian per SLS<br>
@@ -10604,7 +10654,7 @@ function buildProgresDesaLayer(){
       const col = s && s.target > 0 ? progresColor(s.progres) : '#94a3b8';
       const pengawasTxt = s ? formatNameSet(s.pengawas) : '-';
       layer.bindTooltip(`
-        <div style="font-size:12px;font-family:'Inter',sans-serif;min-width:190px">
+        <div style="font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;min-width:190px">
           <b style="color:#1e293b">${p.nmdesa||'-'}</b><br>
           <span style="color:#64748b">${p.nmkec||''}</span><br>
           <b style="color:${col}">${pctTxt}</b> Capaian per Desa<br>
@@ -10699,7 +10749,7 @@ function buildTidakDitemukanLayer(){
       const pencacahTxt = s ? formatNameSet(s.pencacah) : '-';
       const pengawasTxt = s ? formatNameSet(s.pengawas) : '-';
       layer.bindTooltip(`
-        <div style="font-size:12px;font-family:'Inter',sans-serif;min-width:190px">
+        <div style="font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;min-width:190px">
           <b style="color:#1e293b">${p.nmsls||'-'}</b><br>
           <span style="color:#64748b">${p.nmdesa||''} · ${p.nmkec||''}</span><br>
           <b style="color:#b91c1c">${pctTxt}</b> Tidak Ditemukan<br>
@@ -10763,7 +10813,7 @@ function buildCekBangunanLayer(){
     });
 
     marker.bindPopup(`
-      <div style="min-width:180px; font-family:'Inter',sans-serif; font-size:12px;">
+      <div style="min-width:180px; font-family:'Plus Jakarta Sans',sans-serif; font-size:12px;">
         <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
           <span style="color:#64748b;">Nama</span>
           <span style="font-weight:600; color:#0f172a;">${row.Nama||'-'}</span>
@@ -11185,7 +11235,7 @@ function _openPrintWindow(judul, subJudul, cntText, legendHTML, nowStr, nowDate,
   parts.push('.btn-bar{display:flex;gap:10px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}');
   parts.push('.btn-bar button{display:inline-flex;align-items:center;gap:6px;padding:9px 22px;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;border:none}');
   parts.push('.b-print{background:linear-gradient(135deg,#4A1620,#D64553);color:#fff}');
-  parts.push('.b-jpg{background:linear-gradient(135deg,#D64553,#B23244);color:#fff}');
+  parts.push('.b-jpg{background:linear-gradient(135deg,#C48884,#AD716D);color:#fff}');
   parts.push('.b-close{background:#f1f5f9;color:#475569;border:1px solid #d1d5db !important}');
   parts.push('@media print{.btn-bar{display:none!important}body{background:#fff}.page{box-shadow:none;padding:10px 16px}@page{size:A4 landscape;margin:12mm}}');
   parts.push('<\/style>');
@@ -11411,7 +11461,7 @@ function renderStackedBar(){
         x: {
           stacked: true,
           ticks: {
-            font: { size: 10, family: "'Inter',sans-serif" },
+            font: { size: 10, family: "'Plus Jakarta Sans',sans-serif" },
             color: '#94a3b8',
             callback(v){ return valMode === 'pct' ? v + '%' : v.toLocaleString(); }
           },
@@ -11421,7 +11471,7 @@ function renderStackedBar(){
         },
         y: {
           stacked: true,
-          ticks: { font: { size: 11.5, family: "'Inter',sans-serif" }, color: '#1e293b', padding: 6 },
+          ticks: { font: { size: 11.5, family: "'Plus Jakarta Sans',sans-serif" }, color: '#1e293b', padding: 6 },
           grid: { display: false },
           border: { color: '#e2e8f0' }
         }
@@ -11450,7 +11500,7 @@ function renderStackedBar(){
             else txt = pct >= 3 ? `${val}\n${pct.toFixed(0)}%` : (barW >= 40 ? val.toLocaleString() : '');
             if(!txt) return;
             ctxC.save();
-            ctxC.font = "bold 10px 'Inter',sans-serif";
+            ctxC.font = "bold 10px 'Plus Jakarta Sans',sans-serif";
             ctxC.fillStyle = '#fff';
             ctxC.shadowColor = 'rgba(0,0,0,.4)';
             ctxC.shadowBlur = 3;
@@ -11461,7 +11511,7 @@ function renderStackedBar(){
             const lines = txt.split('\n');
             if(lines.length > 1){
               ctxC.fillText(lines[0], cx, cy - 6);
-              ctxC.font = "9px 'Inter',sans-serif";
+              ctxC.font = "9px 'Plus Jakarta Sans',sans-serif";
               ctxC.fillText(lines[1], cx, cy + 6);
             } else {
               ctxC.fillText(txt, cx, cy);
@@ -11799,14 +11849,14 @@ function renderStackedBar2(){
       scales: {
         x: {
           stacked: true,
-          ticks: { font:{size:10,family:"'Inter',sans-serif"}, color:'#94a3b8' },
+          ticks: { font:{size:10,family:"'Plus Jakarta Sans',sans-serif"}, color:'#94a3b8' },
           grid: { color:'rgba(226,232,240,.5)', lineWidth:1 },
           border: { dash:[4,3], color:'transparent' },
           ...(valMode==='pct'?{max:100}:{})
         },
         y: {
           stacked: true,
-          ticks: { font:{size:11.5,family:"'Inter',sans-serif"}, color:'#1e293b', padding:6 },
+          ticks: { font:{size:11.5,family:"'Plus Jakarta Sans',sans-serif"}, color:'#1e293b', padding:6 },
           grid: { display:false },
           border: { color:'#e2e8f0' }
         }
@@ -11835,7 +11885,7 @@ function renderStackedBar2(){
             else txt = pct>=3 ? `${val}\n${pct.toFixed(0)}%` : (barW>=40 ? val.toLocaleString() : '');
             if(!txt) return;
             ctxC.save();
-            ctxC.font = "bold 10px 'Inter',sans-serif";
+            ctxC.font = "bold 10px 'Plus Jakarta Sans',sans-serif";
             ctxC.fillStyle = '#fff';
             ctxC.shadowColor = 'rgba(0,0,0,.4)';
             ctxC.shadowBlur = 3;
@@ -11846,7 +11896,7 @@ function renderStackedBar2(){
             const lines = txt.split('\n');
             if(lines.length>1){
               ctxC.fillText(lines[0], cx, cy-6);
-              ctxC.font = "9px 'Inter',sans-serif";
+              ctxC.font = "9px 'Plus Jakarta Sans',sans-serif";
               ctxC.fillText(lines[1], cx, cy+6);
             } else {
               ctxC.fillText(txt, cx, cy);
@@ -11935,7 +11985,7 @@ function updateMap(filteredRows, fitBounds){
         }
         
         marker.bindPopup(`
-            <div style="min-width:180px; font-family:'Inter',sans-serif; font-size:12px;">
+            <div style="min-width:180px; font-family:'Plus Jakarta Sans',sans-serif; font-size:12px;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
                     <span style="color:#64748b;">Nama</span>
                     <span style="font-weight:600; color:#0f172a;">${row.Nama||'-'}</span>
@@ -12244,7 +12294,7 @@ function showMiniToast(msg, ms){
     t.id = 'miniToast';
     t.style.cssText = 'position:fixed;left:50%;bottom:26px;transform:translateX(-50%);'
       + 'background:#1e293b;color:#fff;padding:10px 18px;border-radius:10px;'
-      + 'font-family:Inter,sans-serif;font-size:13px;font-weight:600;z-index:99999;'
+      + "font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;z-index:99999;"
       + 'box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;transition:opacity .25s;max-width:80vw;text-align:center';
     document.body.appendChild(t);
   }
@@ -12670,7 +12720,7 @@ function onKolomSearch(q){
   const ASGN_COLOR = {
     'OPEN':'#64748b','SUBMITTED BY PENCACAH':'#3b82f6',
     'APPROVED BY PENGAWAS':'#22c55e','REJECTED BY PENGAWAS':'#ef4444',
-    'REVOKED BY PENGAWAS':'#f97316'
+    'REVOKED BY PENGAWAS':'#D64553'
   };
   function aColor(c){ return ASGN_COLOR[c.toUpperCase()]||'#334155'; }
 
@@ -12738,7 +12788,7 @@ function onKolomSearch(q){
   tb += '</tr></tbody>';
 
   body.innerHTML = '<div style="overflow:auto;max-height:100%">'
-    + `<table style="width:100%;border-collapse:collapse;font-family:'Inter',sans-serif">${th}${tb}</table>`
+    + `<table style="width:100%;border-collapse:collapse;font-family:'Plus Jakarta Sans',sans-serif">${th}${tb}</table>`
     + (rowKeys.length>MAX ? `<div style="padding:8px 14px;font-size:11px;color:#94a3b8">Menampilkan ${MAX} dari ${rowKeys.length} baris</div>` : '')
     + '</div>';
 }
