@@ -6,9 +6,6 @@
 <title>Dashboard Anomali dan Missing Values SE2026 - BPS Klungkung</title>
 
 <script>
-  // Mulai ambil data secepat mungkin, paralel sama proses download jQuery/DataTables di bawah,
-  // bukan nunggu library itu selesai dulu baru mulai fetch. Hasilnya dipakai nanti oleh
-  // fetchCombined() saat dashboard sudah siap render.
   window.ANOMALI_API_URL = "https://script.google.com/macros/s/AKfycbzLyq-rnyc7xj-AuOX1vLdlYs_46zNykNiv62tjnoLcU_i2uVNTNbeDWp7slFEOe0-87A/exec";
   window.__anomaliPrefetch = fetch(window.ANOMALI_API_URL + '?action=all')
     .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
@@ -18,71 +15,86 @@
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://script.google.com">
+
+<!-- Preload script utama agar load lebih cepat -->
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" as="script">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/datatables.net@1.13.11/js/jquery.dataTables.min.js" as="script">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.11/js/dataTables.bootstrap5.min.js" as="script">
+
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.11/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 
 <style>
 :root{
-  --se-orange:#e07b1a;
-  --se-brown:#8a4b1f;
-  --se-orange-light:#f7a94a;
-  --se-bg:#f7f5f2;
-  --se-card-border:#eee1d2;
+  --se-cream:#FFFFFF;
+  --se-bg:#FFFFFF;
+  --se-main:#4A1620; /* Warna Utama */
+  --se-main-dark:#2E0D14; /* Warna Gelap */
+  --se-main-soft:#7A2636;
+  --se-accent:#B23A48;
+  --se-accent-light:#F4E3E6;
+  --se-card-border:#E5E7EB;
+  --se-hover:#F3F4F6;
 }
 *{box-sizing:border-box;}
 body{
   background:var(--se-bg);
-  font-family:'Segoe UI',Roboto,Arial,sans-serif;
-  color:#3a2a1a;
+  font-family:'Inter',Roboto,Arial,sans-serif;
+  color:#2E0D14;
 }
+h1,h2,h3,h4,h5,h6{font-family:'Fraunces',serif;}
 .topbar{
-  background:linear-gradient(90deg,var(--se-brown) 0%,var(--se-orange) 55%,var(--se-orange-light) 100%);
+  background:var(--se-main);
   color:#fff;
-  padding:14px 24px;
+  padding:16px 24px;
   display:flex;
   align-items:center;
   gap:14px;
-  box-shadow:0 2px 8px rgba(0,0,0,.15);
+  box-shadow:0 1px 0 rgba(0,0,0,.06);
   position:sticky;top:0;z-index:1000;
 }
 .topbar img{height:44px;background:#fff;border-radius:6px;padding:3px;}
-.topbar h1{font-size:1.15rem;margin:0;font-weight:700;}
-.topbar small{opacity:.9;display:block;font-weight:400;font-size:.75rem;}
+.topbar h1{font-size:1.15rem;margin:0;font-weight:600;letter-spacing:.01em;}
+.topbar small{opacity:.75;display:block;font-weight:400;font-size:.75rem;font-family:'Inter',sans-serif;}
 
-.container-main{padding:20px 24px 60px;max-width:1600px;margin:0 auto;}
+.container-main{padding:24px 24px 60px;max-width:1600px;margin:0 auto;}
 
 .summary-cards{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
   gap:14px;
-  margin-bottom:20px;
+  margin-bottom:22px;
 }
 .card-sum{
-  background:#fff;
+  background:var(--se-cream);
   border:1px solid var(--se-card-border);
-  border-radius:10px;
-  padding:14px 16px;
-  box-shadow:0 1px 4px rgba(0,0,0,.05);
-  border-left:4px solid var(--se-orange);
+  border-radius:8px;
+  padding:16px 18px;
+  box-shadow:0 1px 6px rgba(74,22,32,.08);
 }
-.card-sum .lbl{font-size:.72rem;text-transform:uppercase;color:#8a6a4a;font-weight:600;letter-spacing:.03em;}
-.card-sum .val{font-size:1.55rem;font-weight:800;color:var(--se-brown);margin-top:2px;}
-.card-sum .sub{font-size:.72rem;color:#999;margin-top:2px;}
+.card-sum .lbl{font-size:.7rem;text-transform:uppercase;color:var(--se-main-soft);font-weight:600;letter-spacing:.04em;}
+.card-sum .val{font-size:1.6rem;font-weight:600;color:var(--se-main);margin-top:3px;}
+.card-sum .sub{font-size:.72rem;color:#a8967a;margin-top:2px;}
 
 .panel{
-  background:#fff;
+  background:var(--se-cream);
   border:1px solid var(--se-card-border);
-  border-radius:10px;
-  padding:16px;
+  border-radius:8px;
+  padding:18px;
   margin-bottom:18px;
-  box-shadow:0 1px 4px rgba(0,0,0,.05);
+  box-shadow:0 1px 6px rgba(74,22,32,.08);
 }
 .panel h6{
-  color:var(--se-brown);
-  font-weight:700;
-  margin-bottom:12px;
+  color:var(--se-main);
+  font-weight:600;
+  margin-bottom:14px;
   display:flex;align-items:center;gap:8px;
+  font-family:'Fraunces',serif;
+  font-size:1rem;
 }
 
 .filters-grid{
@@ -91,58 +103,58 @@ body{
   gap:10px;
 }
 .msf{position:relative;}
-.msf-label{font-size:.72rem;font-weight:700;color:#8a5a2a;margin-bottom:3px;display:block;}
+.msf-label{font-size:.7rem;font-weight:600;color:var(--se-main-soft);margin-bottom:3px;display:block;}
 .msf-btn{
   width:100%;text-align:left;
-  background:#fff8f0;border:1px solid #e8d3b8;
+  background:var(--se-cream);border:1px solid var(--se-card-border);
   border-radius:6px;padding:6px 10px;font-size:.82rem;
   display:flex;justify-content:space-between;align-items:center;
-  cursor:pointer;color:#5a3a1a;
+  cursor:pointer;color:var(--se-main);
 }
-.msf-btn:hover{border-color:var(--se-orange);}
-.msf-btn .badge-count{background:var(--se-orange);color:#fff;border-radius:10px;font-size:.65rem;padding:1px 6px;}
+.msf-btn:hover{border-color:var(--se-accent);}
+.msf-btn .badge-count{background:var(--se-accent);color:#fff;border-radius:10px;font-size:.65rem;padding:1px 6px;}
 .msf-panel{
   display:none;position:absolute;z-index:1200;top:100%;left:0;
-  background:#fff;border:1px solid #e0c8a8;border-radius:8px;
-  box-shadow:0 6px 20px rgba(0,0,0,.15);
+  background:#fff;border:1px solid var(--se-card-border);border-radius:8px;
+  box-shadow:0 6px 20px rgba(74,22,32,.12);
   width:250px;max-height:300px;overflow:hidden;
   padding:8px;margin-top:4px;
   display:none;flex-direction:column;
 }
 .msf.open .msf-panel{display:flex;}
-.msf-search{width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:5px;font-size:.8rem;margin-bottom:6px;}
+.msf-search{width:100%;padding:5px 8px;border:1px solid var(--se-card-border);border-radius:5px;font-size:.8rem;margin-bottom:6px;}
 .msf-actions{display:flex;gap:6px;margin-bottom:6px;}
 .msf-actions button{
-  flex:1;font-size:.7rem;padding:3px 4px;border:1px solid #ddd;background:#f5f0ea;border-radius:5px;cursor:pointer;
+  flex:1;font-size:.7rem;padding:3px 4px;border:1px solid var(--se-card-border);background:var(--se-hover);border-radius:5px;cursor:pointer;color:var(--se-main-soft);
 }
 .msf-list{overflow-y:auto;flex:1;}
 .msf-list label{
   display:flex;align-items:center;gap:6px;font-size:.8rem;padding:3px 4px;border-radius:4px;cursor:pointer;
 }
-.msf-list label:hover{background:#fdf3e6;}
+.msf-list label:hover{background:var(--se-hover);}
 .msf-list input{margin:0;}
 
 .btn-reset-filters{
-  background:var(--se-brown);color:#fff;border:none;border-radius:6px;
-  font-size:.78rem;padding:6px 14px;
+  background:var(--se-main);color:#fff;border:none;border-radius:6px;
+  font-size:.78rem;padding:6px 14px;font-weight:500;
 }
-.btn-reset-filters:hover{background:#6e3c17;color:#fff;}
+.btn-reset-filters:hover{background:var(--se-main-dark);color:#fff;}
 
 table.dataTable{font-size:.74rem;table-layout:fixed;width:100% !important;}
 table.dataTable thead th{
-  background:var(--se-brown);color:#fff;font-size:.68rem;text-transform:uppercase;
-  white-space:normal;padding:6px 6px;line-height:1.2;
+  background:var(--se-main);color:#fff;font-size:.66rem;text-transform:uppercase;font-weight:600;letter-spacing:.02em;
+  white-space:normal;padding:8px 6px;line-height:1.2;
 }
-table.dataTable tbody td{vertical-align:middle;padding:5px 6px;overflow:hidden;}
+table.dataTable tbody td{vertical-align:middle;padding:6px 6px;overflow:hidden;}
 .badge-status{padding:2px 6px;border-radius:5px;font-size:.66rem;font-weight:600;white-space:nowrap;}
-.badge-approved{background:#d9f0dc;color:#1e6b2e;}
-.badge-other{background:#f0e3d0;color:#8a5a2a;}
+.badge-approved{background:#E3ECD9;color:#3e5a2a;}
+.badge-other{background:var(--se-accent-light);color:var(--se-main);}
 .link-btn{
-  background:var(--se-orange);color:#fff;border:none;border-radius:5px;
+  background:var(--se-accent);color:#fff;border:none;border-radius:5px;
   font-size:.72rem;padding:3px 9px;text-decoration:none;display:inline-block;
 }
-.link-btn:hover{background:var(--se-brown);color:#fff;}
-.no-link{color:#bbb;font-size:.7rem;}
+.link-btn:hover{background:var(--se-main-dark);color:#fff;}
+.no-link{color:#c2b295;font-size:.7rem;}
 .chip{
   display:inline-block;padding:2px 7px;border-radius:10px;
   font-size:.68rem;font-weight:600;
@@ -150,45 +162,48 @@ table.dataTable tbody td{vertical-align:middle;padding:5px 6px;overflow:hidden;}
 }
 .link-chip{
   display:inline-flex;align-items:center;justify-content:center;
-  background:#eaf3ff;color:#1a5aa8;border:1px solid #cfe3fb;
+  background:var(--se-accent-light);color:var(--se-main);border:1px solid var(--se-card-border);
   border-radius:50%;width:26px;height:26px;font-size:.85rem;
   text-decoration:none;
 }
-.link-chip:hover{background:#1a5aa8;color:#fff;border-color:#1a5aa8;}
-table.dataTable tbody tr:hover{background:#fff6ea !important;}
+.link-chip:hover{background:var(--se-main-dark);color:#fff;border-color:var(--se-main-dark);}
+table.dataTable tbody tr:hover{background:var(--se-hover) !important;}
 
-/* Kolom teks tunggal yang perlu dipotong + tooltip (title attr) saat kepanjangan */
+.pagination .page-link{color:var(--se-main);}
+.pagination .page-item.active .page-link{background:var(--se-main);border-color:var(--se-main);color:#fff;}
+.pagination .page-link:hover{background:var(--se-hover);color:var(--se-main);}
+.pagination .page-item.disabled .page-link{color:#c2b295;}
+
 .ellip-cell{
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   display:block;max-width:100%;
 }
 code.ellip-cell{font-size:.7rem;}
-.assign-info-trigger{cursor:pointer;border-bottom:1px dashed var(--se-orange);}
-.assign-info-trigger:hover{color:var(--se-orange);}
+code{color:var(--se-main);}
+.assign-info-trigger{cursor:pointer;border-bottom:1px dashed var(--se-accent);}
+.assign-info-trigger:hover{color:var(--se-accent);}
 
-/* Popup detail kolom AH-AQ saat ASSIGNMENT ID diklik */
 .info-popover{
   position:fixed;z-index:3000;background:#fff;
-  border:1px solid #e0c8a8;border-radius:8px;
-  box-shadow:0 8px 24px rgba(0,0,0,.18);
+  border:1px solid var(--se-card-border);border-radius:8px;
+  box-shadow:0 8px 24px rgba(74,22,32,.16);
   padding:10px 12px;font-size:.72rem;
   width:260px;max-width:90vw;
 }
 .info-popover .ip-title{
-  font-weight:700;color:var(--se-brown);font-size:.74rem;
+  font-weight:700;color:var(--se-main);font-size:.74rem;
   margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--se-card-border);
   display:flex;justify-content:space-between;align-items:center;gap:8px;
 }
 .info-popover .ip-close{
   cursor:pointer;border:none;background:none;color:#aaa;font-size:.9rem;line-height:1;padding:0;
 }
-.info-popover .ip-close:hover{color:var(--se-brown);}
+.info-popover .ip-close:hover{color:var(--se-main);}
 .info-popover table{width:100%;border-collapse:collapse;}
 .info-popover td{padding:2px 0;vertical-align:top;}
 .info-popover td.ip-lbl{color:#8a6a4a;font-weight:600;white-space:nowrap;padding-right:8px;width:1%;}
 .info-popover td.ip-val{color:#3a2a1a;word-break:break-word;}
 
-/* Kolom gabungan (Petugas / Wilayah): beberapa baris kecil ditumpuk */
 .stack-cell{display:flex;flex-direction:column;gap:2px;min-width:0;}
 .stack-cell .chip{width:fit-content;}
 
@@ -199,14 +214,14 @@ code.ellip-cell{font-size:.7rem;}
   font-size:.72rem;
 }
 .rindian-cell .rindian-text{
-  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;
+  display:-webkit-box;line-clamp:3;-webkit-line-clamp:3;-webkit-box-orient:vertical;
   overflow:hidden;
 }
 .rindian-cell.expanded .rindian-text{
-  -webkit-line-clamp:unset;overflow:visible;
+  line-clamp:unset;-webkit-line-clamp:unset;overflow:visible;
 }
 .rindian-cell .rindian-toggle{
-  display:inline-block;margin-top:2px;font-size:.68rem;color:var(--se-orange);
+  display:inline-block;margin-top:2px;font-size:.68rem;color:var(--se-accent);
   cursor:pointer;font-weight:700;border:none;background:none;padding:0;
 }
 
@@ -216,11 +231,11 @@ code.ellip-cell{font-size:.7rem;}
   width:100%;background:#fff;color:#333;
 }
 .tl-pending .tl-save{
-  background:#fff;border:1px solid var(--se-orange);color:var(--se-orange);
+  background:#fff;border:1px solid var(--se-accent);color:var(--se-accent);
   border-radius:6px;font-size:.68rem;font-weight:700;padding:3px 8px;
   cursor:pointer;white-space:nowrap;align-self:flex-start;
 }
-.tl-pending .tl-save:hover:not(:disabled){background:var(--se-orange);color:#fff;}
+.tl-pending .tl-save:hover:not(:disabled){background:var(--se-accent);color:#fff;}
 .tl-pending .tl-save:disabled{opacity:.4;cursor:not-allowed;}
 .tl-done{
   display:flex;flex-direction:column;gap:1px;
@@ -233,28 +248,12 @@ code.ellip-cell{font-size:.7rem;}
   align-self:flex-start;margin-top:2px;background:none;border:none;
   color:inherit;font-size:.64rem;text-decoration:underline;cursor:pointer;padding:0;opacity:.85;
 }
-
-#loadingOverlay{
-  position:fixed;inset:0;background:rgba(255,255,255,.85);z-index:9999;
-  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;
-}
-#loadingOverlay .css-spinner{
-  width:34px;height:34px;border-radius:50%;
-  border:4px solid #f0ddc4;border-top-color:var(--se-orange);
-  animation:spin .8s linear infinite;
-}
-@keyframes spin{ to{ transform:rotate(360deg); } }
 </style>
 </head>
 <body>
 
-<div id="loadingOverlay">
-  <div class="css-spinner"></div>
-  <div>Memuat data anomali...</div>
-</div>
-
 <div class="topbar">
-  <div style="width:44px;height:44px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--se-brown);font-weight:800;font-size:.85rem;">SE26</div>
+  <div style="width:44px;height:44px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--se-main);font-weight:800;font-size:.85rem;">SE26</div>
   <div>
     <h1>Dashboard Anomali dan Missing Values SE2026</h1>
     <small>Sensus Ekonomi 2026 &middot; BPS Kabupaten Klungkung</small>
@@ -265,29 +264,29 @@ code.ellip-cell{font-size:.7rem;}
 
   <div class="summary-cards" id="summaryCards">
     <div class="card-sum">
-      <div class="lbl">Total Record (Assignment ID)</div>
+      <div class="lbl">Total Semua Data</div>
       <div class="val" id="statTotalRecord">-</div>
-      <div class="sub">Seluruh data (unik)</div>
+      <div class="sub">Data unik, gak ada yang dobel</div>
     </div>
     <div class="card-sum">
-      <div class="lbl">Anomali Bertaut Link</div>
+      <div class="lbl">Anomali yang Ada Linknya</div>
       <div class="val" id="statWithLink">-</div>
-      <div class="sub">Baris ditampilkan di tabel</div>
+      <div class="sub">Ini yang muncul di tabel bawah</div>
     </div>
     <div class="card-sum">
-      <div class="lbl">Ditampilkan (Filter Aktif)</div>
+      <div class="lbl">Anomali yang Tampil</div>
       <div class="val" id="statFiltered">-</div>
-      <div class="sub">Sesuai filter saat ini</div>
+      <div class="sub">Sesuai filter yang lagi aktif</div>
     </div>
     <div class="card-sum">
-      <div class="lbl">Jumlah Kecamatan</div>
+      <div class="lbl">Kecamatannya</div>
       <div class="val" id="statKec">-</div>
-      <div class="sub">Cakupan wilayah</div>
+      <div class="sub">Wilayah yang kecover</div>
     </div>
     <div class="card-sum">
-      <div class="lbl">Jumlah Tindak Lanjut</div>
+      <div class="lbl">Sudah Ditindaklanjuti</div>
       <div class="val" id="statTindakLanjut">-</div>
-      <div class="sub">Sudah ada isian tindak lanjut</div>
+      <div class="sub">Yang udah diisi tindak lanjutnya</div>
     </div>
   </div>
 
@@ -329,8 +328,6 @@ code.ellip-cell{font-size:.7rem;}
 <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.11/js/jquery.dataTables.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.11/js/dataTables.bootstrap5.min.js" defer></script>
 <script>
-  // defer di atas bikin 3 file itu diunduh paralel & baru dijalankan berurutan
-  // setelah HTML selesai di-parse. Fallback CDN ini juga ditunda ke saat yang sama.
   window.addEventListener('DOMContentLoaded', function(){
     if(typeof jQuery === 'undefined'){
       const s = document.createElement('script');
@@ -347,44 +344,39 @@ code.ellip-cell{font-size:.7rem;}
 function initAnomaliDashboard(){
 const API_URL = window.ANOMALI_API_URL;
 
-// Column index mapping based on the spreadsheet's actual column letters (0-based)
 const COL = {
-  NO: 0,          // A
-  ASSIGNMENT: 1,  // B
-  STATUS: 2,      // C
-  KELOMPOK: 6,    // G
-  RINDIAN: 7,     // H
-  LINK: 8,        // I
-  PPL: 9,         // J
-  PML: 10,        // K
-  KECAMATAN: 12,  // M
-  DESA: 13,       // N
-  SLS: 17,        // R
-  KRTUSAHA: 18,   // S
-  EKSEKUTOR: 19,  // T
-  ASLI: 20        // U - pure URL column (added for real hyperlinks)
+  NO: 0,          
+  ASSIGNMENT: 1,  
+  STATUS: 2,      
+  KELOMPOK: 6,    
+  RINDIAN: 7,     
+  LINK: 8,        
+  PPL: 9,         
+  PML: 10,        
+  KECAMATAN: 12,  
+  DESA: 13,       
+  SLS: 17,        
+  KRTUSAHA: 18,   
+  EKSEKUTOR: 19,  
+  ASLI: 20        
 };
 
-// Kolom tambahan (AH-AQ) yang ditampilkan sebagai tooltip/popup detail
-// saat ASSIGNMENT ID di klik. Urutan mengikuti urutan kolom di sheet.
 const EXTRA_INFO_COLS = [
-  { label: 'KRT',                       col: 33 }, // AH
-  { label: 'DESIL',                     col: 34 }, // AI
-  { label: 'RASIO',                     col: 35 }, // AJ
-  { label: 'LUAS LANTAI',               col: 36 }, // AK
-  { label: 'LUAS LANTAI PER KAPITA',    col: 37 }, // AL
-  { label: 'JUMLAH KK',                 col: 38 }, // AM
-  { label: 'AC',                        col: 39 }, // AN
-  { label: 'PBI NAS',                   col: 40 }, // AO
-  { label: 'PBI PEMDA',                 col: 41 }, // AP
-  { label: 'KULKAS',                    col: 42 }  // AQ
+  { label: 'KRT',                       col: 33 },
+  { label: 'DESIL',                     col: 34 },
+  { label: 'RASIO',                     col: 35 },
+  { label: 'LUAS LANTAI',               col: 36 },
+  { label: 'LUAS LANTAI PER KAPITA',    col: 37 },
+  { label: 'JUMLAH KK',                 col: 38 },
+  { label: 'AC',                        col: 39 },
+  { label: 'PBI NAS',                   col: 40 },
+  { label: 'PBI PEMDA',                 col: 41 },
+  { label: 'KULKAS',                    col: 42 } 
 ];
 
-// Filters: key -> column index (atau value:fn untuk kolom hasil olahan/turunan), in desired dependent/cascade order
 const FILTERS = [
   {key:'STATUS',   label:'Status',      col:COL.STATUS},
   {key:'KELOMPOK', label:'Kelompok',    col:COL.KELOMPOK},
-  {key:'RINCIAN',  label:'Rincian',     col:COL.RINDIAN},
   {key:'PPL',      label:'PPL',         col:COL.PPL},
   {key:'PML',      label:'PML',         col:COL.PML},
   {key:'KECAMATAN',label:'Kecamatan',   col:COL.KECAMATAN},
@@ -394,16 +386,15 @@ const FILTERS = [
   {key:'TINDAK_LANJUT', label:'Tindak Lanjut', value: r => tindakLanjutFilterValue(r[COL.ASSIGNMENT])}
 ];
 
-let ALL_ROWS = [];      // all data rows (raw arrays), unfiltered by link presence
-let LINK_ROWS = [];     // rows where LINK column has a value -> base dataset for table
-let selections = {};    // key -> Set of selected values
+let ALL_ROWS = [];      
+let LINK_ROWS = [];     
+let selections = {};    
 FILTERS.forEach(f => selections[f.key] = new Set());
 
-let dt; // DataTable instance
+let dt; 
 
-// ── Tindak Lanjut (checklist penanda anomali sudah dikerjakan) ──
-let LOG_MAP = {}; // assignmentId -> {status, opsi, catatan, oleh, waktu}
-let EDITING = new Set(); // assignmentId yang sedang dalam mode "pilih ulang"
+let LOG_MAP = {}; 
+let EDITING = new Set(); 
 
 const TL_OPTIONS = {
   '1': { label: 'Sesuai kondisi lapangan dan approve', bg:'#d9f0dc', fg:'#1e6b2e', icon:'✅' },
@@ -412,7 +403,6 @@ const TL_OPTIONS = {
   '4': { label: 'Anomali tidak muncul',                bg:'#e6e6e6', fg:'#555',    icon:'🚫' }
 };
 
-// Nilai kolom "Tindak Lanjut" untuk keperluan filter (bukan kolom asli sheet, tapi turunan dari LOG_MAP)
 function tindakLanjutFilterValue(assignmentId){
   const log = LOG_MAP[norm(assignmentId)];
   if(log && log.status === 'selesai'){
@@ -425,7 +415,7 @@ function tindakLanjutFilterValue(assignmentId){
 function getNamaUser(){
   let nama = localStorage.getItem('se2026_nama_user') || '';
   nama = prompt('Nama kamu (untuk penanda tindak lanjut):', nama);
-  if(nama === null) return null; // dibatalkan
+  if(nama === null) return null; 
   nama = nama.trim();
   if(nama === '') return null;
   localStorage.setItem('se2026_nama_user', nama);
@@ -435,7 +425,6 @@ function getNamaUser(){
 function buildLogMap(logData){
   const map = {};
   const rows = (logData && logData.rows) || [];
-  // rows[0] header, sisanya: [assignmentId, status, opsi, catatan, oleh, waktu]
   rows.slice(1).forEach(r => {
     const id = norm(r[0]);
     if(id === '') return;
@@ -446,9 +435,8 @@ function buildLogMap(logData){
 
 function fetchCombined(){
   if(window.__anomaliPrefetch){
-    // Pakai hasil fetch yang sudah mulai jalan sejak awal halaman diparse (lihat <script> di <head>).
     const p = window.__anomaliPrefetch;
-    window.__anomaliPrefetch = null; // cuma dipakai sekali, untuk load pertama saja
+    window.__anomaliPrefetch = null; 
     return p.then(payload => {
       if(payload && payload.__prefetchError) throw payload.__prefetchError;
       return payload;
@@ -460,9 +448,7 @@ function fetchCombined(){
   });
 }
 
-// ── Cache localStorage (biar buka tab baru / restart browser pun tetap terasa instan,
-// bukan cuma dalam sesi tab yang sama seperti sessionStorage sebelumnya) ──
-const CACHE_TTL_MS = 2 * 60 * 1000; // 2 menit
+const CACHE_TTL_MS = 15 * 60 * 1000;
 const CACHE_KEY_DATA = 'anomali_cache_all_v2';
 
 function getCache(key){
@@ -475,13 +461,13 @@ function getCache(key){
   }catch(e){ return null; }
 }
 function setCache(key, data){
-  try{ localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data })); }catch(e){ /* penuh/private mode, abaikan */ }
+  try{ localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data })); }catch(e){ }
 }
 
 function kirimTindakLanjut(assignmentId, status, opsi, catatan, oleh){
   return fetch(API_URL, {
     method: 'POST',
-    headers: {'Content-Type': 'text/plain;charset=utf-8'}, // hindari CORS preflight
+    headers: {'Content-Type': 'text/plain;charset=utf-8'}, 
     body: JSON.stringify({ action: 'tindaklanjut', assignmentId, status, opsi, catatan, oleh })
   });
 }
@@ -492,19 +478,15 @@ function simpanTindakLanjut(assignmentId, opsi){
   if(nama === null) return;
   const catatan = prompt('Catatan (opsional):', '') || '';
 
-  // Simpan log lama supaya bisa di-revert kalau request ke server gagal
   const logSebelumnya = LOG_MAP[assignmentId];
 
-  // Optimistic update: langsung tampilkan sebagai selesai tanpa nunggu server,
-  // biar terasa instan. Request ke server jalan di belakang layar.
   LOG_MAP[assignmentId] = { status:'selesai', opsi, catatan, oleh: nama, waktu: new Date().toLocaleString('id-ID') };
   EDITING.delete(assignmentId);
   renderTable();
-  refreshAllFilterLists(); // update opsi & jumlah di filter "Tindak Lanjut" biar sinkron
-  try{ localStorage.removeItem(CACHE_KEY_DATA); }catch(e){} // biar reload berikutnya ambil data terbaru (termasuk log)
+  refreshAllFilterLists(); 
+  try{ localStorage.removeItem(CACHE_KEY_DATA); }catch(e){} 
 
   kirimTindakLanjut(assignmentId, 'selesai', opsi, catatan, nama).catch(() => {
-    // Gagal terkirim ke server -> kembalikan tampilan ke kondisi sebelumnya
     if(logSebelumnya){ LOG_MAP[assignmentId] = logSebelumnya; } else { delete LOG_MAP[assignmentId]; }
     renderTable();
     refreshAllFilterLists();
@@ -533,7 +515,6 @@ function tindakLanjutCell(assignmentId){
     </div>`;
   }
 
-  // Mode belum selesai / sedang diubah: tampilkan dropdown 4 opsi
   const opsiTerpilih = sedangEdit && log ? log.opsi : '';
   let optionsHtml = '<option value="">-- Pilih Tindak Lanjut --</option>';
   Object.keys(TL_OPTIONS).forEach(key => {
@@ -564,7 +545,6 @@ function applyData(payload, rebuildFilters){
   LOG_MAP = buildLogMap({ rows: payload.log || [] });
   const rows = payload.rows;
   if(!rows || rows.length < 2) return false;
-  // rows[0] is header row; skip it
   ALL_ROWS = rows.slice(1).filter(r => norm(r[COL.ASSIGNMENT]) !== '');
   LINK_ROWS = ALL_ROWS.filter(r => norm(r[COL.LINK]) !== '');
 
@@ -583,7 +563,6 @@ function fetchFresh(isInitialLoad){
     .then(payload => {
       if(payload.error){
         if(isInitialLoad) alert('Gagal memuat data: ' + payload.error);
-        document.getElementById('loadingOverlay').style.display='none';
         return;
       }
       const ok = applyData(payload, isInitialLoad);
@@ -593,14 +572,12 @@ function fetchFresh(isInitialLoad){
       if(ok){
         setCache(CACHE_KEY_DATA, payload);
       }
-      document.getElementById('loadingOverlay').style.display='none';
     })
     .catch(err => {
       console.error(err);
       if(isInitialLoad){
         alert('Gagal memuat data dari Apps Script. Periksa koneksi atau URL Web App.');
       }
-      document.getElementById('loadingOverlay').style.display='none';
     });
 }
 
@@ -608,23 +585,17 @@ function loadData(){
   const cachedPayload = getCache(CACHE_KEY_DATA);
 
   if(cachedPayload){
-    // Render instan dari cache (tanpa nunggu network), lalu refresh diam-diam di background.
     const ok = applyData(cachedPayload, true);
-    document.getElementById('loadingOverlay').style.display='none';
-    fetchFresh(!ok); // kalau cache ternyata rusak/kosong, treat sebagai initial load
+    fetchFresh(!ok); 
   } else {
     fetchFresh(true);
   }
 }
 
-// Ambil nilai untuk keperluan filter: kolom mentah (f.col) atau hasil olahan (f.value(row))
-// -- dipakai supaya filter "Tindak Lanjut" (bukan kolom asli di sheet, tapi turunan dari LOG_MAP) bisa
-// diperlakukan sama seperti filter kolom biasa.
 function filterValue(f, row){
   return norm(typeof f.value === 'function' ? f.value(row) : row[f.col]);
 }
 
-// Return rows from LINK_ROWS matching all active selections except excludeKey
 function getFilteredRows(excludeKey){
   return LINK_ROWS.filter(r => {
     for(const f of FILTERS){
@@ -734,7 +705,6 @@ function refreshAllFilterLists(){
       div.querySelector('input').addEventListener('change', () => onFilterChange(f.key, wrap));
     });
 
-    // update button label
     const btnText = wrap.querySelector('.msf-btn-text');
     const badgeExisting = wrap.querySelector('.badge-count');
     if(badgeExisting) badgeExisting.remove();
@@ -759,12 +729,11 @@ function onFilterChange(key, wrap){
   updateSummary();
 }
 
-// Pastel palette (bg, text) - softened tones consistent with SE2026 branding
 const PALETTE = [
-  ['#fde2e2','#a33a3a'], ['#fdebd3','#a3651a'], ['#fdf6d3','#8a7a1a'],
-  ['#e3f4de','#3a7a3a'], ['#d9f2ee','#1a7a6e'], ['#dce9f9','#2a5a9a'],
-  ['#e6def9','#5a3a9a'], ['#f9def2','#9a3a7a'], ['#f0e0d0','#8a5a2a'],
-  ['#dff0f0','#2a7a7a'], ['#eaf0d0','#5a7a1a'], ['#f0d9e3','#a3305a']
+  ['#FFE8CC','#8a4b1f'], ['#F3E0C7','#6e4a24'], ['#EADFC8','#5a4a2a'],
+  ['#F5D9BE','#8a5a2a'], ['#E8D5B7','#6b4423'], ['#F0E4D0','#7a5c33'],
+  ['#EFD8C3','#7a4a20'], ['#E3D3BC','#5f4a2e'], ['#F7E3CE','#a3651a'],
+  ['#DDD0BB','#4a3a24'], ['#F1E6D6','#6e5a3a'], ['#E9D4C0','#7a4225']
 ];
 function hashStr(s){
   let h = 0;
@@ -812,18 +781,11 @@ function linkCell(displayVal, urlVal){
   if(/^https?:\/\//i.test(url)){
     return `<a class="link-chip" href="${url}" target="_blank" rel="noopener" title="${attr(disp || 'Buka link')}">🔗</a>`;
   }
-  // URL column not filled (older rows) - fall back to plain text, not clickable.
   return `<span class="no-link" title="${attr(disp)}">${disp ? '···' : '-'}</span>`;
 }
 
-let CURRENT_ROWS = []; // baris mentah yang lagi ditampilkan di tabel, sejajar index dengan data DataTables
+let CURRENT_ROWS = []; 
 
-// Definisi kolom tabel. Trik performa: render(data, type, row, meta) dipanggil DataTables
-// dengan type berbeda-beda (filter/sort/type/display). Kita cuma bangun HTML berat (chip,
-// badge, dst) saat type === 'display'; untuk keperluan lain (search & sort) cukup teks polos
-// yang murah dibuat. Digabung dengan deferRender:true, HTML berat itu cuma dibangun untuk
-// baris yang benar-benar digambar di halaman aktif -- bukan seluruh dataset sekaligus.
-// Ini yang bikin loading awal jauh lebih cepat kalau datanya banyak.
 const TABLE_COLUMNS = [
   { width:'3%',  render:(d,type,row)=> norm(row[COL.NO]) },
   { width:'8%',  render:(d,type,row,meta)=>{
@@ -848,13 +810,13 @@ function renderTable(){
 
   if(!dt){
     dt = $('#anomaliTable').DataTable({
-      data: rows, // baris mentah langsung -- tidak ada lagi pre-build HTML untuk seluruh dataset
+      data: rows, 
       columns: TABLE_COLUMNS.map(c => ({ data: null, defaultContent:'', render: c.render })),
       columnDefs: TABLE_COLUMNS.map((c, i) => ({ targets: i, width: c.width })),
       order: [],
       pageLength: 10,
       lengthMenu: [10,25,50,100,250],
-      deferRender: true, // baris HTML berat cuma dibangun untuk halaman yang benar-benar digambar
+      deferRender: true, 
       autoWidth: false,
       language: {
         search: "Cari:",
@@ -867,7 +829,7 @@ function renderTable(){
   } else {
     dt.clear();
     dt.rows.add(rows);
-    dt.draw(false); // false = jangan reset ke halaman 1, tetap di halaman yang lagi dibuka
+    dt.draw(false); 
   }
 }
 
@@ -889,7 +851,6 @@ function updateSummary(){
   document.getElementById('statTindakLanjut').textContent = tlCount.toLocaleString('id-ID');
 }
 
-// Aktifkan/nonaktifkan tombol Simpan sesuai ada-tidaknya opsi terpilih
 $(document).on('change', '.tl-select', function(){
   const wrap = $(this).closest('.tl-pending');
   const saveBtn = wrap.find('.tl-save');
@@ -900,7 +861,6 @@ $(document).on('change', '.tl-select', function(){
   }
 });
 
-// Simpan pilihan tindak lanjut
 $(document).on('click', '.tl-save', function(){
   const wrap = $(this).closest('.tl-pending');
   const id = wrap.data('id');
@@ -908,19 +868,16 @@ $(document).on('click', '.tl-save', function(){
   simpanTindakLanjut(id, opsi);
 });
 
-// Buka lagi dropdown untuk mengubah pilihan yang sudah tersimpan
 $(document).on('click', '.tl-undo', function(){
   editTindakLanjut($(this).data('id'));
 });
 
-// Expand/collapse teks RINCIAN yang panjang
 $(document).on('click', '.rindian-toggle', function(){
   const cell = $(this).closest('.rindian-cell');
   const expanded = cell.toggleClass('expanded').hasClass('expanded');
   $(this).text(expanded ? 'Sembunyikan ▴' : 'Selengkapnya ▾');
 });
 
-// Tampilkan popup detail (kolom AH-AQ) saat ASSIGNMENT ID diklik
 function closeInfoPopover(){
   const existing = document.querySelector('.info-popover');
   if(existing) existing.remove();
@@ -934,7 +891,7 @@ $(document).on('click', '.assign-info-trigger', function(e){
 
   closeInfoPopover();
   $('.assign-info-trigger').removeClass('ip-active');
-  if(!row || alreadyOpenForThis) return; // klik ulang pada trigger yang sama -> cuma tutup
+  if(!row || alreadyOpenForThis) return; 
 
   $(this).addClass('ip-active');
 
@@ -954,7 +911,6 @@ $(document).on('click', '.assign-info-trigger', function(e){
     <table>${rowsHtml}</table>`;
   document.body.appendChild(pop);
 
-  // Posisikan di dekat elemen yang diklik, jaga supaya tidak keluar layar
   const rect = this.getBoundingClientRect();
   const popRect = pop.getBoundingClientRect();
   let top = rect.bottom + 6;
@@ -985,7 +941,6 @@ $(document).on('keydown', function(e){
     closeInfoPopover();
   }
 });
-// Reposisi/tutup popup saat tabel di-scroll atau di-redraw supaya tidak "nyangkut"
 $('#anomaliTable').on('draw.dt', function(){
   $('.assign-info-trigger').removeClass('ip-active');
   closeInfoPopover();
