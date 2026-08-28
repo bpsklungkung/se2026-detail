@@ -99,7 +99,7 @@ h1,h2,h3,.display { font-family:'Sora',sans-serif; color: var(--brown-deep); }
 .section-header .sh-bar {
   width: 4px; height: 20px;
   border-radius: 4px;
-  background: var(--orange);
+  background: var(--brown);
   flex-shrink: 0;
 }
 .section-header .sh-title {
@@ -112,6 +112,12 @@ h1,h2,h3,.display { font-family:'Sora',sans-serif; color: var(--brown-deep); }
 .section-header .sh-count {
   display: none;
 }
+
+/* Jarak vertikal antar section dibuat lebih rapat */
+#tabMain .row.mb-3 { margin-bottom: 10px !important; }
+#tabMain .row.mb-4 { margin-bottom: 14px !important; }
+#tabMain .panel.mb-4 { margin-bottom: 14px !important; }
+#tabMain .section-header { margin: 0 0 5px; }
 
 /* ── Summary cards ── */
 .summary-card {
@@ -723,7 +729,7 @@ h1,h2,h3,.display { font-family:'Sora',sans-serif; color: var(--brown-deep); }
 }
 .ms-trigger-text.placeholder { color: #9ca3af; }
 .ms-badge {
-  background: #C99B9B;
+  background: #A9887A;
   color: #fff;
   border-radius: 10px;
   padding: 1px 6px;
@@ -869,7 +875,7 @@ h1,h2,h3,.display { font-family:'Sora',sans-serif; color: var(--brown-deep); }
 }
 .ms-scatter .ms-trigger-text.placeholder { color: #9ca3af; }
 .ms-scatter .ms-badge {
-  background: var(--orange);
+  background: var(--brown);
   color: #fff;
   border-radius: 10px;
   padding: 0 5px;
@@ -1182,7 +1188,7 @@ h1,h2,h3,.display { font-family:'Sora',sans-serif; color: var(--brown-deep); }
 
   <!-- Progres Cards (SubSLS & SLS 100%) -->
   <div class="section-header">
-    <div class="sh-bar" style="background:linear-gradient(180deg,#D64553,#7A3540)"></div>
+    <div class="sh-bar" style="background:linear-gradient(180deg,#4A1620,#2E0D14)"></div>
     <div class="sh-title">Progres</div>
     <div class="sh-count" id="cntProgresGroup"></div>
   </div>
@@ -1190,7 +1196,7 @@ h1,h2,h3,.display { font-family:'Sora',sans-serif; color: var(--brown-deep); }
 
   <!-- Kondisi Bangunan & Usaha (Cek Bangunan / Tidak Ditemukan / Usaha) -->
   <div class="section-header">
-    <div class="sh-bar" style="background:linear-gradient(180deg,#C1440E,#7A3540)"></div>
+    <div class="sh-bar" style="background:linear-gradient(180deg,#4A1620,#2E0D14)"></div>
     <div class="sh-title">Kondisi Bangunan &amp; Usaha</div>
     <div class="sh-count" id="cntKondisi"></div>
   </div>
@@ -1198,7 +1204,7 @@ h1,h2,h3,.display { font-family:'Sora',sans-serif; color: var(--brown-deep); }
 
   <!-- User Cards -->
   <div class="section-header">
-    <div class="sh-bar" style="background:linear-gradient(180deg,#B23244,#D64553)"></div>
+    <div class="sh-bar" style="background:linear-gradient(180deg,#4A1620,#2E0D14)"></div>
     <div class="sh-title">User</div>
     <div class="sh-count" id="cntUser"></div>
   </div>
@@ -1206,14 +1212,14 @@ h1,h2,h3,.display { font-family:'Sora',sans-serif; color: var(--brown-deep); }
 
   <!-- Progres & Capaian Cards -->
   <div class="section-header">
-    <div class="sh-bar" style="background:linear-gradient(180deg,#7A3540,#8A9A5B)"></div>
+    <div class="sh-bar" style="background:linear-gradient(180deg,#4A1620,#2E0D14)"></div>
     <div class="sh-title">Progres &amp; Capaian Harian</div>
   </div>
   <div class="row g-2 mb-3" id="progresCards"></div>
 
   <!-- Pivot Table -->
   <div class="section-header">
-    <div class="sh-bar" style="background:linear-gradient(180deg,#D64553,#B23244)"></div>
+    <div class="sh-bar" style="background:linear-gradient(180deg,#4A1620,#2E0D14)"></div>
     <div class="sh-title">Pivot Tabel</div>
     <div class="sh-count" id="pvStatus"></div>
   </div>
@@ -1407,7 +1413,7 @@ h1,h2,h3,.display { font-family:'Sora',sans-serif; color: var(--brown-deep); }
           <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetPivot()">Reset</button>
           <button type="button" class="btn btn-outline-success btn-sm" onclick="exportPivotCSV()">↓ CSV</button>
           <button type="button" class="btn btn-outline-success btn-sm" onclick="exportPivotExcel()" style="background:#EEF1E8;border-color:#9CB088;color:#5F7350" title="Download tabel pivot sebagai file Excel (.xlsx)">↓ Excel</button>
-          <button type="button" class="btn btn-outline-warning btn-sm" onclick="openKolomModal()" title="Cari data di semua kolom CSV">🔍 Kolom</button>
+          <button type="button" class="btn btn-sm" onclick="openKolomModal()" title="Cari data di semua kolom CSV" style="border:1px solid var(--brown);color:var(--brown);background:#fff">🔍 Kolom</button>
           <button type="button" class="btn btn-sm" onclick="printPivotJpg()" style="background:linear-gradient(135deg,#4A1620,#2E0D14);color:#fff;border:none" title="Unduh pivot (sesuai filter saat ini, mis. Filter Pengawas Awal) sbg JPG & otomatis salin ke clipboard (Ctrl+V utk tempel)">🖼️ JPG</button>
         </div>
       </div>
@@ -1420,7 +1426,7 @@ h1,h2,h3,.display { font-family:'Sora',sans-serif; color: var(--brown-deep); }
 
     <!-- Heatmap Progres Kemarin (satu baris, per petugas) -->
     <div class="section-header" style="margin-top:14px">
-      <div class="sh-bar" style="background:linear-gradient(180deg,#8A9A5B,#C1440E)"></div>
+      <div class="sh-bar" style="background:linear-gradient(180deg,#4A1620,#2E0D14)"></div>
       <div class="sh-title">Heatmap Progres Harian</div>
       <div class="sh-count" id="cntHeatmap"></div>
     </div>
@@ -1455,7 +1461,7 @@ h1,h2,h3,.display { font-family:'Sora',sans-serif; color: var(--brown-deep); }
 
     <!-- Tren Harian -->
     <div class="section-header" style="margin-top:14px">
-      <div class="sh-bar" style="background:linear-gradient(180deg,#D9A3A3,#C1440E)"></div>
+      <div class="sh-bar" style="background:linear-gradient(180deg,#4A1620,#2E0D14)"></div>
       <div class="sh-title">Tren Harian (Histori)</div>
       <div class="sh-count" id="cntHistori"></div>
     </div>
@@ -1669,7 +1675,7 @@ h1,h2,h3,.display { font-family:'Sora',sans-serif; color: var(--brown-deep); }
 
   <!-- ══ STACKED BAR ASSIGNMENT ══ -->
   <div class="section-header" style="margin-top:4px">
-    <div class="sh-bar" style="background:linear-gradient(180deg,#7A3540,#D64553)"></div>
+    <div class="sh-bar" style="background:linear-gradient(180deg,#4A1620,#2E0D14)"></div>
     <div class="sh-title">Distribusi Assignment per Wilayah &amp; Petugas</div>
   </div>
   <div class="row g-3 mb-4">
@@ -1871,7 +1877,7 @@ h1,h2,h3,.display { font-family:'Sora',sans-serif; color: var(--brown-deep); }
 
   <!-- Main filter + table -->
   <div class="section-header">
-    <div class="sh-bar" style="background:linear-gradient(180deg,#D64553,#D9A3A3)"></div>
+    <div class="sh-bar" style="background:linear-gradient(180deg,#4A1620,#2E0D14)"></div>
     <div class="sh-title">Data Detail</div>
     <div class="sh-count" id="cntDetail"></div>
     <button type="button" class="btn btn-outline-success btn-sm" onclick="exportDetailExcel()"
@@ -2152,7 +2158,7 @@ h1,h2,h3,.display { font-family:'Sora',sans-serif; color: var(--brown-deep); }
 
   <!-- Map -->
   <div class="section-header">
-    <div class="sh-bar" style="background:linear-gradient(180deg,#8A9A5B,#7A3540)"></div>
+    <div class="sh-bar" style="background:linear-gradient(180deg,#4A1620,#2E0D14)"></div>
     <div class="sh-title">Peta Sebaran</div>
     <div class="sh-count" id="cntMap"></div>
   </div>
@@ -2217,7 +2223,7 @@ h1,h2,h3,.display { font-family:'Sora',sans-serif; color: var(--brown-deep); }
 
   <!-- Scatter Plot Section -->
 <div class="section-header">
-  <div class="sh-bar" style="background:linear-gradient(180deg,#B23244,#D64553)"></div>
+  <div class="sh-bar" style="background:linear-gradient(180deg,#4A1620,#2E0D14)"></div>
   <div class="sh-title">Pola Capaian (Scatter Plot)</div>
 </div>
 <div class="row g-2 mb-3">
