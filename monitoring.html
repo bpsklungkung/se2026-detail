@@ -14,15 +14,15 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
 <style>
   :root{
-    --cream:#FFFDF1;
-    --peach:#FFCE99;
-    --orange:#FF9644;
-    --brown:#562F00;
-    --brown-soft:#8a5a22;
-    --line:#EBD9BC;
+    --cream:#FFFFFF;
+    --peach:#F4E3E6;
+    --orange:#B23A48;
+    --brown:#4A1620;
+    --brown-soft:#7A2636;
+    --line:#E5E7EB;
     --white:#FFFFFF;
-    --ok:#3f8a5b;
-    --shadow: 0 6px 18px rgba(86,47,0,0.08);
+    --ok:#3e5a2a;
+    --shadow: 0 6px 18px rgba(74,22,32,0.08);
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -35,45 +35,47 @@
   .wrap{max-width:1280px;margin:0 auto;padding:20px 24px 40px;}
 
   header.top{
-    display:flex;align-items:flex-end;justify-content:space-between;gap:20px;
+    display:flex;align-items:center;justify-content:space-between;gap:20px;
     flex-wrap:wrap;
-    padding-bottom:14px;border-bottom:2px solid var(--line);margin-bottom:14px;
+    background:var(--brown);
+    padding:18px 24px;margin:-20px -24px 20px;
+    box-shadow:0 1px 0 rgba(0,0,0,.06);
   }
   .eyebrow{
     font-size:12px;letter-spacing:.14em;text-transform:uppercase;
-    color:var(--orange);font-weight:700;margin-bottom:6px;
+    color:#F4C7CE;font-weight:700;margin-bottom:6px;
   }
   h1{
-    font-family:'Fraunces',serif;font-weight:600;font-size:clamp(26px,3.4vw,38px);
-    margin:0;line-height:1.05;color:var(--brown);
+    font-family:'Fraunces',serif;font-weight:600;font-size:clamp(24px,3.2vw,34px);
+    margin:0;line-height:1.05;color:#fff;
   }
-  .sub{color:var(--brown-soft);font-size:14px;margin-top:6px;}
-  .refresh-info{font-size:12.5px;color:var(--brown-soft);text-align:right;}
+  .sub{color:rgba(255,255,255,0.78);font-size:14px;margin-top:6px;}
+  .refresh-info{font-size:12.5px;color:rgba(255,255,255,0.78);text-align:right;}
   .refresh-info button{
-    margin-top:6px;background:var(--brown);color:var(--cream);border:none;
-    padding:7px 14px;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;
-    font-family:'Inter',sans-serif;
+    margin-top:6px;background:#fff;color:var(--brown);border:none;
+    padding:7px 16px;border-radius:999px;font-size:12.5px;font-weight:700;cursor:pointer;
+    font-family:'Inter',sans-serif;transition:background .15s;
   }
-  .refresh-info button:hover{background:#3d2200;}
+  .refresh-info button:hover{background:#F4E3E6;}
 
   /* Marker cluster — mengikuti palet brand, gantikan style default plugin */
   .marker-cluster-brand{
-    background:rgba(255,150,68,0.22);
+    background:rgba(178,58,72,0.18);
   }
   .marker-cluster-brand div{
     width:34px;height:34px;margin-left:3px;margin-top:3px;
     background:var(--orange);color:#fff;border-radius:50%;
     display:flex;align-items:center;justify-content:center;
     font-family:'Inter',sans-serif;font-weight:700;font-size:12.5px;
-    box-shadow:0 2px 8px rgba(86,47,0,0.25);
+    box-shadow:0 2px 8px rgba(74,22,32,0.25);
   }
   .marker-cluster-brand.cluster-lg div{ background:var(--brown); }
   .marker-cluster-brand.cluster-md div{ background:var(--orange); }
-  .marker-cluster-brand.cluster-sm div{ background:#ffb066; }
+  .marker-cluster-brand.cluster-sm div{ background:#D98A93; }
 
   /* Label identitas SubSLS di peta */
   .subsls-label{
-    background:rgba(255,253,241,0.92);
+    background:rgba(255,255,255,0.92);
     border:1.5px solid var(--orange);
     border-radius:6px;
     padding:1px 6px;
@@ -81,7 +83,7 @@
     font-size:10.5px;
     font-weight:700;
     color:var(--brown);
-    box-shadow:0 1px 4px rgba(86,47,0,0.2);
+    box-shadow:0 1px 4px rgba(74,22,32,0.2);
   }
   .subsls-label::before{ display:none; }
 
@@ -90,16 +92,16 @@
   .compare-dot{
     display:flex;align-items:center;justify-content:center;
     width:28px;height:28px;border-radius:50%;color:#fff;font-weight:800;font-size:13px;
-    font-family:'Inter',sans-serif;box-shadow:0 2px 8px rgba(86,47,0,0.35);border:2px solid #fff;
+    font-family:'Inter',sans-serif;box-shadow:0 2px 8px rgba(74,22,32,0.35);border:2px solid #fff;
   }
-  .compare-dot-a{ background:#a94433; }
+  .compare-dot-a{ background:#B23A48; }
   .compare-dot-b{ background:#2f8a52; }
 
   /* Titik usaha individual — pakai divIcon (bukan circleMarker) supaya kompatibel dengan cluster plugin */
   .usaha-dot-icon{ background:transparent; border:none; }
   .usaha-dot{
     display:block;width:13px;height:13px;border-radius:50%;
-    border:1.5px solid #562F00;box-shadow:0 1px 3px rgba(86,47,0,0.35);
+    border:1.5px solid #4A1620;box-shadow:0 1px 3px rgba(74,22,32,0.35);
   }
 
   .stats{
@@ -125,7 +127,7 @@
     font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;color:var(--orange);
     background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:6px;
   }
-  .reset-btn:hover{background:#FFF3E4;}
+  .reset-btn:hover{background:#F4E3E6;}
 
   .filters-grid{
     display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;
@@ -150,7 +152,7 @@
   .table-scroll{max-height:640px;overflow:auto;}
   .table-pagination-bar{
     display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
-    padding:10px 14px;border-bottom:1px solid var(--line);background:#FFFBF0;
+    padding:10px 14px;border-bottom:1px solid var(--line);background:#F3F4F6;
   }
   .pg-size{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--brown-soft);}
   .pg-size select{
@@ -163,7 +165,7 @@
     padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--white);
     color:var(--brown);font-size:12.5px;font-weight:600;cursor:pointer;transition:background .15s;
   }
-  .pg-nav button:hover:not(:disabled){background:#FFE1B0;}
+  .pg-nav button:hover:not(:disabled){background:#F3F4F6;}
   .pg-nav button:disabled{opacity:.4;cursor:not-allowed;}
   .pg-page{font-size:12.5px;color:var(--brown);font-weight:600;white-space:nowrap;}
   table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;}
@@ -173,7 +175,7 @@
     letter-spacing:.03em;font-weight:700;white-space:normal;line-height:1.25;
   }
   thead th.sortable{cursor:pointer;user-select:none;}
-  thead th.sortable:hover{background:#4a2800;}
+  thead th.sortable:hover{background:#2E0D14;}
   thead th.sortable .sort-arrow{display:inline-block;margin-left:4px;opacity:.5;font-size:10px;}
   thead th.sortable.sort-active .sort-arrow{opacity:1;}
   #dataTable thead th:nth-child(1){width:9%;}
@@ -194,21 +196,21 @@
     overflow:visible;text-overflow:clip;
   }
   tbody td:nth-child(7){text-align:center;}
-  tbody tr:nth-child(even){background:#FFFBF0;}
-  tbody tr:hover{background:#FFF1DC;}
+  tbody tr:nth-child(even){background:#F3F4F6;}
+  tbody tr:hover{background:#F3F4F6;}
   tbody tr[data-rowid]{cursor:pointer;}
   @keyframes rowFlashPulse{
-    0%{background:#FF9644;}
-    100%{background:#FFD9A8;}
+    0%{background:#B23A48;}
+    100%{background:#F4E3E6;}
   }
   tbody tr.row-flash{
-    background:#FFD9A8 !important;
+    background:#F4E3E6 !important;
     animation:rowFlashPulse .6s ease-out 2;
-    box-shadow:inset 0 0 0 2px var(--orange,#FF9644);
+    box-shadow:inset 0 0 0 2px var(--orange,#B23A48);
   }
-  tbody tr.row-flash td{position:relative;font-weight:700;color:#4a2800;}
+  tbody tr.row-flash td{position:relative;font-weight:700;color:#2E0D14;}
   tbody tr.row-flash td:first-child::before{
-    content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--orange,#FF9644);
+    content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--orange,#B23A48);
   }
   td.usaha{font-weight:600;}
   td.alamat{color:var(--brown-soft);}
@@ -217,13 +219,13 @@
     text-decoration:none;font-size:12px;font-weight:700;padding:6px 10px;border-radius:20px;
     white-space:nowrap;
   }
-  .loc-btn:hover{background:#e5772a;}
-  .loc-none{color:#b9a892;font-size:12px;font-style:italic;}
+  .loc-btn:hover{background:#8a2A38;}
+  .loc-none{color:#A8A0A4;font-size:12px;font-style:italic;}
 
   .empty-state, .loading-state, .error-state{
     padding:60px 20px;text-align:center;color:var(--brown-soft);
   }
-  .error-state{color:#a94433;}
+  .error-state{color:#B23A48;}
   .spinner{
     width:34px;height:34px;border-radius:50%;border:3px solid var(--line);
     border-top-color:var(--orange);margin:0 auto 14px;animation:spin 0.8s linear infinite;
@@ -289,10 +291,10 @@
   }
   .badge-dalam{background:#E4F3E9;color:var(--ok);}
   .badge-luar{background:#FFF0DE;color:#b3651a;}
-  .badge-tidak{background:#FBE6E2;color:#a94433;}
+  .badge-tidak{background:#FBE6E2;color:#B23A48;}
   .badge-ganda{background:#EDE4F7;color:#6b3fa0;}
   .badge-tutup{background:#E7E2DA;color:#5c5346;}
-  .verif-meta{font-size:10.5px;color:#b9a892;margin-top:3px;}
+  .verif-meta{font-size:10.5px;color:#A8A0A4;margin-top:3px;}
 
   .btn-cek-serupa{
     background:var(--peach);border:none;border-radius:8px;padding:6px 10px;
@@ -303,13 +305,13 @@
 
   /* Modal */
   .modal-overlay{
-    position:fixed;inset:0;background:rgba(86,47,0,0.45);
+    position:fixed;inset:0;background:rgba(74,22,32,0.45);
     display:none;align-items:center;justify-content:center;z-index:3000;padding:20px;
   }
   .modal-overlay.open{display:flex;}
   .modal-box{
     background:var(--white);border-radius:16px;max-width:420px;width:100%;
-    padding:22px 22px 18px;box-shadow:0 12px 40px rgba(86,47,0,0.25);
+    padding:22px 22px 18px;box-shadow:0 12px 40px rgba(74,22,32,0.25);
     max-height:88vh;overflow-y:auto;
   }
   .modal-box-wide{max-width:540px;}
@@ -323,7 +325,7 @@
   .side-panel-overlay.open{display:block;}
   .side-panel{
     position:fixed;top:0;right:0;height:100vh;width:420px;max-width:92vw;
-    background:var(--white);box-shadow:-10px 0 34px rgba(86,47,0,0.28);
+    background:var(--white);box-shadow:-10px 0 34px rgba(74,22,32,0.28);
     z-index:3001;transform:translateX(100%);transition:transform .28s ease;
     display:flex;flex-direction:column;
   }
@@ -402,9 +404,9 @@
     padding:9px 18px;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;
     font-family:'Inter',sans-serif;
   }
-  .btn-primary:hover{background:#e5772a;}
+  .btn-primary:hover{background:#8a2A38;}
   .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
-  .modal-error{color:#a94433;font-size:12px;margin-top:10px;display:none;}
+  .modal-error{color:#B23A48;font-size:12px;margin-top:10px;display:none;}
 
   .toast{
     position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
@@ -417,7 +419,7 @@
   @media (max-width:640px){
     .wrap{padding:18px 14px 40px;}
     .refresh-info{text-align:left;}
-    header.top{flex-direction:column;align-items:flex-start;}
+    header.top{flex-direction:column;align-items:flex-start;margin:-18px -14px 18px;padding:16px 18px;}
   }
 </style>
 </head>
@@ -742,13 +744,13 @@ baseVoyager.addTo(map);
 
 const subslsLayer = L.geoJSON(SUBSLS_GEOJSON_DATA, {
   style: function(){
-    return { color:'#FF9644', weight:1.5, opacity:0.85, fillColor:'#FFCE99', fillOpacity:0.08 };
+    return { color:'#B23A48', weight:1.5, opacity:0.85, fillColor:'#F4E3E6', fillOpacity:0.08 };
   },
   onEachFeature: function(feature, layer){
     const p = feature.properties || {};
     layer.bindPopup(
       `<div style="font-family:Inter,sans-serif;font-size:12.5px;line-height:1.6;min-width:170px;">
-        <div style="font-weight:700;color:#562F00;margin-bottom:4px;">Wilayah SubSLS</div>
+        <div style="font-weight:700;color:#4A1620;margin-bottom:4px;">Wilayah SubSLS</div>
         <div><b>Kecamatan:</b> ${escapeHtml(p.kec || '-')}</div>
         <div><b>Desa/Kelurahan:</b> ${escapeHtml(p.desa || '-')}</div>
         <div><b>SLS:</b> ${escapeHtml(p.sls || '-')}</div>
@@ -1607,7 +1609,7 @@ function showSimilarOnMap(idx){
      <div class="popup-sub">Kandidat mirip (listing SE2026)</div>`
   );
   const line = L.polyline([[aLat, aLng], [bLat, bLng]], {
-    color:'#FF9644', weight:2.5, opacity:0.85, dashArray:'6,7'
+    color:'#B23A48', weight:2.5, opacity:0.85, dashArray:'6,7'
   });
 
   line.addTo(compareLayer);
@@ -1754,7 +1756,7 @@ els.tbody.addEventListener('change', e=>{
 let toastTimer = null;
 function showToast(msg, isError){
   verifModalEls.toast.textContent = msg;
-  verifModalEls.toast.style.background = isError ? '#a94433' : 'var(--brown)';
+  verifModalEls.toast.style.background = isError ? '#B23A48' : 'var(--brown)';
   verifModalEls.toast.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(()=>verifModalEls.toast.classList.remove('show'), 3200);
