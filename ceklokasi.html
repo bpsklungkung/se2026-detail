@@ -633,7 +633,7 @@
                             <th title="Beda Desa">Beda Desa</th>
                             <th title="Beda SLS">Beda SLS</th>
                             <th title="Beda Sub SLS">Beda Sub</th>
-                            <th title="Apakah lingkaran radius akurasi dari titik tagging menyentuh poligon SubSLS Tugas? (hanya dihitung jika Beda Sub = Ya)">Cek Radius Akurasi</th>
+                            <th title="Apakah lingkaran radius akurasi dari titik tagging menyentuh poligon SubSLS Tugas? Angka dalam kurung = jarak terdekat titik ke SubSLS Tugas. (hanya dihitung jika Beda Sub = Ya)">Cek Radius Akurasi</th>
                             <th title="Pencacah Awal">PCL</th>
                             <th title="Pengawas Awal">PML</th>
                             <th title="Link">Link</th>
@@ -745,10 +745,19 @@
 
         const BEDA_COLS = [COL.BEDA_KEC, COL.BEDA_DESA, COL.BEDA_SLS, COL.BEDA_SUBSLS];
         const FILTER_COLS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+        function cekRadiusFilterValue(row) {
+            var r = evaluasiCekRadius(row);
+            if (r.status === 'ya') return 'Bersinggungan';
+            if (r.status === 'tidak') return 'Tidak';
+            return 'Kosong'; // nobeda / na / loading
+        }
+        const COMPUTED_FILTERS = [
+            { key: 'CEK_RADIUS', label: 'Cek Radius Akurasi', options: ['Bersinggungan', 'Tidak', 'Kosong'], getValue: cekRadiusFilterValue }
+        ];
         let TOOLTIP_COLS = [];
 
         let headers = []; let rawData = []; let filters = []; let filteredRows = [];
-        let dt = null; let map = null; let clusterBeda = null; let clusterSesuai = null; let confirmMap = {};
+        let dt = null; let map = null; let clusterBeda = null; let clusterSesuai = null; let confirmMap = {}; let markersById = {};
 
         // ===== CEK RADIUS AKURASI (SubSLS Tugas vs titik Tagging) =====
         // Kolom "Kode SubSLS Tugas" (V) ternyata TIDAK mengikuti persis format 16-digit standar BPS
@@ -779,7 +788,7 @@
                 });
                 subslsIndexReady = true;
                 for (var k in cekRadiusCache) delete cekRadiusCache[k];
-                if (dt) renderTable();
+                if (dt) computeFilterState();
             } catch (e) {
                 subslsIndexError = true;
                 console.error('Gagal memuat data GeoJSON SubSLS (embed):', e);
@@ -852,9 +861,9 @@
                             if (dist === null) {
                                 result = { status: 'na', jarak: null, pesan: 'Geometri poligon tidak valid' };
                             } else if (dist <= akurasi) {
-                                result = { status: 'ya', jarak: 0, pesan: 'Lingkaran akurasi menyentuh SubSLS Tugas' };
+                                result = { status: 'ya', jarak: dist, pesan: 'Lingkaran akurasi menyentuh SubSLS Tugas' };
                             } else {
-                                result = { status: 'tidak', jarak: dist - akurasi, pesan: 'Lingkaran akurasi tidak menyentuh SubSLS Tugas' };
+                                result = { status: 'tidak', jarak: dist, pesan: 'Lingkaran akurasi tidak menyentuh SubSLS Tugas' };
                             }
                         }
                     }
@@ -872,8 +881,8 @@
             if (r.status === 'nobeda') return '<span style="color:#c9b8a4;">-</span>';
             if (r.status === 'loading') return '<span class="badge-beda" style="background:#F3F4F6;color:#6b7280;" title="' + esc(r.pesan) + '">…</span>';
             if (r.status === 'na') return '<span class="badge-beda" style="background:#F3F4F6;color:#6b7280;" title="' + esc(r.pesan) + '">N/A</span>';
-            if (r.status === 'ya') return '<span class="badge-beda badge-beda-no" title="' + esc(r.pesan) + '">Bersinggungan</span>';
             var jarakTxt = r.jarak !== null ? (r.jarak >= 1000 ? (r.jarak / 1000).toLocaleString('id-ID', { maximumFractionDigits: 2 }) + ' km' : Math.round(r.jarak).toLocaleString('id-ID') + ' m') : '';
+            if (r.status === 'ya') return '<span class="badge-beda badge-beda-no" title="' + esc(r.pesan) + '">Bersinggungan' + (jarakTxt ? ' (' + jarakTxt + ')' : '') + '</span>';
             return '<span class="badge-beda badge-beda-yes" title="' + esc(r.pesan) + '">Tidak' + (jarakTxt ? ' (' + jarakTxt + ')' : '') + '</span>';
         }
 
@@ -951,7 +960,9 @@
             
             if (anyBeda && isBaris(row[COL.BEDA_SUBSLS])) {
                 var rr = evaluasiCekRadius(row);
-                html += '<div class="popup-row"><span class="popup-label">Cek Radius Akurasi</span><span class="popup-value">' + esc(rr.status === 'ya' ? 'Bersinggungan' : (rr.status === 'tidak' ? 'Tidak' : (rr.status === 'loading' ? '…' : 'N/A'))) + '</span></div>';
+                var rrJarakTxt = rr.jarak !== null ? (rr.jarak >= 1000 ? (rr.jarak / 1000).toLocaleString('id-ID', { maximumFractionDigits: 2 }) + ' km' : Math.round(rr.jarak).toLocaleString('id-ID') + ' m') : '';
+                var rrLabel = rr.status === 'ya' ? 'Bersinggungan' : (rr.status === 'tidak' ? 'Tidak' : (rr.status === 'loading' ? '…' : 'N/A'));
+                html += '<div class="popup-row"><span class="popup-label">Cek Radius Akurasi</span><span class="popup-value">' + esc(rrLabel) + (rrJarakTxt ? ' (' + rrJarakTxt + ')' : '') + '</span></div>';
             }
 
             html += '<div class="popup-beda ' + (anyBeda ? 'yes' : 'no') + '">' + (anyBeda ? '⚠️ Ada perbedaan wilayah' : '✅ Tidak ada perbedaan') + '</div>';
@@ -1048,16 +1059,19 @@
 
         function initFilters() {
             filters = FILTER_COLS.map(idx => ({ colIndex: idx, label: headerLabel(idx), selected: new Set(), tempSelected: new Set(), availableOptions: [], searchText: '', open: false }));
+            COMPUTED_FILTERS.forEach(cf => filters.push({ colIndex: null, getValue: cf.getValue, fixedOptions: cf.options, label: cf.label, selected: new Set(), tempSelected: new Set(), availableOptions: cf.options.slice(), searchText: '', open: false }));
         }
 
-        function rowMatchesFilters(row, list) { return list.every(f => f.selected.has(String(row[f.colIndex] ?? '').trim())); }
+        function getFilterValue(f, row) { return f.getValue ? f.getValue(row) : String(row[f.colIndex] ?? '').trim(); }
+        function rowMatchesFilters(row, list) { return list.every(f => f.selected.has(getFilterValue(f, row))); }
         function computeFilterState() {
             var allActive = filters.filter(f => f.selected.size > 0);
             filteredRows = rawData.filter(r => rowMatchesFilters(r, allActive));
             filters.forEach((f, idx) => {
+                if (f.fixedOptions) { f.availableOptions = f.fixedOptions.slice(); f.tempSelected = new Set(f.selected); return; }
                 var others = filters.filter((ff, i) => i !== idx && ff.selected.size > 0);
                 var scoped = rawData.filter(r => rowMatchesFilters(r, others));
-                var optSet = new Set(); scoped.forEach(r => { var v = String(r[f.colIndex] ?? '').trim(); if (v !== '') optSet.add(v); });
+                var optSet = new Set(); scoped.forEach(r => { var v = getFilterValue(f, r); if (v !== '') optSet.add(v); });
                 Array.from(f.selected).forEach(v => { if (!optSet.has(v)) f.selected.delete(v); });
                 f.availableOptions = Array.from(optSet).sort((a, b) => a.localeCompare(b, 'id', { numeric: true }));
                 f.tempSelected = new Set(f.selected);
@@ -1222,7 +1236,7 @@
                         { targets: [10, 11, 12], width: '45px' }, /* Prov/Kab/Kec Tag */
                         { targets: [13, 14], width: '80px' }, /* Desa/SLS Tag */
                         { targets: [15, 16, 17, 18], width: '55px' },  /* Beda Kec/Desa/SLS/Sub */
-                        { targets: 19, width: '90px' },   /* Cek Radius Akurasi */
+                        { targets: 19, width: '150px' },   /* Cek Radius Akurasi */
                         { targets: [20, 21], width: '90px' }, /* PCL/PML */
                         { targets: 22, width: '45px' },   /* Link */
                         { targets: 23, width: '150px' }   /* Konfirmasi */
@@ -1243,6 +1257,12 @@
                                 var top = offset.top - window.scrollY;
                                 $('#tooltipPopover').css({ top: top + window.scrollY, left: Math.max(10, left) });
                             }
+                            goToMapMarker(id);
+                        });
+                        $('#dataTable tbody').off('click', 'tr').on('click', 'tr', function(e) {
+                            if ($(e.target).closest('.konfirmasi-select, .badge-konfirmasi, a, .id-cell').length) return;
+                            var id = $(this).find('.id-cell').data('id');
+                            if (id) goToMapMarker(id);
                         });
                     }
                 });
@@ -1269,7 +1289,7 @@
         }
 
         function renderMap() {
-            initMap(); clusterBeda.clearLayers(); clusterSesuai.clearLayers(); var bounds = [];
+            initMap(); clusterBeda.clearLayers(); clusterSesuai.clearLayers(); markersById = {}; var bounds = [];
             filteredRows.forEach(row => {
                 var lat = parseFloat(String(row[COL.LAT]).replace(',', '.')), lng = parseFloat(String(row[COL.LONG]).replace(',', '.'));
                 if (isNaN(lat) || isNaN(lng)) return;
@@ -1282,12 +1302,25 @@
                 var marker = L.circleMarker([lat, lng], { radius: 7, color: warna, fillColor: warna, fillOpacity: 0.75, weight: 1.5 });
                 marker.id = row[COL.ID]; marker.bindPopup(buildPopupContent(row));
                 marker.on('click', function() { highlightRow(this.id); });
-                (ada_beda ? clusterBeda : clusterSesuai).addLayer(marker);
+                var grp = ada_beda ? clusterBeda : clusterSesuai;
+                grp.addLayer(marker);
+                markersById[row[COL.ID]] = { marker: marker, group: grp };
                 bounds.push([lat, lng]);
             });
             $('#mapCount').text(bounds.length.toLocaleString('id-ID') + ' titik ditampilkan');
             if (bounds.length > 0) map.fitBounds(bounds, { padding: [24, 24], maxZoom: 16 });
             setTimeout(() => { if (map) map.invalidateSize(); }, 200);
+        }
+
+        function goToMapMarker(id) {
+            var entry = markersById[id];
+            if (!entry || !map) return;
+            $('html, body').animate({ scrollTop: $('#mapView').offset().top - 90 }, 300, function() {
+                setTimeout(function() {
+                    map.invalidateSize();
+                    entry.group.zoomToShowLayer(entry.marker, function() { entry.marker.openPopup(); });
+                }, 320);
+            });
         }
 
         document.addEventListener('toggle', e => { if (e.target.matches('details.filter-details') && e.target.open) document.querySelectorAll('details.filter-details[open]').forEach(d => { if (d !== e.target) d.open = false; }); }, true);
