@@ -69,12 +69,10 @@
     .meta{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;color:var(--muted);font-size:14px}
     .table-wrap{overflow:auto;border:1px solid var(--border);border-radius:12px}
     
-    /* Perubahan Lebar Kolom dan Text Wrap di sini */
     table{
       width:100%;
       border-collapse:collapse;
-      font-size:11px; /* Ukuran font dikecilkan agar pas di layar */
-      /* Dihapus white-space:nowrap; agar bisa wrap */
+      font-size:11px;
     }
     thead th{
       background:var(--primary);
@@ -83,7 +81,7 @@
       font-weight:700;
     }
     th,td{
-      padding:5px 6px; /* Padding sedikit dikurangi agar lebih hemat ruang */
+      padding:5px 6px;
       border-bottom:1px solid var(--border);
       text-align:left;
       white-space:normal; 
@@ -91,7 +89,6 @@
       overflow-wrap:break-word; 
       vertical-align:top; 
     }
-    /* Akhir dari modifikasi tabel */
 
     tbody tr:hover{background:var(--hover)}
     .link-btn{
@@ -232,7 +229,8 @@ function getVisibleColumns() {
     if (targetHeaders.includes(normalized)) rightmostIndex[normalized] = index;
   });
 
-  return Array.from({length: Math.min(headers.length, LINK_COLUMN + 1)}, (_, i) => i)
+  // Diubah menjadi LINK_COLUMN + 2 agar kolom Status (V) ikut dirender di tabel
+  return Array.from({length: Math.min(headers.length, LINK_COLUMN + 2)}, (_, i) => i)
     .filter(i => !EXCLUDED_COLUMNS.includes(i) && i !== LINK_COLUMN)
     .filter(i => {
       const normalized = normalizeHeader(headers[i]);
@@ -268,9 +266,11 @@ function getFilterDefinitions() {
     getValue: row => clean(row[index])
   }));
 
+  // Menambahkan Status di array ekstra filter
   extraFilterColumns = [
     { name: "Tindakan", index: findColumnByHeader("Tindakan") },
-    { name: "Kemungkinan", index: findColumnByHeader("Kemungkinan") }
+    { name: "Kemungkinan", index: findColumnByHeader("Kemungkinan") },
+    { name: "Status", index: findColumnByHeader("Status") } 
   ].filter(item => item.index >= 0 && !FILTER_COLUMNS.includes(item.index));
 
   extraFilterColumns.forEach(item => {
@@ -324,6 +324,7 @@ function setupFilters() {
     container.appendChild(wrap);
   });
 }
+
 function renderSummaryCards() {
   const container = document.getElementById("summaryCards");
   if (!container) return;
@@ -384,6 +385,7 @@ function applyFilters() {
   currentPage = 1;
   renderTable();
 }
+
 function renderTable() {
   renderSummaryCards();
   const table = document.getElementById("dataTable");
@@ -404,7 +406,7 @@ function renderTable() {
   const endIndex = Math.min(startIndex + PAGE_SIZE, filteredRows.length);
   const pageRows = filteredRows.slice(startIndex, endIndex);
 
-  const highlightHeaders = ["USAHA UTP", "TINDAKAN", "KEMUNGKINAN"].map(normalizeHeader);
+  const highlightHeaders = ["USAHA UTP", "TINDAKAN", "KEMUNGKINAN", "STATUS"].map(normalizeHeader);
   const isHighlightCol = i => highlightHeaders.includes(normalizeHeader(headers[i]));
 
   let html = "<thead><tr>";
@@ -529,7 +531,7 @@ async function saveVerifikasi(key) {
   try {
     const res = await fetch(APPS_SCRIPT_URL, {
       method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" }, // hindari CORS preflight
+      headers: { "Content-Type": "text/plain;charset=utf-8" }, 
       body: JSON.stringify(payload)
     });
     const data = await res.json();
