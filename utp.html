@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Google Sheet</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <style>
+    :root{
+      --primary: #4A1620;
+      --primary-dark: #2E0D14;
+      --bg: #FFFFFF;
+      --card: #FFFFFF;
+      --border: #E5E7EB;
+      --text: #2E0D14;
+      --muted: #7A2636;
+      --hover: #F3F4F6;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    .container{max-width:1600px;margin:auto;padding:24px}
+    header{
+      background:var(--primary);
+      color:#fff;
+      border-radius:18px;
+      padding:24px 28px;
+      margin-bottom:20px;
+      box-shadow:0 10px 30px rgba(74,22,32,.18);
+    }
+    h1{margin:0;font-size:28px}
+    .subtitle{margin:7px 0 0;opacity:.85}
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:18px;
+      box-shadow:0 4px 18px rgba(15,23,42,.04);
+      margin-bottom:18px;
+    }
+    .filters{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+      gap:12px;
+    }
+    .filter label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px}
+    select,input{
+      width:100%;
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:10px 12px;
+      background:#fff;
+      font-size:14px;
+      color:var(--text);
+      outline:none;
+    }
+    select:focus,input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(74,22,32,.12)}
+    .toolbar{display:flex;gap:12px;align-items:end;margin-top:14px;flex-wrap:wrap}
+    .search{flex:1;min-width:220px}
+    button{
+      border:0;border-radius:10px;padding:10px 16px;
+      background:var(--primary);color:#fff;font-weight:700;cursor:pointer;
+    }
+    button:hover{background:var(--primary-dark)}
+    .meta{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;color:var(--muted);font-size:14px}
+    .table-wrap{overflow:auto;border:1px solid var(--border);border-radius:12px}
+    
+    /* Perubahan Lebar Kolom dan Text Wrap di sini */
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:11px; /* Ukuran font dikecilkan agar pas di layar */
+      /* Dihapus white-space:nowrap; agar bisa wrap */
+    }
+    thead th{
+      background:var(--primary);
+      color:#fff;
+      position:sticky;top:0;z-index:1;
+      font-weight:700;
+    }
+    th,td{
+      padding:5px 6px; /* Padding sedikit dikurangi agar lebih hemat ruang */
+      border-bottom:1px solid var(--border);
+      text-align:left;
+      white-space:normal; 
+      word-break:normal; 
+      overflow-wrap:break-word; 
+      vertical-align:top; 
+    }
+    /* Akhir dari modifikasi tabel */
+
+    tbody tr:hover{background:var(--hover)}
+    .link-btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:34px;height:34px;border-radius:9px;background:#F4E3E6;color:#B23A48;
+      text-decoration:none;font-size:18px;
+    }
+    .link-btn:hover{background:#B23A48;color:#fff;}
+    .empty{text-align:center;color:var(--muted);padding:32px}
+    .loading{padding:40px;text-align:center;color:var(--muted)}
+    .badge{
+      display:inline-block;padding:4px 8px;border-radius:999px;
+      background:#F4E3E6;color:#B23A48;font-size:12px;
+    }
+    .badge-done{background:#DCFCE7;color:#166534;font-weight:700;white-space:nowrap}
+    .verif-select, .keterangan-input{
+      width:100%;min-width:110px;border:1px solid var(--border);border-radius:8px;
+      padding:5px 6px;font-size:11px;background:#fff;color:var(--text);
+    }
+    .keterangan-cell{min-width:170px}
+    .save-btn{
+      padding:5px 10px;font-size:11px;border-radius:8px;background:var(--primary);
+      color:#fff;border:0;cursor:pointer;white-space:nowrap;margin-top:4px;
+    }
+    .save-btn:hover{background:var(--primary-dark)}
+    .save-btn:disabled{opacity:.6;cursor:not-allowed}
+    .done-wrap{font-size:11px;line-height:1.5}
+    .done-wrap .who{font-weight:700;color:var(--text)}
+    .done-wrap .ket{color:var(--muted)}
+    .edit-link{display:inline-block;margin-top:4px;font-size:11px;color:#B23A48;cursor:pointer;text-decoration:underline;background:none;border:0;padding:0}
+    th.col-highlight{background:var(--primary-dark)}
+    td.col-highlight{background:#FBF0F1}
+    .summary-grid{
+      display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px;
+    }
+    .summary-card{
+      background:var(--card);border:1px solid var(--border);border-radius:14px;
+      padding:14px 16px;box-shadow:0 4px 18px rgba(15,23,42,.04);
+    }
+    .summary-card .num{font-size:24px;font-weight:800;color:var(--primary);line-height:1.1}
+    .summary-card .lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-top:4px}
+    .summary-card.verif .num{color:#166534}
+    .summary-card.verif .bar{
+      height:6px;border-radius:999px;background:#F4E3E6;margin-top:8px;overflow:hidden;
+    }
+    .summary-card.verif .bar-fill{height:100%;background:#166534;border-radius:999px}
+    @media(max-width:1100px){.summary-grid{grid-template-columns:repeat(3,1fr)}}
+    @media(max-width:600px){.summary-grid{grid-template-columns:repeat(2,1fr)}}
+    .pagination{
+      display:flex;justify-content:center;align-items:center;gap:8px;
+      padding-top:16px;flex-wrap:wrap;
+    }
+    .pagination button{padding:8px 12px;min-width:40px}
+    .pagination button:disabled{opacity:.45;cursor:not-allowed}
+    .page-info{font-size:14px;color:var(--muted);padding:0 6px}
+    @media(max-width:1100px){.filters{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:600px){.container{padding:12px}.filters{grid-template-columns:1fr}header{padding:20px}h1{font-size:22px}}
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Data UTP Kecamatan & Desa Yang Tidak Ditemukan, Tutup dan Ganda</h1>
+    <p class="subtitle">Data UTP Yang Kemungkinan Ditemukan</p>
+  </header>
+
+  <div class="summary-grid" id="summaryCards"></div>
+
+  <section class="card">
+    <div class="filters" id="filters"></div>
+    <div class="toolbar">
+      <div class="search">
+        <label style="display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px">Pencarian</label>
+        <input id="searchInput" type="search" placeholder="Cari di seluruh data..." />
+      </div>
+      <button id="resetBtn">Reset Filter</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="meta">
+      <span id="resultInfo"></span>
+    </div>
+    <div class="table-wrap">
+      <table id="dataTable"></table>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </section>
+</div>
+
+<script>
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSltJpM4nu0YYP-76cILTuWVQxUyQdXH6wmoq53EAELzbNqOXrHFMqM43Zp7D0pTUAd8Pxo-pE-3hEL/pub?output=csv";
+
+// TODO: ganti dengan URL Web App hasil deploy dari UtpVerifikasiAPI.gs (Deploy > New deployment > Web app)
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxaLUBYIhnCvVkiZC-cVwfN-_h0XQgudJMpncEABjFCh0rChKFc181RUGJZVmCcN7mf/exec";
+
+const VERIFIKATOR_NAMES = [
+  "Zidan","Herlinda","Permana","Sutama","Purnami","Sukma","Asya","Indri",
+  "Budiriani","Rosma","Eka","Yoga","Ave","Monic","Suparta","Halim","Okta",
+  "Bajra","Agung","Sudiasa","Ari","Toni","Wija","Dekci","Suar"
+];
+
+// A=0, B=1, ... U=20
+const FILTER_COLUMNS = [0,1,2,3,4];
+// Filter tambahan akan dicari otomatis berdasarkan judul kolom di Google Sheet.
+let extraFilterColumns = [];
+const VIRTUAL_JENIS = "__JENIS__";
+const EXCLUDED_COLUMNS = [7,8,9]; // H, I, J
+const LINK_COLUMN = 20;            // U
+// Masing-masing PEKERJAAN KRT dan PEKERJAAN PENGUSAHA muncul 2 kali.
+// Tampilkan hanya kolom yang posisinya paling kanan untuk masing-masing judul.
+const DUPLICATE_RIGHTMOST_HEADERS = ["PEKERJAAN KRT", "PEKERJAAN PENGUSAHA"];
+
+let headers = [];
+let rows = [];
+let filteredRows = [];
+let currentPage = 1;
+const PAGE_SIZE = 15;
+let submittedMap = {}; // key -> {verifikasi, keterangan, timestamp}
+let editingKeys = new Set(); // key sedang dibuka untuk diubah ulang
+
+function clean(v) {
+  return (v ?? "").toString().trim();
+}
+
+function getUnifiedHJI(row) {
+  for (const index of EXCLUDED_COLUMNS) {
+    if (clean(row[index]) !== "") return headers[index] || "";
+  }
+  return "";
+}
+
+function getVisibleColumns() {
+  const targetHeaders = DUPLICATE_RIGHTMOST_HEADERS.map(normalizeHeader);
+  const rightmostIndex = {};
+  headers.forEach((header, index) => {
+    const normalized = normalizeHeader(header);
+    if (targetHeaders.includes(normalized)) rightmostIndex[normalized] = index;
+  });
+
+  return Array.from({length: Math.min(headers.length, LINK_COLUMN + 1)}, (_, i) => i)
+    .filter(i => !EXCLUDED_COLUMNS.includes(i) && i !== LINK_COLUMN)
+    .filter(i => {
+      const normalized = normalizeHeader(headers[i]);
+      return !targetHeaders.includes(normalized) || rightmostIndex[normalized] === i;
+    });
+}
+
+function normalizeHeader(value) {
+  return clean(value).toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+function findColumnByHeader(keyword) {
+  const target = normalizeHeader(keyword);
+  return headers.findIndex(h => normalizeHeader(h) === target);
+}
+
+// Kunci unik per baris: kombinasi Kecamatan+Desa+SLS+Nama UTP (nama header dicari otomatis,
+// jadi tetap jalan walau urutan kolom di sheet berubah).
+function getRowKey(row) {
+  const idxKec = findColumnByHeader("KECAMATAN");
+  const idxDesa = findColumnByHeader("DESA");
+  const idxSls = findColumnByHeader("SLS");
+  const idxUtp = findColumnByHeader("NAMA UTP");
+  return [idxKec, idxDesa, idxSls, idxUtp]
+    .map(i => (i >= 0 ? clean(row[i]) : ""))
+    .join("|");
+}
+
+function getFilterDefinitions() {
+  const definitions = FILTER_COLUMNS.map(index => ({
+    key: index,
+    label: headers[index] || `Kolom ${index + 1}`,
+    getValue: row => clean(row[index])
+  }));
+
+  extraFilterColumns = [
+    { name: "Tindakan", index: findColumnByHeader("Tindakan") },
+    { name: "Kemungkinan", index: findColumnByHeader("Kemungkinan") }
+  ].filter(item => item.index >= 0 && !FILTER_COLUMNS.includes(item.index));
+
+  extraFilterColumns.forEach(item => {
+    definitions.push({
+      key: item.index,
+      label: headers[item.index] || item.name,
+      getValue: row => clean(row[item.index])
+    });
+  });
+
+  definitions.push({
+    key: VIRTUAL_JENIS,
+    label: "Jenis",
+    getValue: row => getUnifiedHJI(row)
+  });
+
+  return definitions;
+}
+
+function setupFilters() {
+  const container = document.getElementById("filters");
+  container.innerHTML = "";
+
+  getFilterDefinitions().forEach(def => {
+    const wrap = document.createElement("div");
+    wrap.className = "filter";
+
+    const label = document.createElement("label");
+    label.textContent = def.label;
+
+    const select = document.createElement("select");
+    select.dataset.col = def.key;
+
+    const all = document.createElement("option");
+    all.value = "";
+    all.textContent = `Semua ${def.label}`;
+    select.appendChild(all);
+
+    const values = [...new Set(rows.map(def.getValue).filter(Boolean))]
+      .sort((a,b) => a.localeCompare(b, "id"));
+
+    values.forEach(value => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = value;
+      select.appendChild(option);
+    });
+
+    select.addEventListener("change", applyFilters);
+    wrap.append(label, select);
+    container.appendChild(wrap);
+  });
+}
+function renderSummaryCards() {
+  const container = document.getElementById("summaryCards");
+  if (!container) return;
+
+  const cols = [
+    { name: "KECAMATAN", label: "Kecamatan" },
+    { name: "DESA", label: "Desa" },
+    { name: "SLS", label: "SLS" },
+    { name: "PML", label: "PML" },
+    { name: "PPL", label: "PPL" }
+  ];
+
+  let html = "";
+  cols.forEach(c => {
+    const idx = findColumnByHeader(c.name);
+    const count = idx >= 0
+      ? new Set(filteredRows.map(r => clean(r[idx])).filter(Boolean)).size
+      : 0;
+    html += `
+      <div class="summary-card">
+        <div class="num">${count.toLocaleString("id-ID")}</div>
+        <div class="lbl">${escapeHtml(c.label)}</div>
+      </div>`;
+  });
+
+  const total = filteredRows.length;
+  const done = filteredRows.filter(r => submittedMap[getRowKey(r)]).length;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  html += `
+    <div class="summary-card verif">
+      <div class="num">${done.toLocaleString("id-ID")}/${total.toLocaleString("id-ID")}</div>
+      <div class="lbl">Verifikasi (${pct}%)</div>
+      <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>
+    </div>`;
+
+  container.innerHTML = html;
+}
+
+function applyFilters() {
+  const search = clean(document.getElementById("searchInput").value).toLowerCase();
+  const definitions = getFilterDefinitions();
+  const definitionMap = new Map(definitions.map(def => [String(def.key), def]));
+
+  const activeFilters = [...document.querySelectorAll("#filters select")]
+    .map(s => ({key:String(s.dataset.col), value:s.value}))
+    .filter(f => f.value !== "");
+
+  filteredRows = rows.filter(row => {
+    const matchesFilters = activeFilters.every(f => {
+      const def = definitionMap.get(f.key);
+      return def && def.getValue(row) === f.value;
+    });
+    const matchesSearch = !search || row.some(cell => clean(cell).toLowerCase().includes(search)) ||
+      getUnifiedHJI(row).toLowerCase().includes(search);
+    return matchesFilters && matchesSearch;
+  });
+
+  currentPage = 1;
+  renderTable();
+}
+function renderTable() {
+  renderSummaryCards();
+  const table = document.getElementById("dataTable");
+  const visibleColumns = getVisibleColumns();
+
+  const pagination = document.getElementById("pagination");
+
+  if (!filteredRows.length) {
+    table.innerHTML = `<tbody><tr><td class="empty">Tidak ada data yang sesuai.</td></tr></tbody>`;
+    document.getElementById("resultInfo").textContent = `Menampilkan 0 dari ${rows.length} data`;
+    pagination.innerHTML = "";
+    return;
+  }
+
+  const totalPages = Math.ceil(filteredRows.length / PAGE_SIZE);
+  if (currentPage > totalPages) currentPage = totalPages;
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const endIndex = Math.min(startIndex + PAGE_SIZE, filteredRows.length);
+  const pageRows = filteredRows.slice(startIndex, endIndex);
+
+  const highlightHeaders = ["USAHA UTP", "TINDAKAN", "KEMUNGKINAN"].map(normalizeHeader);
+  const isHighlightCol = i => highlightHeaders.includes(normalizeHeader(headers[i]));
+
+  let html = "<thead><tr>";
+  visibleColumns.forEach(i => {
+    html += `<th${isHighlightCol(i) ? ' class="col-highlight"' : ""}>${escapeHtml(headers[i] || `Kolom ${i+1}`)}</th>`;
+  });
+
+  html += `<th>JENIS</th>`;
+  html += `<th>LINK</th>`;
+  html += `<th>VERIFIKASI</th>`;
+  html += `<th>KETERANGAN</th>`;
+  html += "</tr></thead><tbody>";
+
+  pageRows.forEach(row => {
+    const key = getRowKey(row);
+    html += "<tr>";
+
+    visibleColumns.forEach(i => {
+      html += `<td${isHighlightCol(i) ? ' class="col-highlight"' : ""}>${escapeHtml(clean(row[i]))}</td>`;
+    });
+
+    html += `<td>${escapeHtml(getUnifiedHJI(row))}</td>`;
+
+    const url = clean(row[LINK_COLUMN]);
+    if (url && /^https?:\/\//i.test(url)) {
+      html += `<td><a class="link-btn" href="${escapeAttr(url)}" target="_blank" rel="noopener noreferrer" title="Buka link" aria-label="Buka link">🔗</a></td>`;
+    } else {
+      html += `<td>—</td>`;
+    }
+
+    html += renderVerifikasiCells(key);
+
+    html += "</tr>";
+  });
+
+  html += "</tbody>";
+  table.innerHTML = html;
+  const resultInfo = document.getElementById("resultInfo");
+  if (resultInfo) {
+    resultInfo.textContent =
+      `Menampilkan ${startIndex + 1}-${endIndex} dari ${filteredRows.length.toLocaleString("id-ID")} data (${rows.length.toLocaleString("id-ID")} total)`;
+  }
+
+  attachVerifikasiHandlers();
+  renderPagination(totalPages);
+}
+
+function renderVerifikasiCells(key) {
+  const saved = submittedMap[key];
+  const isEditing = editingKeys.has(key);
+  const safeKey = escapeAttr(key);
+
+  if (saved && !isEditing) {
+    return `
+      <td><span class="badge badge-done">✓ ${escapeHtml(saved.verifikasi)}</span></td>
+      <td class="keterangan-cell">
+        <div class="done-wrap">
+          <div class="ket">${escapeHtml(saved.keterangan || "-")}</div>
+          <button type="button" class="edit-link" data-key="${safeKey}" data-action="edit">Ubah</button>
+        </div>
+      </td>`;
+  }
+
+  const options = [`<option value="">Pilih nama…</option>`]
+    .concat(VERIFIKATOR_NAMES.map(name => {
+      const selected = saved && saved.verifikasi === name ? "selected" : "";
+      return `<option value="${escapeAttr(name)}" ${selected}>${escapeHtml(name)}</option>`;
+    })).join("");
+
+  return `
+    <td>
+      <select class="verif-select" data-key="${safeKey}">${options}</select>
+    </td>
+    <td class="keterangan-cell">
+      <input type="text" class="keterangan-input" data-key="${safeKey}" placeholder="Keterangan..." value="${escapeAttr(saved ? saved.keterangan : "")}" />
+      <br/>
+      <button type="button" class="save-btn" data-key="${safeKey}" data-action="save">Simpan</button>
+    </td>`;
+}
+
+function attachVerifikasiHandlers() {
+  document.querySelectorAll('[data-action="save"]').forEach(btn => {
+    btn.addEventListener("click", () => saveVerifikasi(btn.dataset.key));
+  });
+  document.querySelectorAll('[data-action="edit"]').forEach(btn => {
+    btn.addEventListener("click", () => {
+      editingKeys.add(btn.dataset.key);
+      renderTable();
+    });
+  });
+}
+
+async function saveVerifikasi(key) {
+  const select = document.querySelector(`.verif-select[data-key="${cssEscape(key)}"]`);
+  const input = document.querySelector(`.keterangan-input[data-key="${cssEscape(key)}"]`);
+  const btn = document.querySelector(`.save-btn[data-key="${cssEscape(key)}"]`);
+  const verifikasi = select ? select.value : "";
+  const keterangan = input ? input.value.trim() : "";
+
+  if (!verifikasi) {
+    alert("Pilih nama verifikator terlebih dahulu.");
+    return;
+  }
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf("GANTI_DENGAN_URL_WEB_APP_ANDA") !== -1) {
+    alert("APPS_SCRIPT_URL belum diisi. Deploy UtpVerifikasiAPI.gs sebagai Web App lalu isi URL-nya di kode.");
+    return;
+  }
+
+  const rowRef = rows.find(r => getRowKey(r) === key);
+  const payload = {
+    key,
+    kecamatan: rowRef ? clean(rowRef[findColumnByHeader("KECAMATAN")]) : "",
+    desa: rowRef ? clean(rowRef[findColumnByHeader("DESA")]) : "",
+    sls: rowRef ? clean(rowRef[findColumnByHeader("SLS")]) : "",
+    namaUtp: rowRef ? clean(rowRef[findColumnByHeader("NAMA UTP")]) : "",
+    verifikasi,
+    keterangan
+  };
+
+  if (btn) { btn.disabled = true; btn.textContent = "Menyimpan..."; }
+
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" }, // hindari CORS preflight
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!data || data.status !== "ok") throw new Error((data && data.message) || "Gagal menyimpan");
+
+    submittedMap[key] = { verifikasi, keterangan, timestamp: data.timestamp || new Date().toISOString() };
+    editingKeys.delete(key);
+    renderTable();
+  } catch (err) {
+    console.error(err);
+    alert("Gagal menyimpan ke server. Coba lagi.");
+    if (btn) { btn.disabled = false; btn.textContent = "Simpan"; }
+  }
+}
+
+function cssEscape(value) {
+  return String(value).replace(/["\\]/g, "\\$&");
+}
+
+async function loadSubmitted() {
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf("GANTI_DENGAN_URL_WEB_APP_ANDA") !== -1) return;
+  try {
+    const res = await fetch(APPS_SCRIPT_URL);
+    const data = await res.json();
+    submittedMap = {};
+    (data.items || []).forEach(item => {
+      submittedMap[item.key] = {
+        verifikasi: item.verifikasi,
+        keterangan: item.keterangan,
+        timestamp: item.timestamp
+      };
+    });
+  } catch (err) {
+    console.error("Gagal memuat status verifikasi:", err);
+  }
+}
+
+function renderPagination(totalPages) {
+  const pagination = document.getElementById("pagination");
+  let html = `<button type="button" id="prevPage" ${currentPage === 1 ? "disabled" : ""}>← Sebelumnya</button>`;
+
+  const maxButtons = 5;
+  let start = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+  let end = Math.min(totalPages, start + maxButtons - 1);
+  start = Math.max(1, end - maxButtons + 1);
+
+  for (let p = start; p <= end; p++) {
+    html += `<button type="button" class="page-btn" data-page="${p}" ${p === currentPage ? "disabled" : ""}>${p}</button>`;
+  }
+
+  html += `<button type="button" id="nextPage" ${currentPage === totalPages ? "disabled" : ""}>Berikutnya →</button>`;
+  html += `<span class="page-info">Halaman ${currentPage} dari ${totalPages}</span>`;
+  pagination.innerHTML = html;
+
+  document.getElementById("prevPage").addEventListener("click", () => {
+    if (currentPage > 1) { currentPage--; renderTable(); }
+  });
+  document.getElementById("nextPage").addEventListener("click", () => {
+    if (currentPage < totalPages) { currentPage++; renderTable(); }
+  });
+  pagination.querySelectorAll(".page-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentPage = Number(btn.dataset.page);
+      renderTable();
+    });
+  });
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+function escapeAttr(value) { return escapeHtml(value); }
+
+async function loadData() {
+  await loadSubmitted();
+  Papa.parse(SHEET_URL, {
+    download: true,
+    skipEmptyLines: "greedy",
+    complete: (result) => {
+      if (!result.data || !result.data.length) {
+        const el = document.getElementById("resultInfo");
+        if (el) el.textContent = "Data tidak ditemukan.";
+        return;
+      }
+
+      headers = result.data[0].map(clean);
+      rows = result.data.slice(1)
+        .filter(row => row.some(cell => clean(cell) !== ""));
+
+      filteredRows = [...rows];
+      setupFilters();
+      renderTable();
+    },
+    error: (error) => {
+      const el = document.getElementById("resultInfo");
+      if (el) el.textContent = "Gagal memuat Google Sheet.";
+      console.error(error);
+    }
+  });
+}
+
+document.getElementById("searchInput").addEventListener("input", applyFilters);
+document.getElementById("resetBtn").addEventListener("click", () => {
+  document.querySelectorAll("#filters select").forEach(s => s.value = "");
+  document.getElementById("searchInput").value = "";
+  applyFilters();
+});
+
+loadData();
+</script>
+</body>
+</html>
