@@ -68,6 +68,8 @@
             position: sticky;
             top: 0;
             z-index: 1030;
+            max-width: 1280px;
+            margin: 0 auto;
         }
         .se-header .title-wrap {
             display: flex;
@@ -315,6 +317,7 @@
         table.dataTable {
             font-size: 0.74rem; 
             border-collapse: collapse;
+            table-layout: fixed;
         }
         table.dataTable thead th {
             background: var(--se-main);
@@ -506,7 +509,7 @@
             background: var(--se-hover);
         }
 
-        .leaflet-popup-content { font-family: 'Inter', sans-serif; font-size: 0.78rem; min-width: 200px; max-width: 280px; }
+        .leaflet-popup-content { font-family: 'Inter', sans-serif; font-size: 0.78rem; min-width: 200px; max-width: min(280px, 72vw); }
         .leaflet-popup-content .popup-row { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; border-bottom: 1px dashed var(--se-line); }
         .leaflet-popup-content .popup-row:last-child { border-bottom: none; }
         .leaflet-popup-content .popup-label { color: var(--se-main-soft); font-weight: 600; }
@@ -515,6 +518,13 @@
         .leaflet-popup-content .popup-beda { margin-top: 6px; padding-top: 4px; border-top: 2px solid var(--se-line); font-weight: 600; }
         .leaflet-popup-content .popup-beda.yes { color: var(--se-bad); }
         .leaflet-popup-content .popup-beda.no { color: var(--se-good); }
+
+        @media (max-width: 768px) {
+            #mapView { height: 340px; }
+            .leaflet-popup-content { font-size: 0.72rem; min-width: 160px; max-width: 68vw; }
+            .leaflet-popup-content .popup-value { max-width: 100px; }
+            .leaflet-control-zoom { transform: scale(0.9); transform-origin: top left; }
+        }
 
         #loadStatus { margin-bottom: 12px; }
         #loadStatus>div { border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; }
@@ -922,6 +932,8 @@
             var anyBeda = BEDA_COLS.some(function(ci) { return isBaris(row[ci]); });
 
             var html = '<div class="popup-title">📍 Detail Titik</div>' +
+                '<div class="popup-row"><span class="popup-label">Nama</span><span class="popup-value">' + esc(row[COL.NAMA] || '(Kosong)') + '</span></div>' +
+                '<div class="popup-row"><span class="popup-label">Alamat</span><span class="popup-value">' + esc(row[COL.ALAMAT] || '-') + '</span></div>' +
                 '<div class="popup-row"><span class="popup-label">ID</span><span class="popup-value">' + esc(row[COL.ID]) + '</span></div>' +
                 '<div class="popup-row"><span class="popup-label">Kecamatan</span><span class="popup-value">' + esc(row[COL.KECAMATAN]) + '</span></div>' +
                 '<div class="popup-row"><span class="popup-label">Desa</span><span class="popup-value">' + esc(row[COL.DESA]) + '</span></div>' +
@@ -937,6 +949,11 @@
             if (row.length > 30) html += '<div class="popup-row"><span class="popup-label">' + esc(labelAE) + '</span><span class="popup-value">' + esc(row[30] ?? '-') + '</span></div>';
             if (row.length > 31) html += '<div class="popup-row"><span class="popup-label">' + esc(labelAF) + '</span><span class="popup-value">' + esc(row[31] ?? '-') + '</span></div>';
             
+            if (anyBeda && isBaris(row[COL.BEDA_SUBSLS])) {
+                var rr = evaluasiCekRadius(row);
+                html += '<div class="popup-row"><span class="popup-label">Cek Radius Akurasi</span><span class="popup-value">' + esc(rr.status === 'ya' ? 'Bersinggungan' : (rr.status === 'tidak' ? 'Tidak' : (rr.status === 'loading' ? '…' : 'N/A'))) + '</span></div>';
+            }
+
             html += '<div class="popup-beda ' + (anyBeda ? 'yes' : 'no') + '">' + (anyBeda ? '⚠️ Ada perbedaan wilayah' : '✅ Tidak ada perbedaan') + '</div>';
             return html;
         }
@@ -1196,12 +1213,14 @@
                     language: { search: 'Cari:', lengthMenu: 'Tampilkan _MENU_ baris', info: 'Menampilkan _START_-_END_ dari _TOTAL_ baris', infoEmpty: 'Tidak ada data', infoFiltered: '(disaring dari _MAX_ total baris)', paginate: { previous: '‹', next: '›' }, zeroRecords: 'Tidak ada data yang cocok' },
                     columnDefs: [
                         { targets: [22, 23], orderable: false, searchable: false },
-                        { targets: 0, width: '80px' },   /* Nama */
-                        { targets: 1, width: '80px' },   /* Alamat */
+                        { targets: 0, width: '75px' },   /* Nama */
+                        { targets: 1, width: '110px' },   /* Alamat */
                         { targets: 2, width: '80px' },    /* User */
-                        { targets: [3, 4, 5, 6, 7], width: '80px' },   /* Prov/Kab/Kec/Desa/SLS Tugas */
+                        { targets: [3, 4, 5], width: '45px' },   /* Prov/Kab/Kec Tugas */
+                        { targets: [6, 7], width: '80px' },   /* Desa/SLS Tugas */
                         { targets: [8, 9], width: '100px' },           /* Kode SubSLS Tugas / SubSLS Tagging */
-                        { targets: [10, 11, 12, 13, 14], width: '80px' }, /* Prov/Kab/Kec/Desa/SLS Tag */
+                        { targets: [10, 11, 12], width: '45px' }, /* Prov/Kab/Kec Tag */
+                        { targets: [13, 14], width: '80px' }, /* Desa/SLS Tag */
                         { targets: [15, 16, 17, 18], width: '55px' },  /* Beda Kec/Desa/SLS/Sub */
                         { targets: 19, width: '90px' },   /* Cek Radius Akurasi */
                         { targets: [20, 21], width: '90px' }, /* PCL/PML */
@@ -1246,6 +1265,7 @@
                     return L.divIcon({ html: '<div><span>' + cluster.getChildCount() + '</span></div>', className: 'marker-cluster marker-cluster-sesuai', iconSize: L.point(40, 40) });
                 }
             }).addTo(map);
+            window.addEventListener('resize', function() { if (map) map.invalidateSize(); });
         }
 
         function renderMap() {
@@ -1254,7 +1274,11 @@
                 var lat = parseFloat(String(row[COL.LAT]).replace(',', '.')), lng = parseFloat(String(row[COL.LONG]).replace(',', '.'));
                 if (isNaN(lat) || isNaN(lng)) return;
                 var ada_beda = BEDA_COLS.some(ci => isBaris(row[ci]));
-                var warna = ada_beda ? '#B23A48' : '#3e5a2a';
+                var warna = '#3e5a2a';
+                if (ada_beda) {
+                    var bersinggungan = isBaris(row[COL.BEDA_SUBSLS]) && evaluasiCekRadius(row).status === 'ya';
+                    warna = bersinggungan ? '#E67E22' : '#B23A48';
+                }
                 var marker = L.circleMarker([lat, lng], { radius: 7, color: warna, fillColor: warna, fillOpacity: 0.75, weight: 1.5 });
                 marker.id = row[COL.ID]; marker.bindPopup(buildPopupContent(row));
                 marker.on('click', function() { highlightRow(this.id); });
