@@ -12,15 +12,16 @@
 
   <style>
     :root{
-      --cream:#FFFDF1;
-      --peach:#FFCE99;
-      --orange:#FF9644;
-      --brown:#562F00;
-      --brown-deep:#3a1f00;
-      --peach-soft:#FFE7C9;
+      --cream:#FFFFFF;
+      --peach:#F4E3E6;
+      --orange:#B23A48;
+      --brown:#4A1620;
+      --brown-deep:#2E0D14;
+      --peach-soft:#F4E3E6;
       --white:#FFFFFF;
-      --shadow: 0 6px 20px rgba(86,47,0,0.10);
-      --se-radius:18px;
+      --line:#E5E7EB;
+      --shadow: 0 1px 6px rgba(74,22,32,0.08);
+      --se-radius:8px;
     }
 
     *{ box-sizing:border-box; }
@@ -36,69 +37,69 @@
 
     h1,h2,h3{ font-family:'Fraunces',serif; color:var(--brown-deep); margin:0; }
 
-    /* ===== Hero ===== */
-    .hero{
-      background: linear-gradient(135deg, var(--brown) 0%, #7a4310 55%, var(--orange) 130%);
-      padding:38px 28px 46px;
-      position:relative;
-      overflow:hidden;
-    }
-
-    .hero::after{
-      content:"";
-      position:absolute; right:-60px; top:-60px;
-      width:260px; height:260px; border-radius:50%;
-      background:radial-gradient(circle, rgba(255,150,68,0.35), transparent 70%);
+    /* ===== Header (kompak, selaras ceklokasi.html) ===== */
+    .se-header{
+      background: var(--brown);
+      color: #fff;
+      padding: 16px 24px;
+      box-shadow: 0 1px 0 rgba(0,0,0,.06);
+      position: sticky;
+      top: 0;
+      z-index: 1030;
     }
 
     .hero-inner{
-      max-width:1600px; margin:0 auto; position:relative; z-index:1;
-      display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap;
+      max-width:1280px; margin:0 auto; position:relative; z-index:1;
+      display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
     }
 
-    .se-brand{ display:flex; align-items:center; gap:14px; }
+    .se-brand{ display:flex; align-items:center; gap:12px; }
 
     .se-logo-mark{
-      width:46px; height:46px; border-radius:12px;
-      background:rgba(255,253,241,0.14);
-      border:1px solid rgba(255,206,153,0.4);
+      width:42px; height:42px; border-radius:12px;
+      background:rgba(255,255,255,0.15);
       display:flex; align-items:center; justify-content:center;
-      font-size:22px; flex-shrink:0;
+      font-size:1.3rem; flex-shrink:0;
     }
 
     .hero-eyebrow{
-      color:var(--peach); font-weight:600; letter-spacing:.14em; text-transform:uppercase;
-      font-size:12px; margin-bottom:10px; font-family:'Inter',sans-serif;
+      color:rgba(255,255,255,0.75); font-weight:400; letter-spacing:normal; text-transform:none;
+      font-size:0.75rem; margin-bottom:0; font-family:'Inter',sans-serif;
     }
 
-    .hero h1{ color:var(--cream); font-size:clamp(28px,4vw,42px); font-weight:600; line-height:1.1; }
-    .hero p{ color:var(--peach-soft); margin-top:8px; font-size:15px; max-width:520px; }
+    .se-header h1{ color:#fff; font-size:1.15rem; font-weight:600; line-height:1.2; margin:0; }
 
-    .hero-stats{ display:flex; gap:14px; flex-wrap:wrap; }
+    .hero-stats{ display:flex; gap:10px; flex-wrap:wrap; }
 
     .stat-pill{
-      background:rgba(255,253,241,0.12);
-      border:1px solid rgba(255,206,153,0.35);
-      border-radius:14px;
-      padding:12px 18px;
-      min-width:108px;
-      backdrop-filter:blur(4px);
+      background:rgba(255,255,255,0.15);
+      border-radius:999px;
+      padding:6px 16px;
+      min-width:0;
     }
 
-    .stat-pill .num{ color:var(--cream); font-family:'Fraunces',serif; font-size:26px; font-weight:600; line-height:1; }
-    .stat-pill .lbl{ color:var(--peach-soft); font-size:11px; margin-top:4px; letter-spacing:.05em; }
+    .stat-pill .num{ color:#fff; font-family:'Fraunces',serif; font-size:1.1rem; font-weight:600; line-height:1; display:inline; }
+    .stat-pill .lbl{ color:rgba(255,255,255,0.75); font-size:0.7rem; margin-top:0; margin-left:6px; letter-spacing:.03em; display:inline; }
+
+    .se-header small{
+      display:block;
+      opacity: 0.75;
+      font-size: 0.75rem;
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      margin-top: 2px;
+    }
 
     /* ===== Layout ===== */
-    .container{ max-width:1600px; margin:0 auto; padding:0 28px 60px; }
+    .container{ max-width:1280px; margin:0 auto; padding:20px 24px 60px; }
 
     /* ===== Filter bar ===== */
     .filter-box{
       background:var(--white);
       border:1px solid var(--peach-soft);
-      border-radius:18px;
+      border-radius:var(--se-radius);
       box-shadow:var(--shadow);
       padding:18px 20px;
-      margin-top:-26px;
       position:relative; z-index:5;
       display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end;
     }
@@ -162,7 +163,7 @@
     .stat-box{
       background:var(--white);
       padding:14px 16px;
-      border-radius:14px;
+      border-radius:8px;
       font-size:14px;
       border:1px solid var(--peach-soft);
       box-shadow:var(--shadow);
@@ -187,7 +188,7 @@
       flex:1 1 62%;
       min-width:0;
       height:500px;
-      border-radius:18px;
+      border-radius:8px;
       border:1px solid var(--peach-soft);
       box-shadow:var(--shadow);
     }
@@ -202,7 +203,7 @@
     .chart-card{
       background:var(--white);
       border:1px solid var(--peach-soft);
-      border-radius:18px;
+      border-radius:8px;
       box-shadow:var(--shadow);
       padding:16px 18px;
       height:500px;
@@ -233,7 +234,7 @@
 
     /* ===== Pivot / table cards ===== */
     .table-card{
-      background:var(--white); border:1px solid var(--peach-soft); border-radius:18px;
+      background:var(--white); border:1px solid var(--peach-soft); border-radius:8px;
       box-shadow:var(--shadow); padding:18px 20px 24px; overflow-x:auto;
     }
 
@@ -259,8 +260,8 @@
       white-space:nowrap;
     }
 
-    #pivotTable th:first-child{ text-align:left; border-radius:10px 0 0 10px; }
-    #pivotTable th:last-child{ border-radius:0 10px 10px 0; background:var(--orange); }
+    #pivotTable th:first-child{ text-align:left; border-radius:6px 0 0 6px; }
+    #pivotTable th:last-child{ border-radius:0 6px 6px 0; background:var(--orange); }
 
     #pivotTable td{
       text-align:center;
@@ -285,7 +286,7 @@
       background:var(--peach-soft);
     }
 
-    #pivotTable tbody tr:nth-child(even){ background:#FFF9EC; }
+    #pivotTable tbody tr:nth-child(even){ background:#F3F4F6; }
     #pivotTable tbody tr:hover{ background:var(--peach-soft); }
     #pivotTable tbody tr:hover td:last-child{ background:var(--peach); }
 
@@ -298,7 +299,7 @@
       gap:8px;
       background:var(--white);
       border:1px solid var(--peach-soft);
-      border-radius:14px 14px 0 0;
+      border-radius:8px 8px 0 0;
       padding:12px 16px;
       font-size:13px;
       font-weight:600;
@@ -360,7 +361,7 @@
     }
 
     tbody tr{ transition:background-color .12s, box-shadow .12s; border-left:3px solid transparent; background:var(--white); }
-    tbody tr:nth-child(even){ background:#FFF9EC; }
+    tbody tr:nth-child(even){ background:#F3F4F6; }
 
     tbody tr:hover{
       background:var(--peach-soft);
@@ -459,7 +460,7 @@
       background:var(--white);
       border:1px solid var(--peach-soft);
       border-top:none;
-      border-radius:0 0 14px 14px;
+      border-radius:0 0 8px 8px;
       padding:12px;
       margin-bottom:14px;
     }
@@ -503,31 +504,28 @@
     ::-webkit-scrollbar-thumb{ background:var(--peach); border-radius:8px; }
 
     @media (max-width:640px){
-      .hero{ padding:28px 18px 40px; }
-      .container{ padding:0 14px 40px; }
+      .se-header{ padding:14px 16px; }
+      .container{ padding:16px 14px 40px; }
     }
   </style>
 </head>
 
 <body>
 
-<div class="hero">
+<header class="se-header">
   <div class="hero-inner">
-    <div>
-      <div class="se-brand">
-        <div class="se-logo-mark">📊</div>
-        <div>
-          <div class="hero-eyebrow">🇮🇩 Sensus Ekonomi 2026</div>
-          <h1>LOKADATA</h1>
-        </div>
+    <div class="se-brand">
+      <div class="se-logo-mark">📊</div>
+      <div>
+        <h1>LOKADATA</h1>
+        <small>🇮🇩 Sensus Ekonomi 2026 · Monitoring Wilayah &amp; Usaha, Kabupaten Klungkung</small>
       </div>
-      <p>Monitoring Wilayah &amp; Usaha · Kabupaten Klungkung, Bali</p>
     </div>
     <div class="hero-stats">
-      <div class="stat-pill"><div class="num" id="statTotal">0</div><div class="lbl">TOTAL DATA</div></div>
+      <div class="stat-pill"><span class="num" id="statTotal">0</span><span class="lbl">TOTAL DATA</span></div>
     </div>
   </div>
-</div>
+</header>
 
 <div class="container">
 
@@ -751,21 +749,21 @@ function renderLegend(list){
   legendControl.onAdd = function(){
     let div = L.DomUtil.create('div', 'legend-usaha');
     div.style.background = 'var(--white, #fff)';
-    div.style.border = '1px solid var(--peach-soft, #FFE7C9)';
+    div.style.border = '1px solid var(--peach-soft, #F4E3E6)';
     div.style.borderRadius = '12px';
     div.style.padding = '10px 12px';
     div.style.maxHeight = '180px';
     div.style.overflowY = 'auto';
     div.style.fontFamily = "'Inter', sans-serif";
     div.style.fontSize = '11px';
-    div.style.boxShadow = '0 6px 20px rgba(86,47,0,0.15)';
+    div.style.boxShadow = '0 6px 20px rgba(74,22,32,0.15)';
     div.style.lineHeight = '1.6';
-    let html = '<div style="font-weight:700; margin-bottom:4px; color:var(--brown-deep,#3a1f00);">Jenis Usaha</div>';
+    let html = '<div style="font-weight:700; margin-bottom:4px; color:var(--brown-deep,#2E0D14);">Jenis Usaha</div>';
     list.forEach(val => {
       let color = usahaColorMap[val] || '#FF9644';
       html += `<div style="display:flex; align-items:center; gap:6px; margin-bottom:2px;">
         <span style="width:10px; height:10px; border-radius:50%; background:${color}; flex-shrink:0; border:1px solid rgba(0,0,0,0.15);"></span>
-        <span style="color:var(--brown-deep,#3a1f00); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:170px;">${val}</span>
+        <span style="color:var(--brown-deep,#2E0D14); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:170px;">${val}</span>
       </div>`;
     });
     div.innerHTML = html;
@@ -994,7 +992,7 @@ function updateChartUtama(data){
         label: field,
         data: values,
         backgroundColor: paletteSE,
-        borderColor: type === 'bar' ? '#562F00' : '#FFFDF1',
+        borderColor: type === 'bar' ? '#4A1620' : '#FFFFFF',
         borderWidth: type === 'bar' ? 0 : 2
       }]
     },
@@ -1023,7 +1021,7 @@ function gantiLayer(){
   }
 
   geoLayer = L.geoJSON(data, {
-    style: { color:"#562F00", weight:1, fillColor:"#FF9644", fillOpacity:0.08 },
+    style: { color:"#4A1620", weight:1, fillColor:"#B23A48", fillOpacity:0.08 },
 
     onEachFeature: function(feature, layer){
 
@@ -1037,8 +1035,8 @@ function gantiLayer(){
 
       layer.bindPopup(popupHtml);
 
-      layer.on("mouseover", function(){ layer.setStyle({ fillOpacity:0.25, weight:2, color:"#FF9644" }); });
-      layer.on("mouseout", function(){ layer.setStyle({ fillOpacity:0.08, weight:1, color:"#562F00" }); });
+      layer.on("mouseover", function(){ layer.setStyle({ fillOpacity:0.25, weight:2, color:"#B23A48" }); });
+      layer.on("mouseout", function(){ layer.setStyle({ fillOpacity:0.08, weight:1, color:"#4A1620" }); });
 
       layer.on("click", function(){
 
@@ -1139,7 +1137,7 @@ function tampilkanMarker(data) {
     let marker = L.circleMarker([lat, lng], {
       radius: 9,
       fillColor: warnaMarker,
-      color: "#FFFDF1",
+      color: "#FFFFFF",
       weight: 2,
       fillOpacity: 0.92
     }).bindPopup(popup);
