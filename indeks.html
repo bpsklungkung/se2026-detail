@@ -453,6 +453,17 @@
   }
   .inf-tbtn.active{ background:var(--orange); color:#fff; border-color:var(--orange); }
   .inf-diag-note{ font-size:11px; color:var(--brown-soft); margin-top:6px; }
+  .inf-formula{
+    font-family:'Menlo','Consolas',monospace; font-weight:700; font-size:14.5px;
+    color:var(--brown-deep); background:var(--cream-deep); padding:11px 16px;
+    border-radius:8px; letter-spacing:.01em; line-height:1.7; overflow-x:auto;
+  }
+  .inf-formula-caption{ margin:6px 0 2px 2px; font-size:11.5px; font-style:italic; color:var(--brown-soft); line-height:1.5; }
+  .inf-model-desc{
+    font-size:12.5px; color:var(--brown-mid); background:var(--white); border:1px solid var(--line);
+    border-radius:10px; padding:10px 13px; margin:2px 0 14px; line-height:1.6;
+  }
+  .inf-model-desc b{ color:var(--orange-deep); }
 
   @media (max-width:900px){
     .inf-body{ grid-template-columns:1fr; }
@@ -1216,6 +1227,9 @@ let compareIndex = {};
 let compareSelected = new Set();
 let compareFrom = null;
 let compareTo = null;
+let compareFromTW = null;       // filter triwulan awal (1-4), null = default
+let compareToTW = null;         // filter triwulan akhir (1-4), null = default
+let compareIsQuarterly = false; // apakah periode aktif punya data triwulan
 let normalizeCompare = false;
 let compareChart = null;
 let compareChartType = 'line';
@@ -1241,6 +1255,7 @@ let arimaP = 1, arimaD = 1, arimaQ = 1;
 let arimaAuto = false;
 let arimaHorizon = 5;
 let arimaChart = null;
+let arimaxChart = null;
 
 /* ===== Shift-Share Dinamis ===== */
 const SS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcl1gMindMWTFT3LgR_k72Le9Gm94rR2F5kvJYHzMgfW9SNrwa-8xuZsaAtw649uyBfskx3A9VoYR1/pub?gid=78489782&single=true&output=csv";
@@ -3665,6 +3680,21 @@ function buildCompareIndex(periode){
   return idx;
 }
 
+/* Cek apakah entri berada dalam rentang Dari-Sampai tab Bandingkan (presisi triwulan jika periode Triwulanan) */
+function inCompareRange(e){
+  if(e.tahun < compareFrom || e.tahun > compareTo) return false;
+  if(!compareIsQuarterly) return true;
+  const k = sortKey(e);
+  const fromK = compareFrom*10 + (compareFromTW||1);
+  const toK = compareTo*10 + (compareToTW||4);
+  return k>=fromK && k<=toK;
+}
+function compareRangeLabel(){
+  if(!compareIsQuarterly) return `${compareFrom} hingga ${compareTo}`;
+  const twMap = {1:'I',2:'II',3:'III',4:'IV'};
+  return `${compareFrom} TW ${twMap[compareFromTW||1]} hingga ${compareTo} TW ${twMap[compareToTW||4]}`;
+}
+
 /* ---------- Statistik inferensia: matriks, korelasi, distribusi t/F ---------- */
 function matInverse(A){
   const n = A.length;
@@ -3761,6 +3791,13 @@ function periodLabelFromKey(k){
   const twNum = k%10;
   const twMap = {1:'I',2:'II',3:'III',4:'IV'};
   return twNum ? `${tahun} TW ${twMap[twNum]}` : `${tahun}`;
+}
+function advancePeriodKey(k, steps){
+  if(!infIsQuarterly) return k + steps*10;
+  let tahun = Math.floor(k/10);
+  let tw = k%10 || 0;
+  for(let s=0;s<steps;s++){ tw++; if(tw>4){ tw=1; tahun++; } }
+  return tahun*10 + tw;
 }
 function infGetSeriesMap(key, transform){
   const e = infIndex[key];
@@ -4005,6 +4042,7 @@ function renderInferensiaView(){
           <div class="inf-transform-btns">
             <button type="button" class="inf-tbtn ${infMethod==='regresi'?'active':''}" id="infMethodRegresi">Regresi Linear</button>
             <button type="button" class="inf-tbtn ${infMethod==='arima'?'active':''}" id="infMethodArima">AR / MA / ARIMA</button>
+            <button type="button" class="inf-tbtn ${infMethod==='arimax'?'active':''}" id="infMethodArimax">ARIMAX</button>
           </div>
         </div>
         <div class="ctrl-item"><label>Periode</label><select id="infPeriodeSel"></select></div>
@@ -4042,6 +4080,7 @@ function renderInferensiaView(){
   };
   document.getElementById('infMethodRegresi').onclick = ()=>{ infMethod='regresi'; renderInferensiaView(); };
   document.getElementById('infMethodArima').onclick = ()=>{ infMethod='arima'; renderInferensiaView(); };
+  document.getElementById('infMethodArimax').onclick = ()=>{ infMethod='arimax'; renderInferensiaView(); };
 
   renderInfSectionBody();
 }
@@ -4063,6 +4102,23 @@ function renderInfSectionBody(){
     renderArimaPicker();
     renderArimaControlPanel();
     renderArimaResult();
+  } else if(infMethod==='arimax'){
+    body.innerHTML = `
+      <div class="inf-body">
+        <div class="inf-picker-col">
+          <div class="compare-picker" id="infYPicker"></div>
+          <div class="compare-picker" id="infXPicker"></div>
+        </div>
+        <div>
+          <div id="infTransformPanel"></div>
+          <div id="arimaxControlPanel"></div>
+          <div class="compare-chart-area" id="arimaxResultArea"></div>
+        </div>
+      </div>`;
+    renderInfPickers();
+    renderInfTransformPanel();
+    renderArimaxControlPanel();
+    renderArimaxResult();
   } else {
     body.innerHTML = `
       <div class="inf-body">
@@ -4079,6 +4135,11 @@ function renderInfSectionBody(){
     renderInfTransformPanel();
     renderInfResult();
   }
+}
+
+function renderInfCurrentResult(){
+  if(infMethod==='arimax') renderArimaxResult();
+  else renderInfResult();
 }
 
 function renderInfPickers(){
@@ -4120,7 +4181,7 @@ function renderInfPickers(){
       delete infXTransform[infY];
       renderInfPickers();
       renderInfTransformPanel();
-      renderInfResult();
+      renderInfCurrentResult();
     };
   });
   xPicker.querySelectorAll('input[type=checkbox]').forEach(cb=>{
@@ -4135,7 +4196,7 @@ function renderInfPickers(){
         delete infXTransform[key];
       }
       renderInfTransformPanel();
-      renderInfResult();
+      renderInfCurrentResult();
     };
   });
 }
@@ -4167,7 +4228,7 @@ function renderInfTransformPanel(){
       if(target==='y') infYTransform = val;
       else infXTransform[decodeURIComponent(target)] = val;
       renderInfTransformPanel();
-      renderInfResult();
+      renderInfCurrentResult();
     };
   });
 }
@@ -4228,6 +4289,9 @@ function renderInfResult(){
 
   area.innerHTML = `
     <div class="ss-section-title" style="margin-top:0;">${methodLabel}</div>
+    <div class="inf-model-desc">${xKeys.length===1
+      ? `<b>Regresi Linear Sederhana</b> menguji apakah satu variabel independen (X) secara statistik memengaruhi/berasosiasi dengan variabel dependen (Y), dan seberapa besar pengaruhnya per satu satuan kenaikan X.`
+      : `<b>Regresi Linear Berganda</b> menguji pengaruh gabungan beberapa variabel independen (X) terhadap satu variabel dependen (Y) secara bersamaan — koefisien tiap X menunjukkan pengaruhnya sambil mengontrol variabel X lain dalam model.`}</div>
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">R²</div><div class="stat-value" style="font-size:15px;">${(res.r2*100).toFixed(1)}%</div></div>
       <div class="stat-box"><div class="stat-label">Adjusted R²</div><div class="stat-value" style="font-size:15px;">${(res.adjR2*100).toFixed(1)}%</div></div>
@@ -4235,13 +4299,13 @@ function renderInfResult(){
       <div class="stat-box"><div class="stat-label">F-statistik</div><div class="stat-value" style="font-size:15px;">${res.fStat.toFixed(2)} <span style="font-size:11px;font-weight:500;">(p=${res.fP<0.0001?'<0.0001':res.fP.toFixed(4)})</span></div></div>
     </div>
     <div class="ss-section-title">Persamaan Regresi</div>
-    <div class="formula-list" style="font-family:'Inter',monospace;background:var(--cream-deep);padding:10px 14px;border-radius:8px;">${escapeHtml(eq)}</div>
+    <div class="inf-formula">${escapeHtml(eq)}</div>
     <div class="ss-section-title">Koefisien &amp; VIF</div>
     <div class="ss-table-wrap"><table class="ss-table">
       <thead><tr><th>Variabel</th><th>Koefisien (B)</th><th>Std. Error</th><th>t</th><th>Sig. (p)</th><th>VIF</th></tr></thead>
       <tbody>${coefRows}</tbody>
     </table></div>
-    <div class="formula-caption">Signifikansi: *** p&lt;0.001 &nbsp; ** p&lt;0.01 &nbsp; * p&lt;0.05 &nbsp; . p&lt;0.1 &nbsp;|&nbsp; ${escapeHtml(vifNote)}</div>
+    <div class="inf-formula-caption">Signifikansi: *** p&lt;0.001 &nbsp; ** p&lt;0.01 &nbsp; * p&lt;0.05 &nbsp; . p&lt;0.1 &nbsp;|&nbsp; ${escapeHtml(vifNote)}</div>
 
     <div class="ss-section-title">Uji Asumsi Klasik</div>
     <div class="ss-kpi-grid">
@@ -4418,6 +4482,22 @@ function renderArimaResult(){
   const coefLabels = ['Konstanta', ...Array.from({length:p},(_,i)=>`AR(${i+1}) — φ${i+1}`), ...Array.from({length:q},(_,i)=>`MA(${i+1}) — θ${i+1}`)];
   const coefRows = fit.beta.map((b,i)=> `<tr><td>${coefLabels[i]}</td><td>${b.toFixed(4)}</td><td>${fit.seCoef[i].toFixed(4)}</td><td>${fit.tStat[i].toFixed(3)}</td><td>${fit.pVal[i]<0.0001?'<0.0001':fit.pVal[i].toFixed(4)} ${sig(fit.pVal[i])}</td></tr>`).join('');
 
+  const subDigit = n=>{ const map={'0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉'}; return String(n).split('').map(d=>map[d]).join(''); };
+  const seriesSym = arimaD>0 ? 'Wₜ' : 'Yₜ';
+  const seriesLag = arimaD>0 ? 'W' : 'Y';
+  let eqTerms = [`${seriesSym} = ${fit.beta[0].toFixed(4)}`];
+  for(let i=1;i<=p;i++){ const b=fit.beta[i]; eqTerms.push(`${b>=0?'+':'−'} ${Math.abs(b).toFixed(4)}·${seriesLag}ₜ₋${subDigit(i)}`); }
+  for(let j=1;j<=q;j++){ const b=fit.beta[p+j]; eqTerms.push(`${b>=0?'+':'−'} ${Math.abs(b).toFixed(4)}·eₜ₋${subDigit(j)}`); }
+  const arimaEq = eqTerms.join(' ') + (arimaD>0 ? `  (Wₜ = Yₜ didiferensiasi ${arimaD}×)` : '');
+
+  const modelDesc = arimaD===0 && q===0
+    ? `<b>AR(${p})</b> memprediksi nilai sekarang dari ${p} nilai historisnya sendiri (autoregresif) — cocok kalau nilai masa lalu, bukan galat sesaat, yang paling menentukan nilai berikutnya.`
+    : arimaD===0 && p===0
+    ? `<b>MA(${q})</b> memprediksi nilai sekarang dari ${q} "kejutan"/galat prediksi sebelumnya — cocok untuk data yang dipengaruhi guncangan sesaat yang efeknya cepat hilang.`
+    : arimaD===0
+    ? `<b>ARMA(${p},${q})</b> menggabungkan pola dari nilai historis (AR) dan galat historis (MA) sekaligus, tanpa differencing karena datanya sudah dianggap stasioner (d=0).`
+    : `<b>ARIMA(${p},${arimaD},${q})</b> sama seperti ARMA, tapi datanya di-differencing ${arimaD}× lebih dulu untuk menghilangkan tren, baru pola AR(${p})/MA(${q}) diterapkan pada hasil differencing tersebut.`;
+
   const diffForecast = forecastArma(fit, w, arimaHorizon);
   const forecastVals = integrateForecast(diffForecast, orig, arimaD);
   const lastEntry = entries[entries.length-1];
@@ -4438,18 +4518,21 @@ function renderArimaResult(){
 
   area.innerHTML = `
     <div class="ss-section-title" style="margin-top:0;">Model Terpilih: ${modelName}</div>
+    <div class="inf-model-desc">${modelDesc}</div>
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">AIC</div><div class="stat-value" style="font-size:15px;">${fit.aic.toFixed(2)}</div></div>
       <div class="stat-box"><div class="stat-label">RMSE (in-sample)</div><div class="stat-value" style="font-size:15px;">${fit.rmse.toFixed(3)}</div></div>
       <div class="stat-box"><div class="stat-label">N efektif</div><div class="stat-value" style="font-size:15px;">${fit.n_eff}</div></div>
       <div class="stat-box"><div class="stat-label">Differencing</div><div class="stat-value" style="font-size:15px;">d = ${arimaD}</div></div>
     </div>
+    <div class="ss-section-title">Persamaan Model</div>
+    <div class="inf-formula">${escapeHtml(arimaEq)}</div>
     <div class="ss-section-title">Koefisien</div>
     <div class="ss-table-wrap"><table class="ss-table">
       <thead><tr><th>Parameter</th><th>Koefisien</th><th>Std. Error</th><th>t</th><th>Sig. (p)</th></tr></thead>
       <tbody>${coefRows}</tbody>
     </table></div>
-    <div class="formula-caption">Signifikansi: *** p&lt;0.001 &nbsp; ** p&lt;0.01 &nbsp; * p&lt;0.05 &nbsp; . p&lt;0.1 &nbsp;|&nbsp; Estimasi via metode Hannan-Rissanen (2 tahap OLS).</div>
+    <div class="inf-formula-caption">Signifikansi: *** p&lt;0.001 &nbsp; ** p&lt;0.01 &nbsp; * p&lt;0.05 &nbsp; . p&lt;0.1 &nbsp;|&nbsp; Estimasi via metode Hannan-Rissanen (2 tahap OLS).</div>
 
     <div class="ss-section-title">Ramalan ${arimaHorizon} Periode ke Depan</div>
     <div class="ss-table-wrap"><table class="ss-table">
@@ -4488,6 +4571,205 @@ function renderArimaChart(periodLabels, forecastLabels, orig, forecastVals, labe
   });
 }
 
+/* ---------- ARIMAX: Regresi Y~X dengan struktur AR/MA pada residual ---------- */
+function computeArimax(yKey, xKeys, yTransform, xTransforms, yearFrom, yearTo, p, d, q){
+  const base = computeRegression(yKey, xKeys, yTransform, xTransforms, yearFrom, yearTo);
+  if(base.error) return { error: base.error };
+  if(p===0 && q===0){
+    return { base, armaFit:null, p, q, d };
+  }
+  const resid = base.residuals;
+  const w = differenceSeries(resid, d);
+  if(w.length < p+q+6){
+    return { base, armaFit:null, p, q, d, warn:'Residual regresi terlalu pendek untuk dimodelkan AR/MA — hasil di bawah adalah regresi OLS biasa.' };
+  }
+  const armaFit = fitArma(w, p, q);
+  if(armaFit.error){
+    return { base, armaFit:null, p, q, d, warn: armaFit.error+' Hasil di bawah adalah regresi OLS biasa.' };
+  }
+  return { base, armaFit, p, q, d };
+}
+
+function renderArimaxControlPanel(){
+  const panel = document.getElementById('arimaxControlPanel');
+  if(!panel) return;
+  panel.innerHTML = `
+    <div class="inf-transform-panel">
+      <div class="inf-transform-title">Struktur AR/MA pada Residual</div>
+      <div class="inf-transform-row">
+        <span class="inf-transform-label">Differencing residual (d)</span>
+        <select id="armxDSel" style="font-family:'Inter',sans-serif;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:4px 8px;">
+          ${[0,1,2].map(v=>`<option value="${v}" ${arimaD===v?'selected':''}>${v}</option>`).join('')}
+        </select>
+      </div>
+      <div class="inf-transform-row">
+        <span class="inf-transform-label">AR order (p)</span>
+        <select id="armxPSel" style="font-family:'Inter',sans-serif;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:4px 8px;" ${arimaAuto?'disabled':''}>
+          ${[0,1,2,3].map(v=>`<option value="${v}" ${arimaP===v?'selected':''}>${v}</option>`).join('')}
+        </select>
+      </div>
+      <div class="inf-transform-row">
+        <span class="inf-transform-label">MA order (q)</span>
+        <select id="armxQSel" style="font-family:'Inter',sans-serif;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:4px 8px;" ${arimaAuto?'disabled':''}>
+          ${[0,1,2,3].map(v=>`<option value="${v}" ${arimaQ===v?'selected':''}>${v}</option>`).join('')}
+        </select>
+      </div>
+      <div class="inf-transform-row">
+        <span class="inf-transform-label">Pilih otomatis (AIC terendah)</span>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;">
+          <input type="checkbox" id="armxAutoChk" ${arimaAuto?'checked':''}> Otomatis
+        </label>
+      </div>
+      <div class="inf-transform-row">
+        <span class="inf-transform-label">Horizon ramalan</span>
+        <select id="armxHSel" style="font-family:'Inter',sans-serif;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:4px 8px;">
+          ${[3,5,10].map(v=>`<option value="${v}" ${arimaHorizon===v?'selected':''}>${v} periode</option>`).join('')}
+        </select>
+      </div>
+      <div class="inf-diag-note">Set p=q=0 untuk melihat regresi OLS biasa tanpa koreksi. Naikkan p/q (atau centang Otomatis) kalau Durbin-Watson di hasil regresi jauh dari 2 (ada autokorelasi pada residual).</div>
+    </div>`;
+
+  document.getElementById('armxDSel').onchange = e=>{ arimaD = parseInt(e.target.value); renderArimaxResult(); };
+  document.getElementById('armxPSel').onchange = e=>{ arimaP = parseInt(e.target.value); renderArimaxResult(); };
+  document.getElementById('armxQSel').onchange = e=>{ arimaQ = parseInt(e.target.value); renderArimaxResult(); };
+  document.getElementById('armxHSel').onchange = e=>{ arimaHorizon = parseInt(e.target.value); renderArimaxResult(); };
+  document.getElementById('armxAutoChk').onchange = e=>{ arimaAuto = e.target.checked; renderArimaxControlPanel(); renderArimaxResult(); };
+}
+
+function renderArimaxResult(){
+  const area = document.getElementById('arimaxResultArea');
+  if(!area) return;
+
+  if(!infY){
+    area.innerHTML = `<div class="compare-empty">Centang variabel dependen (Y) dan minimal satu variabel independen (X) di samping untuk memulai analisis ARIMAX.</div>`;
+    return;
+  }
+  if(infX.size===0){
+    area.innerHTML = `<div class="compare-empty">Centang minimal satu variabel independen (X) di samping.</div>`;
+    return;
+  }
+
+  const xKeys = [...infX];
+  const xTransforms = xKeys.map(k=> infXTransform[k]||'linear');
+  const fromKey = infFrom*10 + (infIsQuarterly ? (infFromTW||1) : 0);
+  const toKey = infTo*10 + (infIsQuarterly ? (infToTW||4) : 0);
+
+  let p = arimaP, q = arimaQ;
+  let result;
+  if(arimaAuto){
+    const baseOnly = computeRegression(infY, xKeys, infYTransform, xTransforms, fromKey, toKey);
+    if(baseOnly.error){ area.innerHTML = `<div class="compare-empty">⚠️ ${escapeHtml(baseOnly.error)}</div>`; return; }
+    const w = differenceSeries(baseOnly.residuals, arimaD);
+    const best = autoSelectArma(w, 3, 3);
+    if(best){ p = best.p; q = best.q; }
+    else { p = 0; q = 0; }
+  }
+  result = computeArimax(infY, xKeys, infYTransform, xTransforms, fromKey, toKey, p, arimaD, q);
+  if(result.error){
+    area.innerHTML = `<div class="compare-empty">⚠️ ${escapeHtml(result.error)}</div>`;
+    return;
+  }
+
+  const { base, armaFit, warn } = result;
+  const yLabel = (infYTransform==='ln'?'ln(':'') + infIndex[infY].sub + (infYTransform==='ln'?')':'');
+  const xLabels = xKeys.map((k,i)=> (xTransforms[i]==='ln'?'ln(':'') + infIndex[k].sub + (xTransforms[i]==='ln'?')':''));
+  const sig = pv=> pv<0.001?'***':pv<0.01?'**':pv<0.05?'*':pv<0.1?'.':'';
+
+  let eq = `Ŷ = ${base.beta[0].toFixed(4)}`;
+  xLabels.forEach((lbl,i)=>{ const b=base.beta[i+1]; eq += ` ${b>=0?'+':'−'} ${Math.abs(b).toFixed(4)}·X${i+1}`; });
+  eq += ' + ηₜ';
+
+  let coefRows = `<tr><td>Konstanta</td><td>${base.beta[0].toFixed(4)}</td><td>${base.seCoef[0].toFixed(4)}</td><td>${base.tStat[0].toFixed(3)}</td><td>${base.pVal[0]<0.0001?'<0.0001':base.pVal[0].toFixed(4)} ${sig(base.pVal[0])}</td></tr>`;
+  xLabels.forEach((lbl,i)=>{
+    coefRows += `<tr><td>X${i+1} — ${escapeHtml(lbl)}</td><td>${base.beta[i+1].toFixed(4)}</td><td>${base.seCoef[i+1].toFixed(4)}</td><td>${base.tStat[i+1].toFixed(3)}</td><td>${base.pVal[i+1]<0.0001?'<0.0001':base.pVal[i+1].toFixed(4)} ${sig(base.pVal[i+1])}</td></tr>`;
+  });
+
+  const dwLabel = base.dw==null ? 'N/A'
+    : base.dw < 1.5 ? 'Indikasi autokorelasi positif pada residual'
+    : base.dw > 2.5 ? 'Indikasi autokorelasi negatif pada residual'
+    : 'Tidak ada indikasi autokorelasi';
+  const dwColor = (base.dw!=null && (base.dw<1.5 || base.dw>2.5)) ? '#B23A48' : '#3e5a2a';
+
+  let residBlock = '';
+  if(armaFit){
+    const subDigit = n=>{ const map={'0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉'}; return String(n).split('').map(d=>map[d]).join(''); };
+    const seriesSym = result.d>0 ? 'ηₜ (diferensiasi)' : 'ηₜ';
+    let etaTerms = [`${seriesSym} = ${armaFit.beta[0].toFixed(4)}`];
+    for(let i=1;i<=result.p;i++){ const b=armaFit.beta[i]; etaTerms.push(`${b>=0?'+':'−'} ${Math.abs(b).toFixed(4)}·ηₜ₋${subDigit(i)}`); }
+    for(let j=1;j<=result.q;j++){ const b=armaFit.beta[result.p+j]; etaTerms.push(`${b>=0?'+':'−'} ${Math.abs(b).toFixed(4)}·eₜ₋${subDigit(j)}`); }
+    const etaEq = etaTerms.join(' ');
+    const residCoefLabels = ['Konstanta', ...Array.from({length:result.p},(_,i)=>`AR(${i+1}) — φ${i+1}`), ...Array.from({length:result.q},(_,i)=>`MA(${i+1}) — θ${i+1}`)];
+    const residCoefRows = armaFit.beta.map((b,i)=> `<tr><td>${residCoefLabels[i]}</td><td>${b.toFixed(4)}</td><td>${armaFit.seCoef[i].toFixed(4)}</td><td>${armaFit.tStat[i].toFixed(3)}</td><td>${armaFit.pVal[i]<0.0001?'<0.0001':armaFit.pVal[i].toFixed(4)} ${sig(armaFit.pVal[i])}</td></tr>`).join('');
+    const rmseBefore = Math.sqrt(base.residuals.reduce((s,r)=>s+r*r,0)/base.n);
+
+    residBlock = `
+      <div class="ss-section-title">Model Residual: ${result.p===0?'MA':result.q===0?'AR':'ARMA'}(${result.p}${result.d>0?','+result.d:''}${result.q?','+result.q:''})</div>
+      <div class="inf-model-desc">Bagian ini memodelkan pola yang <b>tersisa</b> pada residual (η) regresi Y~X di atas — jika residual masih berpola (Durbin-Watson jauh dari 2), model ini menangkap pola tersebut memakai lag residualnya sendiri (AR) dan/atau galat sebelumnya (MA), sehingga simpangan model turun dan uji signifikansi koefisien X di atas menjadi lebih dapat dipercaya.</div>
+      <div class="inf-formula">${escapeHtml(etaEq)}</div>
+      <div class="ss-table-wrap"><table class="ss-table">
+        <thead><tr><th>Parameter</th><th>Koefisien</th><th>Std. Error</th><th>t</th><th>Sig. (p)</th></tr></thead>
+        <tbody>${residCoefRows}</tbody>
+      </table></div>
+      <div class="ss-kpi-grid">
+        <div class="stat-box"><div class="stat-label">AIC Model Residual</div><div class="stat-value" style="font-size:15px;">${armaFit.aic.toFixed(2)}</div></div>
+        <div class="stat-box"><div class="stat-label">RMSE Residual — Sebelum</div><div class="stat-value" style="font-size:15px;">${rmseBefore.toFixed(3)}</div></div>
+        <div class="stat-box"><div class="stat-label">RMSE Residual — Setelah Dikoreksi</div><div class="stat-value" style="font-size:15px;">${armaFit.rmse.toFixed(3)}</div></div>
+      </div>
+      <div class="inf-formula-caption">"Sebelum" dihitung dari seluruh residual OLS (N=${base.n}); "Setelah" dihitung dari residual model AR/MA di atas ambang lag burn-in (N=${armaFit.n_eff}) — kedua N sedikit berbeda karena kebutuhan lag, tapi penurunan RMSE tetap menunjukkan seberapa banyak pola residual yang berhasil dijelaskan.</div>
+    `;
+  } else if(warn){
+    residBlock = `<div class="inf-diag-note" style="margin-top:10px;">ℹ️ ${escapeHtml(warn)}</div>`;
+  }
+
+  let forecastBlock = '';
+  if(armaFit){
+    const lastYearKey = base.years[base.years.length-1];
+    const xLastVals = xKeys.map((k,i)=>{
+      const m = infGetSeriesMap(k, xTransforms[i]);
+      return m[lastYearKey];
+    });
+    const constPart = base.beta[0] + xLastVals.reduce((s,v,i)=> s+v*base.beta[i+1], 0);
+    const diffForecast = forecastArma(armaFit, differenceSeries(base.residuals, result.d), arimaHorizon);
+    const residForecast = integrateForecast(diffForecast, base.residuals, result.d);
+    const labelFrom = periodLabelFromKey(lastYearKey);
+    const forecastRows = residForecast.map((rv,i)=>{
+      let yForecast = constPart + rv;
+      if(infYTransform==='ln') yForecast = Math.exp(yForecast);
+      const nextKey = advancePeriodKey(lastYearKey, i+1);
+      return `<tr><td>${periodLabelFromKey(nextKey)}</td><td>${yForecast.toFixed(2)}</td></tr>`;
+    }).join('');
+    forecastBlock = `
+      <div class="ss-section-title">Ramalan ${arimaHorizon} Periode ke Depan</div>
+      <div class="inf-diag-note">Asumsi: seluruh variabel X ditahan tetap pada nilai terakhir yang tersedia (periode ${escapeHtml(labelFrom)}) — karena nilai X di masa depan belum diketahui, ramalan ini hanya memproyeksikan bagian dinamika waktu (pola residual), bukan perubahan X itu sendiri.</div>
+      <div class="ss-table-wrap"><table class="ss-table">
+        <thead><tr><th>Periode</th><th>Ramalan Y${infYTransform==='ln'?' (skala asli)':''}</th></tr></thead>
+        <tbody>${forecastRows}</tbody>
+      </table></div>
+    `;
+  }
+
+  area.innerHTML = `
+    <div class="ss-section-title" style="margin-top:0;">ARIMAX (Regresi dengan Galat ARIMA)</div>
+    <div class="inf-model-desc"><b>ARIMAX</b> = regresi Y terhadap X (seperti Regresi Linear biasa), tapi galat/residualnya boleh punya struktur waktu (AR/MA/ARIMA), bukan diasumsikan acak murni. Cocok kalau X memang berpengaruh ke Y, tapi ada pola sisa dari waktu ke waktu yang belum tertangkap X saja (misal karena inersia/kelambanan sosial-ekonomi).</div>
+    <div class="ss-kpi-grid">
+      <div class="stat-box"><div class="stat-label">R² (regresi X)</div><div class="stat-value" style="font-size:15px;">${(base.r2*100).toFixed(1)}%</div></div>
+      <div class="stat-box"><div class="stat-label">N (tahun beririsan)</div><div class="stat-value" style="font-size:15px;">${base.n}</div></div>
+      <div class="stat-box"><div class="stat-label">Durbin-Watson (sebelum koreksi)</div><div class="stat-value" style="font-size:13.5px;color:${dwColor};">${base.dw!=null?base.dw.toFixed(3):'N/A'} · ${dwLabel}</div></div>
+    </div>
+    <div class="ss-section-title">Persamaan Regresi (bagian X)</div>
+    <div class="inf-formula">${escapeHtml(eq)}</div>
+    <div class="inf-formula-caption">ηₜ = residual/galat pada periode t, dimodelkan lebih lanjut di bagian bawah.</div>
+    <div class="ss-table-wrap"><table class="ss-table">
+      <thead><tr><th>Variabel</th><th>Koefisien (B)</th><th>Std. Error</th><th>t</th><th>Sig. (p)</th></tr></thead>
+      <tbody>${coefRows}</tbody>
+    </table></div>
+    <div class="inf-formula-caption">Signifikansi: *** p&lt;0.001 &nbsp; ** p&lt;0.01 &nbsp; * p&lt;0.05 &nbsp; . p&lt;0.1</div>
+
+    ${residBlock}
+    ${forecastBlock}
+  `;
+}
+
 function renderCompareView(){
   const filterPanel = document.getElementById('kelFilterPanel');
   if(filterPanel) filterPanel.style.display = 'none';
@@ -4497,9 +4779,17 @@ function renderCompareView(){
 
   let allEntries = [];
   Object.values(compareIndex).forEach(v=>{ allEntries = allEntries.concat(v.entries); });
+  compareIsQuarterly = allEntries.some(e=>e.triwulan);
   const years = [...new Set(allEntries.map(e=>e.tahun))].sort((a,b)=>a-b);
   if(!compareFrom || !years.includes(compareFrom)) compareFrom = years[0];
   if(!compareTo || !years.includes(compareTo)) compareTo = years[years.length-1];
+  if(compareIsQuarterly){
+    if(!compareFromTW) compareFromTW = 1;
+    if(!compareToTW) compareToTW = 4;
+  } else {
+    compareFromTW = null; compareToTW = null;
+  }
+  const cmpTwOptions = (sel)=> ['I','II','III','IV'].map((lbl,i)=>`<option value="${i+1}" ${sel===i+1?'selected':''}>TW ${lbl}</option>`).join('');
 
   const main = document.getElementById('main');
   main.innerHTML = `
@@ -4510,8 +4800,8 @@ function renderCompareView(){
       </div>
       <div class="compare-controls">
         <div class="ctrl-item"><label>Periode</label><select id="cmpPeriode"></select></div>
-        <div class="ctrl-item"><label>Dari</label><select id="cmpFrom"></select></div>
-        <div class="ctrl-item"><label>Sampai</label><select id="cmpTo"></select></div>
+        <div class="ctrl-item"><label>Dari</label><select id="cmpFrom"></select>${compareIsQuarterly?'<select id="cmpFromTW">'+cmpTwOptions(compareFromTW)+'</select>':''}</div>
+        <div class="ctrl-item"><label>Sampai</label><select id="cmpTo"></select>${compareIsQuarterly?'<select id="cmpToTW">'+cmpTwOptions(compareToTW)+'</select>':''}</div>
         <div class="ctrl-item"><label>Jenis Grafik</label><select id="cmpChartType">
           <option value="line">Garis</option>
           <option value="area">Area Terisi</option>
@@ -4586,7 +4876,7 @@ function renderCompareView(){
   periodeSel.onchange = ()=>{
     comparePeriode = periodeSel.value;
     compareSelected.clear();
-    compareFrom = null; compareTo = null;
+    compareFrom = null; compareTo = null; compareFromTW = null; compareToTW = null;
     renderCompareView();
   };
 
@@ -4598,6 +4888,13 @@ function renderCompareView(){
   });
   fromSel.onchange = ()=>{ compareFrom = parseInt(fromSel.value); renderCompareChart(); };
   toSel.onchange = ()=>{ compareTo = parseInt(toSel.value); renderCompareChart(); };
+
+  if(compareIsQuarterly){
+    const fromTWSel = document.getElementById('cmpFromTW');
+    const toTWSel = document.getElementById('cmpToTW');
+    if(fromTWSel) fromTWSel.onchange = ()=>{ compareFromTW = parseInt(fromTWSel.value); renderCompareChart(); };
+    if(toTWSel) toTWSel.onchange = ()=>{ compareToTW = parseInt(toTWSel.value); renderCompareChart(); };
+  }
 
   document.getElementById('cmpChartType').value = compareChartType;
   document.getElementById('cmpChartType').onchange = (e)=>{ compareChartType = e.target.value; renderCompareChart(); };
@@ -4672,7 +4969,7 @@ function computeSeriesAnalysis(keys){
   const list = [];
   keys.forEach(k=>{
     const info = compareIndex[k];
-    const filteredEntries = info.entries.filter(e => e.tahun >= compareFrom && e.tahun <= compareTo);
+    const filteredEntries = info.entries.filter(e => inCompareRange(e));
     if(filteredEntries.length === 0) return;
     let maxObj = filteredEntries[0], minObj = filteredEntries[0];
     filteredEntries.forEach(e=>{
@@ -4770,7 +5067,7 @@ function renderCompareRadarChart(keys){
   const uniqueLabelsMap = new Map();
   keys.forEach(k=>{
     compareIndex[k].entries.forEach(e=>{
-      if(e.tahun >= compareFrom && e.tahun <= compareTo) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+      if(inCompareRange(e)) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
     });
   });
   const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
@@ -4908,7 +5205,7 @@ function renderCompareBump(keys){
   const uniqueLabelsMap = new Map();
   keys.forEach(k=>{
     compareIndex[k].entries.forEach(e=>{
-      if(e.tahun >= compareFrom && e.tahun <= compareTo) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+      if(inCompareRange(e)) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
     });
   });
   const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
@@ -4974,7 +5271,7 @@ function buildCompareSurfaceGrid(keys){
   const uniqueLabelsMap = new Map();
   keys.forEach(k=>{
     compareIndex[k].entries.forEach(e=>{
-      if(e.tahun >= compareFrom && e.tahun <= compareTo) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+      if(inCompareRange(e)) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
     });
   });
   const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
@@ -5020,7 +5317,7 @@ function buildCompareStreamSVG(keys){
   const uniqueLabelsMap = new Map();
   keys.forEach(k=>{
     compareIndex[k].entries.forEach(e=>{
-      if(e.tahun >= compareFrom && e.tahun <= compareTo) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+      if(inCompareRange(e)) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
     });
   });
   const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
@@ -5093,7 +5390,7 @@ function buildCompareMarimekkoSVG(keys){
   const uniqueLabelsMap = new Map();
   keys.forEach(k=>{
     compareIndex[k].entries.forEach(e=>{
-      if(e.tahun >= compareFrom && e.tahun <= compareTo) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+      if(inCompareRange(e)) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
     });
   });
   const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
@@ -5151,7 +5448,7 @@ function renderCompareCategoricalScatter(keys, seriesAnalysisData){
   const uniqueLabelsMap = new Map();
   keys.forEach(k=>{
     compareIndex[k].entries.forEach(e=>{
-      if(e.tahun >= compareFrom && e.tahun <= compareTo) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+      if(inCompareRange(e)) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
     });
   });
   const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
@@ -5213,7 +5510,7 @@ function renderCompareDotPlot(keys, seriesAnalysisData){
   const uniqueLabelsMap = new Map();
   keys.forEach(k=>{
     compareIndex[k].entries.forEach(e=>{
-      if(e.tahun >= compareFrom && e.tahun <= compareTo) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+      if(inCompareRange(e)) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
     });
   });
   const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
@@ -5271,7 +5568,7 @@ function renderCompareRangePlot(keys, seriesAnalysisData){
   const uniqueLabelsMap = new Map();
   keys.forEach(k=>{
     compareIndex[k].entries.forEach(e=>{
-      if(e.tahun >= compareFrom && e.tahun <= compareTo) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+      if(inCompareRange(e)) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
     });
   });
   const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
@@ -5331,7 +5628,7 @@ function buildCompareRadialBarSVG(keys){
   const uniqueLabelsMap = new Map();
   keys.forEach(k=>{
     compareIndex[k].entries.forEach(e=>{
-      if(e.tahun >= compareFrom && e.tahun <= compareTo) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+      if(inCompareRange(e)) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
     });
   });
   const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
@@ -5408,7 +5705,7 @@ function buildCompareBulletSVG(keys){
   const uniqueLabelsMap = new Map();
   keys.forEach(k=>{
     compareIndex[k].entries.forEach(e=>{
-      if(e.tahun >= compareFrom && e.tahun <= compareTo) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+      if(inCompareRange(e)) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
     });
   });
   const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
@@ -5668,7 +5965,7 @@ function renderCompareChart(){
   const uniqueLabelsMap = new Map();
   keys.forEach(k=>{
     compareIndex[k].entries.forEach(e=>{
-      if(e.tahun >= compareFrom && e.tahun <= compareTo) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+      if(inCompareRange(e)) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
     });
   });
   const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
@@ -5897,7 +6194,7 @@ function generateAdvancedAIInsight(dataList){
   }
 
   let html = `<span class="insight-section-title">📊 Rangkuman Kinerja &amp; Tren Multi-Indikator</span>`;
-  html += `<div class="insight-intro">Analisis mencakup rentang waktu <b>${compareFrom}</b> hingga <b>${compareTo}</b>:</div>`;
+  html += `<div class="insight-intro">Analisis mencakup rentang waktu <b>${compareRangeLabel()}</b>:</div>`;
 
   html += `<ul class="insight-list">`;
   dataList.forEach(item=>{
