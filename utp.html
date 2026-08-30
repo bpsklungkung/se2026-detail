@@ -89,7 +89,6 @@
       overflow-wrap:break-word; 
       vertical-align:top; 
     }
-
     tbody tr:hover{background:var(--hover)}
     .link-btn{
       display:inline-flex;align-items:center;justify-content:center;
@@ -97,7 +96,7 @@
       text-decoration:none;font-size:18px;
     }
     .link-btn:hover{background:#B23A48;color:#fff;}
-    .empty{text-align:center;color:var(--muted);padding:32px}
+    .empty{text-align:center;color:var(--muted);padding:32px;font-size:14px}
     .loading{padding:40px;text-align:center;color:var(--muted)}
     .badge{
       display:inline-block;padding:4px 8px;border-radius:999px;
@@ -144,6 +143,42 @@
     .pagination button{padding:8px 12px;min-width:40px}
     .pagination button:disabled{opacity:.45;cursor:not-allowed}
     .page-info{font-size:14px;color:var(--muted);padding:0 6px}
+    
+    /* Panel Filter Dropdown */
+    .ms-wrap{position:relative}
+    .ms-toggle{
+      width:100%;text-align:left;background:#fff;border:1px solid var(--border);
+      border-radius:10px;padding:10px 12px;font-size:14px;color:var(--text);
+      font-weight:400;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:6px;
+      overflow:hidden;
+    }
+    .ms-toggle span.txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .ms-toggle::after{content:"▾";color:var(--muted);font-size:11px;flex:none}
+    .ms-toggle.active{border-color:var(--primary);color:var(--primary);font-weight:700}
+    .ms-panel{
+      position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:20;
+      background:#fff;border:1px solid var(--border);border-radius:12px;
+      box-shadow:0 12px 30px rgba(15,23,42,.14);padding:8px;max-height:300px;
+      display:flex;flex-direction:column;
+    }
+    .ms-panel[hidden]{display:none}
+    .ms-search-wrap{padding:2px 4px 8px;border-bottom:1px solid var(--border);margin-bottom:6px}
+    .ms-search-input{padding:6px 10px;font-size:12px;border-radius:6px;}
+    .ms-actions{display:flex;justify-content:space-between;gap:8px;padding:2px 4px 8px;border-bottom:1px solid var(--border);margin-bottom:6px}
+    .ms-actions button{
+      background:none;border:0;color:var(--primary);font-size:11px;font-weight:700;
+      padding:2px 4px;cursor:pointer;border-radius:6px;
+    }
+    .ms-actions button:hover{background:var(--hover)}
+    .ms-options{overflow:auto;display:flex;flex-direction:column;gap:2px}
+    .ms-option{
+      display:flex;align-items:center;gap:8px;padding:6px 6px;border-radius:8px;
+      font-size:13px;cursor:pointer;
+    }
+    .ms-option:hover{background:var(--hover)}
+    .ms-option input{width:auto;flex:none}
+    .ms-empty{padding:10px;font-size:12px;color:var(--muted);text-align:center}
+    
     @media(max-width:1100px){.filters{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:600px){.container{padding:12px}.filters{grid-template-columns:1fr}header{padding:20px}h1{font-size:22px}}
   </style>
@@ -181,8 +216,6 @@
 
 <script>
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSltJpM4nu0YYP-76cILTuWVQxUyQdXH6wmoq53EAELzbNqOXrHFMqM43Zp7D0pTUAd8Pxo-pE-3hEL/pub?output=csv";
-
-// TODO: ganti dengan URL Web App hasil deploy dari UtpVerifikasiAPI.gs (Deploy > New deployment > Web app)
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxaLUBYIhnCvVkiZC-cVwfN-_h0XQgudJMpncEABjFCh0rChKFc181RUGJZVmCcN7mf/exec";
 
 const VERIFIKATOR_NAMES = [
@@ -191,15 +224,11 @@ const VERIFIKATOR_NAMES = [
   "Bajra","Agung","Sudiasa","Ari","Toni","Wija","Dekci","Suar"
 ];
 
-// A=0, B=1, ... U=20
 const FILTER_COLUMNS = [0,1,2,3,4];
-// Filter tambahan akan dicari otomatis berdasarkan judul kolom di Google Sheet.
 let extraFilterColumns = [];
 const VIRTUAL_JENIS = "__JENIS__";
-const EXCLUDED_COLUMNS = [7,8,9]; // H, I, J
-const LINK_COLUMN = 20;            // U
-// Masing-masing PEKERJAAN KRT dan PEKERJAAN PENGUSAHA muncul 2 kali.
-// Tampilkan hanya kolom yang posisinya paling kanan untuk masing-masing judul.
+const EXCLUDED_COLUMNS = [7,8,9]; 
+const LINK_COLUMN = 20;            
 const DUPLICATE_RIGHTMOST_HEADERS = ["PEKERJAAN KRT", "PEKERJAAN PENGUSAHA"];
 
 let headers = [];
@@ -207,8 +236,25 @@ let rows = [];
 let filteredRows = [];
 let currentPage = 1;
 const PAGE_SIZE = 15;
-let submittedMap = {}; // key -> {verifikasi, keterangan, timestamp}
-let editingKeys = new Set(); // key sedang dibuka untuk diubah ulang
+let submittedMap = {}; 
+let editingKeys = new Set(); 
+
+let filterState = {};       
+let openFilterKey = null;   
+let lastAvailableMap = {};  
+
+// --- Tracker pencarian filter mini ---
+let msSearchState = {}; 
+let focusedSearchKey = null; 
+
+// Fungsi Debounce untuk meringankan beban pencarian teks utama
+function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+}
 
 function clean(v) {
   return (v ?? "").toString().trim();
@@ -229,7 +275,6 @@ function getVisibleColumns() {
     if (targetHeaders.includes(normalized)) rightmostIndex[normalized] = index;
   });
 
-  // Diubah menjadi LINK_COLUMN + 2 agar kolom Status (V) ikut dirender di tabel
   return Array.from({length: Math.min(headers.length, LINK_COLUMN + 2)}, (_, i) => i)
     .filter(i => !EXCLUDED_COLUMNS.includes(i) && i !== LINK_COLUMN)
     .filter(i => {
@@ -247,8 +292,6 @@ function findColumnByHeader(keyword) {
   return headers.findIndex(h => normalizeHeader(h) === target);
 }
 
-// Kunci unik per baris: kombinasi Kecamatan+Desa+SLS+Nama UTP (nama header dicari otomatis,
-// jadi tetap jalan walau urutan kolom di sheet berubah).
 function getRowKey(row) {
   const idxKec = findColumnByHeader("KECAMATAN");
   const idxDesa = findColumnByHeader("DESA");
@@ -266,7 +309,6 @@ function getFilterDefinitions() {
     getValue: row => clean(row[index])
   }));
 
-  // Menambahkan Status di array ekstra filter
   extraFilterColumns = [
     { name: "Tindakan", index: findColumnByHeader("Tindakan") },
     { name: "Kemungkinan", index: findColumnByHeader("Kemungkinan") },
@@ -290,39 +332,146 @@ function getFilterDefinitions() {
   return definitions;
 }
 
-function setupFilters() {
+function initFilters() {
+  filterState = {};
+  msSearchState = {};
+  getFilterDefinitions().forEach(def => { filterState[String(def.key)] = new Set(); });
+  openFilterKey = null;
+  applyFilters();
+}
+
+function rowMatchesFilters(row, definitions, excludeKey) {
+  return definitions.every(def => {
+    const key = String(def.key);
+    if (excludeKey !== null && key === String(excludeKey)) return true;
+    const selected = filterState[key];
+    if (!selected || selected.size === 0) return true;
+    return selected.has(def.getValue(row));
+  });
+}
+
+function matchesSearch(row) {
+  const search = clean(document.getElementById("searchInput").value).toLowerCase();
+  if (!search) return true;
+  return row.some(cell => clean(cell).toLowerCase().includes(search)) ||
+    getUnifiedHJI(row).toLowerCase().includes(search);
+}
+
+function renderFilterUI(definitions, availableMap) {
   const container = document.getElementById("filters");
   container.innerHTML = "";
 
-  getFilterDefinitions().forEach(def => {
+  definitions.forEach(def => {
+    const key = String(def.key);
+    if (!filterState[key]) filterState[key] = new Set();
+    const selected = filterState[key];
+    const available = availableMap[key] || new Set();
+
     const wrap = document.createElement("div");
-    wrap.className = "filter";
+    wrap.className = "filter ms-wrap";
+    wrap.dataset.key = key;
 
     const label = document.createElement("label");
     label.textContent = def.label;
 
-    const select = document.createElement("select");
-    select.dataset.col = def.key;
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "ms-toggle" + (selected.size ? " active" : "");
+    const selectedArr = [...selected];
+    const toggleText = selectedArr.length === 0
+      ? `Semua ${def.label}`
+      : selectedArr.length <= 2
+        ? selectedArr.join(", ")
+        : `${selectedArr.length} dipilih`;
+    toggle.innerHTML = `<span class="txt">${escapeHtml(toggleText)}</span>`;
 
-    const all = document.createElement("option");
-    all.value = "";
-    all.textContent = `Semua ${def.label}`;
-    select.appendChild(all);
+    const panel = document.createElement("div");
+    panel.className = "ms-panel";
+    panel.hidden = openFilterKey !== key;
+    
+    // Fitur: Pencarian Mini di dalam panel
+    const msSearchWrap = document.createElement("div");
+    msSearchWrap.className = "ms-search-wrap";
+    const currentSearch = msSearchState[key] || "";
+    msSearchWrap.innerHTML = `<input type="text" class="ms-search-input" data-key="${escapeAttr(key)}" placeholder="Cari ${escapeAttr(def.label)}..." value="${escapeAttr(currentSearch)}"/>`;
 
-    const values = [...new Set(rows.map(def.getValue).filter(Boolean))]
-      .sort((a,b) => a.localeCompare(b, "id"));
+    const actions = document.createElement("div");
+    actions.className = "ms-actions";
+    actions.innerHTML = `<button type="button" data-act="all" data-key="${escapeAttr(key)}">Pilih Semua</button><button type="button" data-act="clear" data-key="${escapeAttr(key)}">Hapus</button>`;
 
-    values.forEach(value => {
-      const option = document.createElement("option");
-      option.value = value;
-      option.textContent = value;
-      select.appendChild(option);
-    });
+    const optionsWrap = document.createElement("div");
+    optionsWrap.className = "ms-options";
 
-    select.addEventListener("change", applyFilters);
-    wrap.append(label, select);
+    const values = [...available].sort((a,b) => a.localeCompare(b, "id"));
+    if (!values.length) {
+      optionsWrap.innerHTML = `<div class="ms-empty">Tidak ada opsi</div>`;
+    } else {
+      values.forEach(value => {
+        const optLabel = document.createElement("label");
+        optLabel.className = "ms-option";
+        
+        // Sembunyikan item apabila tidak cocok dengan kotak pencarian mini saat re-render
+        if (currentSearch && !value.toLowerCase().includes(currentSearch)) {
+            optLabel.style.display = 'none';
+        }
+
+        const checked = selected.has(value) ? "checked" : "";
+        optLabel.innerHTML = `<input type="checkbox" data-key="${escapeAttr(key)}" value="${escapeAttr(value)}" ${checked}/><span>${escapeHtml(value)}</span>`;
+        optionsWrap.appendChild(optLabel);
+      });
+    }
+
+    panel.append(msSearchWrap, actions, optionsWrap);
+    wrap.append(label, toggle, panel);
     container.appendChild(wrap);
   });
+
+  // Fitur: Kembalikan fokus ke kotak pencarian filter (jika user sedang mengetik dan trigger onchange)
+  if (focusedSearchKey) {
+    const activeInput = document.querySelector(`.ms-search-input[data-key="${cssEscape(focusedSearchKey)}"]`);
+    if (activeInput) {
+      activeInput.focus();
+      const len = activeInput.value.length;
+      activeInput.setSelectionRange(len, len);
+    }
+  }
+}
+
+function applyFilters() {
+  const definitions = getFilterDefinitions();
+
+  let availableMap = {};
+  let stable = false;
+  let iterations = 0;
+  while (!stable && iterations < 6) {
+    stable = true;
+    definitions.forEach(def => {
+      const key = String(def.key);
+      const avail = new Set();
+      rows.forEach(row => {
+        if (rowMatchesFilters(row, definitions, key) && matchesSearch(row)) {
+          const v = def.getValue(row);
+          if (v) avail.add(v);
+        }
+      });
+      availableMap[key] = avail;
+
+      const selected = filterState[key];
+      if (selected && selected.size) {
+        [...selected].forEach(v => {
+          if (!avail.has(v)) { selected.delete(v); stable = false; }
+        });
+      }
+    });
+    iterations++;
+  }
+
+  lastAvailableMap = availableMap;
+  filteredRows = rows.filter(row => rowMatchesFilters(row, definitions, null) && matchesSearch(row));
+
+  renderFilterUI(definitions, availableMap);
+  currentPage = 1;
+  renderTable();
 }
 
 function renderSummaryCards() {
@@ -363,38 +512,26 @@ function renderSummaryCards() {
   container.innerHTML = html;
 }
 
-function applyFilters() {
-  const search = clean(document.getElementById("searchInput").value).toLowerCase();
-  const definitions = getFilterDefinitions();
-  const definitionMap = new Map(definitions.map(def => [String(def.key), def]));
-
-  const activeFilters = [...document.querySelectorAll("#filters select")]
-    .map(s => ({key:String(s.dataset.col), value:s.value}))
-    .filter(f => f.value !== "");
-
-  filteredRows = rows.filter(row => {
-    const matchesFilters = activeFilters.every(f => {
-      const def = definitionMap.get(f.key);
-      return def && def.getValue(row) === f.value;
-    });
-    const matchesSearch = !search || row.some(cell => clean(cell).toLowerCase().includes(search)) ||
-      getUnifiedHJI(row).toLowerCase().includes(search);
-    return matchesFilters && matchesSearch;
-  });
-
-  currentPage = 1;
-  renderTable();
-}
-
 function renderTable() {
   renderSummaryCards();
   const table = document.getElementById("dataTable");
   const visibleColumns = getVisibleColumns();
-
   const pagination = document.getElementById("pagination");
+  const highlightHeaders = ["USAHA UTP", "TINDAKAN", "KEMUNGKINAN", "STATUS"].map(normalizeHeader);
+  const isHighlightCol = i => highlightHeaders.includes(normalizeHeader(headers[i]));
+
+  // Bug Fix: Membuat <thead> di luar blok if (!filteredRows.length)
+  let html = "<thead><tr>";
+  visibleColumns.forEach(i => {
+    html += `<th${isHighlightCol(i) ? ' class="col-highlight"' : ""}>${escapeHtml(headers[i] || `Kolom ${i+1}`)}</th>`;
+  });
+  html += `<th>JENIS</th><th>LINK</th><th>VERIFIKASI</th><th>KETERANGAN</th></tr></thead><tbody>`;
 
   if (!filteredRows.length) {
-    table.innerHTML = `<tbody><tr><td class="empty">Tidak ada data yang sesuai.</td></tr></tbody>`;
+    // Bug Fix: colspan agar merentang penuh ke semua kolom saat hasil kosong
+    const colspanTotal = visibleColumns.length + 4; 
+    html += `<tr><td class="empty" colspan="${colspanTotal}">Tidak ada data yang sesuai.</td></tr></tbody>`;
+    table.innerHTML = html;
     document.getElementById("resultInfo").textContent = `Menampilkan 0 dari ${rows.length} data`;
     pagination.innerHTML = "";
     return;
@@ -405,20 +542,6 @@ function renderTable() {
   const startIndex = (currentPage - 1) * PAGE_SIZE;
   const endIndex = Math.min(startIndex + PAGE_SIZE, filteredRows.length);
   const pageRows = filteredRows.slice(startIndex, endIndex);
-
-  const highlightHeaders = ["USAHA UTP", "TINDAKAN", "KEMUNGKINAN", "STATUS"].map(normalizeHeader);
-  const isHighlightCol = i => highlightHeaders.includes(normalizeHeader(headers[i]));
-
-  let html = "<thead><tr>";
-  visibleColumns.forEach(i => {
-    html += `<th${isHighlightCol(i) ? ' class="col-highlight"' : ""}>${escapeHtml(headers[i] || `Kolom ${i+1}`)}</th>`;
-  });
-
-  html += `<th>JENIS</th>`;
-  html += `<th>LINK</th>`;
-  html += `<th>VERIFIKASI</th>`;
-  html += `<th>KETERANGAN</th>`;
-  html += "</tr></thead><tbody>";
 
   pageRows.forEach(row => {
     const key = getRowKey(row);
@@ -438,12 +561,12 @@ function renderTable() {
     }
 
     html += renderVerifikasiCells(key);
-
     html += "</tr>";
   });
 
   html += "</tbody>";
   table.innerHTML = html;
+  
   const resultInfo = document.getElementById("resultInfo");
   if (resultInfo) {
     resultInfo.textContent =
@@ -627,8 +750,7 @@ async function loadData() {
         .filter(row => row.some(cell => clean(cell) !== ""));
 
       filteredRows = [...rows];
-      setupFilters();
-      renderTable();
+      initFilters();
     },
     error: (error) => {
       const el = document.getElementById("resultInfo");
@@ -638,11 +760,84 @@ async function loadData() {
   });
 }
 
-document.getElementById("searchInput").addEventListener("input", applyFilters);
+// Performa: Implementasi Event Listener yang telah di-debounce untuk pencarian utama
+const debouncedApplyFilters = debounce(applyFilters, 300);
+document.getElementById("searchInput").addEventListener("input", debouncedApplyFilters);
+
 document.getElementById("resetBtn").addEventListener("click", () => {
-  document.querySelectorAll("#filters select").forEach(s => s.value = "");
+  Object.keys(filterState).forEach(k => filterState[k].clear());
+  msSearchState = {}; // Reset pencarian mini
   document.getElementById("searchInput").value = "";
+  openFilterKey = null;
   applyFilters();
+});
+
+document.getElementById("filters").addEventListener("click", (e) => {
+  const toggleBtn = e.target.closest(".ms-toggle");
+  if (toggleBtn) {
+    const key = toggleBtn.closest(".ms-wrap").dataset.key;
+    openFilterKey = (openFilterKey === key) ? null : key;
+    renderFilterUI(getFilterDefinitions(), lastAvailableMap);
+    return;
+  }
+  const actBtn = e.target.closest("[data-act]");
+  if (actBtn) {
+    const key = actBtn.dataset.key;
+    const act = actBtn.dataset.act;
+    if (!filterState[key]) filterState[key] = new Set();
+    if (act === "clear") {
+      filterState[key].clear();
+    } else if (act === "all") {
+      filterState[key] = new Set(lastAvailableMap[key] || []);
+    }
+    openFilterKey = key; 
+    applyFilters();
+  }
+});
+
+// Listener untuk checkbox di panel filter
+document.getElementById("filters").addEventListener("change", (e) => {
+  const input = e.target.closest('input[type="checkbox"][data-key]');
+  if (!input) return;
+  const key = input.dataset.key;
+  const value = input.value;
+  if (!filterState[key]) filterState[key] = new Set();
+  if (input.checked) filterState[key].add(value);
+  else filterState[key].delete(value);
+  openFilterKey = key; 
+  applyFilters();
+});
+
+// Listener interaktif pencarian mini (filter tanpa re-render keseluruhan)
+document.getElementById("filters").addEventListener("input", (e) => {
+  if (e.target.classList.contains("ms-search-input")) {
+    const key = e.target.dataset.key;
+    const term = e.target.value.toLowerCase();
+    msSearchState[key] = term; // Simpan riwayat input supaya tidak lenyap saat di-render ulang
+
+    const panel = e.target.closest('.ms-panel');
+    const options = panel.querySelectorAll('.ms-option');
+    options.forEach(opt => {
+      const text = opt.textContent.toLowerCase();
+      opt.style.display = text.includes(term) ? 'flex' : 'none';
+    });
+  }
+});
+
+// Listener untuk menahan fokus pencarian saat render ulang
+document.getElementById("filters").addEventListener("focusin", (e) => {
+  if (e.target.classList.contains("ms-search-input")) focusedSearchKey = e.target.dataset.key;
+});
+document.getElementById("filters").addEventListener("focusout", (e) => {
+  if (e.target.classList.contains("ms-search-input")) focusedSearchKey = null;
+});
+
+// Klik di luar -> tutup panel 
+document.addEventListener("click", (e) => {
+  if (openFilterKey !== null && !e.target.closest(".ms-wrap")) {
+    openFilterKey = null;
+    renderFilterUI(getFilterDefinitions(), lastAvailableMap);
+  }
 });
 
 loadData();
