@@ -74,12 +74,34 @@
       border-collapse:collapse;
       font-size:11px;
     }
+    
+    /* --- CSS Sorting Headers --- */
     thead th{
       background:var(--primary);
       color:#fff;
       position:sticky;top:0;z-index:1;
       font-weight:700;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
     }
+    thead th:hover{
+      background: var(--primary-dark);
+    }
+    .sort-icon {
+      display: inline-block;
+      margin-left: 4px;
+      font-size: 10px;
+      vertical-align: middle;
+      transition: opacity 0.2s;
+    }
+    .sort-icon.inactive {
+      opacity: 0.3;
+    }
+    thead th:hover .sort-icon.inactive {
+      opacity: 0.8; /* Terang sedikit saat di-hover */
+    }
+    
     th,td{
       padding:5px 6px;
       border-bottom:1px solid var(--border);
@@ -105,7 +127,6 @@
       font-size:14px;
     }
 
-    /* Modifikasi hijau jika ada keterangan tooltip */
     .link-btn.has-ket, .dash-btn.has-ket {
       background: #DCFCE7;
       color: #166534;
@@ -311,6 +332,10 @@ let currentPage = 1;
 let PAGE_SIZE = 10;
 let submittedMap = {}; 
 let editingKeys = new Set(); 
+
+// --- Variabel State Sorting ---
+let sortCol = null;
+let sortAsc = true;
 
 let filterState = {};       
 let openFilterKey = null;   
@@ -522,6 +547,54 @@ function renderFilterUI(definitions, availableMap) {
   }
 }
 
+// --- Fungsi Eksekusi Sorting Array ---
+function applySort() {
+  if (!sortCol) return;
+  
+  filteredRows.sort((a, b) => {
+    let valA = "";
+    let valB = "";
+    const keyA = getRowKey(a);
+    const keyB = getRowKey(b);
+    
+    if (sortCol === "virtual_jenis") {
+      valA = getUnifiedHJI(a);
+      valB = getUnifiedHJI(b);
+    } else if (sortCol === "virtual_link") {
+      valA = clean(a[LINK_COLUMN]);
+      valB = clean(b[LINK_COLUMN]);
+    } else if (sortCol === "virtual_verif") {
+      valA = submittedMap[keyA] ? submittedMap[keyA].verifikasi : "Belum";
+      valB = submittedMap[keyB] ? submittedMap[keyB].verifikasi : "Belum";
+    } else if (sortCol === "virtual_ket") {
+      valA = submittedMap[keyA] ? (submittedMap[keyA].keterangan || "") : "";
+      valB = submittedMap[keyB] ? (submittedMap[keyB].keterangan || "") : "";
+    } else {
+      valA = clean(a[Number(sortCol)]);
+      valB = clean(b[Number(sortCol)]);
+    }
+
+    // Memastikan baris kosong selalu ada di bawah agar rapi
+    if (!valA && valB) return 1;
+    if (!valB && valA) return -1;
+
+    const cmp = valA.localeCompare(valB, 'id', { numeric: true, sensitivity: 'base' });
+    return sortAsc ? cmp : -cmp;
+  });
+}
+
+function handleSortClick(key) {
+  if (sortCol === key) {
+    sortAsc = !sortAsc;
+  } else {
+    sortCol = key;
+    sortAsc = true;
+  }
+  applySort();
+  currentPage = 1;
+  renderTable();
+}
+
 function applyFilters() {
   const definitions = getFilterDefinitions();
 
@@ -554,6 +627,8 @@ function applyFilters() {
   lastAvailableMap = availableMap;
   filteredRows = rows.filter(row => rowMatchesFilters(row, definitions, null) && matchesSearch(row));
 
+  applySort();
+  
   renderFilterUI(definitions, availableMap);
   currentPage = 1;
   renderTable();
@@ -605,11 +680,32 @@ function renderTable() {
   const highlightHeaders = ["USAHA UTP", "TINDAKAN", "KEMUNGKINAN", "STATUS"].map(normalizeHeader);
   const isHighlightCol = i => highlightHeaders.includes(normalizeHeader(headers[i]));
 
+  // --- Pembuatan Header Table dengan Atribut Sorting ---
   let html = "<thead><tr>";
   visibleColumns.forEach(i => {
-    html += `<th${isHighlightCol(i) ? ' class="col-highlight"' : ""}>${escapeHtml(headers[i] || `Kolom ${i+1}`)}</th>`;
+    const sortKey = String(i);
+    const isActive = sortCol === sortKey;
+    const icon = isActive ? (sortAsc ? "▲" : "▼") : "⇅";
+    const inactiveClass = isActive ? "" : " inactive";
+    html += `<th data-sort="${sortKey}"${isHighlightCol(i) ? ' class="col-highlight"' : ""}>
+               ${escapeHtml(headers[i] || `Kolom ${i+1}`)} <span class="sort-icon${inactiveClass}">${icon}</span>
+             </th>`;
   });
-  html += `<th>JENIS</th><th>LINK</th><th>VERIFIKASI</th><th>KETERANGAN</th></tr></thead><tbody>`;
+  
+  const virtuals = [
+    { key: "virtual_jenis", label: "JENIS" },
+    { key: "virtual_link", label: "LINK" },
+    { key: "virtual_verif", label: "VERIFIKASI" },
+    { key: "virtual_ket", label: "KETERANGAN" }
+  ];
+  virtuals.forEach(v => {
+    const isActive = sortCol === v.key;
+    const icon = isActive ? (sortAsc ? "▲" : "▼") : "⇅";
+    const inactiveClass = isActive ? "" : " inactive";
+    html += `<th data-sort="${v.key}">${v.label} <span class="sort-icon${inactiveClass}">${icon}</span></th>`;
+  });
+  
+  html += `</tr></thead><tbody>`;
 
   if (!filteredRows.length) {
     const colspanTotal = visibleColumns.length + 4; 
@@ -638,9 +734,14 @@ function renderTable() {
 
     const url = clean(row[LINK_COLUMN]);
     const tooltipTextRaw = clean(row[10]); 
-    const tooltipHtml = getHighlightedTooltip(tooltipTextRaw);
+    const ternakRaw = clean(row[22]);      
+    const lahanRaw = clean(row[23]);       
     
-    // LOGIKA WARNA HIJAU: Tambahkan class "has-ket" jika tooltip tidak kosong
+    let tooltipHtml = getHighlightedTooltip(tooltipTextRaw);
+    tooltipHtml += `<hr style="border:0;border-top:1px dashed rgba(255,255,255,0.3);margin:6px 0;">`;
+    tooltipHtml += `Jumlah ternak = ${escapeHtml(ternakRaw)}<br>`;
+    tooltipHtml += `Lahan = ${escapeHtml(lahanRaw)}`;
+    
     const ketClass = tooltipTextRaw !== "" ? " has-ket" : "";
 
     if (url && /^https?:\/\//i.test(url)) {
@@ -721,6 +822,14 @@ function attachVerifikasiHandlers() {
   });
 }
 
+// Menangkap event klik Table untuk proses Sorting
+document.getElementById("dataTable").addEventListener("click", (e) => {
+  const th = e.target.closest("th[data-sort]");
+  if (th) {
+    handleSortClick(th.dataset.sort);
+  }
+});
+
 async function saveVerifikasi(key) {
   const select = document.querySelector(`.verif-select[data-key="${cssEscape(key)}"]`);
   const input = document.querySelector(`.keterangan-input[data-key="${cssEscape(key)}"]`);
@@ -738,34 +847,46 @@ async function saveVerifikasi(key) {
   }
 
   const rowRef = rows.find(r => getRowKey(r) === key);
-  const payload = {
-    key,
-    kecamatan: rowRef ? clean(rowRef[findColumnByHeader("KECAMATAN")]) : "",
-    desa: rowRef ? clean(rowRef[findColumnByHeader("DESA")]) : "",
-    sls: rowRef ? clean(rowRef[findColumnByHeader("SLS")]) : "",
-    namaUtp: rowRef ? clean(rowRef[findColumnByHeader("NAMA UTP")]) : "",
-    verifikasi,
-    keterangan
-  };
+  const linkValue = rowRef ? clean(rowRef[LINK_COLUMN]) : "";
+
+  let keysToSave = [key];
+  if (linkValue && /^https?:\/\//i.test(linkValue)) {
+    keysToSave = rows.filter(r => clean(r[LINK_COLUMN]) === linkValue).map(r => getRowKey(r));
+    keysToSave = [...new Set(keysToSave)]; 
+  }
 
   if (btn) { btn.disabled = true; btn.textContent = "Menyimpan..."; }
 
   try {
-    const res = await fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" }, 
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-    if (!data || data.status !== "ok") throw new Error((data && data.message) || "Gagal menyimpan");
+    for (const k of keysToSave) {
+      const rRef = rows.find(r => getRowKey(r) === k);
+      const payload = {
+        key: k,
+        kecamatan: rRef ? clean(rRef[findColumnByHeader("KECAMATAN")]) : "",
+        desa: rRef ? clean(rRef[findColumnByHeader("DESA")]) : "",
+        sls: rRef ? clean(rRef[findColumnByHeader("SLS")]) : "",
+        namaUtp: rRef ? clean(rRef[findColumnByHeader("NAMA UTP")]) : "",
+        verifikasi,
+        keterangan
+      };
 
-    submittedMap[key] = { verifikasi, keterangan, timestamp: data.timestamp || new Date().toISOString() };
-    editingKeys.delete(key);
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" }, 
+        body: JSON.stringify(payload)
+      });
+      
+      const data = await res.json();
+      if (!data || data.status !== "ok") throw new Error((data && data.message) || "Gagal menyimpan");
+
+      submittedMap[k] = { verifikasi, keterangan, timestamp: data.timestamp || new Date().toISOString() };
+      editingKeys.delete(k);
+    }
     
     applyFilters(); 
   } catch (err) {
     console.error(err);
-    alert("Gagal menyimpan ke server. Coba lagi.");
+    alert("Gagal menyimpan beberapa data ke server. Coba lagi.");
     if (btn) { btn.disabled = false; btn.textContent = "Simpan"; }
   }
 }
@@ -863,7 +984,21 @@ async function loadData() {
       }
 
       headers = result.data[0].map(clean);
-      rows = result.data.slice(1)
+      
+      // LOGIKA BARU: Cari baris terbesar di mana Kolom U (Index 20) ada isinya
+      let lastValidIndex = result.data.length - 1;
+      let foundLink = false;
+      for (let i = result.data.length - 1; i >= 1; i--) {
+        if (clean(result.data[i][LINK_COLUMN]) !== "") {
+          lastValidIndex = i;
+          foundLink = true;
+          break;
+        }
+      }
+      // Potong data hanya sampai baris terbesar tersebut agar pembacaan lebih akurat
+      const sliceEnd = foundLink ? lastValidIndex + 1 : result.data.length;
+
+      rows = result.data.slice(1, sliceEnd)
         .filter(row => row.some(cell => clean(cell) !== ""));
 
       filteredRows = [...rows];
@@ -885,6 +1020,7 @@ document.getElementById("resetBtn").addEventListener("click", () => {
   msSearchState = {}; 
   document.getElementById("searchInput").value = "";
   openFilterKey = null;
+  sortCol = null; // reset sorting juga
   applyFilters();
 });
 
