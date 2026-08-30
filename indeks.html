@@ -426,9 +426,41 @@
   .def-item:last-child{ margin-bottom:0; }
   .def-item b{ color:var(--brown); }
 
+  .inf-body{
+    display:grid; grid-template-columns:250px 1fr; gap:14px; align-items:start;
+  }
+  .inf-picker-col{ display:flex; flex-direction:column; gap:14px; }
+  .inf-picker-col .compare-picker{ max-height:300px; }
+  .inf-transform-panel{
+    background:var(--card-bg); border:1px solid var(--line); border-radius:12px;
+    padding:10px 12px; margin-bottom:14px;
+  }
+  .inf-transform-title{
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; font-weight:700;
+    color:var(--orange-deep); margin-bottom:8px;
+  }
+  .inf-transform-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:5px 0; border-bottom:1px dashed var(--line);
+  }
+  .inf-transform-row:last-child{ border-bottom:none; }
+  .inf-transform-label{ font-size:12px; color:var(--brown); font-weight:600; }
+  .inf-transform-btns{ display:flex; gap:4px; flex-shrink:0; }
+  .inf-tbtn{
+    font-family:'Inter',sans-serif; font-size:11px; font-weight:600;
+    padding:4px 10px; border-radius:100px; border:1px solid var(--line);
+    background:var(--white); color:var(--brown-mid); cursor:pointer;
+  }
+  .inf-tbtn.active{ background:var(--orange); color:#fff; border-color:var(--orange); }
+  .inf-diag-note{ font-size:11px; color:var(--brown-soft); margin-top:6px; }
+
+  @media (max-width:900px){
+    .inf-body{ grid-template-columns:1fr; }
+  }
   @media (max-width:760px){
     .compare-body{ grid-template-columns:1fr; }
     .compare-picker{ max-height:240px; }
+    .inf-body{ grid-template-columns:1fr; }
   }
 
   /* ===== Shift-Share Dinamis ===== */
@@ -1189,6 +1221,16 @@ let compareChart = null;
 let compareChartType = 'line';
 const COMPARE_COLORS = ['#4A1620','#B23A48','#7A2636','#9C3B4C','#6B2737','#C4636F','#2E0D14','#8C4A56'];
 
+/* ===== Analisis Inferensia (Regresi Linear & Korelasi) ===== */
+let infMode = false;
+let infPeriode = null;
+let infIndex = {};
+let infY = null;            // key variabel dependen terpilih
+let infX = new Set();       // keys variabel independen terpilih
+let infYTransform = 'linear';   // 'linear' | 'ln'
+let infXTransform = {};         // {key: 'linear'|'ln'}
+let infChart = null;
+
 /* ===== Shift-Share Dinamis ===== */
 const SS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcl1gMindMWTFT3LgR_k72Le9Gm94rR2F5kvJYHzMgfW9SNrwa-8xuZsaAtw649uyBfskx3A9VoYR1/pub?gid=78489782&single=true&output=csv";
 // Struktur data yang diharapkan: satu baris = satu interval tahun (Tahun_Awal -> Tahun_Akhir) per Kategori
@@ -1587,7 +1629,7 @@ function renderTabs(){
     const btn = document.createElement('button');
     btn.className = 'tab' + (!compareMode && !ssMode && p===activePeriode?' active':'');
     btn.textContent = p;
-    btn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; activePeriode = p; renderTabs(); renderContent(p); };
+    btn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; activePeriode = p; renderTabs(); renderContent(p); };
     tabsEl.appendChild(btn);
   });
 
@@ -1598,37 +1640,43 @@ function renderTabs(){
   const cmpBtn = document.createElement('button');
   cmpBtn.className = 'tab' + (compareMode ? ' active' : '');
   cmpBtn.textContent = 'Bandingkan';
-  cmpBtn.onclick = ()=>{ compareMode = true; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; renderTabs(); renderCompareView(); };
+  cmpBtn.onclick = ()=>{ compareMode = true; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; renderTabs(); renderCompareView(); };
   tabsEl.appendChild(cmpBtn);
+
+  const infBtn = document.createElement('button');
+  infBtn.className = 'tab' + (infMode ? ' active' : '');
+  infBtn.textContent = 'Inferensia*';
+  infBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = true; renderTabs(); renderInferensiaView(); };
+  tabsEl.appendChild(infBtn);
 
   const ssBtn = document.createElement('button');
   ssBtn.className = 'tab' + (ssMode ? ' active' : '');
   ssBtn.textContent = 'Shift-Share';
-  ssBtn.onclick = ()=>{ compareMode = false; ssMode = true; lqMode = false; convMode = false; divMode = false; advMode = false; renderTabs(); renderShiftShareView(); };
+  ssBtn.onclick = ()=>{ compareMode = false; ssMode = true; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; renderTabs(); renderShiftShareView(); };
   tabsEl.appendChild(ssBtn);
 
   const lqBtn = document.createElement('button');
   lqBtn.className = 'tab' + (lqMode ? ' active' : '');
   lqBtn.textContent = 'LQ';
-  lqBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = true; convMode = false; divMode = false; advMode = false; renderTabs(); renderLQView(); };
+  lqBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = true; convMode = false; divMode = false; advMode = false; infMode = false; renderTabs(); renderLQView(); };
   tabsEl.appendChild(lqBtn);
 
   const convBtn = document.createElement('button');
   convBtn.className = 'tab' + (convMode ? ' active' : '');
   convBtn.textContent = 'Konvergensi';
-  convBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = true; divMode = false; advMode = false; renderTabs(); renderKonvergensiView(); };
+  convBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = true; divMode = false; advMode = false; infMode = false; renderTabs(); renderKonvergensiView(); };
   tabsEl.appendChild(convBtn);
 
   const divBtn = document.createElement('button');
   divBtn.className = 'tab' + (divMode ? ' active' : '');
   divBtn.textContent = 'Diversitas';
-  divBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = true; advMode = false; renderTabs(); renderDiversityView(); };
+  divBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = true; advMode = false; infMode = false; renderTabs(); renderDiversityView(); };
   tabsEl.appendChild(divBtn);
 
   const advBtn = document.createElement('button');
   advBtn.className = 'tab' + (advMode ? ' active' : '');
   advBtn.textContent = 'Struktural';
-  advBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = true; renderTabs(); renderAdvancedView(); };
+  advBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = true; infMode = false; renderTabs(); renderAdvancedView(); };
   tabsEl.appendChild(advBtn);
 }
 
@@ -3604,6 +3652,436 @@ function buildCompareIndex(periode){
     });
   });
   return idx;
+}
+
+/* ---------- Statistik inferensia: matriks, korelasi, distribusi t/F ---------- */
+function matInverse(A){
+  const n = A.length;
+  const M = A.map((row,i)=> row.concat(Array.from({length:n},(_,j)=> i===j?1:0)));
+  for(let col=0; col<n; col++){
+    let pivot = col;
+    for(let r=col+1;r<n;r++){ if(Math.abs(M[r][col])>Math.abs(M[pivot][col])) pivot=r; }
+    if(Math.abs(M[pivot][col]) < 1e-9) return null;
+    const tmp = M[col]; M[col]=M[pivot]; M[pivot]=tmp;
+    const pv = M[col][col];
+    for(let c=0;c<2*n;c++) M[col][c]/=pv;
+    for(let r=0;r<n;r++){
+      if(r===col) continue;
+      const factor = M[r][col];
+      for(let c=0;c<2*n;c++) M[r][c]-= factor*M[col][c];
+    }
+  }
+  return M.map(row=>row.slice(n));
+}
+function pearsonR(xs, ys){
+  const n = xs.length;
+  const mx = xs.reduce((a,b)=>a+b,0)/n, my = ys.reduce((a,b)=>a+b,0)/n;
+  let sxy=0,sxx=0,syy=0;
+  for(let i=0;i<n;i++){ const dx=xs[i]-mx, dy=ys[i]-my; sxy+=dx*dy; sxx+=dx*dx; syy+=dy*dy; }
+  return (sxx>0&&syy>0) ? sxy/Math.sqrt(sxx*syy) : 0;
+}
+function lgammaFn(x){
+  const g=7;
+  const c=[0.99999999999980993,676.5203681218851,-1259.1392167224028,771.32342877765313,-176.61502916214059,12.507343278686905,-0.13857109526572012,9.9843695780195716e-6,1.5056327351493116e-7];
+  if(x<0.5) return Math.log(Math.PI/Math.sin(Math.PI*x)) - lgammaFn(1-x);
+  x-=1; let a=c[0]; const t=x+g+0.5;
+  for(let i=1;i<g+2;i++) a+=c[i]/(x+i);
+  return 0.5*Math.log(2*Math.PI)+(x+0.5)*Math.log(t)-t+Math.log(a);
+}
+function betacf(a,b,x){
+  const MAXIT=200, EPS=3e-7, FPMIN=1e-30;
+  const qab=a+b, qap=a+1, qam=a-1;
+  let c=1, d=1-qab*x/qap;
+  if(Math.abs(d)<FPMIN) d=FPMIN;
+  d=1/d; let h=d;
+  for(let m=1;m<=MAXIT;m++){
+    const m2=2*m;
+    let aa = m*(b-m)*x/((qam+m2)*(a+m2));
+    d = 1+aa*d; if(Math.abs(d)<FPMIN) d=FPMIN;
+    c = 1+aa/c; if(Math.abs(c)<FPMIN) c=FPMIN;
+    d=1/d; h*=d*c;
+    aa = -(a+m)*(qab+m)*x/((a+m2)*(qap+m2));
+    d = 1+aa*d; if(Math.abs(d)<FPMIN) d=FPMIN;
+    c = 1+aa/c; if(Math.abs(c)<FPMIN) c=FPMIN;
+    d=1/d; const del=d*c; h*=del;
+    if(Math.abs(del-1)<EPS) break;
+  }
+  return h;
+}
+function betai(a,b,x){
+  if(x<=0) return 0; if(x>=1) return 1;
+  const bt = Math.exp(lgammaFn(a+b)-lgammaFn(a)-lgammaFn(b)+a*Math.log(x)+b*Math.log(1-x));
+  if(x < (a+1)/(a+b+2)) return bt*betacf(a,b,x)/a;
+  return 1-bt*betacf(b,a,1-x)/b;
+}
+function tDistPValue(t, df){ return betai(df/2, 0.5, df/(df+t*t)); }
+function fDistPValue(f, d1, d2){ if(f<=0) return 1; return betai(d2/2, d1/2, d2/(d2+d1*f)); }
+
+/* Regularized incomplete gamma (untuk uji Chi-Square Breusch-Pagan) */
+function gser(a,x){
+  const ITMAX=200, EPS=3e-9;
+  if(x<=0) return 0;
+  let ap=a, sum=1/a, del=sum;
+  for(let n=1;n<=ITMAX;n++){
+    ap+=1; del*=x/ap; sum+=del;
+    if(Math.abs(del) < Math.abs(sum)*EPS) break;
+  }
+  return sum*Math.exp(-x+a*Math.log(x)-lgammaFn(a));
+}
+function gcf(a,x){
+  const ITMAX=200, EPS=3e-9, FPMIN=1e-30;
+  let b=x+1-a, c=1/FPMIN, d=1/b, h=d;
+  for(let i=1;i<=ITMAX;i++){
+    const an=-i*(i-a);
+    b+=2;
+    d=an*d+b; if(Math.abs(d)<FPMIN) d=FPMIN;
+    c=b+an/c; if(Math.abs(c)<FPMIN) c=FPMIN;
+    d=1/d; const del=d*c; h*=del;
+    if(Math.abs(del-1)<EPS) break;
+  }
+  return Math.exp(-x+a*Math.log(x)-lgammaFn(a))*h;
+}
+function gammp(a,x){ if(x<0||a<=0) return 0; if(x < a+1) return gser(a,x); return 1-gcf(a,x); }
+function chiSqUpperP(x, k){ if(x<=0) return 1; return 1-gammp(k/2, x/2); }
+
+function infGetSeriesMap(key, transform){
+  const e = infIndex[key];
+  if(!e) return {};
+  const m = {};
+  e.entries.forEach(pt=>{
+    if(pt.data==null || isNaN(pt.data)) return;
+    if(transform==='ln'){
+      if(pt.data > 0) m[pt.tahun] = Math.log(pt.data);
+    } else {
+      m[pt.tahun] = pt.data;
+    }
+  });
+  return m;
+}
+
+/* OLS inti: X = matriks desain (kolom pertama harus 1 untuk intercept), Y = vektor target */
+function olsFit(X, Y){
+  const n = X.length, p = X[0].length;
+  const XtX = Array.from({length:p},()=>Array(p).fill(0));
+  const XtY = Array(p).fill(0);
+  for(let i=0;i<n;i++){
+    for(let a=0;a<p;a++){
+      XtY[a] += X[i][a]*Y[i];
+      for(let b=0;b<p;b++){ XtX[a][b] += X[i][a]*X[i][b]; }
+    }
+  }
+  const XtXinv = matInverse(XtX);
+  if(!XtXinv) return null;
+  const beta = Array(p).fill(0);
+  for(let a=0;a<p;a++){ for(let b=0;b<p;b++){ beta[a]+= XtXinv[a][b]*XtY[b]; } }
+  const yHat = X.map(row=> row.reduce((s,v,i)=>s+v*beta[i],0));
+  const residuals = Y.map((v,i)=> v - yHat[i]);
+  const yMean = Y.reduce((a,b)=>a+b,0)/n;
+  const sse = residuals.reduce((s,r)=>s+r*r,0);
+  const sst = Y.reduce((s,v)=>s+(v-yMean)*(v-yMean),0);
+  const r2 = sst>0 ? 1 - sse/sst : 0;
+  return { beta, yHat, residuals, sse, sst, r2, n, p, XtXinv };
+}
+
+function computeRegression(yKey, xKeys, yTransform, xTransforms){
+  const yMap = infGetSeriesMap(yKey, yTransform);
+  const xMaps = xKeys.map((k,i)=> infGetSeriesMap(k, xTransforms[i]));
+  const years = Object.keys(yMap).map(Number).filter(t=> xMaps.every(m=> m[t]!=null)).sort((a,b)=>a-b);
+  const n = years.length, k = xKeys.length, p = k+1;
+  if(n < p+2) return {error:`Data tidak cukup — butuh minimal ${p+2} tahun beririsan (agar diagnostik bisa dihitung), baru tersedia ${n} tahun. Coba ganti transformasi Ln kalau ada nilai ≤ 0 yang terbuang.`};
+
+  const X = years.map(t=> [1, ...xMaps.map(m=>m[t])]);
+  const Y = years.map(t=> yMap[t]);
+  const fit = olsFit(X, Y);
+  if(!fit) return {error:'Variabel independen yang dipilih terlalu berkorelasi satu sama lain (multikolinearitas sempurna), koefisien tidak bisa dihitung. Coba kurangi/ganti variabel X.'};
+
+  const { beta, residuals, sse, sst, r2 } = fit;
+  const df = n-p;
+  const adjR2 = df>0 ? 1-(1-r2)*(n-1)/df : r2;
+  const mse = df>0 ? sse/df : 0;
+  const seCoef = Array(p).fill(0), tStat = Array(p).fill(0), pVal = Array(p).fill(1);
+  for(let a=0;a<p;a++){
+    seCoef[a] = Math.sqrt(Math.max(mse*fit.XtXinv[a][a],0));
+    tStat[a] = seCoef[a]>0 ? beta[a]/seCoef[a] : 0;
+    pVal[a] = df>0 ? tDistPValue(Math.abs(tStat[a]), df) : 1;
+  }
+  const msr = k>0 ? (sst-sse)/k : 0;
+  const fStat = (df>0 && mse>0) ? msr/mse : 0;
+  const fP = (df>0 && k>0) ? fDistPValue(fStat, k, df) : 1;
+  const pearson = xKeys.map((xk,i)=>{ const xs = years.map(t=>xMaps[i][t]); return pearsonR(xs, Y); });
+
+  // VIF — regresi tiap X terhadap X lainnya
+  const vif = xKeys.map((xk,i)=>{
+    if(k<2) return null;
+    const otherIdx = xKeys.map((_,j)=>j).filter(j=>j!==i);
+    const Xo = years.map(t=> [1, ...otherIdx.map(j=>xMaps[j][t])]);
+    const Yo = years.map(t=> xMaps[i][t]);
+    const auxFit = olsFit(Xo, Yo);
+    if(!auxFit) return Infinity;
+    return auxFit.r2 < 0.999999 ? 1/(1-auxFit.r2) : Infinity;
+  });
+
+  // Breusch-Pagan — heteroskedastisitas: regresikan residual² terhadap X
+  const sq = residuals.map(r=>r*r);
+  const bpFit = olsFit(X, sq);
+  let bpLM = 0, bpP = 1;
+  if(bpFit){ bpLM = n*bpFit.r2; bpP = k>0 ? chiSqUpperP(bpLM, k) : 1; }
+
+  // Durbin-Watson — autokorelasi (residual sudah terurut tahun ascending)
+  let dwNum=0, dwDen=0;
+  for(let i=0;i<residuals.length;i++){
+    dwDen += residuals[i]*residuals[i];
+    if(i>0) dwNum += (residuals[i]-residuals[i-1])**2;
+  }
+  const dw = dwDen>0 ? dwNum/dwDen : null;
+
+  return { n, k, beta, seCoef, tStat, pVal, r2, adjR2, fStat, fP, df, pearson, years, residuals, vif, bpLM, bpP, dw };
+}
+
+/* ---------- Tab Inferensia: UI ---------- */
+function renderInferensiaView(){
+  const filterPanel = document.getElementById('kelFilterPanel');
+  if(filterPanel) filterPanel.style.display = 'none';
+
+  if(!infPeriode || !STORE[infPeriode]) infPeriode = STORE.__order[0];
+  infIndex = buildCompareIndex(infPeriode);
+
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <section class="compare-wrap">
+      <div class="compare-intro">
+        <h2>Analisis Inferensia</h2>
+        <p>Uji hubungan statistik antar indikator kuantitatif dengan regresi linear (sederhana/berganda) dan korelasi Pearson, lengkap dengan diagnostik VIF, Breusch-Pagan, dan Durbin-Watson. Pilih satu variabel dependen (Y) dan satu atau lebih variabel independen (X) — persamaan, koefisien, dan signifikansinya akan tampil otomatis. Penghitungan ini hanya untuk simulasi.*</p>
+      </div>
+      <div class="compare-controls">
+        <div class="ctrl-item"><label>Periode</label><select id="infPeriodeSel"></select></div>
+        <button class="cmp-clear" id="infClear">Hapus pilihan</button>
+      </div>
+      <div class="inf-body">
+        <div class="inf-picker-col">
+          <div class="compare-picker" id="infYPicker"></div>
+          <div class="compare-picker" id="infXPicker"></div>
+        </div>
+        <div>
+          <div id="infTransformPanel"></div>
+          <div class="compare-chart-area" id="infResultArea"></div>
+        </div>
+      </div>
+    </section>
+  `;
+
+  const periodeSel = document.getElementById('infPeriodeSel');
+  STORE.__order.forEach(p=>{ periodeSel.innerHTML += `<option value="${p}" ${p===infPeriode?'selected':''}>${p}</option>`; });
+  periodeSel.onchange = ()=>{ infPeriode = periodeSel.value; infY=null; infX.clear(); infXTransform={}; infYTransform='linear'; renderInferensiaView(); };
+  document.getElementById('infClear').onclick = ()=>{ infY=null; infX.clear(); infXTransform={}; infYTransform='linear'; renderInfPickers(); renderInfTransformPanel(); renderInfResult(); };
+
+  renderInfPickers();
+  renderInfTransformPanel();
+  renderInfResult();
+}
+
+function renderInfPickers(){
+  const katObj = STORE[infPeriode];
+  const yPicker = document.getElementById('infYPicker');
+  const xPicker = document.getElementById('infXPicker');
+  if(!yPicker || !xPicker) return;
+
+  let yHtml = '<div class="picker-kategori" style="margin-top:0;">🎯 Variabel Dependen (Y)</div>';
+  let xHtml = '<div class="picker-kategori" style="margin-top:0;">📊 Variabel Independen (X)</div>';
+  Object.keys(katObj).forEach(kategori=>{
+    yHtml += `<div class="picker-kelompok">${escapeHtml(kategori)}</div>`;
+    xHtml += `<div class="picker-kelompok">${escapeHtml(kategori)}</div>`;
+    Object.keys(katObj[kategori]).forEach(kelompok=>{
+      Object.keys(katObj[kategori][kelompok]).forEach(sub=>{
+        const key = `${kategori}|||${kelompok}|||${sub}`;
+        const unit = SATUAN[sub] ? ` (${SATUAN[sub]})` : '';
+        const yChecked = infY===key ? 'checked' : '';
+        yHtml += `<label class="picker-item">
+          <input type="radio" name="infYRadio" data-key="${encodeURIComponent(key)}" ${yChecked}>
+          <span>${escapeHtml(sub)}${escapeHtml(unit)}</span>
+        </label>`;
+        if(key===infY) return;
+        const xChecked = infX.has(key) ? 'checked' : '';
+        xHtml += `<label class="picker-item">
+          <input type="checkbox" data-key="${encodeURIComponent(key)}" ${xChecked}>
+          <span>${escapeHtml(sub)}${escapeHtml(unit)}</span>
+        </label>`;
+      });
+    });
+  });
+  yPicker.innerHTML = yHtml;
+  xPicker.innerHTML = xHtml;
+
+  yPicker.querySelectorAll('input[name=infYRadio]').forEach(rb=>{
+    rb.onchange = ()=>{
+      infY = decodeURIComponent(rb.dataset.key);
+      infX.delete(infY);
+      delete infXTransform[infY];
+      renderInfPickers();
+      renderInfTransformPanel();
+      renderInfResult();
+    };
+  });
+  xPicker.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.onchange = ()=>{
+      const key = decodeURIComponent(cb.dataset.key);
+      if(cb.checked){
+        if(infX.size >= 4){ cb.checked=false; alert('Maksimal 4 variabel independen sekaligus supaya hasil regresi tetap stabil & mudah dibaca.'); return; }
+        infX.add(key);
+        if(!infXTransform[key]) infXTransform[key] = 'linear';
+      } else {
+        infX.delete(key);
+        delete infXTransform[key];
+      }
+      renderInfTransformPanel();
+      renderInfResult();
+    };
+  });
+}
+
+function renderInfTransformPanel(){
+  const panel = document.getElementById('infTransformPanel');
+  if(!panel) return;
+  if(!infY && infX.size===0){ panel.innerHTML=''; return; }
+
+  const rowHtml = (key, label, current, isY)=> `
+    <div class="inf-transform-row">
+      <span class="inf-transform-label">${isY?'Y — ':''}${escapeHtml(label)}</span>
+      <div class="inf-transform-btns">
+        <button type="button" class="inf-tbtn ${current==='linear'?'active':''}" data-target="${isY?'y':encodeURIComponent(key)}" data-val="linear">Linear</button>
+        <button type="button" class="inf-tbtn ${current==='ln'?'active':''}" data-target="${isY?'y':encodeURIComponent(key)}" data-val="ln">Ln</button>
+      </div>
+    </div>`;
+
+  let html = '<div class="inf-transform-panel"><div class="inf-transform-title">Bentuk Variabel</div>';
+  if(infY) html += rowHtml(infY, infIndex[infY].sub, infYTransform, true);
+  [...infX].forEach(key=> html += rowHtml(key, infIndex[key].sub, infXTransform[key]||'linear', false));
+  html += '<div class="inf-diag-note">Ln (logaritma natural) berguna untuk data yang bertumbuh eksponensial / elastisitas. Tahun dengan nilai ≤ 0 otomatis dikeluarkan dari perhitungan saat Ln dipilih.</div></div>';
+  panel.innerHTML = html;
+
+  panel.querySelectorAll('.inf-tbtn').forEach(btn=>{
+    btn.onclick = ()=>{
+      const target = btn.dataset.target;
+      const val = btn.dataset.val;
+      if(target==='y') infYTransform = val;
+      else infXTransform[decodeURIComponent(target)] = val;
+      renderInfTransformPanel();
+      renderInfResult();
+    };
+  });
+}
+
+function renderInfResult(){
+  const area = document.getElementById('infResultArea');
+  if(!area) return;
+
+  if(!infY){
+    area.innerHTML = `<div class="compare-empty">Centang variabel dependen (Y) dan minimal satu variabel independen (X) di samping untuk memulai analisis regresi.</div>`;
+    return;
+  }
+  if(infX.size===0){
+    area.innerHTML = `<div class="compare-empty">Centang minimal satu variabel independen (X) di samping.</div>`;
+    return;
+  }
+
+  const xKeys = [...infX];
+  const xTransforms = xKeys.map(k=> infXTransform[k]||'linear');
+  const res = computeRegression(infY, xKeys, infYTransform, xTransforms);
+  if(res.error){
+    area.innerHTML = `<div class="compare-empty">⚠️ ${escapeHtml(res.error)}</div>`;
+    return;
+  }
+
+  const yLabel = (infYTransform==='ln'?'ln(':'') + infIndex[infY].sub + (infYTransform==='ln'?')':'');
+  const xLabels = xKeys.map((k,i)=> (xTransforms[i]==='ln'?'ln(':'') + infIndex[k].sub + (xTransforms[i]==='ln'?')':''));
+  const sig = p=> p<0.001?'***':p<0.01?'**':p<0.05?'*':p<0.1?'.':'';
+
+  let eq = `Ŷ = ${res.beta[0].toFixed(4)}`;
+  xLabels.forEach((lbl,i)=>{ const b=res.beta[i+1]; eq += ` ${b>=0?'+':'−'} ${Math.abs(b).toFixed(4)}·X${i+1}`; });
+
+  let coefRows = `<tr><td>Konstanta (Intercept)</td><td>${res.beta[0].toFixed(4)}</td><td>${res.seCoef[0].toFixed(4)}</td><td>${res.tStat[0].toFixed(3)}</td><td>${res.pVal[0]<0.0001?'<0.0001':res.pVal[0].toFixed(4)} ${sig(res.pVal[0])}</td><td>–</td></tr>`;
+  xLabels.forEach((lbl,i)=>{
+    const vifVal = res.vif[i];
+    const vifTxt = vifVal===null ? '–' : (vifVal===Infinity ? '∞' : vifVal.toFixed(2));
+    coefRows += `<tr><td>X${i+1} — ${escapeHtml(lbl)}</td><td>${res.beta[i+1].toFixed(4)}</td><td>${res.seCoef[i+1].toFixed(4)}</td><td>${res.tStat[i+1].toFixed(3)}</td><td>${res.pVal[i+1]<0.0001?'<0.0001':res.pVal[i+1].toFixed(4)} ${sig(res.pVal[i+1])}</td><td>${vifTxt}</td></tr>`;
+  });
+
+  const corrRows = xLabels.map((lbl,i)=> `<tr><td>${escapeHtml(lbl)} — ${escapeHtml(yLabel)}</td><td>${res.pearson[i].toFixed(3)}</td></tr>`).join('');
+
+  const methodLabel = xKeys.length===1 ? 'Regresi Linear Sederhana' : 'Regresi Linear Berganda';
+
+  const bpLabel = res.bpP < 0.05 ? 'Terindikasi heteroskedastisitas' : 'Tidak terindikasi (homoskedastis)';
+  const bpColor = res.bpP < 0.05 ? '#B23A48' : '#3e5a2a';
+  const dwLabel = res.dw==null ? 'N/A'
+    : res.dw < 1.5 ? 'Indikasi autokorelasi positif'
+    : res.dw > 2.5 ? 'Indikasi autokorelasi negatif'
+    : 'Tidak ada indikasi autokorelasi';
+  const dwColor = (res.dw!=null && (res.dw<1.5 || res.dw>2.5)) ? '#B23A48' : '#3e5a2a';
+  const maxVif = res.vif.filter(v=>v!==null).length ? Math.max(...res.vif.filter(v=>v!==null && isFinite(v))) : null;
+  const vifNote = res.k<2 ? 'VIF hanya relevan untuk regresi berganda (≥2 variabel X).'
+    : (maxVif!=null && maxVif>=10) ? '⚠️ Ada VIF ≥ 10 — multikolinearitas cukup serius, pertimbangkan mengurangi/mengganti variabel X.'
+    : (maxVif!=null && maxVif>=5) ? 'VIF ≥ 5 pada beberapa variabel — multikolinearitas sedang, perlu diperhatikan.'
+    : 'VIF di semua variabel X berada di level aman (< 5).';
+
+  area.innerHTML = `
+    <div class="ss-section-title" style="margin-top:0;">${methodLabel}</div>
+    <div class="ss-kpi-grid">
+      <div class="stat-box"><div class="stat-label">R²</div><div class="stat-value" style="font-size:15px;">${(res.r2*100).toFixed(1)}%</div></div>
+      <div class="stat-box"><div class="stat-label">Adjusted R²</div><div class="stat-value" style="font-size:15px;">${(res.adjR2*100).toFixed(1)}%</div></div>
+      <div class="stat-box"><div class="stat-label">N (tahun beririsan)</div><div class="stat-value" style="font-size:15px;">${res.n}</div></div>
+      <div class="stat-box"><div class="stat-label">F-statistik</div><div class="stat-value" style="font-size:15px;">${res.fStat.toFixed(2)} <span style="font-size:11px;font-weight:500;">(p=${res.fP<0.0001?'<0.0001':res.fP.toFixed(4)})</span></div></div>
+    </div>
+    <div class="ss-section-title">Persamaan Regresi</div>
+    <div class="formula-list" style="font-family:'Inter',monospace;background:var(--cream-deep);padding:10px 14px;border-radius:8px;">${escapeHtml(eq)}</div>
+    <div class="ss-section-title">Koefisien &amp; VIF</div>
+    <div class="ss-table-wrap"><table class="ss-table">
+      <thead><tr><th>Variabel</th><th>Koefisien (B)</th><th>Std. Error</th><th>t</th><th>Sig. (p)</th><th>VIF</th></tr></thead>
+      <tbody>${coefRows}</tbody>
+    </table></div>
+    <div class="formula-caption">Signifikansi: *** p&lt;0.001 &nbsp; ** p&lt;0.01 &nbsp; * p&lt;0.05 &nbsp; . p&lt;0.1 &nbsp;|&nbsp; ${escapeHtml(vifNote)}</div>
+
+    <div class="ss-section-title">Uji Asumsi Klasik</div>
+    <div class="ss-kpi-grid">
+      <div class="stat-box"><div class="stat-label">Breusch-Pagan (Heteroskedastisitas)</div><div class="stat-value" style="font-size:13.5px;color:${bpColor};">${bpLabel}</div><div class="inf-diag-note" style="margin-top:4px;">LM=${res.bpLM.toFixed(2)}, p=${res.bpP<0.0001?'<0.0001':res.bpP.toFixed(4)}</div></div>
+      <div class="stat-box"><div class="stat-label">Durbin-Watson (Autokorelasi)</div><div class="stat-value" style="font-size:13.5px;color:${dwColor};">${res.dw!=null?res.dw.toFixed(3):'N/A'} · ${dwLabel}</div><div class="inf-diag-note" style="margin-top:4px;">Aturan umum: ~2 = tidak ada autokorelasi</div></div>
+    </div>
+
+    <div class="ss-section-title">Korelasi Pearson (X vs Y)</div>
+    <div class="ss-table-wrap"><table class="ss-table">
+      <thead><tr><th>Pasangan</th><th>r</th></tr></thead>
+      <tbody>${corrRows}</tbody>
+    </table></div>
+    ${xKeys.length===1 ? `<div class="ss-section-title">Diagram Sebar &amp; Garis Regresi</div><div class="chart-box-wrap"><div class="chart-box" style="height:320px;"><canvas id="infScatterCanvas"></canvas></div></div>` : ''}
+  `;
+
+  if(xKeys.length===1){
+    renderInfScatterChart(res, xKeys[0], xTransforms[0], yLabel, xLabels[0]);
+  }
+}
+
+function renderInfScatterChart(res, xKey, xTransform, yLabel, xLabel){
+  const ctx = document.getElementById('infScatterCanvas');
+  if(!ctx) return;
+  if(infChart){ infChart.destroy(); }
+  const xMap = infGetSeriesMap(xKey, xTransform);
+  const yMap = infGetSeriesMap(infY, infYTransform);
+  const points = res.years.map(t=>({x:xMap[t], y:yMap[t]}));
+  const xs = points.map(p=>p.x);
+  const xMin = Math.min(...xs), xMax = Math.max(...xs);
+  const linePts = [{x:xMin, y: res.beta[0]+res.beta[1]*xMin}, {x:xMax, y: res.beta[0]+res.beta[1]*xMax}];
+  infChart = new Chart(ctx, {
+    data:{ datasets:[
+      { type:'scatter', label: yLabel, data: points, backgroundColor:'#B23A48', pointRadius:5, pointHoverRadius:7 },
+      { type:'line', label: 'Garis Regresi', data: linePts, borderColor:'#4A1620', borderWidth:2, pointRadius:0, fill:false }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:true, labels:{color:'#7A2636', font:{family:'Inter',size:11}}}},
+      scales:{
+        x:{type:'linear', title:{display:true,text:xLabel,color:'#7A2636'}, ticks:{color:'#7A2636',font:{size:10}}, grid:{color:'#F4E3E6'}},
+        y:{title:{display:true,text:yLabel,color:'#7A2636'}, ticks:{color:'#7A2636',font:{size:10}}, grid:{color:'#F4E3E6'}}
+      }
+    }
+  });
 }
 
 function renderCompareView(){
