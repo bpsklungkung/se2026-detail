@@ -181,6 +181,54 @@
     
     @media(max-width:1100px){.filters{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:600px){.container{padding:12px}.filters{grid-template-columns:1fr}header{padding:20px}h1{font-size:22px}}
+
+    /* --- CSS Custom Tooltip --- */
+    .tooltip-wrap {
+      position: relative;
+      display: inline-flex;
+      cursor: pointer;
+    }
+    .tooltip-content {
+      visibility: hidden;
+      width: max-content;
+      max-width: 250px;
+      background-color: var(--primary-dark);
+      color: #fff;
+      text-align: left;
+      border-radius: 8px;
+      padding: 8px 12px;
+      position: absolute;
+      z-index: 100;
+      bottom: 130%; 
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+      font-size: 12px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      pointer-events: none; 
+    }
+    /* Panah kecil di bawah tooltip */
+    .tooltip-content::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: var(--primary-dark) transparent transparent transparent;
+    }
+    .tooltip-wrap:hover .tooltip-content {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    /* Warna Highlight dalam tooltip */
+    .hl-red { color: #ff6b6b; font-weight: bold; }
+    .hl-green { color: #51cf66; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -227,7 +275,7 @@ const VERIFIKATOR_NAMES = [
 const FILTER_COLUMNS = [0,1,2,3,4];
 let extraFilterColumns = [];
 const VIRTUAL_JENIS = "__JENIS__";
-const EXCLUDED_COLUMNS = [7,8,9]; 
+const EXCLUDED_COLUMNS = [7,8,9,10]; 
 const LINK_COLUMN = 20;            
 const DUPLICATE_RIGHTMOST_HEADERS = ["PEKERJAAN KRT", "PEKERJAAN PENGUSAHA"];
 
@@ -554,10 +602,24 @@ function renderTable() {
     html += `<td>${escapeHtml(getUnifiedHJI(row))}</td>`;
 
     const url = clean(row[LINK_COLUMN]);
+    // Kolom K adalah indeks ke 10
+    const tooltipTextRaw = clean(row[10]); 
+    const tooltipHtml = getHighlightedTooltip(tooltipTextRaw);
+
     if (url && /^https?:\/\//i.test(url)) {
-      html += `<td><a class="link-btn" href="${escapeAttr(url)}" target="_blank" rel="noopener noreferrer" title="Buka link" aria-label="Buka link">🔗</a></td>`;
+      html += `<td>
+        <div class="tooltip-wrap">
+          <a class="link-btn" href="${escapeAttr(url)}" target="_blank" rel="noopener noreferrer" aria-label="Buka link">🔗</a>
+          <div class="tooltip-content">${tooltipHtml}</div>
+        </div>
+      </td>`;
     } else {
-      html += `<td>—</td>`;
+      html += `<td>
+        <div class="tooltip-wrap">
+          <span style="padding: 8px;">—</span>
+          <div class="tooltip-content">${tooltipHtml}</div>
+        </div>
+      </td>`;
     }
 
     html += renderVerifikasiCells(key);
@@ -732,6 +794,25 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 function escapeAttr(value) { return escapeHtml(value); }
+
+function getHighlightedTooltip(text) {
+  if (!text) return "Keterangan kosong";
+  
+  let htmlText = escapeHtml(text);
+  
+  const redWords = ["dijual", "sakit", "tidak bekerja lagi", "bukan", "sudah tidak", "usia", "tua", "memang", "tutup", "ganda"];
+  const greenWords = ["masih", "aktif"];
+  
+  // Menghapus \b agar bisa match dengan bagian dari kata 
+  // contoh "ditutup" akan mendeteksi "tutup", "dijualnya" mendeteksi "dijual"
+  const redPattern = new RegExp(`(${redWords.join('|')})`, 'gi');
+  const greenPattern = new RegExp(`(${greenWords.join('|')})`, 'gi');
+  
+  htmlText = htmlText.replace(redPattern, '<span class="hl-red">$&</span>');
+  htmlText = htmlText.replace(greenPattern, '<span class="hl-green">$&</span>');
+  
+  return htmlText;
+}
 
 async function loadData() {
   await loadSubmitted();
