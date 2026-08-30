@@ -1230,6 +1230,17 @@ let infX = new Set();       // keys variabel independen terpilih
 let infYTransform = 'linear';   // 'linear' | 'ln'
 let infXTransform = {};         // {key: 'linear'|'ln'}
 let infChart = null;
+let infFrom = null;             // filter tahun awal
+let infTo = null;               // filter tahun akhir
+let infFromTW = null;           // filter triwulan awal (1-4), null = default
+let infToTW = null;             // filter triwulan akhir (1-4), null = default
+let infIsQuarterly = false;     // apakah periode aktif punya data triwulan
+let infMethod = 'regresi';      // 'regresi' | 'arima'
+let arimaKey = null;            // indikator terpilih untuk ARIMA
+let arimaP = 1, arimaD = 1, arimaQ = 1;
+let arimaAuto = false;
+let arimaHorizon = 5;
+let arimaChart = null;
 
 /* ===== Shift-Share Dinamis ===== */
 const SS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcl1gMindMWTFT3LgR_k72Le9Gm94rR2F5kvJYHzMgfW9SNrwa-8xuZsaAtw649uyBfskx3A9VoYR1/pub?gid=78489782&single=true&output=csv";
@@ -1645,7 +1656,7 @@ function renderTabs(){
 
   const infBtn = document.createElement('button');
   infBtn.className = 'tab' + (infMode ? ' active' : '');
-  infBtn.textContent = 'Inferensia*';
+  infBtn.textContent = 'Inferensia';
   infBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = true; renderTabs(); renderInferensiaView(); };
   tabsEl.appendChild(infBtn);
 
@@ -3744,16 +3755,24 @@ function gcf(a,x){
 function gammp(a,x){ if(x<0||a<=0) return 0; if(x < a+1) return gser(a,x); return 1-gcf(a,x); }
 function chiSqUpperP(x, k){ if(x<=0) return 1; return 1-gammp(k/2, x/2); }
 
+function periodTahun(k){ return Math.floor(k/10); }
+function periodLabelFromKey(k){
+  const tahun = Math.floor(k/10);
+  const twNum = k%10;
+  const twMap = {1:'I',2:'II',3:'III',4:'IV'};
+  return twNum ? `${tahun} TW ${twMap[twNum]}` : `${tahun}`;
+}
 function infGetSeriesMap(key, transform){
   const e = infIndex[key];
   if(!e) return {};
   const m = {};
   e.entries.forEach(pt=>{
     if(pt.data==null || isNaN(pt.data)) return;
+    const k = sortKey(pt);
     if(transform==='ln'){
-      if(pt.data > 0) m[pt.tahun] = Math.log(pt.data);
+      if(pt.data > 0) m[k] = Math.log(pt.data);
     } else {
-      m[pt.tahun] = pt.data;
+      m[k] = pt.data;
     }
   });
   return m;
@@ -3783,10 +3802,12 @@ function olsFit(X, Y){
   return { beta, yHat, residuals, sse, sst, r2, n, p, XtXinv };
 }
 
-function computeRegression(yKey, xKeys, yTransform, xTransforms){
+function computeRegression(yKey, xKeys, yTransform, xTransforms, yearFrom, yearTo){
   const yMap = infGetSeriesMap(yKey, yTransform);
   const xMaps = xKeys.map((k,i)=> infGetSeriesMap(k, xTransforms[i]));
-  const years = Object.keys(yMap).map(Number).filter(t=> xMaps.every(m=> m[t]!=null)).sort((a,b)=>a-b);
+  let years = Object.keys(yMap).map(Number).filter(t=> xMaps.every(m=> m[t]!=null)).sort((a,b)=>a-b);
+  if(yearFrom!=null) years = years.filter(t=> t>=yearFrom);
+  if(yearTo!=null) years = years.filter(t=> t<=yearTo);
   const n = years.length, k = xKeys.length, p = k+1;
   if(n < p+2) return {error:`Data tidak cukup — butuh minimal ${p+2} tahun beririsan (agar diagnostik bisa dihitung), baru tersedia ${n} tahun. Coba ganti transformasi Ln kalau ada nilai ≤ 0 yang terbuang.`};
 
@@ -3838,6 +3859,117 @@ function computeRegression(yKey, xKeys, yTransform, xTransforms){
   return { n, k, beta, seCoef, tStat, pVal, r2, adjR2, fStat, fP, df, pearson, years, residuals, vif, bpLM, bpP, dw };
 }
 
+/* ---------- ARIMA / AR / MA (metode Hannan-Rissanen) ---------- */
+function differenceSeries(arr, d){
+  let s = arr.slice();
+  for(let i=0;i<d;i++){
+    const ns = [];
+    for(let j=1;j<s.length;j++) ns.push(s[j]-s[j-1]);
+    s = ns;
+  }
+  return s;
+}
+function undiffOnce(diffForecast, lastVal){
+  const out = []; let prev = lastVal;
+  diffForecast.forEach(dv=>{ const v = prev+dv; out.push(v); prev = v; });
+  return out;
+}
+function integrateForecast(diffForecast, originalSeries, d){
+  let series = diffForecast;
+  for(let level=d; level>=1; level--){
+    const atLevelMinus1 = differenceSeries(originalSeries, level-1);
+    const lastVal = atLevelMinus1[atLevelMinus1.length-1];
+    series = undiffOnce(series, lastVal);
+  }
+  return series;
+}
+
+/* Fit ARMA(p,q) pada deret w (sudah didiferensiasi) via Hannan-Rissanen (2 tahap OLS) */
+function fitArma(w, p, q, fixedFitStart){
+  const m = w.length;
+  const L = Math.min(8, Math.max(p, q, 4, Math.floor(m/3)));
+  if(m < L + Math.max(p,q) + 5) return {error:'Data terlalu pendek untuk parameter ini.'};
+
+  // Tahap 1: AR order tinggi untuk estimasi residual
+  const arRows = [];
+  const arY = [];
+  for(let t=L; t<m; t++){
+    arRows.push([1, ...Array.from({length:L},(_,i)=> w[t-1-i])]);
+    arY.push(w[t]);
+  }
+  const arFit = olsFit(arRows, arY);
+  if(!arFit) return {error:'Estimasi awal (AR bantu) gagal — variabel terlalu berkorelasi.'};
+  const ehat = Array(m).fill(0);
+  for(let t=L; t<m; t++){
+    const row = [1, ...Array.from({length:L},(_,i)=> w[t-1-i])];
+    const fitted = row.reduce((s,v,i)=>s+v*arFit.beta[i],0);
+    ehat[t] = w[t]-fitted;
+  }
+
+  // Tahap 2: regresi akhir w[t] terhadap lag w & lag ehat, window seragam biar AIC bisa dibandingkan
+  const start = fixedFitStart!=null ? fixedFitStart : Math.max(p, L+q);
+  if(start >= m) return {error:'Data terlalu pendek untuk parameter ini.'};
+  const rows = [], ys = [];
+  for(let t=start; t<m; t++){
+    const row = [1];
+    for(let i=1;i<=p;i++) row.push(w[t-i]);
+    for(let j=1;j<=q;j++) row.push(ehat[t-j]);
+    rows.push(row); ys.push(w[t]);
+  }
+  const n_eff = rows.length;
+  if(n_eff < p+q+3) return {error:'Data terlalu pendek untuk parameter ini.'};
+  const fit = olsFit(rows, ys);
+  if(!fit) return {error:'Model tidak stabil untuk kombinasi p,q ini (kolinear).'};
+
+  const k = p+q+1;
+  const sse = fit.sse;
+  const aic = n_eff*Math.log(Math.max(sse/n_eff, 1e-12)) + 2*k;
+  const mseVal = n_eff>k ? sse/(n_eff-k) : sse/Math.max(n_eff-k,1);
+  const seCoef = fit.XtXinv.map((row,i)=> Math.sqrt(Math.max(mseVal*row[i],0)));
+  const tStat = fit.beta.map((b,i)=> seCoef[i]>0 ? b/seCoef[i] : 0);
+  const df = Math.max(n_eff-k,1);
+  const pVal = tStat.map(t=> tDistPValue(Math.abs(t), df));
+
+  return { p, q, L, start, n_eff, beta: fit.beta, seCoef, tStat, pVal, sse, aic, rmse: Math.sqrt(sse/n_eff), residuals: fit.residuals, ehat, w };
+}
+
+/* Cari p,q terbaik (AIC terendah) untuk d tetap */
+function autoSelectArma(w, maxP, maxQ){
+  const m = w.length;
+  const L = Math.min(8, Math.max(maxP, maxQ, 4, Math.floor(m/3)));
+  const fixedFitStart = Math.max(maxP, L+maxQ);
+  let best = null;
+  for(let p=0;p<=maxP;p++){
+    for(let q=0;q<=maxQ;q++){
+      if(p===0 && q===0) continue;
+      const res = fitArma(w, p, q, fixedFitStart);
+      if(res.error) continue;
+      if(!best || res.aic < best.aic) best = {...res, p, q};
+    }
+  }
+  return best;
+}
+
+/* Ramalan h-langkah ke depan dari model ARMA hasil fitArma */
+function forecastArma(fit, w, h){
+  const { p, q, beta } = fit;
+  const wExt = w.slice();
+  const eExt = fit.ehat.slice();
+  const diffForecast = [];
+  for(let step=0; step<h; step++){
+    let val = beta[0];
+    for(let i=1;i<=p;i++){ val += beta[i]*wExt[wExt.length-i]; }
+    for(let j=1;j<=q;j++){
+      const idx = eExt.length-j;
+      val += beta[p+j]*(idx>=0 ? eExt[idx] : 0);
+    }
+    diffForecast.push(val);
+    wExt.push(val);
+    eExt.push(0); // residual masa depan diasumsikan 0 (ekspektasi)
+  }
+  return diffForecast;
+}
+
 /* ---------- Tab Inferensia: UI ---------- */
 function renderInferensiaView(){
   const filterPanel = document.getElementById('kelFilterPanel');
@@ -3846,17 +3978,93 @@ function renderInferensiaView(){
   if(!infPeriode || !STORE[infPeriode]) infPeriode = STORE.__order[0];
   infIndex = buildCompareIndex(infPeriode);
 
+  let infAllEntries = [];
+  Object.values(infIndex).forEach(v=>{ infAllEntries = infAllEntries.concat(v.entries); });
+  infIsQuarterly = infAllEntries.some(e=>e.triwulan);
+  const infYears = [...new Set(infAllEntries.map(e=>e.tahun))].sort((a,b)=>a-b);
+  if(!infFrom || !infYears.includes(infFrom)) infFrom = infYears[0];
+  if(!infTo || !infYears.includes(infTo)) infTo = infYears[infYears.length-1];
+  if(infIsQuarterly){
+    if(!infFromTW) infFromTW = 1;
+    if(!infToTW) infToTW = 4;
+  } else {
+    infFromTW = null; infToTW = null;
+  }
+
+  const twOptions = (sel)=> ['I','II','III','IV'].map((lbl,i)=>`<option value="${i+1}" ${sel===i+1?'selected':''}>TW ${lbl}</option>`).join('');
+
   const main = document.getElementById('main');
   main.innerHTML = `
     <section class="compare-wrap">
       <div class="compare-intro">
         <h2>Analisis Inferensia</h2>
-        <p>Uji hubungan statistik antar indikator kuantitatif dengan regresi linear (sederhana/berganda) dan korelasi Pearson, lengkap dengan diagnostik VIF, Breusch-Pagan, dan Durbin-Watson. Pilih satu variabel dependen (Y) dan satu atau lebih variabel independen (X) — persamaan, koefisien, dan signifikansinya akan tampil otomatis. Penghitungan ini hanya untuk simulasi.*</p>
+        <p>Uji hubungan statistik antar indikator kuantitatif dengan regresi linear atau ramalkan trennya dengan AR/MA/ARIMA.</p>
       </div>
       <div class="compare-controls">
+        <div class="ctrl-item"><label>Metode</label>
+          <div class="inf-transform-btns">
+            <button type="button" class="inf-tbtn ${infMethod==='regresi'?'active':''}" id="infMethodRegresi">Regresi Linear</button>
+            <button type="button" class="inf-tbtn ${infMethod==='arima'?'active':''}" id="infMethodArima">AR / MA / ARIMA</button>
+          </div>
+        </div>
         <div class="ctrl-item"><label>Periode</label><select id="infPeriodeSel"></select></div>
+        <div class="ctrl-item"><label>Dari</label><select id="infFromSel"></select>${infIsQuarterly?'<select id="infFromTWSel">'+twOptions(infFromTW)+'</select>':''}</div>
+        <div class="ctrl-item"><label>Sampai</label><select id="infToSel"></select>${infIsQuarterly?'<select id="infToTWSel">'+twOptions(infToTW)+'</select>':''}</div>
         <button class="cmp-clear" id="infClear">Hapus pilihan</button>
       </div>
+      <div id="infSectionBody"></div>
+    </section>
+  `;
+
+  const periodeSel = document.getElementById('infPeriodeSel');
+  STORE.__order.forEach(p=>{ periodeSel.innerHTML += `<option value="${p}" ${p===infPeriode?'selected':''}>${p}</option>`; });
+  periodeSel.onchange = ()=>{ infPeriode = periodeSel.value; infY=null; infX.clear(); infXTransform={}; infYTransform='linear'; infFrom=null; infTo=null; infFromTW=null; infToTW=null; arimaKey=null; renderInferensiaView(); };
+
+  const fromSel = document.getElementById('infFromSel');
+  const toSel = document.getElementById('infToSel');
+  infYears.forEach(y=>{
+    fromSel.innerHTML += `<option value="${y}" ${y===infFrom?'selected':''}>${y}</option>`;
+    toSel.innerHTML += `<option value="${y}" ${y===infTo?'selected':''}>${y}</option>`;
+  });
+  fromSel.onchange = ()=>{ infFrom = parseInt(fromSel.value); renderInfSectionBody(); };
+  toSel.onchange = ()=>{ infTo = parseInt(toSel.value); renderInfSectionBody(); };
+
+  if(infIsQuarterly){
+    const fromTWSel = document.getElementById('infFromTWSel');
+    const toTWSel = document.getElementById('infToTWSel');
+    if(fromTWSel) fromTWSel.onchange = ()=>{ infFromTW = parseInt(fromTWSel.value); renderInfSectionBody(); };
+    if(toTWSel) toTWSel.onchange = ()=>{ infToTW = parseInt(toTWSel.value); renderInfSectionBody(); };
+  }
+
+  document.getElementById('infClear').onclick = ()=>{
+    infY=null; infX.clear(); infXTransform={}; infYTransform='linear'; arimaKey=null;
+    renderInfSectionBody();
+  };
+  document.getElementById('infMethodRegresi').onclick = ()=>{ infMethod='regresi'; renderInferensiaView(); };
+  document.getElementById('infMethodArima').onclick = ()=>{ infMethod='arima'; renderInferensiaView(); };
+
+  renderInfSectionBody();
+}
+
+function renderInfSectionBody(){
+  const body = document.getElementById('infSectionBody');
+  if(!body) return;
+  if(infMethod==='arima'){
+    body.innerHTML = `
+      <div class="inf-body">
+        <div class="inf-picker-col">
+          <div class="compare-picker" id="arimaPicker"></div>
+        </div>
+        <div>
+          <div id="arimaControlPanel"></div>
+          <div class="compare-chart-area" id="arimaResultArea"></div>
+        </div>
+      </div>`;
+    renderArimaPicker();
+    renderArimaControlPanel();
+    renderArimaResult();
+  } else {
+    body.innerHTML = `
       <div class="inf-body">
         <div class="inf-picker-col">
           <div class="compare-picker" id="infYPicker"></div>
@@ -3866,18 +4074,11 @@ function renderInferensiaView(){
           <div id="infTransformPanel"></div>
           <div class="compare-chart-area" id="infResultArea"></div>
         </div>
-      </div>
-    </section>
-  `;
-
-  const periodeSel = document.getElementById('infPeriodeSel');
-  STORE.__order.forEach(p=>{ periodeSel.innerHTML += `<option value="${p}" ${p===infPeriode?'selected':''}>${p}</option>`; });
-  periodeSel.onchange = ()=>{ infPeriode = periodeSel.value; infY=null; infX.clear(); infXTransform={}; infYTransform='linear'; renderInferensiaView(); };
-  document.getElementById('infClear').onclick = ()=>{ infY=null; infX.clear(); infXTransform={}; infYTransform='linear'; renderInfPickers(); renderInfTransformPanel(); renderInfResult(); };
-
-  renderInfPickers();
-  renderInfTransformPanel();
-  renderInfResult();
+      </div>`;
+    renderInfPickers();
+    renderInfTransformPanel();
+    renderInfResult();
+  }
 }
 
 function renderInfPickers(){
@@ -3986,7 +4187,9 @@ function renderInfResult(){
 
   const xKeys = [...infX];
   const xTransforms = xKeys.map(k=> infXTransform[k]||'linear');
-  const res = computeRegression(infY, xKeys, infYTransform, xTransforms);
+  const fromKey = infFrom*10 + (infIsQuarterly ? (infFromTW||1) : 0);
+  const toKey = infTo*10 + (infIsQuarterly ? (infToTW||4) : 0);
+  const res = computeRegression(infY, xKeys, infYTransform, xTransforms, fromKey, toKey);
   if(res.error){
     area.innerHTML = `<div class="compare-empty">⚠️ ${escapeHtml(res.error)}</div>`;
     return;
@@ -4079,6 +4282,207 @@ function renderInfScatterChart(res, xKey, xTransform, yLabel, xLabel){
       scales:{
         x:{type:'linear', title:{display:true,text:xLabel,color:'#7A2636'}, ticks:{color:'#7A2636',font:{size:10}}, grid:{color:'#F4E3E6'}},
         y:{title:{display:true,text:yLabel,color:'#7A2636'}, ticks:{color:'#7A2636',font:{size:10}}, grid:{color:'#F4E3E6'}}
+      }
+    }
+  });
+}
+
+function renderArimaPicker(){
+  const picker = document.getElementById('arimaPicker');
+  if(!picker) return;
+  const katObj = STORE[infPeriode];
+  let html = '<div class="picker-kategori" style="margin-top:0;">📈 Indikator</div>';
+  Object.keys(katObj).forEach(kategori=>{
+    html += `<div class="picker-kelompok">${escapeHtml(kategori)}</div>`;
+    Object.keys(katObj[kategori]).forEach(kelompok=>{
+      Object.keys(katObj[kategori][kelompok]).forEach(sub=>{
+        const key = `${kategori}|||${kelompok}|||${sub}`;
+        const unit = SATUAN[sub] ? ` (${SATUAN[sub]})` : '';
+        const checked = arimaKey===key ? 'checked' : '';
+        html += `<label class="picker-item">
+          <input type="radio" name="arimaRadio" data-key="${encodeURIComponent(key)}" ${checked}>
+          <span>${escapeHtml(sub)}${escapeHtml(unit)}</span>
+        </label>`;
+      });
+    });
+  });
+  picker.innerHTML = html;
+  picker.querySelectorAll('input[name=arimaRadio]').forEach(rb=>{
+    rb.onchange = ()=>{ arimaKey = decodeURIComponent(rb.dataset.key); renderArimaResult(); };
+  });
+}
+
+function renderArimaControlPanel(){
+  const panel = document.getElementById('arimaControlPanel');
+  if(!panel) return;
+  panel.innerHTML = `
+    <div class="inf-transform-panel">
+      <div class="inf-transform-title">Parameter Model</div>
+      <div class="inf-transform-row">
+        <span class="inf-transform-label">Differencing (d)</span>
+        <select id="arimaDSel" style="font-family:'Inter',sans-serif;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:4px 8px;">
+          <option value="0" ${arimaD===0?'selected':''}>0 — data level (AR/MA murni)</option>
+          <option value="1" ${arimaD===1?'selected':''}>1 — hilangkan tren</option>
+          <option value="2" ${arimaD===2?'selected':''}>2 — tren berubah-ubah</option>
+        </select>
+      </div>
+      <div class="inf-transform-row">
+        <span class="inf-transform-label">AR order (p)</span>
+        <select id="arimaPSel" style="font-family:'Inter',sans-serif;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:4px 8px;" ${arimaAuto?'disabled':''}>
+          ${[0,1,2,3].map(v=>`<option value="${v}" ${arimaP===v?'selected':''}>${v}</option>`).join('')}
+        </select>
+      </div>
+      <div class="inf-transform-row">
+        <span class="inf-transform-label">MA order (q)</span>
+        <select id="arimaQSel" style="font-family:'Inter',sans-serif;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:4px 8px;" ${arimaAuto?'disabled':''}>
+          ${[0,1,2,3].map(v=>`<option value="${v}" ${arimaQ===v?'selected':''}>${v}</option>`).join('')}
+        </select>
+      </div>
+      <div class="inf-transform-row">
+        <span class="inf-transform-label">Pilih otomatis (AIC terendah)</span>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;">
+          <input type="checkbox" id="arimaAutoChk" ${arimaAuto?'checked':''}> Otomatis
+        </label>
+      </div>
+      <div class="inf-transform-row">
+        <span class="inf-transform-label">Horizon ramalan</span>
+        <select id="arimaHSel" style="font-family:'Inter',sans-serif;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:4px 8px;">
+          ${[3,5,10].map(v=>`<option value="${v}" ${arimaHorizon===v?'selected':''}>${v} periode</option>`).join('')}
+        </select>
+      </div>
+      <div class="inf-diag-note">d=1 cocok untuk data dengan tren naik/turun (kemiskinan, IPM, dsb). Centang "Otomatis" untuk membiarkan sistem memilih p &amp; q terbaik (AR/MA/ARIMA) berdasarkan AIC terendah pada d yang dipilih.</div>
+    </div>`;
+
+  document.getElementById('arimaDSel').onchange = e=>{ arimaD = parseInt(e.target.value); renderArimaResult(); };
+  document.getElementById('arimaPSel').onchange = e=>{ arimaP = parseInt(e.target.value); renderArimaResult(); };
+  document.getElementById('arimaQSel').onchange = e=>{ arimaQ = parseInt(e.target.value); renderArimaResult(); };
+  document.getElementById('arimaHSel').onchange = e=>{ arimaHorizon = parseInt(e.target.value); renderArimaResult(); };
+  document.getElementById('arimaAutoChk').onchange = e=>{ arimaAuto = e.target.checked; renderArimaControlPanel(); renderArimaResult(); };
+}
+
+function renderArimaResult(){
+  const area = document.getElementById('arimaResultArea');
+  if(!area) return;
+  if(!arimaKey){
+    area.innerHTML = `<div class="compare-empty">Pilih satu indikator di samping untuk memodelkan AR/MA/ARIMA dan meramalkan periode berikutnya.</div>`;
+    return;
+  }
+
+  const arimaFromKey = infFrom*10 + (infIsQuarterly ? (infFromTW||1) : 0);
+  const arimaToKey = infTo*10 + (infIsQuarterly ? (infToTW||4) : 0);
+  const entries = infIndex[arimaKey].entries
+    .filter(e=> e.data!=null && !isNaN(e.data) && sortKey(e)>=arimaFromKey && sortKey(e)<=arimaToKey)
+    .sort((a,b)=> sortKey(a)-sortKey(b));
+  const label = infIndex[arimaKey].sub;
+  const unit = SATUAN[label] ? ` (${SATUAN[label]})` : '';
+  const orig = entries.map(e=>e.data);
+  const isQuarterly = entries.some(e=>e.triwulan);
+  const periodLabels = entries.map(e=> periodLabel(e));
+
+  if(orig.length < 10){
+    area.innerHTML = `<div class="compare-empty">⚠️ Data terlalu pendek (${orig.length} titik) untuk pemodelan AR/MA/ARIMA yang layak. Perlebar rentang tahun atau pakai periode Triwulanan.</div>`;
+    return;
+  }
+
+  const w = differenceSeries(orig, arimaD);
+  if(w.length < 8){
+    area.innerHTML = `<div class="compare-empty">⚠️ Setelah differencing d=${arimaD}, data tersisa ${w.length} titik — terlalu pendek. Coba turunkan nilai d.</div>`;
+    return;
+  }
+
+  let fit, p = arimaP, q = arimaQ;
+  if(arimaAuto){
+    const best = autoSelectArma(w, 3, 3);
+    if(!best){
+      area.innerHTML = `<div class="compare-empty">⚠️ Tidak ditemukan kombinasi AR/MA yang stabil untuk data ini. Coba ubah d atau perlebar rentang tahun.</div>`;
+      return;
+    }
+    fit = best; p = best.p; q = best.q;
+  } else {
+    if(p===0 && q===0){
+      area.innerHTML = `<div class="compare-empty">Set minimal p atau q ≥ 1 (atau centang Otomatis) untuk memodelkan data.</div>`;
+      return;
+    }
+    fit = fitArma(w, p, q);
+    if(fit.error){
+      area.innerHTML = `<div class="compare-empty">⚠️ ${escapeHtml(fit.error)}</div>`;
+      return;
+    }
+  }
+
+  const modelName = arimaD===0
+    ? (q===0 ? `AR(${p})` : p===0 ? `MA(${q})` : `ARMA(${p},${q})`)
+    : `ARIMA(${p},${arimaD},${q})`;
+
+  const sig = pv=> pv<0.001?'***':pv<0.01?'**':pv<0.05?'*':pv<0.1?'.':'';
+  const coefLabels = ['Konstanta', ...Array.from({length:p},(_,i)=>`AR(${i+1}) — φ${i+1}`), ...Array.from({length:q},(_,i)=>`MA(${i+1}) — θ${i+1}`)];
+  const coefRows = fit.beta.map((b,i)=> `<tr><td>${coefLabels[i]}</td><td>${b.toFixed(4)}</td><td>${fit.seCoef[i].toFixed(4)}</td><td>${fit.tStat[i].toFixed(3)}</td><td>${fit.pVal[i]<0.0001?'<0.0001':fit.pVal[i].toFixed(4)} ${sig(fit.pVal[i])}</td></tr>`).join('');
+
+  const diffForecast = forecastArma(fit, w, arimaHorizon);
+  const forecastVals = integrateForecast(diffForecast, orig, arimaD);
+  const lastEntry = entries[entries.length-1];
+  const twSeq = ['I','II','III','IV'];
+  function nextPeriodLabel(stepsAhead){
+    if(!isQuarterly) return `${lastEntry.tahun + stepsAhead}`;
+    let twNum = triwulanToNum(lastEntry.triwulan);
+    let tahun = lastEntry.tahun;
+    for(let s=0;s<stepsAhead;s++){ twNum++; if(twNum>4){ twNum=1; tahun++; } }
+    return `${tahun} TW ${twSeq[twNum-1]}`;
+  }
+  const forecastLabels = forecastVals.map((_,i)=> nextPeriodLabel(i+1));
+  const sigmaStep = fit.rmse;
+  const forecastRows = forecastVals.map((v,i)=>{
+    const se = sigmaStep*Math.sqrt(i+1);
+    return `<tr><td>${forecastLabels[i]}</td><td>${v.toFixed(2)}</td><td>${(v-1.96*se).toFixed(2)}</td><td>${(v+1.96*se).toFixed(2)}</td></tr>`;
+  }).join('');
+
+  area.innerHTML = `
+    <div class="ss-section-title" style="margin-top:0;">Model Terpilih: ${modelName}</div>
+    <div class="ss-kpi-grid">
+      <div class="stat-box"><div class="stat-label">AIC</div><div class="stat-value" style="font-size:15px;">${fit.aic.toFixed(2)}</div></div>
+      <div class="stat-box"><div class="stat-label">RMSE (in-sample)</div><div class="stat-value" style="font-size:15px;">${fit.rmse.toFixed(3)}</div></div>
+      <div class="stat-box"><div class="stat-label">N efektif</div><div class="stat-value" style="font-size:15px;">${fit.n_eff}</div></div>
+      <div class="stat-box"><div class="stat-label">Differencing</div><div class="stat-value" style="font-size:15px;">d = ${arimaD}</div></div>
+    </div>
+    <div class="ss-section-title">Koefisien</div>
+    <div class="ss-table-wrap"><table class="ss-table">
+      <thead><tr><th>Parameter</th><th>Koefisien</th><th>Std. Error</th><th>t</th><th>Sig. (p)</th></tr></thead>
+      <tbody>${coefRows}</tbody>
+    </table></div>
+    <div class="formula-caption">Signifikansi: *** p&lt;0.001 &nbsp; ** p&lt;0.01 &nbsp; * p&lt;0.05 &nbsp; . p&lt;0.1 &nbsp;|&nbsp; Estimasi via metode Hannan-Rissanen (2 tahap OLS).</div>
+
+    <div class="ss-section-title">Ramalan ${arimaHorizon} Periode ke Depan</div>
+    <div class="ss-table-wrap"><table class="ss-table">
+      <thead><tr><th>Tahun</th><th>Ramalan${escapeHtml(unit)}</th><th>Batas Bawah (95%)</th><th>Batas Atas (95%)</th></tr></thead>
+      <tbody>${forecastRows}</tbody>
+    </table></div>
+    <div class="inf-diag-note">Interval keyakinan adalah perkiraan (±1.96 × RMSE × √langkah), melebar seiring bertambahnya jarak ramalan.</div>
+
+    <div class="ss-section-title">Grafik Data &amp; Ramalan</div>
+    <div class="chart-box-wrap"><div class="chart-box" style="height:320px;"><canvas id="arimaChartCanvas"></canvas></div></div>
+  `;
+
+  renderArimaChart(periodLabels, forecastLabels, orig, forecastVals, label+unit);
+}
+
+function renderArimaChart(periodLabels, forecastLabels, orig, forecastVals, labelText){
+  const ctx = document.getElementById('arimaChartCanvas');
+  if(!ctx) return;
+  if(arimaChart){ arimaChart.destroy(); }
+  const allLabels = [...periodLabels, ...forecastLabels];
+  const histData = [...orig, ...Array(forecastVals.length).fill(null)];
+  const foreData = [...Array(orig.length-1).fill(null), orig[orig.length-1], ...forecastVals];
+  arimaChart = new Chart(ctx, {
+    type:'line',
+    data:{ labels: allLabels, datasets:[
+      { label: labelText, data: histData, borderColor:'#4A1620', backgroundColor:'rgba(74,22,32,0.08)', fill:true, pointRadius:2, tension:0.3 },
+      { label:'Ramalan', data: foreData, borderColor:'#B23A48', borderDash:[6,4], pointRadius:2, fill:false, tension:0.3 }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:true, labels:{color:'#7A2636', font:{family:'Inter',size:11}}}},
+      scales:{
+        x:{ticks:{color:'#7A2636',font:{size:10}}, grid:{color:'#F4E3E6'}},
+        y:{ticks:{color:'#7A2636',font:{size:10}}, grid:{color:'#F4E3E6'}}
       }
     }
   });
