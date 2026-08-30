@@ -99,7 +99,7 @@
       opacity: 0.3;
     }
     thead th:hover .sort-icon.inactive {
-      opacity: 0.8; /* Terang sedikit saat di-hover */
+      opacity: 0.8; 
     }
     
     th,td{
@@ -574,7 +574,6 @@ function applySort() {
       valB = clean(b[Number(sortCol)]);
     }
 
-    // Memastikan baris kosong selalu ada di bawah agar rapi
     if (!valA && valB) return 1;
     if (!valB && valA) return -1;
 
@@ -985,7 +984,6 @@ async function loadData() {
 
       headers = result.data[0].map(clean);
       
-      // LOGIKA BARU: Cari baris terbesar di mana Kolom U (Index 20) ada isinya
       let lastValidIndex = result.data.length - 1;
       let foundLink = false;
       for (let i = result.data.length - 1; i >= 1; i--) {
@@ -995,11 +993,15 @@ async function loadData() {
           break;
         }
       }
-      // Potong data hanya sampai baris terbesar tersebut agar pembacaan lebih akurat
       const sliceEnd = foundLink ? lastValidIndex + 1 : result.data.length;
 
+      // FILTER TAMBAHAN: Cek Kolom Y (Index 24) harus bernilai "1. Ditemukan"
       rows = result.data.slice(1, sliceEnd)
-        .filter(row => row.some(cell => clean(cell) !== ""));
+        .filter(row => {
+          const isNotEmpty = row.some(cell => clean(cell) !== "");
+          const isDitemukan = clean(row[24]) === "1. Ditemukan";
+          return isNotEmpty && isDitemukan;
+        });
 
       filteredRows = [...rows];
       initFilters();
@@ -1020,7 +1022,7 @@ document.getElementById("resetBtn").addEventListener("click", () => {
   msSearchState = {}; 
   document.getElementById("searchInput").value = "";
   openFilterKey = null;
-  sortCol = null; // reset sorting juga
+  sortCol = null; 
   applyFilters();
 });
 
