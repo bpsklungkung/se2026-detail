@@ -90,12 +90,31 @@
       vertical-align:top; 
     }
     tbody tr:hover{background:var(--hover)}
+    
+    /* --- Styles untuk tombol Link & Tanda Setrip --- */
     .link-btn{
       display:inline-flex;align-items:center;justify-content:center;
       width:34px;height:34px;border-radius:9px;background:#F4E3E6;color:#B23A48;
       text-decoration:none;font-size:18px;
     }
     .link-btn:hover{background:#B23A48;color:#fff;}
+    
+    .dash-btn {
+      display:inline-flex;align-items:center;justify-content:center;
+      width:34px;height:34px;border-radius:9px;background:#F3F4F6;color:#9CA3AF;
+      font-size:14px;
+    }
+
+    /* Modifikasi hijau jika ada keterangan tooltip */
+    .link-btn.has-ket, .dash-btn.has-ket {
+      background: #DCFCE7;
+      color: #166534;
+    }
+    .link-btn.has-ket:hover {
+      background: #166534;
+      color: #fff;
+    }
+
     .empty{text-align:center;color:var(--muted);padding:32px;font-size:14px}
     .loading{padding:40px;text-align:center;color:var(--muted)}
     .badge{
@@ -210,7 +229,6 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       pointer-events: none; 
     }
-    /* Panah kecil di bawah tooltip */
     .tooltip-content::after {
       content: "";
       position: absolute;
@@ -226,7 +244,6 @@
       opacity: 1;
     }
 
-    /* Warna Highlight dalam tooltip */
     .hl-red { color: #ff6b6b; font-weight: bold; }
     .hl-green { color: #51cf66; font-weight: bold; }
   </style>
@@ -254,6 +271,14 @@
   <section class="card">
     <div class="meta">
       <span id="resultInfo"></span>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <label style="font-size: 12px; color: var(--muted); font-weight: 700;">Tampilkan:</label>
+        <select id="pageSizeSelect" style="width: 70px; padding: 4px 8px; font-size: 12px; min-width: 0; border: 1px solid var(--border); border-radius: 8px;">
+          <option value="10">10</option>
+          <option value="15">15</option>
+          <option value="20">20</option>
+        </select>
+      </div>
     </div>
     <div class="table-wrap">
       <table id="dataTable"></table>
@@ -283,7 +308,7 @@ let headers = [];
 let rows = [];
 let filteredRows = [];
 let currentPage = 1;
-const PAGE_SIZE = 15;
+let PAGE_SIZE = 10;
 let submittedMap = {}; 
 let editingKeys = new Set(); 
 
@@ -291,11 +316,9 @@ let filterState = {};
 let openFilterKey = null;   
 let lastAvailableMap = {};  
 
-// --- Tracker pencarian filter mini ---
 let msSearchState = {}; 
 let focusedSearchKey = null; 
 
-// Fungsi Debounce untuk meringankan beban pencarian teks utama
 function debounce(func, wait) {
   let timeout;
   return function(...args) {
@@ -377,6 +400,16 @@ function getFilterDefinitions() {
     getValue: row => getUnifiedHJI(row)
   });
 
+  definitions.push({
+    key: "__VERIFIKASI__",
+    label: "Status Verifikasi",
+    getValue: row => {
+      const key = getRowKey(row);
+      const saved = submittedMap[key];
+      return saved && saved.verifikasi ? saved.verifikasi : "Belum";
+    }
+  });
+
   return definitions;
 }
 
@@ -437,7 +470,6 @@ function renderFilterUI(definitions, availableMap) {
     panel.className = "ms-panel";
     panel.hidden = openFilterKey !== key;
     
-    // Fitur: Pencarian Mini di dalam panel
     const msSearchWrap = document.createElement("div");
     msSearchWrap.className = "ms-search-wrap";
     const currentSearch = msSearchState[key] || "";
@@ -450,7 +482,14 @@ function renderFilterUI(definitions, availableMap) {
     const optionsWrap = document.createElement("div");
     optionsWrap.className = "ms-options";
 
-    const values = [...available].sort((a,b) => a.localeCompare(b, "id"));
+    const values = [...available].sort((a,b) => {
+      if(key === "__VERIFIKASI__") {
+        if(a === "Belum") return -1;
+        if(b === "Belum") return 1;
+      }
+      return a.localeCompare(b, "id")
+    });
+    
     if (!values.length) {
       optionsWrap.innerHTML = `<div class="ms-empty">Tidak ada opsi</div>`;
     } else {
@@ -458,7 +497,6 @@ function renderFilterUI(definitions, availableMap) {
         const optLabel = document.createElement("label");
         optLabel.className = "ms-option";
         
-        // Sembunyikan item apabila tidak cocok dengan kotak pencarian mini saat re-render
         if (currentSearch && !value.toLowerCase().includes(currentSearch)) {
             optLabel.style.display = 'none';
         }
@@ -474,7 +512,6 @@ function renderFilterUI(definitions, availableMap) {
     container.appendChild(wrap);
   });
 
-  // Fitur: Kembalikan fokus ke kotak pencarian filter (jika user sedang mengetik dan trigger onchange)
   if (focusedSearchKey) {
     const activeInput = document.querySelector(`.ms-search-input[data-key="${cssEscape(focusedSearchKey)}"]`);
     if (activeInput) {
@@ -568,7 +605,6 @@ function renderTable() {
   const highlightHeaders = ["USAHA UTP", "TINDAKAN", "KEMUNGKINAN", "STATUS"].map(normalizeHeader);
   const isHighlightCol = i => highlightHeaders.includes(normalizeHeader(headers[i]));
 
-  // Bug Fix: Membuat <thead> di luar blok if (!filteredRows.length)
   let html = "<thead><tr>";
   visibleColumns.forEach(i => {
     html += `<th${isHighlightCol(i) ? ' class="col-highlight"' : ""}>${escapeHtml(headers[i] || `Kolom ${i+1}`)}</th>`;
@@ -576,7 +612,6 @@ function renderTable() {
   html += `<th>JENIS</th><th>LINK</th><th>VERIFIKASI</th><th>KETERANGAN</th></tr></thead><tbody>`;
 
   if (!filteredRows.length) {
-    // Bug Fix: colspan agar merentang penuh ke semua kolom saat hasil kosong
     const colspanTotal = visibleColumns.length + 4; 
     html += `<tr><td class="empty" colspan="${colspanTotal}">Tidak ada data yang sesuai.</td></tr></tbody>`;
     table.innerHTML = html;
@@ -602,21 +637,23 @@ function renderTable() {
     html += `<td>${escapeHtml(getUnifiedHJI(row))}</td>`;
 
     const url = clean(row[LINK_COLUMN]);
-    // Kolom K adalah indeks ke 10
     const tooltipTextRaw = clean(row[10]); 
     const tooltipHtml = getHighlightedTooltip(tooltipTextRaw);
+    
+    // LOGIKA WARNA HIJAU: Tambahkan class "has-ket" jika tooltip tidak kosong
+    const ketClass = tooltipTextRaw !== "" ? " has-ket" : "";
 
     if (url && /^https?:\/\//i.test(url)) {
       html += `<td>
         <div class="tooltip-wrap">
-          <a class="link-btn" href="${escapeAttr(url)}" target="_blank" rel="noopener noreferrer" aria-label="Buka link">🔗</a>
+          <a class="link-btn${ketClass}" href="${escapeAttr(url)}" target="_blank" rel="noopener noreferrer" aria-label="Buka link">🔗</a>
           <div class="tooltip-content">${tooltipHtml}</div>
         </div>
       </td>`;
     } else {
       html += `<td>
         <div class="tooltip-wrap">
-          <span style="padding: 8px;">—</span>
+          <span class="dash-btn${ketClass}">—</span>
           <div class="tooltip-content">${tooltipHtml}</div>
         </div>
       </td>`;
@@ -724,7 +761,8 @@ async function saveVerifikasi(key) {
 
     submittedMap[key] = { verifikasi, keterangan, timestamp: data.timestamp || new Date().toISOString() };
     editingKeys.delete(key);
-    renderTable();
+    
+    applyFilters(); 
   } catch (err) {
     console.error(err);
     alert("Gagal menyimpan ke server. Coba lagi.");
@@ -803,8 +841,6 @@ function getHighlightedTooltip(text) {
   const redWords = ["dijual", "sakit", "tidak bekerja lagi", "bukan", "sudah tidak", "usia", "tua", "memang", "tutup", "ganda"];
   const greenWords = ["masih", "aktif"];
   
-  // Menghapus \b agar bisa match dengan bagian dari kata 
-  // contoh "ditutup" akan mendeteksi "tutup", "dijualnya" mendeteksi "dijual"
   const redPattern = new RegExp(`(${redWords.join('|')})`, 'gi');
   const greenPattern = new RegExp(`(${greenWords.join('|')})`, 'gi');
   
@@ -841,13 +877,12 @@ async function loadData() {
   });
 }
 
-// Performa: Implementasi Event Listener yang telah di-debounce untuk pencarian utama
 const debouncedApplyFilters = debounce(applyFilters, 300);
 document.getElementById("searchInput").addEventListener("input", debouncedApplyFilters);
 
 document.getElementById("resetBtn").addEventListener("click", () => {
   Object.keys(filterState).forEach(k => filterState[k].clear());
-  msSearchState = {}; // Reset pencarian mini
+  msSearchState = {}; 
   document.getElementById("searchInput").value = "";
   openFilterKey = null;
   applyFilters();
@@ -876,7 +911,6 @@ document.getElementById("filters").addEventListener("click", (e) => {
   }
 });
 
-// Listener untuk checkbox di panel filter
 document.getElementById("filters").addEventListener("change", (e) => {
   const input = e.target.closest('input[type="checkbox"][data-key]');
   if (!input) return;
@@ -889,12 +923,11 @@ document.getElementById("filters").addEventListener("change", (e) => {
   applyFilters();
 });
 
-// Listener interaktif pencarian mini (filter tanpa re-render keseluruhan)
 document.getElementById("filters").addEventListener("input", (e) => {
   if (e.target.classList.contains("ms-search-input")) {
     const key = e.target.dataset.key;
     const term = e.target.value.toLowerCase();
-    msSearchState[key] = term; // Simpan riwayat input supaya tidak lenyap saat di-render ulang
+    msSearchState[key] = term; 
 
     const panel = e.target.closest('.ms-panel');
     const options = panel.querySelectorAll('.ms-option');
@@ -905,7 +938,6 @@ document.getElementById("filters").addEventListener("input", (e) => {
   }
 });
 
-// Listener untuk menahan fokus pencarian saat render ulang
 document.getElementById("filters").addEventListener("focusin", (e) => {
   if (e.target.classList.contains("ms-search-input")) focusedSearchKey = e.target.dataset.key;
 });
@@ -913,12 +945,17 @@ document.getElementById("filters").addEventListener("focusout", (e) => {
   if (e.target.classList.contains("ms-search-input")) focusedSearchKey = null;
 });
 
-// Klik di luar -> tutup panel 
 document.addEventListener("click", (e) => {
   if (openFilterKey !== null && !e.target.closest(".ms-wrap")) {
     openFilterKey = null;
     renderFilterUI(getFilterDefinitions(), lastAvailableMap);
   }
+});
+
+document.getElementById("pageSizeSelect").addEventListener("change", (e) => {
+  PAGE_SIZE = parseInt(e.target.value);
+  currentPage = 1; 
+  renderTable();
 });
 
 loadData();
