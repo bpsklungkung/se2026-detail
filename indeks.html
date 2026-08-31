@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard Indikator — BPS Klungkung</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';document.head.appendChild(s);"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';document.head.appendChild(s);"></script>
@@ -454,7 +454,7 @@
   .inf-tbtn.active{ background:var(--orange); color:#fff; border-color:var(--orange); }
   .inf-diag-note{ font-size:11px; color:var(--brown-soft); margin-top:6px; }
   .inf-formula{
-    font-family:'Menlo','Consolas',monospace; font-weight:700; font-size:14.5px;
+    font-family:'JetBrains Mono','Menlo','Consolas',monospace; font-weight:600; font-size:14.5px;
     color:var(--brown-deep); background:var(--cream-deep); padding:11px 16px;
     border-radius:8px; letter-spacing:.01em; line-height:1.7; overflow-x:auto;
   }
@@ -504,7 +504,7 @@
     color:var(--orange-deep); margin-bottom:5px;
   }
   .ss-method-note .formula-list{ margin:4px 0 2px 0; padding:9px 16px 9px 32px; background:var(--cream-deep); border-radius:8px; }
-  .ss-method-note .formula-list li{ margin-bottom:4px; font-family:'Menlo','Consolas',monospace; font-size:15px; font-weight:700; color:var(--brown-deep); }
+  .ss-method-note .formula-list li{ margin-bottom:4px; font-family:'JetBrains Mono','Menlo','Consolas',monospace; font-size:14.5px; font-weight:600; color:var(--brown-deep); }
   .ss-method-note .formula-caption{ margin:6px 0 2px 4px; font-size:11.5px; font-style:italic; color:var(--brown-soft); line-height:1.5; }
   .ss-method-note .component-list{ margin:4px 0 8px 20px; padding:0; }
   .ss-method-note .component-list li{ margin-bottom:5px; }
@@ -1686,7 +1686,7 @@ function renderTabs(){
 
   const infBtn = document.createElement('button');
   infBtn.className = 'tab' + (infMode ? ' active' : '');
-  infBtn.textContent = 'Inferensia*';
+  infBtn.textContent = 'Inferensia';
   infBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = true; renderTabs(); renderInferensiaView(); };
   tabsEl.appendChild(infBtn);
 
@@ -4110,7 +4110,7 @@ function renderInferensiaView(){
     <section class="compare-wrap">
       <div class="compare-intro">
         <h2>Analisis Inferensia</h2>
-        <p>Uji hubungan statistik antar indikator kuantitatif dengan regresi linear atau ramalkan trennya dengan AR/MA/ARIMA. Bagian ini hanya untuk simulasi analisis indikator, bukan untuk pengambilan keputusan.</p>
+        <p>Uji hubungan statistik antar indikator kuantitatif dengan regresi linear atau ramalkan trennya dengan AR/MA/ARIMA.</p>
       </div>
       <div class="compare-controls">
         <div class="ctrl-item"><label>Metode</label>
@@ -4938,6 +4938,14 @@ function renderCompareView(){
               <div class="compare-defs-title">Definisi Indikator Terpilih</div>
               <div id="compareDefsList"></div>
             </div>
+          </div>
+
+          <div class="compare-defs-box" id="cmpDataTableBox" style="display:none;margin-top:14px;">
+            <div class="compare-defs-title table-head-row" style="margin-top:0;">
+              <span>Tabel Data Perbandingan</span>
+              <button class="dl-btn" id="dlCompareTable" title="Unduh tabel sebagai Excel">⬇ XLSX</button>
+            </div>
+            <div class="ss-table-wrap" id="cmpDataTableWrap" style="margin-top:8px;max-height:340px;overflow:auto;"></div>
           </div>
         </div>
       </div>
@@ -5910,6 +5918,8 @@ function renderCompareChart(){
     wrap.style.display = 'none';
     empty.style.display = 'block';
     infoGrid.style.display = 'none';
+    const dtBox = document.getElementById('cmpDataTableBox');
+    if(dtBox) dtBox.style.display = 'none';
     if(compareChart){ compareChart.destroy(); compareChart = null; }
     return;
   }
@@ -5934,6 +5944,7 @@ function renderCompareChart(){
     box.innerHTML = buildCompareSurfaceGrid(keys);
     generateAdvancedAIInsight(seriesAnalysisData);
     renderCompareDefinitions(keys);
+    renderCompareDataTable(keys);
     return;
   }
   if(compareChartType === 'stream'){
@@ -5943,6 +5954,7 @@ function renderCompareChart(){
     box.innerHTML = buildCompareStreamSVG(keys);
     generateAdvancedAIInsight(seriesAnalysisData);
     renderCompareDefinitions(keys);
+    renderCompareDataTable(keys);
     return;
   }
   if(compareChartType === 'marimekko'){
@@ -5952,6 +5964,7 @@ function renderCompareChart(){
     box.innerHTML = buildCompareMarimekkoSVG(keys);
     generateAdvancedAIInsight(seriesAnalysisData);
     renderCompareDefinitions(keys);
+    renderCompareDataTable(keys);
     return;
   }
   if(compareChartType === 'radial-bar'){
@@ -5961,6 +5974,7 @@ function renderCompareChart(){
     box.innerHTML = buildCompareRadialBarSVG(keys);
     generateAdvancedAIInsight(seriesAnalysisData);
     renderCompareDefinitions(keys);
+    renderCompareDataTable(keys);
     return;
   }
   if(compareChartType === 'bullet'){
@@ -5970,6 +5984,7 @@ function renderCompareChart(){
     box.innerHTML = buildCompareBulletSVG(keys);
     generateAdvancedAIInsight(seriesAnalysisData);
     renderCompareDefinitions(keys);
+    renderCompareDataTable(keys);
     return;
   }
   if(!document.getElementById('compareChart')){
@@ -5980,60 +5995,70 @@ function renderCompareChart(){
     renderCompareWaterfallChart(keys, seriesAnalysisData);
     generateAdvancedAIInsight(seriesAnalysisData);
     renderCompareDefinitions(keys);
+    renderCompareDataTable(keys);
     return;
   }
   if(compareChartType === 'funnel'){
     renderCompareFunnelChart(keys, seriesAnalysisData);
     generateAdvancedAIInsight(seriesAnalysisData);
     renderCompareDefinitions(keys);
+    renderCompareDataTable(keys);
     return;
   }
   if(compareChartType === 'radar'){
     renderCompareRadarChart(keys);
     generateAdvancedAIInsight(seriesAnalysisData);
     renderCompareDefinitions(keys);
+    renderCompareDataTable(keys);
     return;
   }
   if(compareChartType === 'polar-area'){
     renderComparePolarArea(keys, seriesAnalysisData);
     generateAdvancedAIInsight(seriesAnalysisData);
     renderCompareDefinitions(keys);
+    renderCompareDataTable(keys);
     return;
   }
   if(compareChartType === 'categorical-scatter'){
     renderCompareCategoricalScatter(keys, seriesAnalysisData);
     generateAdvancedAIInsight(seriesAnalysisData);
     renderCompareDefinitions(keys);
+    renderCompareDataTable(keys);
     return;
   }
   if(compareChartType === 'dot-plot'){
     renderCompareDotPlot(keys, seriesAnalysisData);
     generateAdvancedAIInsight(seriesAnalysisData);
     renderCompareDefinitions(keys);
+    renderCompareDataTable(keys);
     return;
   }
   if(compareChartType === 'range-plot'){
     renderCompareRangePlot(keys, seriesAnalysisData);
     generateAdvancedAIInsight(seriesAnalysisData);
     renderCompareDefinitions(keys);
+    renderCompareDataTable(keys);
     return;
   }
   if(compareChartType === 'diverging-bar'){
     renderCompareDivergingBar(keys, seriesAnalysisData);
     generateAdvancedAIInsight(seriesAnalysisData);
     renderCompareDefinitions(keys);
+    renderCompareDataTable(keys);
     return;
   }
   if(compareChartType === 'pareto'){
     renderComparePareto(keys, seriesAnalysisData);
     generateAdvancedAIInsight(seriesAnalysisData);
     renderCompareDefinitions(keys);
+    renderCompareDataTable(keys);
     return;
   }
   if(compareChartType === 'bump'){
     renderCompareBump(keys);
     generateAdvancedAIInsight(seriesAnalysisData);
     renderCompareDefinitions(keys);
+    renderCompareDataTable(keys);
     return;
   }
 
@@ -6210,6 +6235,7 @@ function renderCompareChart(){
 
   generateAdvancedAIInsight(seriesAnalysisData);
   renderCompareDefinitions(keys);
+    renderCompareDataTable(keys);
 }
 
 function getCompareTypeStyle(type, color){
@@ -6334,6 +6360,58 @@ function generateAdvancedAIInsight(dataList){
   }
 
   textEl.innerHTML = html;
+}
+
+/* Susun data perbandingan jadi tabel wide-format: Periode | Indikator1 | Indikator2 | ... */
+function buildCompareTableData(keys){
+  const uniqueLabelsMap = new Map();
+  keys.forEach(k=>{
+    compareIndex[k].entries.forEach(e=>{
+      if(inCompareRange(e)) uniqueLabelsMap.set(sortKey(e), periodLabel(e));
+    });
+  });
+  const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
+
+  const header = ['Periode', ...keys.map(k=> subLabel(compareIndex[k].sub))];
+  const rows = sortedKeys.map(sk=>{
+    const row = [uniqueLabelsMap.get(sk)];
+    keys.forEach(k=>{
+      const entry = compareIndex[k].entries.find(e=> sortKey(e)===sk);
+      row.push(entry && entry.data!=null ? entry.data : null);
+    });
+    return row;
+  });
+  return { header, rows };
+}
+
+function renderCompareDataTable(keys){
+  const box = document.getElementById('cmpDataTableBox');
+  const wrap = document.getElementById('cmpDataTableWrap');
+  if(!box || !wrap) return;
+  if(!keys.length){ box.style.display='none'; return; }
+  box.style.display='block';
+
+  const { header, rows } = buildCompareTableData(keys);
+  let html = '<table class="ss-table"><thead><tr>';
+  header.forEach(h=> html += `<th>${escapeHtml(h)}</th>`);
+  html += '</tr></thead><tbody>';
+  rows.forEach(r=>{
+    html += '<tr>';
+    r.forEach((v,i)=>{
+      html += i===0 ? `<td>${escapeHtml(String(v))}</td>` : `<td>${v==null ? '—' : fmtNum(v)}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+
+  const dlBtn = document.getElementById('dlCompareTable');
+  if(dlBtn){
+    dlBtn.onclick = ()=>{
+      const exportRows = rows.map(r=> r.map((v,i)=> i===0 ? v : (v==null ? '' : v)));
+      exportStyledExcel('perbandingan_indikator.xlsx', 'Perbandingan', header, exportRows);
+    };
+  }
 }
 
 function renderCompareDefinitions(keys){
