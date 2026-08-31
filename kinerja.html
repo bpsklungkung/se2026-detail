@@ -15,16 +15,16 @@
 
 <style>
 :root{
-  --cream:#FFFDF1;
-  --peach:#FFCE99;
-  --orange:#FF9644;
-  --brown:#562F00;
-  --brown-deep:#3a1f00;
-  --peach-soft:#FFE7C9;
+  --cream:#FFFFFF;
+  --peach:#F4E3E6;
+  --orange:#B23A48;
+  --brown:#4A1620;
+  --brown-deep:#2E0D14;
+  --peach-soft:#F4E3E6;
   --white:#FFFFFF;
-  --ok:#1b8a5a;
-  --bad:#c8452f;
-  --shadow: 0 6px 20px rgba(86,47,0,0.10);
+  --ok:#3e5a2a;
+  --bad:#B23A48;
+  --shadow: 0 6px 20px rgba(74,22,32,0.10);
 }
 
 *{box-sizing:border-box;}
@@ -45,7 +45,8 @@ h1,h2,h3,.display{
 
 /* ===== Hero header ===== */
 .hero{
-  background:linear-gradient(135deg, var(--brown) 0%, #7a4310 55%, var(--orange) 130%);
+  background:linear-gradient(135deg, var(--brown) 0%, #7A2636 55%, var(--orange) 130%);
+  max-width:1280px; margin:0 auto;
   position:relative;
   overflow:hidden;
   isolation:isolate;
@@ -82,7 +83,7 @@ h1,h2,h3,.display{
 }
 
 .hero h1{ color:var(--cream); font-size:clamp(28px,4vw,42px); font-weight:600; line-height:1.1; }
-.hero p{ color:#FFE7C9; margin-top:8px; font-size:14.5px; max-width:480px; line-height:1.5; }
+.hero p{ color:#F4E3E6; margin-top:8px; font-size:14.5px; max-width:480px; line-height:1.5; }
 
 .hero-stats{ display:flex; gap:14px; flex-wrap:wrap; }
 
@@ -96,7 +97,7 @@ h1,h2,h3,.display{
 }
 
 .stat-pill .num{ color:var(--cream); font-family:'Fraunces',serif; font-size:26px; font-weight:600; line-height:1; }
-.stat-pill .lbl{ color:#FFE7C9; font-size:11px; margin-top:4px; letter-spacing:.05em; }
+.stat-pill .lbl{ color:#F4E3E6; font-size:11px; margin-top:4px; letter-spacing:.05em; }
 
 /* ===== Layout ===== */
 .wrap{ max-width:1280px; margin:0 auto; padding:0 24px 60px; }
@@ -170,7 +171,7 @@ h1,h2,h3,.display{
 
 .msfield.ms-has-selection .ms-toggle{
   border-color:var(--orange);
-  background:#fff3e2;
+  background:#F4E3E6;
 }
 
 .msfield.ms-has-selection .ms-label{
@@ -266,7 +267,7 @@ h1,h2,h3,.display{
 
 .ms-empty{
   font-size:12px;
-  color:#b89a7f;
+  color:#A67885;
   padding:8px 4px;
   text-align:center;
   font-style:italic;
@@ -339,14 +340,13 @@ h1,h2,h3,.display{
 .stat{
   background:var(--white);
   border:1px solid var(--peach-soft);
-  border-left:5px solid var(--orange);
   border-radius:14px;
   box-shadow:var(--shadow);
   padding:14px 16px;
 }
 
 .stat-title{
-  color:#8a6a52;
+  color:#7A2636;
   font-size:12px;
   margin-bottom:6px;
   font-weight:600;
@@ -604,11 +604,11 @@ table.pivot-table td.pivot-total{
 }
 
 table.pivot-table td.pivot-zero{
-  color:#dcd0bd;
+  color:#A67885;
 }
 
 table.pivot-table tbody tr:nth-child(even) td:not(.pivot-name):not(.pivot-total){
-  background:#FFFCF4;
+  background:#FFFFFF;
 }
 
 table.pivot-table tfoot td{
@@ -629,7 +629,7 @@ table.pivot-table tfoot td{
 .team-box .chart-controls{ margin-bottom:0; }
 
 .team-hint{
-  color:#8a6a52;
+  color:#7A2636;
   font-size:13px;
   background:var(--cream);
   border:1px dashed var(--peach-soft);
@@ -693,7 +693,7 @@ table.team-table thead th{
 }
 
 table.team-table tbody tr:nth-child(even){
-  background:#FFFCF4;
+  background:#FFFFFF;
 }
 
 table.team-table td.team-count{
@@ -703,7 +703,7 @@ table.team-table td.team-count{
 }
 
 table.team-table td.team-tasks{
-  color:#8a6a52;
+  color:#7A2636;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
@@ -786,10 +786,10 @@ table.team-table td.team-tasks{
   letter-spacing:0.2px;
 }
 #teamNetworkSvg .net-node-label-in-light{
-  fill:#FFFDF1;
+  fill:#FFFFFF;
 }
 #teamNetworkSvg .net-node-label-in-dark{
-  fill:#5c3a12;
+  fill:#2E0D14;
 }
 #teamNetworkSvg .net-root-label-in{
   font-weight:800;
@@ -797,7 +797,7 @@ table.team-table td.team-tasks{
 #teamNetworkSvg .net-edge-label{
   font-family:'Inter',sans-serif;
   font-size:9.5px;
-  fill:#8a6a52;
+  fill:#7A2636;
 }
 #teamNetworkSvg .net-edge-label-bg{
   fill:var(--white);
@@ -875,10 +875,10 @@ table.team-table td.team-tasks{
 .crosstab-table td.crosstab-diag{
   background:repeating-linear-gradient(135deg, var(--peach-soft), var(--peach-soft) 6px, var(--cream) 6px, var(--cream) 12px);
   text-align:center;
-  color:#c9b494;
+  color:#A67885;
 }
 .crosstab-table td.crosstab-empty{
-  color:#d8c3ac;
+  color:#A67885;
   text-align:center;
 }
 .crosstab-cell-ik{
@@ -960,7 +960,7 @@ th:first-child{ border-radius:10px 0 0 10px; }
 th:last-child{ border-radius:0 10px 10px 0; }
 
 tbody tr:nth-child(even){
-  background:#FFFCF4;
+  background:#FFFFFF;
 }
 
 tbody tr:hover{
@@ -976,12 +976,12 @@ tbody tr:hover{
 }
 
 .badge.ok{
-  background:#e4f8ef;
+  background:#E3ECD9;
   color:var(--ok);
 }
 
 .badge.bad{
-  background:#fdeaea;
+  background:#F4E3E6;
   color:var(--bad);
 }
 
@@ -1021,12 +1021,12 @@ tbody tr:hover{
 }
 
 .status-select.ok{
-  background-color:#e4f8ef;
+  background-color:#E3ECD9;
   color:var(--ok);
 }
 
 .status-select.bad{
-  background-color:#fdeaea;
+  background-color:#F4E3E6;
   color:var(--bad);
 }
 
@@ -1318,7 +1318,7 @@ td a:hover{
 .preview-body{
   flex:1;
   position:relative;
-  background:#fdf8ef;
+  background:#FFFFFF;
 }
 
 .preview-body iframe{
@@ -1337,7 +1337,7 @@ td a:hover{
   justify-content:center;
   text-align:center;
   padding:24px;
-  color:#8a6a52;
+  color:#7A2636;
   font-size:13px;
 }
 
@@ -1349,7 +1349,7 @@ td a:hover{
 
 .preview-shot-note{
   padding:9px 14px;
-  background:#fff3e2;
+  background:#F4E3E6;
   color:var(--brown);
   font-size:12px;
   border-bottom:1px solid var(--peach-soft);
@@ -1359,7 +1359,7 @@ td a:hover{
 .preview-shot-img{
   flex:1;
   overflow:auto;
-  background:#efe6d6;
+  background:#F4E3E6;
 }
 
 .preview-shot-img img{
@@ -1373,7 +1373,7 @@ td a:hover{
   align-items:center;
   margin-top:14px;
   font-size:13px;
-  color:#8a6a52;
+  color:#7A2636;
   flex-wrap:wrap;
   gap:10px;
 }
@@ -2353,7 +2353,7 @@ function renderTable(){
   let data = filtered.slice(start,start+perPage);
 
   if(data.length === 0){
-    tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:20px;color:#b89a7f;">Tidak ada data yang sesuai filter.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:20px;color:#A67885;">Tidak ada data yang sesuai filter.</td></tr>`;
   }
 
   data.forEach((d,i)=>{
@@ -2547,7 +2547,7 @@ function renderChart(){
 
   lastChartData = { field, type, labels, values };
 
-  let palette = ["#ff9644","#562f00","#ffce99","#1b8a5a","#c8452f","#a9714a","#e0b878"];
+  let palette = ["#B23A48","#4A1620","#F4E3E6","#3e5a2a","#B23A48","#a9714a","#e0b878"];
 
   let ctx = document.getElementById("chart");
 
@@ -2560,8 +2560,8 @@ function renderChart(){
       datasets:[{
         label:field,
         data:values,
-        backgroundColor: type==="bar" || type==="line" ? "#562f00" : palette,
-        borderColor: type==="line" ? "#562f00" : "#fff",
+        backgroundColor: type==="bar" || type==="line" ? "#4A1620" : palette,
+        borderColor: type==="line" ? "#4A1620" : "#fff",
         borderWidth: type==="line" ? 2 : 1
       }]
     },
@@ -2593,7 +2593,7 @@ function renderPivot(){
   document.getElementById("pivotHead").textContent = `🔀 Pivot Silang: ${rowLabel} dan ${colLabel}`;
 
   if(filtered.length === 0){
-    table.innerHTML = `<tbody><tr><td style="padding:16px;color:#b89a7f;">Tidak ada data.</td></tr></tbody>`;
+    table.innerHTML = `<tbody><tr><td style="padding:16px;color:#A67885;">Tidak ada data.</td></tr></tbody>`;
     lastPivotData = null;
     return;
   }
@@ -3000,7 +3000,7 @@ function renderTeamNetworkGraph(net, selectedNames){
     let ikLbl = labelAt(0.36, 1);
     let rkLbl = labelAt(0.64, -1);
 
-    const haloStyle = `paint-order:stroke; stroke:#FFFDF1; stroke-width:3.5px; stroke-linejoin:round; font-size:${edgeFontSize}px;`;
+    const haloStyle = `paint-order:stroke; stroke:#FFFFFF; stroke-width:3.5px; stroke-linejoin:round; font-size:${edgeFontSize}px;`;
     edgesHtml += `
       <g>
         <title>${escapeHtml(e.from)} (Ketua) — IK: ${escapeHtml(e.ik)} | ${escapeHtml(e.to)} (Anggota) — RK: ${escapeHtml(e.rk || "-")}</title>
@@ -3122,17 +3122,17 @@ function exportTeamNetworkJPG(){
 
     let styleEl = document.createElementNS("http://www.w3.org/2000/svg", "style");
     styleEl.textContent = `
-      .net-edge{ fill:none; stroke:#FFE7C9; stroke-width:1.6; }
-      .net-edge.net-edge-selected{ stroke:#FF9644; stroke-width:2.2; }
+      .net-edge{ fill:none; stroke:#F4E3E6; stroke-width:1.6; }
+      .net-edge.net-edge-selected{ stroke:#B23A48; stroke-width:2.2; }
       .net-node-circle{ stroke:#FFFFFF; stroke-width:2; }
-      .net-node-circle.net-root{ fill:#562F00; }
-      .net-node-circle.net-ketua{ fill:#FF9644; }
-      .net-node-circle.net-anggota{ fill:#FFCE99; }
-      .net-node-label{ font-family:Inter,sans-serif; font-size:12px; font-weight:700; fill:#3a1f00; }
-      .net-node-label.net-root-label{ font-weight:800; fill:#562F00; }
+      .net-node-circle.net-root{ fill:#4A1620; }
+      .net-node-circle.net-ketua{ fill:#B23A48; }
+      .net-node-circle.net-anggota{ fill:#F4E3E6; }
+      .net-node-label{ font-family:Inter,sans-serif; font-size:12px; font-weight:700; fill:#2E0D14; }
+      .net-node-label.net-root-label{ font-weight:800; fill:#4A1620; }
       .net-node-label-in{ font-family:Inter,sans-serif; font-weight:700; letter-spacing:0.2px; }
-      .net-node-label-in-light{ fill:#FFFDF1; }
-      .net-node-label-in-dark{ fill:#5c3a12; }
+      .net-node-label-in-light{ fill:#FFFFFF; }
+      .net-node-label-in-dark{ fill:#2E0D14; }
       .net-root-label-in{ font-weight:800; }
       .net-edge-label{ font-family:Inter,sans-serif; font-size:9.5px; }
       .net-edge-label-ik{ fill:#a8590f; font-weight:700; }
@@ -3153,7 +3153,7 @@ function exportTeamNetworkJPG(){
         canvas.width = w * scale;
         canvas.height = h * scale;
         let ctx = canvas.getContext("2d");
-        ctx.fillStyle = "#FFFDF1";
+        ctx.fillStyle = "#FFFFFF";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
@@ -3300,7 +3300,7 @@ function renderRanking(){
         <span class="rk-count">${v[1]}</span>
       </div>
       `).join("")
-    : `<div style="color:#b89a7f;font-size:13px;">Belum ada data.</div>`;
+    : `<div style="color:#A67885;font-size:13px;">Belum ada data.</div>`;
 }
 
 /* PAGINATION */
