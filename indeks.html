@@ -671,8 +671,8 @@
   .card{
     background:var(--card-bg);
     border:1px solid var(--line);
-    border-top:4px solid var(--kat-accent, var(--orange));
-    border-radius:var(--radius);
+    border-top:48px solid var(--kat-accent, var(--orange));
+    border-radius:16px;
     padding:15px 19px 15px;
     cursor:pointer;
     box-shadow:var(--shadow);
@@ -680,18 +680,33 @@
     display:flex;
     flex-direction:column;
     gap:9px;
+    position:relative;
+  }
+  .card::after{
+    content: attr(data-kel);
+    position:absolute;
+    top:-32px; left:16px; right:16px;
+    font-family:'Sora',sans-serif;
+    font-size:11px; font-weight:700; letter-spacing:.03em; text-transform:uppercase;
+    color:#fff;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
   .card:hover{
     transform:translateY(-2px);
-    border-color:var(--orange);
+    border-left-color:var(--orange); border-right-color:var(--orange); border-bottom-color:var(--orange);
     box-shadow:0 3px 6px rgba(16,26,30,.08), 0 10px 22px rgba(16,26,30,.12);
   }
   .card.comp-card{
     display:flex;
     flex-direction:column;
     position:relative;
-    border-top-color:transparent;
+    border-top:1px solid var(--line);
   }
+  .card.insight-card{
+    border-top:4px solid var(--kat-accent, var(--orange));
+    border-left:5px solid var(--kat-accent, var(--orange));
+  }
+  .card.insight-card::before, .card.insight-card::after{ content:none; }
   .comp-color-strip{
     position:absolute;
     top:0; left:0; right:0;
@@ -1671,7 +1686,7 @@ function renderTabs(){
 
   const infBtn = document.createElement('button');
   infBtn.className = 'tab' + (infMode ? ' active' : '');
-  infBtn.textContent = 'Inferensia';
+  infBtn.textContent = 'Inferensia*';
   infBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = true; renderTabs(); renderInferensiaView(); };
   tabsEl.appendChild(infBtn);
 
@@ -2126,7 +2141,7 @@ function renderContent(periode){
           const satuanTeks = SATUAN[sub] ? `<span class="card-unit">${escapeHtml(SATUAN[sub])}</span>` : '';
           const styleOptionsHtml = CHART_STYLE_OPTIONS.map(o=>`<option value="${o.value}" ${o.value===subChartType?'selected':''}>${o.label}</option>`).join('');
 
-          html += `<div class="card" data-key='${key}'>
+          html += `<div class="card" data-key='${key}' data-kel="${escapeHtml(kelompok)}">
               <div class="card-top-row">
                 <div class="card-label">${escapeHtml(sub)}</div>
                 <select class="chart-style-select" data-stylekey="${escapeHtml(styleKey)}" title="Ubah gaya grafik">${styleOptionsHtml}</select>
@@ -2841,6 +2856,16 @@ function openHargaBerlakuDetail(periode,kategori,kelompok,label,segs){
       </select></div>
     </div>
 
+    <div class="drawer-desc">
+      <div class="drawer-desc-label">Definisi</div>
+      <p>Nilai Tambah Bruto atas Dasar Harga Berlaku adalah nilai tambah yang dihasilkan tiap lapangan usaha/sektor, dihitung memakai harga yang berlaku pada tahun/periode berjalan — sehingga angkanya masih mengandung pengaruh perubahan harga (inflasi) dan mencerminkan nilai nominal, bukan volume produksi riil.</p>
+    </div>
+
+    <div class="ai-insight-box">
+      <div class="ai-insight-title">✨ Data Insight</div>
+      <div class="ai-insight-content" id="hbNarrative">Memuat analisis…</div>
+    </div>
+
     <div class="chart-box-wrap">
       <button class="dl-btn" id="dlHbChart" title="Unduh grafik sebagai JPG">⬇ JPG</button>
       <div class="chart-box" id="hbChartBox" style="height:380px;"><canvas id="hbChartCanvas"></canvas></div>
@@ -2869,6 +2894,24 @@ function openHargaBerlakuDetail(periode,kategori,kelompok,label,segs){
   refreshHargaBerlaku(subObj, segs, label, selKey, periods);
 }
 
+/* Insight otomatis untuk drawer "Harga Berlaku": sektor dominan & tingkat konsentrasi */
+function buildHargaBerlakuInsight(rows, total, pInfo){
+  if(!rows.length) return 'Tidak ada data pada periode ini.';
+  const top = rows[0];
+  const topPct = (top.value/total*100);
+  const top3Pct = rows.slice(0,3).reduce((s,r)=>s+r.value,0)/total*100;
+  const bottom = rows[rows.length-1];
+  let html = `Pada periode <b>${escapeHtml(pInfo.label)}</b>, sektor <b>${escapeHtml(top.short)}</b> memberi kontribusi terbesar dengan <b>${fmtNum(top.value)} ${escapeHtml(top.satuan)}</b> atau setara <b>${topPct.toFixed(1)}%</b> dari total.`;
+  html += ` Tiga sektor teratas bersama-sama menyumbang <b>${top3Pct.toFixed(1)}%</b> dari keseluruhan nilai, `;
+  html += top3Pct >= 70
+    ? `menunjukkan struktur ekonomi yang <b>cukup terkonsentrasi</b> pada beberapa sektor unggulan.`
+    : `menunjukkan struktur ekonomi yang <b>relatif terdiversifikasi</b> antar sektor.`;
+  if(bottom !== top){
+    html += ` Sementara itu, sektor dengan kontribusi terkecil adalah <b>${escapeHtml(bottom.short)}</b> (${(bottom.value/total*100).toFixed(2)}%).`;
+  }
+  return html;
+}
+
 function refreshHargaBerlaku(subObj, segs, label, periodKey, periods){
   const pInfo = periods.find(p=>p.key===periodKey) || periods[periods.length-1];
   const rows = segs.map(s=>{
@@ -2878,6 +2921,8 @@ function refreshHargaBerlaku(subObj, segs, label, periodKey, periods){
   }).filter(r=>r.value!==null).sort((a,b)=> b.value - a.value);
 
   const total = rows.reduce((s,r)=>s+r.value,0) || 1;
+  const narrEl = document.getElementById('hbNarrative');
+  if(narrEl) narrEl.innerHTML = buildHargaBerlakuInsight(rows, total, pInfo);
   const chartBox = document.getElementById('hbChartBox');
   const fileTag = pInfo.label.replace(/[^a-z0-9]+/gi,'_');
 
@@ -2996,6 +3041,16 @@ function openKonstanSektoralDetail(periode,kategori,kelompok,label,segs){
       </select></div>` : ''}
     </div>
 
+    <div class="drawer-desc">
+      <div class="drawer-desc-label">Definisi</div>
+      <p>Nilai Tambah Bruto atas Dasar Harga Konstan adalah nilai tambah tiap lapangan usaha/sektor yang dihitung memakai harga pada satu tahun dasar tertentu — sehingga pengaruh inflasi/perubahan harga dihilangkan, dan angkanya mencerminkan perubahan volume/kuantitas produksi riil. Indikator ini yang dipakai untuk mengukur pertumbuhan ekonomi.</p>
+    </div>
+
+    <div class="ai-insight-box">
+      <div class="ai-insight-title">✨ Data Insight</div>
+      <div class="ai-insight-content" id="hkNarrative">Memuat analisis…</div>
+    </div>
+
     <div class="chart-box-wrap">
       <button class="dl-btn" id="dlHkChart" title="Unduh grafik sebagai JPG">⬇ JPG</button>
       <div class="chart-box" style="height:380px;"><canvas id="hkChartCanvas"></canvas></div>
@@ -3024,6 +3079,24 @@ function openKonstanSektoralDetail(periode,kategori,kelompok,label,segs){
   document.getElementById('overlay').classList.add('show');
 
   refreshKonstanSektoral(subObj, segs, label, selKey, periods);
+}
+
+/* Insight otomatis untuk drawer "Harga Konstan": sektor tumbuh tercepat/melambat */
+function buildKonstanSektoralInsight(rows, pInfo, compareLabel){
+  const growable = rows.filter(r=>!r.isNoGrowth && r.growth!==null);
+  if(!growable.length) return `Belum ada data pembanding untuk menghitung pertumbuhan pada periode <b>${escapeHtml(pInfo.label)}</b>.`;
+  const sorted = [...growable].sort((a,b)=> b.growth - a.growth);
+  const fastest = sorted[0], slowest = sorted[sorted.length-1];
+  const positiveCount = growable.filter(r=>r.growth>=0).length;
+  const vs = compareLabel ? ` dibandingkan ${escapeHtml(compareLabel)}` : '';
+  let html = `Pada periode <b>${escapeHtml(pInfo.label)}</b>${vs}, sektor <b>${escapeHtml(fastest.short)}</b> tumbuh paling cepat sebesar <b>${fastest.growth>=0?'+':''}${fastest.growth.toFixed(2)}%</b>.`;
+  if(slowest !== fastest){
+    html += slowest.growth < 0
+      ? ` Sebaliknya, sektor <b>${escapeHtml(slowest.short)}</b> mengalami kontraksi terdalam sebesar <b>${slowest.growth.toFixed(2)}%</b>.`
+      : ` Sektor dengan pertumbuhan paling lambat adalah <b>${escapeHtml(slowest.short)}</b> (${slowest.growth>=0?'+':''}${slowest.growth.toFixed(2)}%).`;
+  }
+  html += ` Secara keseluruhan, <b>${positiveCount} dari ${growable.length}</b> sektor mencatat pertumbuhan positif pada periode ini.`;
+  return html;
 }
 
 function refreshKonstanSektoral(subObj, segs, label, periodKey, periods){
@@ -3062,6 +3135,8 @@ function refreshKonstanSektoral(subObj, segs, label, periodKey, periods){
   }).filter(r=>r.value!==null).sort((a,b)=> b.value - a.value);
 
   const growthColLabel = compareLabel ? `Pertumbuhan vs ${escapeHtml(compareLabel)}` : 'Pertumbuhan';
+  const hkNarrEl = document.getElementById('hkNarrative');
+  if(hkNarrEl) hkNarrEl.innerHTML = buildKonstanSektoralInsight(rows, cur, compareLabel);
 
   if(hkChartInstance) hkChartInstance.destroy();
   hkChartInstance = new Chart(document.getElementById('hkChartCanvas'), {
@@ -4035,7 +4110,7 @@ function renderInferensiaView(){
     <section class="compare-wrap">
       <div class="compare-intro">
         <h2>Analisis Inferensia</h2>
-        <p>Uji hubungan statistik antar indikator kuantitatif dengan regresi linear atau ramalkan trennya dengan AR/MA/ARIMA.</p>
+        <p>Uji hubungan statistik antar indikator kuantitatif dengan regresi linear atau ramalkan trennya dengan AR/MA/ARIMA. Bagian ini hanya untuk simulasi analisis indikator, bukan untuk pengambilan keputusan.</p>
       </div>
       <div class="compare-controls">
         <div class="ctrl-item"><label>Metode</label>
