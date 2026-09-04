@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Data Petugas</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<style>
+:root{
+  --main:#4A1620;
+  --accent:#B23A48;
+  --soft:#7A2636;
+  --accent-light:#F4E3E6;
+  --soft-text:#A67885;
+  --line:#E5E7EB;
+  --base:#FFFFFF;
+  --text:#2B1418;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--base);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  padding-top:14px;
+}
+.wrap{max-width:1280px;margin:0 auto;padding:0 20px 40px;}
+
+.se-header{
+  background:var(--main);
+  border-radius:20px;
+  padding:28px 32px;
+  color:#fff;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  flex-wrap:wrap;
+  gap:16px;
+}
+.se-header h1{
+  font-family:'Fraunces',serif;
+  font-weight:600;
+  font-size:28px;
+  margin:0 0 6px;
+}
+.se-header p{
+  margin:0;
+  color:var(--accent-light);
+  font-size:14px;
+}
+.count-pill{
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.25);
+  border-radius:999px;
+  padding:8px 18px;
+  font-size:13px;
+  white-space:nowrap;
+}
+.count-pill b{font-size:18px;display:block;font-family:'Fraunces',serif;}
+
+.panel{
+  margin-top:20px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:20px 22px;
+}
+.panel h2{
+  font-family:'Fraunces',serif;
+  font-size:16px;
+  margin:0 0 14px;
+  color:var(--main);
+}
+.filter-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:14px;
+}
+.filter-item label{
+  display:block;
+  font-size:12px;
+  color:var(--soft-text);
+  margin-bottom:5px;
+  font-weight:600;
+}
+.filter-item select, .filter-item input{
+  width:100%;
+  padding:9px 10px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  font-family:'Inter',sans-serif;
+  font-size:13px;
+  background:#fff;
+  color:var(--text);
+}
+.filter-item select:focus, .filter-item input:focus{
+  outline:none;
+  border-color:var(--accent);
+}
+.filter-actions{
+  margin-top:16px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.btn-reset{
+  background:var(--accent-light);
+  color:var(--main);
+  border:1px solid var(--accent-light);
+  border-radius:9px;
+  padding:9px 16px;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+}
+.btn-reset:hover{background:#eccdd2;}
+.active-note{font-size:12px;color:var(--soft-text);}
+
+.table-card{
+  margin-top:20px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:18px 22px 22px;
+}
+table.dataTable{
+  border-collapse:collapse;
+  font-size:13px;
+}
+table.dataTable thead th{
+  background:var(--main);
+  color:#fff;
+  font-weight:600;
+  font-size:12px;
+  padding:10px 8px;
+  border:none !important;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+table.dataTable tbody td{
+  padding:9px 8px;
+  border-bottom:1px solid var(--line);
+  vertical-align:middle;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+table.dataTable tbody td.wrap-cell{
+  white-space:normal;
+  line-height:1.7;
+}
+table.dataTable tbody td span.trunc{
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+table.dataTable tbody tr:hover{background:var(--accent-light);}
+.dataTables_scrollBody{border-bottom:none !important;}
+.dataTables_scrollHead thead th{border-bottom:none !important;}
+.person-tag{
+  display:inline-block;
+  background:var(--accent-light);
+  color:var(--soft);
+  border-radius:6px;
+  padding:1px 7px;
+  margin:2px 3px 2px 0;
+  font-size:11px;
+  white-space:nowrap;
+}
+.link-yes{
+  color:var(--accent);
+  font-weight:600;
+  text-decoration:none;
+}
+.link-yes:hover{text-decoration:underline;}
+.link-no{color:var(--soft-text);font-size:12px;}
+.dt-search-wrap{margin-bottom:12px;}
+.dataTables_wrapper .dataTables_paginate .paginate_button.current{
+  background:var(--main) !important;
+  color:#fff !important;
+  border-color:var(--main) !important;
+  border-radius:6px;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button{
+  border-radius:6px;
+}
+.dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter{
+  font-size:12px;
+  color:var(--soft-text);
+}
+.loading-state{
+  padding:60px 0;
+  text-align:center;
+  color:var(--soft-text);
+  font-size:14px;
+}
+.badge-status{
+  display:inline-block;
+  padding:2px 9px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:600;
+  background:var(--accent-light);
+  color:var(--main);
+}
+table.dataTable tbody td.wrap-cell select.verif-select,
+table.dataTable tbody select.verif-select{
+  width:100%;
+  padding:6px 6px;
+  border:1px solid var(--line);
+  border-radius:7px;
+  font-size:12px;
+  font-family:'Inter',sans-serif;
+  background:#fff;
+  color:var(--text);
+}
+table.dataTable tbody input.alasan-input{
+  width:100%;
+  padding:6px 7px;
+  border:1px solid var(--line);
+  border-radius:7px;
+  font-size:12px;
+  font-family:'Inter',sans-serif;
+  color:var(--text);
+}
+table.dataTable tbody select.verif-select:focus,
+table.dataTable tbody input.alasan-input:focus{
+  outline:none;
+  border-color:var(--accent);
+}
+table.dataTable tbody button.btn-save{
+  background:var(--main);
+  color:#fff;
+  border:none;
+  border-radius:7px;
+  padding:6px 12px;
+  font-size:12px;
+  font-weight:600;
+  cursor:pointer;
+  white-space:nowrap;
+  font-family:'Inter',sans-serif;
+}
+table.dataTable tbody button.btn-save:hover{background:var(--soft);}
+table.dataTable tbody button.btn-save:disabled{opacity:.7;cursor:default;}
+table.dataTable tbody button.btn-save.saved{background:#2E7D32;}
+::-webkit-scrollbar{height:8px;width:8px;}
+::-webkit-scrollbar-thumb{background:var(--soft-text);border-radius:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="se-header">
+    <div>
+      <h1>Dashboard Data Petugas</h1>
+      <p>Rekap penugasan PPL &amp; PML per wilayah &mdash; Kecamatan, Desa, dan Dusun SLS</p>
+    </div>
+    <div class="count-pill">
+      <span>Baris ditampilkan</span>
+      <b id="rowCount">&ndash;</b>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Filter</h2>
+    <div class="filter-grid">
+      <div class="filter-item">
+        <label for="fKecamatan">Kecamatan</label>
+        <select id="fKecamatan"><option value="">Semua Kecamatan</option></select>
+      </div>
+      <div class="filter-item">
+        <label for="fDesa">Desa</label>
+        <select id="fDesa"><option value="">Semua Desa</option></select>
+      </div>
+      <div class="filter-item">
+        <label for="fDusunSLS">Dusun SLS</label>
+        <select id="fDusunSLS"><option value="">Semua Dusun SLS</option></select>
+      </div>
+      <div class="filter-item">
+        <label for="fPPL">PPL</label>
+        <select id="fPPL"><option value="">Semua PPL</option></select>
+      </div>
+      <div class="filter-item">
+        <label for="fPML">PML</label>
+        <select id="fPML"><option value="">Semua PML</option></select>
+      </div>
+      <div class="filter-item">
+        <label for="fLink">Link</label>
+        <select id="fLink">
+          <option value="">Semua</option>
+          <option value="ada">Ada Link</option>
+          <option value="kosong">Belum Ada Link</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fKode">Kode</label>
+        <select id="fKode">
+          <option value="">Semua Kode</option>
+          <option value="TRUE">TRUE</option>
+          <option value="FALSE">FALSE</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fSearch">Cari Nama / NIK</label>
+        <input type="text" id="fSearch" placeholder="Ketik untuk mencari...">
+      </div>
+    </div>
+    <div class="filter-actions">
+      <button class="btn-reset" id="btnReset">Reset Filter</button>
+      <span class="active-note" id="activeNote"></span>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div id="loadingState" class="loading-state">Memuat data...</div>
+    <table id="dataTable" class="display" style="width:100%; display:none;">
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th>Nama</th>
+          <th>NIK</th>
+          <th>KK</th>
+          <th>Kecamatan</th>
+          <th>Desa</th>
+          <th>Dusun</th>
+          <th>Alamat</th>
+          <th>Dusun SLS</th>
+          <th>PPL</th>
+          <th>PML</th>
+          <th>Link</th>
+          <th>Verifikator</th>
+          <th>Alasan</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script>
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSswmBtUfw8r1fL2Eb19fCzv4YGL9kXiNUg8FiLG95ZkR_TyO3SUVDzoJiPe4j5Z8t5gm71c_X3uoKh/pub?output=csv";
+
+// GANTI dengan URL Web App hasil deploy VerifikasiAPI.gs (diakhiri /exec)
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbx6QcZQlKjKWDTargq5gUjpDLbZL7jO1otr2m4mu0vKyCIRKLh1E8tZOMGHPe5XahEGXQ/exec";
+
+// Daftar nama verifikator
+const VERIFIKATOR_LIST = [
+  "Zidan", "Herlinda", "Permana", "Sutama", "Purnami", 
+  "Sukma", "Asya", "Indri", "Budiriani", "Rosma", 
+  "Eka", "Yoga", "Ave", "Monic", "Suparta", 
+  "Halim", "Budi Okta", "Bajra", "Agung Dharma", 
+  "Suparta", "Sudiasa", "Komang Ari"
+];
+
+// Kandidat nama header di CSV
+const HEADER_MAP = {
+  status: ["PNS/PPPK"],
+  nama: ["NAMA TANPA GELAR", "NAMA"],
+  nik: ["NIK"],
+  kk: ["KK"],
+  kecamatan: ["KECAMATAN"],
+  desa: ["DESA"],
+  dusun: ["DUSUN"],
+  alamat: ["ALAMAT"],
+  dusunsls: ["DUSUN SLS"],
+  ppl: ["PPL"],
+  pml: ["PML"],
+  link: ["LINK URL", "LINK_URL", "URL LINK", "LINK"],
+  verifikator: ["VERIFIKATOR"],
+  alasan: ["ALASAN"],
+  kode: ["KODE"]
+};
+
+let RAW = [];
+let table;
+
+function norm(s){ return (s || "").toString().trim(); }
+function normKey(s){ return norm(s).toUpperCase(); }
+
+// Cek apakah string link sebenarnya kosong/error/strip
+function checkLinkExists(rawVal) {
+  let v = norm(rawVal).replace(/["'🔗]/g, '');
+  return !(!v || v === "-" || v.startsWith('#'));
+}
+
+function findKey(headers, candidates){
+  for(const c of candidates){
+    const hit = headers.find(h => normKey(h) === normKey(c));
+    if(hit) return hit;
+  }
+  return null;
+}
+
+function splitPeople(cell){
+  return norm(cell).split(";").map(s=>s.trim()).filter(Boolean);
+}
+
+function uniqueSorted(arr){
+  return [...new Set(arr.filter(v => v !== ""))].sort((a,b)=>a.localeCompare(b,'id'));
+}
+
+function fillSelect(id, values, placeholder){
+  const $sel = $(id);
+  const current = $sel.val();
+  $sel.empty().append(`<option value="">${placeholder}</option>`);
+  values.forEach(v => $sel.append(`<option value="${$('<div>').text(v).html()}">${v}</option>`));
+  if(current && values.includes(current)) $sel.val(current);
+}
+
+function buildFilterOptions(rows, kecamatanFilter, desaFilter){
+  let scoped = rows;
+  if(kecamatanFilter) scoped = scoped.filter(r => r.kecamatan === kecamatanFilter);
+  const desaOpts = uniqueSorted(scoped.map(r=>r.desa));
+
+  let scopedForSls = rows;
+  if(kecamatanFilter) scopedForSls = scopedForSls.filter(r => r.kecamatan === kecamatanFilter);
+  if(desaFilter) scopedForSls = scopedForSls.filter(r => r.desa === desaFilter);
+  const slsOpts = uniqueSorted(scopedForSls.map(r=>r.dusunsls));
+
+  return { desaOpts, slsOpts };
+}
+
+function refreshCascadingSelects(){
+  const kec = $('#fKecamatan').val();
+  const desa = $('#fDesa').val();
+  const { desaOpts, slsOpts } = buildFilterOptions(RAW, kec, desa);
+  fillSelect('#fDesa', desaOpts, 'Semua Desa');
+  fillSelect('#fDusunSLS', slsOpts, 'Semua Dusun SLS');
+}
+
+function buildLinkCell(rawVal){
+  if(!checkLinkExists(rawVal)) {
+    return '<span class="link-no">-</span>';
+  }
+  
+  let v = rawVal.replace(/["'迫]/g, '').trim();
+  
+  // PERBAIKAN: Langsung potong kalau ada garis bawah (_), 
+  // tidak peduli dia ada http-nya atau tidak.
+  if (v.includes('_')) {
+    v = v.split('_')[0]; 
+  }
+  
+  let href = v;
+  const match = v.match(/https?:\/\/[^\s]+/i);
+  
+  if (match) {
+    href = match[0];
+  } else if (v.includes('bps.go.id')) {
+    href = 'https://' + v;
+  } else {
+    href = 'https://fasih-sm.bps.go.id/app/assignment-detail/' + v;
+  }
+
+  return `<a class="link-yes" href="${escapeHtml(href)}" target="_blank" rel="noopener" style="background: var(--accent-light); padding: 4px 10px; border-radius: 6px; display: inline-block; text-decoration: none; color: var(--accent); font-weight: 600;">&#128279; Buka Link</a>`;
+}
+
+function truncCell(value){
+  const v = norm(value);
+  if(!v) return '-';
+  return `<span class="trunc" title="${escapeAttr(v)}">${escapeHtml(v)}</span>`;
+}
+
+function buildVerifikatorSelect(nik, current){
+  const opts = VERIFIKATOR_LIST.map(name => {
+    const sel = name === current ? ' selected' : '';
+    return `<option value="${escapeAttr(name)}"${sel}>${escapeHtml(name)}</option>`;
+  }).join('');
+  return `<select class="verif-select" data-nik="${escapeAttr(nik)}">
+    <option value="">Pilih...</option>${opts}
+  </select>`;
+}
+
+function buildAlasanInput(nik, current){
+  return `<input type="text" class="alasan-input" data-nik="${escapeAttr(nik)}" value="${escapeAttr(current)}" placeholder="Tulis alasan...">`;
+}
+
+function buildAksiButton(nik){
+  return `<button class="btn-save" data-nik="${escapeAttr(nik)}">Simpan</button>`;
+}
+
+function renderTable(rows){
+  const body = rows.map(r => {
+    const pplTags = splitPeople(r.ppl).map(n=>`<span class="person-tag">${escapeHtml(n)}</span>`).join(' ') || '<span class="link-no">-</span>';
+    const pmlTags = splitPeople(r.pml).map(n=>`<span class="person-tag">${escapeHtml(n)}</span>`).join(' ') || '<span class="link-no">-</span>';
+    const linkCell = buildLinkCell(r.link);
+    return [
+      r.status ? `<span class="badge-status">${escapeHtml(r.status)}</span>` : '-',
+      truncCell(r.nama),
+      truncCell(r.nik),
+      truncCell(r.kk),
+      truncCell(r.kecamatan),
+      truncCell(r.desa),
+      truncCell(r.dusun),
+      truncCell(r.alamat),
+      truncCell(r.dusunsls),
+      pplTags,
+      pmlTags,
+      linkCell,
+      buildVerifikatorSelect(r.nik, r.verifikator),
+      buildAlasanInput(r.nik, r.alasan),
+      buildAksiButton(r.nik)
+    ];
+  });
+
+  if(table){
+    table.clear();
+    table.rows.add(body);
+    table.draw();
+  } else {
+    table = $('#dataTable').DataTable({
+      data: body,
+      pageLength: 10,
+      lengthMenu: [10,25,50,100],
+      order: [],
+      scrollX: true,
+      scrollCollapse: true,
+      autoWidth: false,
+      columnDefs: [
+        { targets: 0, width: '62px' },
+        { targets: 1, width: '170px' },
+        { targets: 2, width: '110px' },
+        { targets: 3, width: '110px' },
+        { targets: 4, width: '105px' },
+        { targets: 5, width: '100px' },
+        { targets: 6, width: '85px' },
+        { targets: 7, width: '160px' },
+        { targets: 8, width: '105px' },
+        { targets: [9,10], width: '160px', className: 'wrap-cell' },
+        { targets: 11, width: '70px' },
+        { targets: 12, width: '150px' },
+        { targets: 13, width: '160px' },
+        { targets: 14, width: '80px' }
+      ],
+      language: {
+        search: "Cari:",
+        lengthMenu: "Tampilkan _MENU_ baris",
+        info: "Menampilkan _START_&ndash;_END_ dari _TOTAL_ baris",
+        infoEmpty: "Tidak ada data",
+        infoFiltered: "(difilter dari _MAX_ total baris)",
+        paginate: { previous: "Sebelumnya", next: "Berikutnya" },
+        emptyTable: "Tidak ada data yang cocok dengan filter"
+      }
+    });
+  }
+  $('#rowCount').text(rows.length.toLocaleString('id-ID'));
+}
+
+function escapeHtml(s){
+  return $('<div>').text(norm(s)).html();
+}
+
+function escapeAttr(s){
+  return escapeHtml(s).replace(/"/g,'&quot;');
+}
+
+function applyFilters(){
+  const kec = $('#fKecamatan').val();
+  const desa = $('#fDesa').val();
+  const sls = $('#fDusunSLS').val();
+  const ppl = $('#fPPL').val();
+  const pml = $('#fPML').val();
+  const linkMode = $('#fLink').val();
+  const kode = $('#fKode').val();
+  const search = normKey($('#fSearch').val());
+
+  const filtered = RAW.filter(r => {
+    if(kec && r.kecamatan !== kec) return false;
+    if(desa && r.desa !== desa) return false;
+    if(sls && r.dusunsls !== sls) return false;
+    if(ppl && !splitPeople(r.ppl).includes(ppl)) return false;
+    if(pml && !splitPeople(r.pml).includes(pml)) return false;
+    
+    // Perbaikan Filter: Cek link secara akurat
+    const hasLink = checkLinkExists(r.link);
+    if(linkMode === 'ada' && !hasLink) return false;
+    if(linkMode === 'kosong' && hasLink) return false;
+    
+    // Filter KODE
+    if(kode && r.kode.toUpperCase() !== kode.toUpperCase()) return false;
+    
+    if(search){
+      const hay = normKey(r.nama) + ' ' + normKey(r.nik) + ' ' + normKey(r.kk);
+      if(!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  renderTable(filtered);
+
+  const parts = [];
+  if(kec) parts.push(`Kec: ${kec}`);
+  if(desa) parts.push(`Desa: ${desa}`);
+  if(sls) parts.push(`SLS: ${sls}`);
+  if(ppl) parts.push(`PPL: ${ppl}`);
+  if(pml) parts.push(`PML: ${pml}`);
+  if(linkMode) parts.push(linkMode === 'ada' ? 'Ada link' : 'Belum ada link');
+  if(kode) parts.push(`Kode: ${kode}`);
+  if(search) parts.push(`Cari: "${$('#fSearch').val()}"`);
+  $('#activeNote').text(parts.length ? `Filter aktif: ${parts.join(' | ')}` : '');
+}
+
+async function saveVerifikasi(nik, verifikator, alasan, $btn){
+  if(!WEBAPP_URL || WEBAPP_URL.indexOf('GANTI_DENGAN') !== -1){
+    alert('URL Web App Apps Script belum diisi.');
+    return;
+  }
+  const originalLabel = $btn.text();
+  $btn.prop('disabled', true).text('Menyimpan...');
+  try{
+    const res = await fetch(WEBAPP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ nik, verifikator, alasan })
+    });
+    const data = await res.json();
+    if(data.success){
+      $btn.text('Tersimpan \u2713').addClass('saved');
+      const row = RAW.find(r => r.nik === nik);
+      if(row){ row.verifikator = verifikator; row.alasan = alasan; }
+      setTimeout(() => { $btn.prop('disabled', false).text(originalLabel).removeClass('saved'); }, 1800);
+    } else {
+      alert('Gagal menyimpan: ' + (data.message || 'Terjadi kesalahan.'));
+      $btn.prop('disabled', false).text(originalLabel);
+    }
+  } catch(err){
+    alert('Gagal terhubung ke server: ' + err.message);
+    $btn.prop('disabled', false).text(originalLabel);
+  }
+}
+
+function initVerifikasiActions(){
+  $('#dataTable tbody').on('click', '.btn-save', function(){
+    const $btn = $(this);
+    const nik = $btn.data('nik');
+    const $row = $btn.closest('tr');
+    const verifikator = $row.find('.verif-select').val();
+    const alasan = $row.find('.alasan-input').val();
+    if(!verifikator){
+      alert('Pilih verifikator terlebih dahulu.');
+      return;
+    }
+    saveVerifikasi(nik, verifikator, alasan, $btn);
+  });
+}
+
+function initFilters(){
+  const kecOpts = uniqueSorted(RAW.map(r=>r.kecamatan));
+  const pplOpts = uniqueSorted(RAW.flatMap(r=>splitPeople(r.ppl)));
+  const pmlOpts = uniqueSorted(RAW.flatMap(r=>splitPeople(r.pml)));
+
+  fillSelect('#fKecamatan', kecOpts, 'Semua Kecamatan');
+  fillSelect('#fPPL', pplOpts, 'Semua PPL');
+  fillSelect('#fPML', pmlOpts, 'Semua PML');
+  refreshCascadingSelects();
+
+  $('#fKecamatan, #fDesa, #fDusunSLS, #fPPL, #fPML, #fLink, #fKode').on('change', function(e){
+    if(e.target.id === 'fKecamatan'){
+      $('#fDesa').val('');
+      $('#fDusunSLS').val('');
+      refreshCascadingSelects();
+    } else if(e.target.id === 'fDesa'){
+      $('#fDusunSLS').val('');
+      refreshCascadingSelects();
+    }
+    applyFilters();
+  });
+
+  let searchTimer;
+  $('#fSearch').on('input', function(){
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(applyFilters, 250);
+  });
+
+  $('#btnReset').on('click', function(){
+    $('#fKecamatan, #fDesa, #fDusunSLS, #fPPL, #fPML, #fLink, #fKode').val('');
+    $('#fSearch').val('');
+    refreshCascadingSelects();
+    applyFilters();
+  });
+}
+
+function loadData(){
+  const cacheBustedUrl = CSV_URL + (CSV_URL.indexOf('?') === -1 ? '?' : '&') + '_ts=' + Date.now();
+  Papa.parse(cacheBustedUrl, {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: function(results){
+      const headers = results.meta.fields || [];
+      const keys = {};
+      Object.keys(HEADER_MAP).forEach(k => { keys[k] = findKey(headers, HEADER_MAP[k]); });
+
+      // Kunci patokan: Paksa ambil kolom index ke-18 (Kolom S)
+      const headerKolomS = headers[18];
+
+      RAW = results.data.map(row => {
+        
+        // Ambil nilai murni dari Kolom S
+        let linkVal = headerKolomS ? norm(row[headerKolomS]) : '';
+
+        return {
+          status: keys.status ? norm(row[keys.status]) : '',
+          nama: keys.nama ? norm(row[keys.nama]) : '',
+          nik: keys.nik ? norm(row[keys.nik]) : '',
+          kk: keys.kk ? norm(row[keys.kk]) : '',
+          kecamatan: keys.kecamatan ? norm(row[keys.kecamatan]) : '',
+          desa: keys.desa ? norm(row[keys.desa]) : '',
+          dusun: keys.dusun ? norm(row[keys.dusun]) : '',
+          alamat: keys.alamat ? norm(row[keys.alamat]) : '',
+          dusunsls: keys.dusunsls ? norm(row[keys.dusunsls]) : '',
+          ppl: keys.ppl ? norm(row[keys.ppl]) : '',
+          pml: keys.pml ? norm(row[keys.pml]) : '',
+          link: linkVal, 
+          verifikator: keys.verifikator ? norm(row[keys.verifikator]) : '',
+          alasan: keys.alasan ? norm(row[keys.alasan]) : '',
+          kode: keys.kode ? norm(row[keys.kode]) : ''
+        };
+      }).filter(r => {
+        const adaNama = r.nama && r.nama !== '-';
+        const adaNik = r.nik && r.nik !== '-';
+        return adaNama || adaNik; 
+      });
+
+      $('#loadingState').hide();
+      $('#dataTable').show();
+      initFilters();
+      initVerifikasiActions();
+      applyFilters();
+    },
+    error: function(err){
+      $('#loadingState').text('Gagal memuat data: ' + err.message);
+    }
+  });
+}
+
+$(document).ready(loadData);
+</script>
+</body>
+</html>
