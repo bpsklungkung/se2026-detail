@@ -287,6 +287,10 @@ table.dataTable tbody button.btn-save.saved{background:#2E7D32;}
         <select id="fPML"><option value="">Semua PML</option></select>
       </div>
       <div class="filter-item">
+        <label for="fVerifikator">Verifikator</label>
+        <select id="fVerifikator"><option value="">Semua Verifikator</option></select>
+      </div>
+      <div class="filter-item">
         <label for="fLink">Link</label>
         <select id="fLink">
           <option value="">Semua</option>
@@ -567,6 +571,7 @@ function applyFilters(){
   const sls = $('#fDusunSLS').val();
   const ppl = $('#fPPL').val();
   const pml = $('#fPML').val();
+  const verifikator = $('#fVerifikator').val();
   const linkMode = $('#fLink').val();
   const kode = $('#fKode').val();
   const search = normKey($('#fSearch').val());
@@ -577,6 +582,7 @@ function applyFilters(){
     if(sls && r.dusunsls !== sls) return false;
     if(ppl && !splitPeople(r.ppl).includes(ppl)) return false;
     if(pml && !splitPeople(r.pml).includes(pml)) return false;
+    if(verifikator && r.verifikator !== verifikator) return false;
     
     // Perbaikan Filter: Cek link secara akurat
     const hasLink = checkLinkExists(r.link);
@@ -601,6 +607,7 @@ function applyFilters(){
   if(sls) parts.push(`SLS: ${sls}`);
   if(ppl) parts.push(`PPL: ${ppl}`);
   if(pml) parts.push(`PML: ${pml}`);
+  if(verifikator) parts.push(`Verifikator: ${verifikator}`);
   if(linkMode) parts.push(linkMode === 'ada' ? 'Ada link' : 'Belum ada link');
   if(kode) parts.push(`Kode: ${kode}`);
   if(search) parts.push(`Cari: "${$('#fSearch').val()}"`);
@@ -659,9 +666,10 @@ function initFilters(){
   fillSelect('#fKecamatan', kecOpts, 'Semua Kecamatan');
   fillSelect('#fPPL', pplOpts, 'Semua PPL');
   fillSelect('#fPML', pmlOpts, 'Semua PML');
+  fillSelect('#fVerifikator', VERIFIKATOR_LIST, 'Semua Verifikator');
   refreshCascadingSelects();
 
-  $('#fKecamatan, #fDesa, #fDusunSLS, #fPPL, #fPML, #fLink, #fKode').on('change', function(e){
+  $('#fKecamatan, #fDesa, #fDusunSLS, #fPPL, #fPML, #fVerifikator, #fLink, #fKode').on('change', function(e){
     if(e.target.id === 'fKecamatan'){
       $('#fDesa').val('');
       $('#fDusunSLS').val('');
@@ -680,7 +688,7 @@ function initFilters(){
   });
 
   $('#btnReset').on('click', function(){
-    $('#fKecamatan, #fDesa, #fDusunSLS, #fPPL, #fPML, #fLink, #fKode').val('');
+    $('#fKecamatan, #fDesa, #fDusunSLS, #fPPL, #fPML, #fVerifikator, #fLink, #fKode').val('');
     $('#fSearch').val('');
     refreshCascadingSelects();
     applyFilters();
