@@ -4,18 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard Data Petugas</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://cdn.datatables.net">
-<link rel="preconnect" href="https://cdnjs.cloudflare.com">
-<link rel="preconnect" href="https://code.jquery.com">
-<link rel="preconnect" href="https://docs.google.com">
-<link rel="dns-prefetch" href="https://script.google.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-<script src="https://code.jquery.com/jquery-3.7.1.min.js" defer></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" defer></script>
 <style>
 :root{
   --main:#4A1620;
@@ -297,10 +287,6 @@ table.dataTable tbody button.btn-save.saved{background:#2E7D32;}
         <select id="fPML"><option value="">Semua PML</option></select>
       </div>
       <div class="filter-item">
-        <label for="fVerifikator">Verifikator</label>
-        <select id="fVerifikator"><option value="">Semua Verifikator</option></select>
-      </div>
-      <div class="filter-item">
         <label for="fLink">Link</label>
         <select id="fLink">
           <option value="">Semua</option>
@@ -355,7 +341,10 @@ table.dataTable tbody button.btn-save.saved{background:#2E7D32;}
 
 </div>
 
-<script type="module">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script>
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSswmBtUfw8r1fL2Eb19fCzv4YGL9kXiNUg8FiLG95ZkR_TyO3SUVDzoJiPe4j5Z8t5gm71c_X3uoKh/pub?output=csv";
 
 // GANTI dengan URL Web App hasil deploy VerifikasiAPI.gs (diakhiri /exec)
@@ -369,11 +358,6 @@ const VERIFIKATOR_LIST = [
   "Halim", "Budi Okta", "Bajra", "Agung Dharma", 
   "Suparta", "Sudiasa", "Komang Ari"
 ];
-
-// Dibangun sekali di awal, dipakai ulang untuk setiap baris (lihat buildVerifikatorSelect)
-const VERIFIKATOR_OPTIONS_BASE = VERIFIKATOR_LIST
-  .map(name => `<option value="${$('<div>').text(name).html()}">${$('<div>').text(name).html()}</option>`)
-  .join('');
 
 // Kandidat nama header di CSV
 const HEADER_MAP = {
@@ -485,13 +469,10 @@ function truncCell(value){
 }
 
 function buildVerifikatorSelect(nik, current){
-  // Opsi dibangun satu kali (VERIFIKATOR_OPTIONS_BASE), lalu tandai 'selected'
-  // dengan replace ringan per baris — jauh lebih cepat daripada map() ulang tiap baris.
-  let opts = VERIFIKATOR_OPTIONS_BASE;
-  if(current){
-    const marker = `value="${escapeAttr(current)}"`;
-    opts = opts.replace(marker, marker + ' selected');
-  }
+  const opts = VERIFIKATOR_LIST.map(name => {
+    const sel = name === current ? ' selected' : '';
+    return `<option value="${escapeAttr(name)}"${sel}>${escapeHtml(name)}</option>`;
+  }).join('');
   return `<select class="verif-select" data-nik="${escapeAttr(nik)}">
     <option value="">Pilih...</option>${opts}
   </select>`;
@@ -539,7 +520,6 @@ function renderTable(rows){
       pageLength: 10,
       lengthMenu: [10,25,50,100],
       order: [],
-      deferRender: true,
       scrollX: true,
       scrollCollapse: true,
       autoWidth: false,
@@ -587,7 +567,6 @@ function applyFilters(){
   const sls = $('#fDusunSLS').val();
   const ppl = $('#fPPL').val();
   const pml = $('#fPML').val();
-  const verifikator = $('#fVerifikator').val();
   const linkMode = $('#fLink').val();
   const kode = $('#fKode').val();
   const search = normKey($('#fSearch').val());
@@ -598,7 +577,6 @@ function applyFilters(){
     if(sls && r.dusunsls !== sls) return false;
     if(ppl && !splitPeople(r.ppl).includes(ppl)) return false;
     if(pml && !splitPeople(r.pml).includes(pml)) return false;
-    if(verifikator && r.verifikator !== verifikator) return false;
     
     // Perbaikan Filter: Cek link secara akurat
     const hasLink = checkLinkExists(r.link);
@@ -623,7 +601,6 @@ function applyFilters(){
   if(sls) parts.push(`SLS: ${sls}`);
   if(ppl) parts.push(`PPL: ${ppl}`);
   if(pml) parts.push(`PML: ${pml}`);
-  if(verifikator) parts.push(`Verifikator: ${verifikator}`);
   if(linkMode) parts.push(linkMode === 'ada' ? 'Ada link' : 'Belum ada link');
   if(kode) parts.push(`Kode: ${kode}`);
   if(search) parts.push(`Cari: "${$('#fSearch').val()}"`);
@@ -682,10 +659,9 @@ function initFilters(){
   fillSelect('#fKecamatan', kecOpts, 'Semua Kecamatan');
   fillSelect('#fPPL', pplOpts, 'Semua PPL');
   fillSelect('#fPML', pmlOpts, 'Semua PML');
-  fillSelect('#fVerifikator', VERIFIKATOR_LIST, 'Semua Verifikator');
   refreshCascadingSelects();
 
-  $('#fKecamatan, #fDesa, #fDusunSLS, #fPPL, #fPML, #fVerifikator, #fLink, #fKode').on('change', function(e){
+  $('#fKecamatan, #fDesa, #fDusunSLS, #fPPL, #fPML, #fLink, #fKode').on('change', function(e){
     if(e.target.id === 'fKecamatan'){
       $('#fDesa').val('');
       $('#fDusunSLS').val('');
@@ -704,7 +680,7 @@ function initFilters(){
   });
 
   $('#btnReset').on('click', function(){
-    $('#fKecamatan, #fDesa, #fDusunSLS, #fPPL, #fPML, #fVerifikator, #fLink, #fKode').val('');
+    $('#fKecamatan, #fDesa, #fDusunSLS, #fPPL, #fPML, #fLink, #fKode').val('');
     $('#fSearch').val('');
     refreshCascadingSelects();
     applyFilters();
