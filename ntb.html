@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard NTB dan Tenaga Kerja</title>
+<style>
+  :root{
+    --main:#4A1620;
+    --mid:#7A2636;
+    --accent:#B23A48;
+    --accent-light:#F4E3E6;
+    --line:#E5E7EB;
+    --base:#FFFFFF;
+    --text:#2A1418;
+    --text-soft:#8A5D64;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    padding-top:14px;
+    background:var(--base);
+    font-family:'Segoe UI', Inter, Arial, sans-serif;
+    color:var(--text);
+  }
+  .wrap{max-width:1280px;margin:0 auto;padding:0 16px 40px;}
+  header.se-header{
+    background:var(--main);
+    color:#fff;
+    border-radius:20px;
+    padding:26px 32px;
+    margin-bottom:20px;
+  }
+  header.se-header h1{margin:0 0 6px;font-size:24px;font-weight:700;}
+  header.se-header p{margin:0;color:var(--accent-light);font-size:13.5px;opacity:.9;}
+
+  /* Grid card diperkecil min-width nya agar 8 card bisa muat lebih banyak sebaris */
+  .cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+    gap:14px;
+    margin-bottom:20px;
+  }
+  .card{
+    background:var(--accent-light);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:12px 14px;
+  }
+  .card .label{font-size:11px;color:var(--text-soft);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .card .value{font-size:14px;font-weight:700;color:var(--main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+  .filters{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+    gap:12px;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:20px;
+  }
+  .filters .field label{display:block;font-size:12px;color:var(--text-soft);margin-bottom:5px;font-weight:600;}
+  .filters select, .filters input[type="text"]{
+    width:100%;
+    padding:8px 10px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    font-size:13px;
+    color:var(--text);
+    background:#fff;
+  }
+  .filters select:focus, .filters input:focus{outline:2px solid var(--accent);outline-offset:1px;}
+
+  .btn-reset{
+    grid-column:1/-1;
+    justify-self:start;
+    background:var(--main);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    padding:8px 16px;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .btn-reset:hover{background:var(--mid);}
+
+  .table-card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px;
+  }
+
+  .table-toolbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .table-toolbar .lenwrap, .table-toolbar .searchwrap{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:12.5px;
+    color:var(--text-soft);
+  }
+  .table-toolbar select, .table-toolbar input[type="text"]{
+    padding:5px 8px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    font-size:12.5px;
+  }
+  .table-toolbar input[type="text"]{width:180px;}
+
+  .table-scroll{overflow-x:auto;}
+  /* Ukuran font tabel diperkecil jadi 10px */
+  table{border-collapse:collapse;width:100%;font-size:10px;}
+  thead th{
+    background:var(--main);
+    color:#fff;
+    padding:6px 5px; /* Padding lebih tipis */
+    white-space:nowrap;
+    text-align:left;
+    position:sticky;
+    top:0;
+    transition: background 0.2s;
+  }
+  thead th.sortable { cursor: pointer; user-select: none; }
+  thead th.sortable:hover { background: var(--mid); }
+  .sort-icon { font-size: 10px; margin-left: 5px; opacity: 0.6; }
+  thead th.num{text-align:right;}
+  
+  tbody td{
+    padding:5px 5px; /* Padding lebih tipis */
+    border-bottom:1px solid var(--line);
+    white-space:nowrap;
+    font-size:10px; /* Ukuran font di body tabel */
+  }
+  tbody tr:hover{background:var(--accent-light);}
+  td.num, th.num{text-align:right;}
+  td.link, th.link{text-align:center;}
+  td.link a{color:var(--accent);text-decoration:none;font-size:13px;}
+  td.link a:hover{color:var(--main);}
+
+  /* Highlight Alerts - MERAH (Jauh lebih kecil / Lebih buruk) */
+  .highlight-alert {
+    background-color: #FEE2E2 !important; 
+    color: #991B1B !important; 
+    font-weight: bold;
+  }
+
+  /* Highlight Success - HIJAU (Lebih besar / Lebih baik) */
+  .highlight-success {
+    background-color: #DCFCE7 !important;
+    color: #166534 !important;
+    font-weight: bold;
+  }
+
+  /* Dropdown & Button didalam tabel disesuaikan */
+  .sel-aksi {
+    padding: 2px 4px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font-size: 10px;
+    background: #fff;
+  }
+  .btn-aksi {
+    background: var(--main);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 10px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .btn-aksi:hover { background: var(--mid); }
+  .btn-aksi:disabled { background: #9ca3af; cursor: not-allowed; }
+  .btn-edit { background: #4b5563; }
+  .btn-edit:hover { background: #374151; }
+
+  .table-footer{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:12px;
+    font-size:12px;
+    color:var(--text-soft);
+  }
+  .pager{display:flex;gap:4px;}
+  .pager button{
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius:6px;
+    padding:4px 9px;
+    font-size:12px;
+    cursor:pointer;
+    color:var(--text);
+  }
+  .pager button.active{background:var(--main);color:#fff;border-color:var(--main);}
+  .pager button:disabled{opacity:.4;cursor:not-allowed;}
+  .pager button:hover:not(:disabled):not(.active){background:var(--accent-light);}
+
+  .loading{padding:40px;text-align:center;color:var(--text-soft);font-size:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="se-header">
+    <h1>Dashboard NTB dan Tenaga Kerja</h1>
+    </header>
+
+  <div class="cards" id="summaryCards">
+    <div class="card"><div class="label">Total Usaha</div><div class="value" id="cardTotal">-</div></div>
+    <div class="card"><div class="label">Pengeluaran</div><div class="value" id="cardPengeluaran">-</div></div>
+    <div class="card"><div class="label">Total Pendapatan</div><div class="value" id="cardPendapatan">-</div></div>
+    <div class="card"><div class="label">Total Aset</div><div class="value" id="cardAset">-</div></div>
+    <div class="card"><div class="label">Nilai Tambah</div><div class="value" id="cardNilaiTambah">-</div></div>
+    <div class="card"><div class="label">Total TK</div><div class="value" id="cardTK">-</div></div>
+    <!-- 2 CARD BARU -->
+    <div class="card"><div class="label">Rata-rata Rasio NTB</div><div class="value" id="cardAvgNTB">-</div></div>
+    <div class="card"><div class="label">Rata-rata Est. BOP</div><div class="value" id="cardAvgBOP">-</div></div>
+  </div>
+
+  <div class="filters">
+    <div class="field">
+      <label for="fKategori">Kategori</label>
+      <select id="fKategori"><option value="">Semua</option></select>
+    </div>
+    <div class="field">
+      <label for="fKec">Kecamatan</label>
+      <select id="fKec"><option value="">Semua</option></select>
+    </div>
+    <div class="field">
+      <label for="fDesa">Desa</label>
+      <select id="fDesa"><option value="">Semua</option></select>
+    </div>
+    <div class="field">
+      <label for="fSLS">SLS</label>
+      <select id="fSLS"><option value="">Semua</option></select>
+    </div>
+    <div class="field">
+      <label for="fPML">PML</label>
+      <select id="fPML"><option value="">Semua</option></select>
+    </div>
+    <div class="field">
+      <label for="fPPL">PPL</label>
+      <select id="fPPL"><option value="">Semua</option></select>
+    </div>
+    <button class="btn-reset" id="btnReset">Reset Filter</button>
+  </div>
+
+  <div class="table-card">
+    <div id="loadingMsg" class="loading">Memuat data CSV…</div>
+    <div id="tableArea" style="display:none">
+      <div class="table-toolbar">
+        <div class="lenwrap">
+          Tampilkan
+          <select id="pageSizeSel">
+            <option value="15">15</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="all">Semua</option>
+          </select>
+          baris
+        </div>
+        <div class="searchwrap">
+          Cari:
+          <input type="text" id="searchBox" placeholder="cari nama usaha, PML, dll...">
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr id="theadRow"></tr></thead>
+          <tbody id="tbodyRows"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <div id="infoText">-</div>
+        <div class="pager" id="pagerButtons"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script>
+// =========== GANTI URL INI DENGAN HASIL DEPLOY APPS SCRIPT KAMU ============
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxY84SCvN3krrPBJ9jp6-mxiWWB4rqNjHmLwrhBmArACUeZpfyHlNkADJq7fNW3h2lDoA/exec";
+// ============================================================================
+
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKNHy1T-JkECJNniuxlfRxjZOdkzhJpmKmfn0Unqs7FTcqHwtkLsTQrLBG6cNAbib3v3Xkb3GSg00S/pub?output=csv";
+
+const VERIFIKATORS = ["Zidan", "Herlinda", "Permana", "Sutama", "Purnami", "Sukma", "Asya", "Indri", "Budiriani", "Rosma", "Eka", "Yoga", "Ave", "Monic", "Suparta", "Halim", "Okta", "Bajra", "Dharma", "Sudiasa", "Ary"];
+const STATUSES = ["Sudah Sesuai", "Perbaiki Nilai"];
+
+let actionStates = {};
+
+const IDX = {
+  ASSIGNMENT_ID: 0, 
+  KATEGORI: 1,   
+  KEC: 4,        
+  DESA: 5,       
+  SLS: 6,        
+  PML: 8,        
+  PPL: 9,        
+  NAMA_USAHA: 10,
+  PENGELUARAN: 16,
+  PENDAPATAN: 19,
+  ASET: 20,      
+  TENAGA_KERJA: 25,
+  AA: 26, AB: 27, AC: 28, AD: 29, AE: 30, AF: 31,
+  AG: 32, AH: 33
+};
+
+const IDX_VERIFIKATOR = 901;
+const IDX_STATUS = 902;
+const IDX_AKSI = 903;
+
+const THRESHOLD_KECIL = 0.7; // < 70% = Merah
+const THRESHOLD_BESAR = 1.3; // > 130% = Hijau
+
+let rawRows = [];   
+let header = [];    
+let colDefs = [];   
+let currentPage = 1;
+let pageSize = 15;  
+let searchTerm = '';
+
+let sortCol = null;
+let sortAsc = true;
+
+function el(id){ return document.getElementById(id); }
+
+function parseNum(v){
+  if (v === undefined || v === null || String(v).trim() === '') return NaN;
+  const cleaned = String(v).replace(/[^0-9.,-]/g,'').replace(/\.(?=.*\.)/g,'').replace(',', '.');
+  return parseFloat(cleaned);
+}
+function escapeHtml(v){
+  return String(v).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+function fmtCurrency(v){
+  const n = parseNum(v);
+  if (isNaN(n)) return v ? escapeHtml(v) : '';
+  return 'Rp ' + (n * 1000).toLocaleString('id-ID', {maximumFractionDigits:0});
+}
+function fmtCurrencyRaw(v){
+  const n = parseNum(v);
+  if (isNaN(n)) return v ? escapeHtml(v) : '';
+  return 'Rp ' + n.toLocaleString('id-ID', {maximumFractionDigits:0});
+}
+function fmtNumber(v){
+  const n = parseNum(v);
+  if (isNaN(n)) return v ? escapeHtml(v) : '';
+  return n.toLocaleString('id-ID', {maximumFractionDigits:2});
+}
+function fmtText(v){ return (v === undefined || v === null) ? '' : escapeHtml(v); }
+function fmtLink(v){
+  const url = (v === undefined || v === null) ? '' : String(v).trim();
+  if (!url) return '';
+  return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" title="Buka link">🔗</a>`;
+}
+
+function getVState(r) {
+  const assignId = r[IDX.ASSIGNMENT_ID];
+  if (actionStates[assignId]) return actionStates[assignId];
+  return { v: '', s: '', saved: false };
+}
+
+function fmtVerifikator(val, r) {
+  const state = getVState(r);
+  const oIdx = r.originalIndex;
+  if (state.saved) return `<span style="font-weight:bold;color:var(--main)">${escapeHtml(state.v)}</span>`;
+  let opts = `<option value="">- Pilih -</option>` + VERIFIKATORS.map(v => `<option value="${v}" ${state.v===v?'selected':''}>${v}</option>`).join('');
+  return `<select id="sel_v_${oIdx}" class="sel-aksi">${opts}</select>`;
+}
+function fmtStatus(val, r) {
+  const state = getVState(r);
+  const oIdx = r.originalIndex;
+  if (state.saved) {
+    const color = state.s === 'Sudah Sesuai' ? 'green' : 'red';
+    return `<span style="font-weight:bold;color:${color}">${escapeHtml(state.s)}</span>`;
+  }
+  let opts = `<option value="">- Pilih -</option>` + STATUSES.map(s => `<option value="${s}" ${state.s===s?'selected':''}>${s}</option>`).join('');
+  return `<select id="sel_s_${oIdx}" class="sel-aksi">${opts}</select>`;
+}
+function fmtAksi(val, r) {
+  const state = getVState(r);
+  const oIdx = r.originalIndex;
+  if (state.saved) {
+    return `<button class="btn-aksi btn-edit" onclick="editState(${oIdx})">Edit</button>`;
+  } else {
+    return `<button id="btn_aksi_${oIdx}" class="btn-aksi" onclick="saveState(${oIdx})">Simpan</button>`;
+  }
+}
+
+function fetchVerifications() {
+  fetch(GAS_URL)
+    .then(res => res.json())
+    .then(res => {
+      if(res.status === 'success' && res.data) {
+        actionStates = res.data; 
+        renderTable(); 
+      }
+    })
+    .catch(err => console.log("Info: Gagal load data verifikasi", err));
+}
+
+window.saveState = function(idx) {
+  const selV = el(`sel_v_${idx}`).value;
+  const selS = el(`sel_s_${idx}`).value;
+  
+  if (!selV || !selS) {
+    alert("Harap pilih Verifikator dan Status terlebih dahulu!");
+    return;
+  }
+
+  const btn = el(`btn_aksi_${idx}`);
+  btn.textContent = "Loading...";
+  btn.disabled = true;
+
+  const row = rawRows.find(r => r.originalIndex === idx);
+  const assignId = row[IDX.ASSIGNMENT_ID];
+
+  fetch(GAS_URL, {
+    method: 'POST',
+    body: JSON.stringify({
+      assignment_id: assignId,
+      verifikator: selV,
+      status: selS
+    }),
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' } 
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === 'success') {
+      actionStates[assignId] = {v: selV, s: selS, saved: true};
+      renderTable(); 
+    } else {
+      alert("Error dari server: " + data.message);
+      btn.textContent = "Simpan";
+      btn.disabled = false;
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Gagal terhubung ke Server. Pastikan URL GAS sudah benar.");
+    btn.textContent = "Simpan";
+    btn.disabled = false;
+  });
+}
+
+window.editState = function(idx) {
+  const row = rawRows.find(r => r.originalIndex === idx);
+  const assignId = row[IDX.ASSIGNMENT_ID];
+  if (actionStates[assignId]) {
+    actionStates[assignId].saved = false;
+  }
+  renderTable();
+}
+
+function buildColDefs(){
+  colDefs = [
+    {idx: IDX.KATEGORI, label: 'Kategori', fmt: fmtText, cls:''},
+    {idx: IDX.KEC, label: 'Kecamatan', fmt: fmtText, cls:''},
+    {idx: IDX.DESA, label: 'Desa', fmt: fmtText, cls:''},
+    {idx: IDX.SLS, label: 'SLS', fmt: fmtText, cls:''},
+    {idx: IDX.PML, label: 'PML', fmt: fmtText, cls:''},
+    {idx: IDX.PPL, label: 'PPL', fmt: fmtText, cls:''},
+    {idx: IDX.NAMA_USAHA, label: 'Nama Usaha', fmt: fmtText, cls:''},
+    {idx: IDX.PENGELUARAN, label: 'Pengeluaran', fmt: fmtCurrency, cls:'num'},
+    {idx: IDX.PENDAPATAN, label: 'Total Pendapatan', fmt: fmtCurrency, cls:'num'},
+    {idx: IDX.ASET, label: 'Aset', fmt: fmtCurrency, cls:'num'},
+    {idx: IDX.TENAGA_KERJA, label: 'Total Tenaga Kerja', fmt: fmtNumber, cls:'num'},
+    {idx: IDX.AA, label: header[IDX.AA] || 'Rasio Konsumsi Antara', fmt: fmtNumber, cls:'num'},
+    {idx: IDX.AB, label: header[IDX.AB] || 'Rasio NTB', fmt: fmtNumber, cls:'num'},
+    {idx: IDX.AC, label: header[IDX.AC] || 'Rasio NTB Ideal', fmt: fmtNumber, cls:'num'},
+    {idx: IDX.AD, label: header[IDX.AD] || 'Estimasi BOP', fmt: fmtNumber, cls:'num'},
+    {idx: IDX.AE, label: header[IDX.AE] || 'Balas Jasa Tenaga Kerja Dibayar', fmt: fmtCurrency, cls:'num'},
+    {idx: IDX.AF, label: header[IDX.AF] || 'UMK', fmt: fmtCurrency, cls:'num'},
+    {idx: IDX.AG, label: header[IDX.AG] || 'Nilai Tambah', fmt: fmtCurrencyRaw, cls:'num'},
+    {idx: IDX.AH, label: header[IDX.AH] || 'Link', fmt: fmtLink, cls:'link'},
+    
+    {idx: IDX_VERIFIKATOR, label: 'Verifikator', fmt: fmtVerifikator, cls:'link'},
+    {idx: IDX_STATUS, label: 'Status', fmt: fmtStatus, cls:'link'},
+    {idx: IDX_AKSI, label: 'Aksi', fmt: fmtAksi, cls:'link'}
+  ];
+}
+
+function uniqueSorted(rows, idx){
+  const set = new Set();
+  rows.forEach(r => { const v = (r[idx]||'').toString().trim(); if (v) set.add(v); });
+  return Array.from(set).sort((a,b)=>a.localeCompare(b, 'id'));
+}
+
+function fillSelect(sel, values, keepValue){
+  const current = keepValue !== undefined ? keepValue : sel.value;
+  sel.innerHTML = '<option value="">Semua</option>' + values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+  if (current && values.includes(current)) sel.value = current; else sel.value = '';
+}
+
+function getFilteredByDropdowns(){
+  const kategori = el('fKategori').value;
+  const kec = el('fKec').value;
+  const desa = el('fDesa').value;
+  const sls = el('fSLS').value;
+  const pml = el('fPML').value;
+  const ppl = el('fPPL').value;
+  return rawRows.filter(r=>{
+    if (kategori && (r[IDX.KATEGORI]||'').trim() !== kategori) return false;
+    if (kec && (r[IDX.KEC]||'').trim() !== kec) return false;
+    if (desa && (r[IDX.DESA]||'').trim() !== desa) return false;
+    if (sls && (r[IDX.SLS]||'').trim() !== sls) return false;
+    if (pml && (r[IDX.PML]||'').trim() !== pml) return false;
+    if (ppl && (r[IDX.PPL]||'').trim() !== ppl) return false;
+    return true;
+  });
+}
+
+function applySearch(rows){
+  if (!searchTerm) return rows;
+  const term = searchTerm.toLowerCase();
+  return rows.filter(r => colDefs.some(c => (r[c.idx]||'').toString().toLowerCase().includes(term)));
+}
+
+function applySort(rows){
+  if (sortCol === null) return rows;
+  const colDef = colDefs.find(c => c.idx === sortCol);
+  if (colDef && (colDef.idx === IDX_VERIFIKATOR || colDef.idx === IDX_STATUS || colDef.idx === IDX_AKSI)) return rows; 
+
+  const isNumeric = colDef && colDef.cls.includes('num');
+
+  return rows.sort((a, b) => {
+    let valA = a[sortCol];
+    let valB = b[sortCol];
+
+    if (isNumeric) {
+      let numA = parseNum(valA);
+      let numB = parseNum(valB);
+      if (isNaN(numA)) numA = -Infinity;
+      if (isNaN(numB)) numB = -Infinity;
+      return sortAsc ? numA - numB : numB - numA;
+    } else {
+      let strA = (valA || '').toString().toLowerCase();
+      let strB = (valB || '').toString().toLowerCase();
+      if (strA < strB) return sortAsc ? -1 : 1;
+      if (strA > strB) return sortAsc ? 1 : -1;
+      return 0;
+    }
+  });
+}
+
+window.handleSort = function(idx) {
+  if (idx === IDX_VERIFIKATOR || idx === IDX_STATUS || idx === IDX_AKSI) return;
+  if (sortCol === idx) {
+    sortAsc = !sortAsc; 
+  } else {
+    sortCol = idx;
+    sortAsc = true; 
+  }
+  currentPage = 1;
+  renderTable();
+}
+
+function renderTable(){
+  const dropdownFiltered = getFilteredByDropdowns();
+  const searched = applySearch(dropdownFiltered);
+  const sorted = applySort(searched); 
+
+  const total = sorted.length;
+  const size = pageSize === 'all' ? total || 1 : pageSize;
+  const totalPages = Math.max(1, Math.ceil(total / size));
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+  const start = pageSize === 'all' ? 0 : (currentPage - 1) * size;
+  const end = pageSize === 'all' ? total : start + size;
+  const pageRows = sorted.slice(start, end);
+
+  el('theadRow').innerHTML = colDefs.map(c => {
+    if (c.idx === IDX_VERIFIKATOR || c.idx === IDX_STATUS || c.idx === IDX_AKSI) {
+        return `<th class="${c.cls}">${escapeHtml(c.label)}</th>`;
+    }
+    let icon = '<span class="sort-icon">↕</span>'; 
+    if (sortCol === c.idx) {
+      icon = sortAsc ? '<span class="sort-icon">▲</span>' : '<span class="sort-icon">▼</span>';
+    }
+    return `<th class="${c.cls} sortable" onclick="handleSort(${c.idx})">${escapeHtml(c.label)} ${icon}</th>`;
+  }).join('');
+
+  el('tbodyRows').innerHTML = pageRows.map(r => {
+    const valNTB = parseNum(r[IDX.AB]);
+    const valNTBIdeal = parseNum(r[IDX.AC]);
+    const isNTBKurang = (!isNaN(valNTB) && !isNaN(valNTBIdeal) && valNTB < (valNTBIdeal * THRESHOLD_KECIL));
+    const isNTBLebih  = (!isNaN(valNTB) && !isNaN(valNTBIdeal) && valNTB > (valNTBIdeal * THRESHOLD_BESAR));
+
+    const valBalasJasa = parseNum(r[IDX.AE]);
+    const valUMK = parseNum(r[IDX.AF]);
+    const isBalasJasaKurang = (!isNaN(valBalasJasa) && !isNaN(valUMK) && valBalasJasa < (valUMK * THRESHOLD_KECIL));
+
+    const valBOP = parseNum(r[IDX.AD]);
+    const isBOPLebih = (!isNaN(valBOP) && valBOP > 15);
+    const isBOPKecil = (!isNaN(valBOP) && valBOP < 3);
+
+    return '<tr>' + colDefs.map(c => {
+      let extClass = '';
+      
+      if (c.idx === IDX.AB) {
+        if (isNTBKurang) extClass = ' highlight-alert';
+        else if (isNTBLebih) extClass = ' highlight-success';
+      }
+      if (c.idx === IDX.AE && isBalasJasaKurang) extClass = ' highlight-alert';
+      if (c.idx === IDX.AD) {
+        if (isBOPLebih) extClass = ' highlight-alert';
+        else if (isBOPKecil) extClass = ' highlight-success';
+      }
+      
+      return `<td class="${c.cls}${extClass}">${c.fmt(r[c.idx], r)}</td>`;
+    }).join('') + '</tr>';
+  }).join('') || `<tr><td colspan="${colDefs.length}" style="text-align:center;padding:20px;color:var(--text-soft)">Tidak ada data yang cocok</td></tr>`;
+
+  const shownStart = total === 0 ? 0 : start + 1;
+  const shownEnd = Math.min(end, total);
+  el('infoText').textContent = `Menampilkan ${shownStart}\u2013${shownEnd} dari ${total} baris`;
+
+  renderPager(totalPages);
+  updateSummary(sorted);
+}
+
+function renderPager(totalPages){
+  const pager = el('pagerButtons');
+  pager.innerHTML = '';
+  if (pageSize === 'all' || totalPages <= 1){ return; }
+
+  const addBtn = (label, page, opts={}) => {
+    const b = document.createElement('button');
+    b.textContent = label;
+    if (opts.active) b.classList.add('active');
+    if (opts.disabled) b.disabled = true;
+    b.addEventListener('click', () => { currentPage = page; renderTable(); });
+    pager.appendChild(b);
+  };
+
+  addBtn('‹', currentPage - 1, {disabled: currentPage === 1});
+  const windowSize = 5;
+  let startP = Math.max(1, currentPage - Math.floor(windowSize/2));
+  let endP = Math.min(totalPages, startP + windowSize - 1);
+  startP = Math.max(1, endP - windowSize + 1);
+
+  if (startP > 1) addBtn('1', 1, {});
+  if (startP > 2) { const span = document.createElement('span'); span.textContent='…'; span.style.padding='4px 2px'; pager.appendChild(span); }
+  for (let p = startP; p <= endP; p++) addBtn(String(p), p, {active: p === currentPage});
+  if (endP < totalPages - 1) { const span = document.createElement('span'); span.textContent='…'; span.style.padding='4px 2px'; pager.appendChild(span); }
+  if (endP < totalPages) addBtn(String(totalPages), totalPages, {});
+  addBtn('›', currentPage + 1, {disabled: currentPage === totalPages});
+}
+
+function updateSummary(rows){
+  let sumPengeluaran=0, sumPendapatan=0, sumAset=0, sumNilaiTambah=0, sumTK=0;
+  let sumNTB=0, countNTB=0, sumBOP=0, countBOP=0;
+
+  rows.forEach(r=>{
+    const pg = parseNum(r[IDX.PENGELUARAN]); if(!isNaN(pg)) sumPengeluaran += pg;
+    const p = parseNum(r[IDX.PENDAPATAN]); if(!isNaN(p)) sumPendapatan += p;
+    const a = parseNum(r[IDX.ASET]); if(!isNaN(a)) sumAset += a;
+    const nt = parseNum(r[IDX.AG]); if(!isNaN(nt)) sumNilaiTambah += nt;
+    const t = parseNum(r[IDX.TENAGA_KERJA]); if(!isNaN(t)) sumTK += t;
+
+    // Perhitungan Rata-rata NTB & BOP (hanya yang datanya berupa angka valid)
+    const ntb = parseNum(r[IDX.AB]); if(!isNaN(ntb)) { sumNTB += ntb; countNTB++; }
+    const bop = parseNum(r[IDX.AD]); if(!isNaN(bop)) { sumBOP += bop; countBOP++; }
+  });
+
+  el('cardTotal').textContent = rows.length.toLocaleString('id-ID');
+  el('cardPengeluaran').textContent = 'Rp ' + Math.round(sumPengeluaran * 1000).toLocaleString('id-ID');
+  el('cardPendapatan').textContent = 'Rp ' + Math.round(sumPendapatan * 1000).toLocaleString('id-ID');
+  el('cardAset').textContent = 'Rp ' + Math.round(sumAset * 1000).toLocaleString('id-ID');
+  el('cardNilaiTambah').textContent = 'Rp ' + Math.round(sumNilaiTambah).toLocaleString('id-ID');
+  el('cardTK').textContent = Math.round(sumTK).toLocaleString('id-ID');
+
+  // Menyematkan nilai rata-rata ke DOM baru
+  const avgNTB = countNTB > 0 ? (sumNTB / countNTB) : 0;
+  const avgBOP = countBOP > 0 ? (sumBOP / countBOP) : 0;
+  el('cardAvgNTB').textContent = avgNTB.toLocaleString('id-ID', {maximumFractionDigits:2});
+  el('cardAvgBOP').textContent = avgBOP.toLocaleString('id-ID', {maximumFractionDigits:2});
+}
+
+function refreshCascade(triggeredBy){
+  const kec = el('fKec').value;
+  const desa = el('fDesa').value;
+  let poolForDesa = rawRows;
+  if (kec) poolForDesa = poolForDesa.filter(r => (r[IDX.KEC]||'').trim() === kec);
+  fillSelect(el('fDesa'), uniqueSorted(poolForDesa, IDX.DESA), triggeredBy==='kec' ? undefined : desa);
+
+  let poolForSLS = poolForDesa;
+  const desaVal = el('fDesa').value;
+  if (desaVal) poolForSLS = poolForSLS.filter(r => (r[IDX.DESA]||'').trim() === desaVal);
+  fillSelect(el('fSLS'), uniqueSorted(poolForSLS, IDX.SLS), (triggeredBy==='desa' || triggeredBy==='kec') ? undefined : el('fSLS').value);
+}
+
+function onFilterChange(){ currentPage = 1; renderTable(); }
+
+el('fKategori').addEventListener('change', onFilterChange);
+el('fKec').addEventListener('change', function(){ refreshCascade('kec'); onFilterChange(); });
+el('fDesa').addEventListener('change', function(){ refreshCascade('desa'); onFilterChange(); });
+el('fSLS').addEventListener('change', onFilterChange);
+el('fPML').addEventListener('change', onFilterChange);
+el('fPPL').addEventListener('change', onFilterChange);
+el('pageSizeSel').addEventListener('change', function(){
+  pageSize = this.value === 'all' ? 'all' : parseInt(this.value, 10);
+  currentPage = 1;
+  renderTable();
+});
+
+let searchDebounce;
+el('searchBox').addEventListener('input', function(){
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(()=>{
+    searchTerm = this.value.trim();
+    currentPage = 1;
+    renderTable();
+  }, 200);
+});
+
+el('btnReset').addEventListener('click', function(){
+  ['fKategori','fKec','fDesa','fSLS','fPML','fPPL'].forEach(id => el(id).value = '');
+  fillSelect(el('fDesa'), uniqueSorted(rawRows, IDX.DESA), '');
+  fillSelect(el('fSLS'), uniqueSorted(rawRows, IDX.SLS), '');
+  el('searchBox').value = '';
+  searchTerm = '';
+  sortCol = null;
+  sortAsc = true;
+  currentPage = 1;
+  renderTable();
+});
+
+Papa.parse(CSV_URL, {
+  download: true,
+  skipEmptyLines: true,
+  complete: function(results){
+    const all = results.data;
+    header = all[0] || [];
+    
+    rawRows = all.slice(1).map((row, index) => {
+        row.originalIndex = index;
+        return row;
+    });
+
+    buildColDefs();
+    fillSelect(el('fKategori'), uniqueSorted(rawRows, IDX.KATEGORI), '');
+    fillSelect(el('fKec'), uniqueSorted(rawRows, IDX.KEC), '');
+    fillSelect(el('fDesa'), uniqueSorted(rawRows, IDX.DESA), '');
+    fillSelect(el('fSLS'), uniqueSorted(rawRows, IDX.SLS), '');
+    fillSelect(el('fPML'), uniqueSorted(rawRows, IDX.PML), '');
+    fillSelect(el('fPPL'), uniqueSorted(rawRows, IDX.PPL), '');
+
+    el('loadingMsg').style.display = 'none';
+    el('tableArea').style.display = 'block';
+    
+    renderTable();
+    fetchVerifications();
+  },
+  error: function(err){
+    el('loadingMsg').textContent = 'Gagal memuat data CSV. Periksa link atau koneksi.';
+    console.error(err);
+  }
+});
+</script>
+</body>
+</html>
