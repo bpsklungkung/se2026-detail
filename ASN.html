@@ -206,7 +206,9 @@ table.dataTable tbody tr:hover{background:var(--accent-light);}
   color:var(--main);
 }
 table.dataTable tbody td.wrap-cell select.verif-select,
-table.dataTable tbody select.verif-select{
+table.dataTable tbody select.verif-select,
+table.dataTable tbody td.wrap-cell select.alasan-select,
+table.dataTable tbody select.alasan-select{
   width:100%;
   padding:6px 6px;
   border:1px solid var(--line);
@@ -216,20 +218,23 @@ table.dataTable tbody select.verif-select{
   background:#fff;
   color:var(--text);
 }
-table.dataTable tbody input.alasan-input{
-  width:100%;
-  padding:6px 7px;
-  border:1px solid var(--line);
-  border-radius:7px;
-  font-size:12px;
-  font-family:'Inter',sans-serif;
-  color:var(--text);
-}
 table.dataTable tbody select.verif-select:focus,
-table.dataTable tbody input.alasan-input:focus{
+table.dataTable tbody select.alasan-select:focus{
   outline:none;
   border-color:var(--accent);
 }
+table.dataTable tbody select.verif-select:disabled,
+table.dataTable tbody select.alasan-select:disabled{
+  background:#F2F0F0;
+  color:var(--soft-text);
+  cursor:not-allowed;
+  border-color:var(--line);
+}
+table.dataTable tbody button.btn-save.btn-edit{
+  background:var(--accent-light);
+  color:var(--main);
+}
+table.dataTable tbody button.btn-save.btn-edit:hover{background:#eccdd2;}
 table.dataTable tbody button.btn-save{
   background:var(--main);
   color:#fff;
@@ -377,6 +382,14 @@ const VERIFIKATOR_LIST = [
   "Suparta", "Sudiasa", "Komang Ari"
 ];
 
+// Daftar pilihan alasan verifikasi
+const ALASAN_OPTIONS = [
+  "ASN Sudah Didata",
+  "ASN Belum Didata",
+  "Bukan ASN (PPPK Paruh Waktu)",
+  "ASN Tidak Tinggal di Klungkung"
+];
+
 // Kandidat nama header di CSV
 const HEADER_MAP = {
   status: ["PNS/PPPK"],
@@ -486,24 +499,34 @@ function truncCell(value){
   return `<span class="trunc" title="${escapeAttr(v)}">${escapeHtml(v)}</span>`;
 }
 
-function buildVerifikatorSelect(nik, current){
+function buildVerifikatorSelect(nik, current, locked){
   const opts = VERIFIKATOR_LIST.map(name => {
     const sel = name === current ? ' selected' : '';
     return `<option value="${escapeAttr(name)}"${sel}>${escapeHtml(name)}</option>`;
   }).join('');
-  return `<select class="verif-select" data-nik="${escapeAttr(nik)}">
+  const dis = locked ? ' disabled' : '';
+  return `<select class="verif-select" data-nik="${escapeAttr(nik)}"${dis}>
     <option value="">Pilih...</option>${opts}
   </select>`;
 }
 
-function buildAlasanInput(nik, current){
-  return `<input type="text" class="alasan-input" data-nik="${escapeAttr(nik)}" value="${escapeAttr(current)}" placeholder="Tulis alasan...">`;
+function buildAlasanSelect(nik, current, locked){
+  const opts = ALASAN_OPTIONS.map(name => {
+    const sel = name === current ? ' selected' : '';
+    return `<option value="${escapeAttr(name)}"${sel}>${escapeHtml(name)}</option>`;
+  }).join('');
+  const dis = locked ? ' disabled' : '';
+  return `<select class="alasan-select" data-nik="${escapeAttr(nik)}"${dis}>
+    <option value="">Pilih...</option>${opts}
+  </select>`;
 }
 
 function buildAksiButton(nik, sudah){
-  const label = sudah ? 'Update' : 'Simpan';
+  const label = sudah ? 'Ubah' : 'Simpan';
+  const mode = sudah ? 'locked' : 'edit';
+  const editClass = sudah ? ' btn-edit' : '';
   const badge = sudah ? '<span class="verif-badge">&#10003; Terverifikasi</span>' : '';
-  return `<div class="aksi-wrap">${badge}<button class="btn-save" data-nik="${escapeAttr(nik)}">${label}</button><span class="save-status" data-nik="${escapeAttr(nik)}"></span></div>`;
+  return `<div class="aksi-wrap">${badge}<button class="btn-save${editClass}" data-nik="${escapeAttr(nik)}" data-mode="${mode}">${label}</button><span class="save-status" data-nik="${escapeAttr(nik)}"></span></div>`;
 }
 
 function renderTable(rows){
@@ -511,6 +534,7 @@ function renderTable(rows){
     const pplTags = splitPeople(r.ppl).map(n=>`<span class="person-tag">${escapeHtml(n)}</span>`).join(' ') || '<span class="link-no">-</span>';
     const pmlTags = splitPeople(r.pml).map(n=>`<span class="person-tag">${escapeHtml(n)}</span>`).join(' ') || '<span class="link-no">-</span>';
     const linkCell = buildLinkCell(r.link);
+    const locked = !!r.verifikator;
     return [
       r.status ? `<span class="badge-status">${escapeHtml(r.status)}</span>` : '-',
       truncCell(r.nama),
@@ -524,9 +548,9 @@ function renderTable(rows){
       pplTags,
       pmlTags,
       linkCell,
-      buildVerifikatorSelect(r.nik, r.verifikator),
-      buildAlasanInput(r.nik, r.alasan),
-      buildAksiButton(r.nik, !!r.verifikator)
+      buildVerifikatorSelect(r.nik, r.verifikator, locked),
+      buildAlasanSelect(r.nik, r.alasan, locked),
+      buildAksiButton(r.nik, locked)
     ];
   });
 
@@ -633,7 +657,7 @@ function applyFilters(){
   $('#activeNote').text(parts.length ? `Filter aktif: ${parts.join(' | ')}` : '');
 }
 
-async function saveVerifikasi(nik, nama, kecamatan, desa, verifikator, alasan, $btn, $status){
+async function saveVerifikasi(nik, nama, kecamatan, desa, verifikator, alasan, $btn, $status, $row){
   if(!WEBAPP_URL || WEBAPP_URL.indexOf('GANTI_DENGAN') !== -1){
     $status.text('URL Web App belum diisi.').removeClass('ok').addClass('err');
     return;
@@ -661,6 +685,8 @@ async function saveVerifikasi(nik, nama, kecamatan, desa, verifikator, alasan, $
       $status.text('Tersimpan').removeClass('err').addClass('ok');
       const row = RAW.find(r => r.nik === nik);
       if(row){ row.verifikator = verifikator; row.alasan = alasan; }
+      if($row){ $row.find('.verif-select, .alasan-select').prop('disabled', true); }
+      $btn.prop('disabled', false).addClass('btn-edit').attr('data-mode', 'locked');
       setTimeout(() => {
         applyFilters();
       }, 900);
@@ -679,17 +705,30 @@ async function saveVerifikasi(nik, nama, kecamatan, desa, verifikator, alasan, $
 function initVerifikasiActions(){
   $('#dataTable tbody').on('click', '.btn-save', function(){
     const $btn = $(this);
-    const nik = String($btn.attr('data-nik') || '').trim();
     const $row = $btn.closest('tr');
     const $status = $row.find('.save-status');
+
+    // Jika sedang terkunci (sudah tersimpan), klik ini hanya membuka kunci untuk edit
+    if($btn.attr('data-mode') === 'locked'){
+      $row.find('.verif-select, .alasan-select').prop('disabled', false);
+      $btn.removeClass('btn-edit').attr('data-mode', 'edit').text('Simpan');
+      $status.text('');
+      return;
+    }
+
+    const nik = String($btn.attr('data-nik') || '').trim();
     const verifikator = $row.find('.verif-select').val();
-    const alasan = $row.find('.alasan-input').val();
+    const alasan = $row.find('.alasan-select').val();
     if(!verifikator){
       $status.text('Pilih verifikator dulu.').removeClass('ok').addClass('err');
       return;
     }
+    if(!alasan){
+      $status.text('Pilih alasan dulu.').removeClass('ok').addClass('err');
+      return;
+    }
     const rowData = RAW.find(r => r.nik === nik) || {};
-    saveVerifikasi(nik, rowData.nama || '', rowData.kecamatan || '', rowData.desa || '', verifikator, alasan, $btn, $status);
+    saveVerifikasi(nik, rowData.nama || '', rowData.kecamatan || '', rowData.desa || '', verifikator, alasan, $btn, $status, $row);
   });
 }
 
