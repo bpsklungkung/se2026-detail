@@ -245,6 +245,20 @@ table.dataTable tbody button.btn-save{
 table.dataTable tbody button.btn-save:hover{background:var(--soft);}
 table.dataTable tbody button.btn-save:disabled{opacity:.7;cursor:default;}
 table.dataTable tbody button.btn-save.saved{background:#2E7D32;}
+.aksi-wrap{display:flex;flex-direction:column;gap:3px;}
+.save-status{font-size:10.5px;line-height:1.3;white-space:normal;}
+.save-status.ok{color:#2E7D32;font-weight:600;}
+.save-status.err{color:var(--accent);font-weight:600;}
+.verif-badge{
+  display:inline-block;
+  font-size:10px;
+  font-weight:700;
+  color:#2E7D32;
+  background:#E4F3E6;
+  border-radius:5px;
+  padding:2px 6px;
+  white-space:nowrap;
+}
 ::-webkit-scrollbar{height:8px;width:8px;}
 ::-webkit-scrollbar-thumb{background:var(--soft-text);border-radius:8px;}
 </style>
@@ -303,6 +317,10 @@ table.dataTable tbody button.btn-save.saved{background:#2E7D32;}
         </select>
       </div>
       <div class="filter-item">
+        <label for="fVerifStatus">Verifikator</label>
+        <select id="fVerifStatus"><option value="">Semua</option></select>
+      </div>
+      <div class="filter-item">
         <label for="fSearch">Cari Nama / NIK</label>
         <input type="text" id="fSearch" placeholder="Ketik untuk mencari...">
       </div>
@@ -348,7 +366,7 @@ table.dataTable tbody button.btn-save.saved{background:#2E7D32;}
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSswmBtUfw8r1fL2Eb19fCzv4YGL9kXiNUg8FiLG95ZkR_TyO3SUVDzoJiPe4j5Z8t5gm71c_X3uoKh/pub?output=csv";
 
 // GANTI dengan URL Web App hasil deploy VerifikasiAPI.gs (diakhiri /exec)
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxGmFvggVRCACRo2OWJcj9iUFC2mNbz2bPJC5e7yU-Acdqy04jr7lb72ndfee5Ws5NT_g/exec";
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyrVumxRvYtsCUhBGRCpyD883Yn4emsHr7E6qnjeFu5F_LDl11SPdz1Fgf2i_0tEeQH/exec";
 
 // Daftar nama verifikator
 const VERIFIKATOR_LIST = [
@@ -482,8 +500,10 @@ function buildAlasanInput(nik, current){
   return `<input type="text" class="alasan-input" data-nik="${escapeAttr(nik)}" value="${escapeAttr(current)}" placeholder="Tulis alasan...">`;
 }
 
-function buildAksiButton(nik){
-  return `<button class="btn-save" data-nik="${escapeAttr(nik)}">Simpan</button>`;
+function buildAksiButton(nik, sudah){
+  const label = sudah ? 'Update' : 'Simpan';
+  const badge = sudah ? '<span class="verif-badge">&#10003; Terverifikasi</span>' : '';
+  return `<div class="aksi-wrap">${badge}<button class="btn-save" data-nik="${escapeAttr(nik)}">${label}</button><span class="save-status" data-nik="${escapeAttr(nik)}"></span></div>`;
 }
 
 function renderTable(rows){
@@ -506,7 +526,7 @@ function renderTable(rows){
       linkCell,
       buildVerifikatorSelect(r.nik, r.verifikator),
       buildAlasanInput(r.nik, r.alasan),
-      buildAksiButton(r.nik)
+      buildAksiButton(r.nik, !!r.verifikator)
     ];
   });
 
@@ -537,7 +557,7 @@ function renderTable(rows){
         { targets: 11, width: '70px' },
         { targets: 12, width: '150px' },
         { targets: 13, width: '160px' },
-        { targets: 14, width: '80px' }
+        { targets: 14, width: '125px', className: 'wrap-cell' }
       ],
       language: {
         search: "Cari:",
@@ -569,6 +589,7 @@ function applyFilters(){
   const pml = $('#fPML').val();
   const linkMode = $('#fLink').val();
   const kode = $('#fKode').val();
+  const verifStatus = $('#fVerifStatus').val();
   const search = normKey($('#fSearch').val());
 
   const filtered = RAW.filter(r => {
@@ -585,6 +606,10 @@ function applyFilters(){
     
     // Filter KODE
     if(kode && r.kode.toUpperCase() !== kode.toUpperCase()) return false;
+
+    // Filter status verifikasi / nama verifikator
+    if(verifStatus === 'BELUM' && r.verifikator) return false;
+    if(verifStatus && verifStatus !== 'BELUM' && r.verifikator !== verifStatus) return false;
     
     if(search){
       const hay = normKey(r.nama) + ' ' + normKey(r.nik) + ' ' + normKey(r.kk);
@@ -603,35 +628,50 @@ function applyFilters(){
   if(pml) parts.push(`PML: ${pml}`);
   if(linkMode) parts.push(linkMode === 'ada' ? 'Ada link' : 'Belum ada link');
   if(kode) parts.push(`Kode: ${kode}`);
+  if(verifStatus) parts.push(`Verifikator: ${verifStatus === 'BELUM' ? 'Belum diverifikasi' : verifStatus}`);
   if(search) parts.push(`Cari: "${$('#fSearch').val()}"`);
   $('#activeNote').text(parts.length ? `Filter aktif: ${parts.join(' | ')}` : '');
 }
 
-async function saveVerifikasi(nik, verifikator, alasan, $btn){
+async function saveVerifikasi(nik, nama, kecamatan, desa, verifikator, alasan, $btn, $status){
   if(!WEBAPP_URL || WEBAPP_URL.indexOf('GANTI_DENGAN') !== -1){
-    alert('URL Web App Apps Script belum diisi.');
+    $status.text('URL Web App belum diisi.').removeClass('ok').addClass('err');
     return;
   }
   const originalLabel = $btn.text();
   $btn.prop('disabled', true).text('Menyimpan...');
+  $status.text('').removeClass('ok err');
   try{
     const res = await fetch(WEBAPP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ nik, verifikator, alasan })
+      body: JSON.stringify({ nik, nama, kecamatan, desa, verifikator, alasan })
     });
-    const data = await res.json();
+    let data;
+    try{
+      data = await res.json();
+    } catch(parseErr){
+      console.error('Respon bukan JSON, mungkin bukan halaman Web App yang benar / butuh login:', parseErr);
+      $status.text('Gagal: respon server tidak valid (cek deployment).').addClass('err');
+      $btn.prop('disabled', false).text(originalLabel);
+      return;
+    }
     if(data.success){
-      $btn.text('Tersimpan \u2713').addClass('saved');
+      $btn.text('Tersimpan \u2713');
+      $status.text('Tersimpan').removeClass('err').addClass('ok');
       const row = RAW.find(r => r.nik === nik);
       if(row){ row.verifikator = verifikator; row.alasan = alasan; }
-      setTimeout(() => { $btn.prop('disabled', false).text(originalLabel).removeClass('saved'); }, 1800);
+      setTimeout(() => {
+        applyFilters();
+      }, 900);
     } else {
-      alert('Gagal menyimpan: ' + (data.message || 'Terjadi kesalahan.'));
+      console.error('Gagal menyimpan:', data.message);
+      $status.text(data.message || 'Gagal menyimpan.').removeClass('ok').addClass('err');
       $btn.prop('disabled', false).text(originalLabel);
     }
   } catch(err){
-    alert('Gagal terhubung ke server: ' + err.message);
+    console.error('Gagal terhubung ke server:', err);
+    $status.text('Gagal terhubung ke server (' + err.message + ')').removeClass('ok').addClass('err');
     $btn.prop('disabled', false).text(originalLabel);
   }
 }
@@ -639,15 +679,17 @@ async function saveVerifikasi(nik, verifikator, alasan, $btn){
 function initVerifikasiActions(){
   $('#dataTable tbody').on('click', '.btn-save', function(){
     const $btn = $(this);
-    const nik = $btn.data('nik');
+    const nik = String($btn.attr('data-nik') || '').trim();
     const $row = $btn.closest('tr');
+    const $status = $row.find('.save-status');
     const verifikator = $row.find('.verif-select').val();
     const alasan = $row.find('.alasan-input').val();
     if(!verifikator){
-      alert('Pilih verifikator terlebih dahulu.');
+      $status.text('Pilih verifikator dulu.').removeClass('ok').addClass('err');
       return;
     }
-    saveVerifikasi(nik, verifikator, alasan, $btn);
+    const rowData = RAW.find(r => r.nik === nik) || {};
+    saveVerifikasi(nik, rowData.nama || '', rowData.kecamatan || '', rowData.desa || '', verifikator, alasan, $btn, $status);
   });
 }
 
@@ -659,9 +701,10 @@ function initFilters(){
   fillSelect('#fKecamatan', kecOpts, 'Semua Kecamatan');
   fillSelect('#fPPL', pplOpts, 'Semua PPL');
   fillSelect('#fPML', pmlOpts, 'Semua PML');
+  fillVerifStatusSelect();
   refreshCascadingSelects();
 
-  $('#fKecamatan, #fDesa, #fDusunSLS, #fPPL, #fPML, #fLink, #fKode').on('change', function(e){
+  $('#fKecamatan, #fDesa, #fDusunSLS, #fPPL, #fPML, #fLink, #fKode, #fVerifStatus').on('change', function(e){
     if(e.target.id === 'fKecamatan'){
       $('#fDesa').val('');
       $('#fDusunSLS').val('');
@@ -680,11 +723,23 @@ function initFilters(){
   });
 
   $('#btnReset').on('click', function(){
-    $('#fKecamatan, #fDesa, #fDusunSLS, #fPPL, #fPML, #fLink, #fKode').val('');
+    $('#fKecamatan, #fDesa, #fDusunSLS, #fPPL, #fPML, #fLink, #fKode, #fVerifStatus').val('');
     $('#fSearch').val('');
     refreshCascadingSelects();
     applyFilters();
   });
+}
+
+function fillVerifStatusSelect(){
+  const $sel = $('#fVerifStatus');
+  const current = $sel.val();
+  $sel.empty();
+  $sel.append('<option value="">Semua</option>');
+  $sel.append('<option value="BELUM">Belum Diverifikasi</option>');
+  VERIFIKATOR_LIST.forEach(name => {
+    $sel.append(`<option value="${$('<div>').text(name).html()}">${$('<div>').text(name).html()}</option>`);
+  });
+  if(current) $sel.val(current);
 }
 
 function loadData(){
@@ -734,11 +789,40 @@ function loadData(){
       initFilters();
       initVerifikasiActions();
       applyFilters();
+
+      loadVerifikasiStatus();
     },
     error: function(err){
       $('#loadingState').text('Gagal memuat data: ' + err.message);
     }
   });
+}
+
+async function loadVerifikasiStatus(){
+  if(!WEBAPP_URL || WEBAPP_URL.indexOf('GANTI_DENGAN') !== -1) return;
+  try{
+    const res = await fetch(WEBAPP_URL + (WEBAPP_URL.indexOf('?') === -1 ? '?' : '&') + '_ts=' + Date.now());
+    const data = await res.json();
+    if(!data || !data.success || !Array.isArray(data.data)) return;
+
+    const map = {};
+    data.data.forEach(item => {
+      const nik = norm(item.nik);
+      if(nik) map[nik] = item;
+    });
+
+    RAW.forEach(r => {
+      const hit = map[r.nik];
+      if(hit){
+        r.verifikator = norm(hit.verifikator);
+        r.alasan = norm(hit.alasan);
+      }
+    });
+
+    applyFilters();
+  } catch(err){
+    console.error('Gagal memuat status verifikasi:', err);
+  }
 }
 
 $(document).ready(loadData);
