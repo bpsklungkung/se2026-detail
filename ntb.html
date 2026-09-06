@@ -49,6 +49,24 @@
   }
   .card .label{font-size:11px;color:var(--text-soft);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .card .value{font-size:14px;font-weight:700;color:var(--main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .card .subrow{
+    display:grid;
+    grid-template-columns:32px 1fr;
+    column-gap:6px;
+    row-gap:2px;
+    font-size:9.5px;
+    color:var(--text-soft);
+    margin-top:6px;
+  }
+  .card .subrow .k{white-space:nowrap;}
+  .card .subrow .v{
+    color:var(--main);
+    font-weight:700;
+    text-align:right;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
 
   .filters{
     display:grid;
@@ -116,8 +134,13 @@
   .table-toolbar input[type="text"]{width:180px;}
 
   .table-scroll{overflow-x:auto;}
-  /* Ukuran font tabel diperkecil jadi 10px */
-  table{border-collapse:collapse;width:100%;font-size:10px;}
+  /* Ukuran font tabel diperkecil jadi 10px, table-layout fixed agar kolom tidak melebar bebas */
+  table{border-collapse:collapse;width:100%;font-size:10px;table-layout:fixed;}
+  td.nama-usaha, th.nama-usaha{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap !important;
+  }
   thead th{
     background:var(--main);
     color:#fff;
@@ -166,6 +189,7 @@
     border-radius: 4px;
     font-size: 10px;
     background: #fff;
+    max-width: 100%;
   }
   .btn-aksi {
     background: var(--main);
@@ -176,7 +200,9 @@
     font-size: 10px;
     cursor: pointer;
     font-weight: bold;
+    white-space: nowrap;
   }
+  td.link, th.link{text-align:center;padding-left:8px;padding-right:8px;}
   .btn-aksi:hover { background: var(--mid); }
   .btn-aksi:disabled { background: #9ca3af; cursor: not-allowed; }
   .btn-edit { background: #4b5563; }
@@ -207,6 +233,31 @@
   .pager button:hover:not(:disabled):not(.active){background:var(--accent-light);}
 
   .loading{padding:40px;text-align:center;color:var(--text-soft);font-size:14px;}
+
+  .charts-title{font-weight:700;color:var(--main);margin-bottom:12px;font-size:14px;}
+  .charts-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .chart-card{
+    flex:1 1 0;
+    min-width:150px;
+    background:var(--accent-light);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:10px 10px 6px;
+  }
+  .chart-card-title{font-size:11.5px;font-weight:700;color:var(--main);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .chart-agg-select{
+    width:100%;
+    padding:4px 6px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    font-size:11px;
+    background:#fff;
+    color:var(--text);
+    margin-bottom:8px;
+  }
+  .chart-svg-wrap{max-height:220px;overflow-y:auto;}
+  .chart-svg-wrap svg{width:100%;height:auto;display:block;overflow:visible;}
+  .chart-empty{font-size:11px;color:var(--text-soft);text-align:center;padding:20px 0;}
 </style>
 </head>
 <body>
@@ -217,14 +268,61 @@
 
   <div class="cards" id="summaryCards">
     <div class="card"><div class="label">Total Usaha</div><div class="value" id="cardTotal">-</div></div>
-    <div class="card"><div class="label">Pengeluaran</div><div class="value" id="cardPengeluaran">-</div></div>
-    <div class="card"><div class="label">Total Pendapatan</div><div class="value" id="cardPendapatan">-</div></div>
-    <div class="card"><div class="label">Total Aset</div><div class="value" id="cardAset">-</div></div>
-    <div class="card"><div class="label">Nilai Tambah</div><div class="value" id="cardNilaiTambah">-</div></div>
-    <div class="card"><div class="label">Total TK</div><div class="value" id="cardTK">-</div></div>
+    <div class="card">
+      <div class="label">Pengeluaran</div><div class="value" id="cardPengeluaran">-</div>
+      <div class="subrow">
+        <span class="k">Rata²</span><span class="v" id="cardPengeluaranAvg">-</span>
+        <span class="k">Min</span><span class="v" id="cardPengeluaranMin">-</span>
+        <span class="k">Maks</span><span class="v" id="cardPengeluaranMax">-</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="label">Total Pendapatan</div><div class="value" id="cardPendapatan">-</div>
+      <div class="subrow">
+        <span class="k">Rata²</span><span class="v" id="cardPendapatanAvg">-</span>
+        <span class="k">Min</span><span class="v" id="cardPendapatanMin">-</span>
+        <span class="k">Maks</span><span class="v" id="cardPendapatanMax">-</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="label">Total Aset</div><div class="value" id="cardAset">-</div>
+      <div class="subrow">
+        <span class="k">Rata²</span><span class="v" id="cardAsetAvg">-</span>
+        <span class="k">Min</span><span class="v" id="cardAsetMin">-</span>
+        <span class="k">Maks</span><span class="v" id="cardAsetMax">-</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="label">Nilai Tambah</div><div class="value" id="cardNilaiTambah">-</div>
+      <div class="subrow">
+        <span class="k">Rata²</span><span class="v" id="cardNilaiTambahAvg">-</span>
+        <span class="k">Min</span><span class="v" id="cardNilaiTambahMin">-</span>
+        <span class="k">Maks</span><span class="v" id="cardNilaiTambahMax">-</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="label">Total TK</div><div class="value" id="cardTK">-</div>
+      <div class="subrow">
+        <span class="k">Rata²</span><span class="v" id="cardTKAvg">-</span>
+        <span class="k">Min</span><span class="v" id="cardTKMin">-</span>
+        <span class="k">Maks</span><span class="v" id="cardTKMax">-</span>
+      </div>
+    </div>
     <!-- 2 CARD BARU -->
-    <div class="card"><div class="label">Rata-rata Rasio NTB</div><div class="value" id="cardAvgNTB">-</div></div>
-    <div class="card"><div class="label">Rata-rata Est. BOP</div><div class="value" id="cardAvgBOP">-</div></div>
+    <div class="card">
+      <div class="label">Rata-rata Rasio NTB</div><div class="value" id="cardAvgNTB">-</div>
+      <div class="subrow">
+        <span class="k">Min</span><span class="v" id="cardNTBMin">-</span>
+        <span class="k">Maks</span><span class="v" id="cardNTBMax">-</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="label">Rata-rata Est. BOP</div><div class="value" id="cardAvgBOP">-</div>
+      <div class="subrow">
+        <span class="k">Min</span><span class="v" id="cardBOPMin">-</span>
+        <span class="k">Maks</span><span class="v" id="cardBOPMax">-</span>
+      </div>
+    </div>
   </div>
 
   <div class="filters">
@@ -277,6 +375,7 @@
       </div>
       <div class="table-scroll">
         <table>
+          <colgroup id="colGroup"></colgroup>
           <thead><tr id="theadRow"></tr></thead>
           <tbody id="tbodyRows"></tbody>
         </table>
@@ -287,16 +386,17 @@
       </div>
     </div>
   </div>
+
+  <div class="table-card" style="margin-top:20px;">
+    <div class="charts-title">Grafik per Kategori</div>
+    <div class="charts-row" id="chartsRow"></div>
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script>
-// =========== GANTI URL INI DENGAN HASIL DEPLOY APPS SCRIPT KAMU ============
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxY84SCvN3krrPBJ9jp6-mxiWWB4rqNjHmLwrhBmArACUeZpfyHlNkADJq7fNW3h2lDoA/exec";
-// ============================================================================
-
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKNHy1T-JkECJNniuxlfRxjZOdkzhJpmKmfn0Unqs7FTcqHwtkLsTQrLBG6cNAbib3v3Xkb3GSg00S/pub?output=csv";
-
 const VERIFIKATORS = ["Zidan", "Herlinda", "Permana", "Sutama", "Purnami", "Sukma", "Asya", "Indri", "Budiriani", "Rosma", "Eka", "Yoga", "Ave", "Monic", "Suparta", "Halim", "Okta", "Bajra", "Dharma", "Sudiasa", "Ary"];
 const STATUSES = ["Sudah Sesuai", "Perbaiki Nilai"];
 
@@ -349,12 +449,16 @@ function escapeHtml(v){
 function fmtCurrency(v){
   const n = parseNum(v);
   if (isNaN(n)) return v ? escapeHtml(v) : '';
-  return 'Rp ' + (n * 1000).toLocaleString('id-ID', {maximumFractionDigits:0});
+  return (n * 1000).toLocaleString('id-ID', {maximumFractionDigits:0});
 }
 function fmtCurrencyRaw(v){
   const n = parseNum(v);
   if (isNaN(n)) return v ? escapeHtml(v) : '';
-  return 'Rp ' + n.toLocaleString('id-ID', {maximumFractionDigits:0});
+  return n.toLocaleString('id-ID', {maximumFractionDigits:0});
+}
+function fmtJuta(rupiah){
+  const jt = rupiah / 1000000;
+  return jt.toLocaleString('id-ID', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' Jt';
 }
 function fmtNumber(v){
   const n = parseNum(v);
@@ -362,6 +466,10 @@ function fmtNumber(v){
   return n.toLocaleString('id-ID', {maximumFractionDigits:2});
 }
 function fmtText(v){ return (v === undefined || v === null) ? '' : escapeHtml(v); }
+function fmtTextTitled(v){
+  const s = (v === undefined || v === null) ? '' : String(v);
+  return `<span title="${escapeHtml(s)}">${escapeHtml(s)}</span>`;
+}
 function fmtLink(v){
   const url = (v === undefined || v === null) ? '' : String(v).trim();
   if (!url) return '';
@@ -468,30 +576,32 @@ window.editState = function(idx) {
 
 function buildColDefs(){
   colDefs = [
-    {idx: IDX.KATEGORI, label: 'Kategori', fmt: fmtText, cls:''},
-    {idx: IDX.KEC, label: 'Kecamatan', fmt: fmtText, cls:''},
-    {idx: IDX.DESA, label: 'Desa', fmt: fmtText, cls:''},
-    {idx: IDX.SLS, label: 'SLS', fmt: fmtText, cls:''},
-    {idx: IDX.PML, label: 'PML', fmt: fmtText, cls:''},
-    {idx: IDX.PPL, label: 'PPL', fmt: fmtText, cls:''},
-    {idx: IDX.NAMA_USAHA, label: 'Nama Usaha', fmt: fmtText, cls:''},
-    {idx: IDX.PENGELUARAN, label: 'Pengeluaran', fmt: fmtCurrency, cls:'num'},
-    {idx: IDX.PENDAPATAN, label: 'Total Pendapatan', fmt: fmtCurrency, cls:'num'},
-    {idx: IDX.ASET, label: 'Aset', fmt: fmtCurrency, cls:'num'},
-    {idx: IDX.TENAGA_KERJA, label: 'Total Tenaga Kerja', fmt: fmtNumber, cls:'num'},
-    {idx: IDX.AA, label: header[IDX.AA] || 'Rasio Konsumsi Antara', fmt: fmtNumber, cls:'num'},
-    {idx: IDX.AB, label: header[IDX.AB] || 'Rasio NTB', fmt: fmtNumber, cls:'num'},
-    {idx: IDX.AC, label: header[IDX.AC] || 'Rasio NTB Ideal', fmt: fmtNumber, cls:'num'},
-    {idx: IDX.AD, label: header[IDX.AD] || 'Estimasi BOP', fmt: fmtNumber, cls:'num'},
-    {idx: IDX.AE, label: header[IDX.AE] || 'Balas Jasa Tenaga Kerja Dibayar', fmt: fmtCurrency, cls:'num'},
-    {idx: IDX.AF, label: header[IDX.AF] || 'UMK', fmt: fmtCurrency, cls:'num'},
-    {idx: IDX.AG, label: header[IDX.AG] || 'Nilai Tambah', fmt: fmtCurrencyRaw, cls:'num'},
-    {idx: IDX.AH, label: header[IDX.AH] || 'Link', fmt: fmtLink, cls:'link'},
+    {idx: IDX.KATEGORI, label: 'Kat', fmt: fmtText, cls:'', width:40},
+    //{idx: IDX.KEC, label: 'Kecamatan', fmt: fmtText, cls:''},
+    //{idx: IDX.DESA, label: 'Desa', fmt: fmtText, cls:''},
+    //{idx: IDX.SLS, label: 'SLS', fmt: fmtText, cls:''},
+    //{idx: IDX.PML, label: 'PML', fmt: fmtText, cls:''},
+    //{idx: IDX.PPL, label: 'PPL', fmt: fmtText, cls:''},
+    {idx: IDX.NAMA_USAHA, label: 'Nama Usaha', fmt: fmtTextTitled, cls:'nama-usaha', width:130},
+    {idx: IDX.PENGELUARAN, label: 'Pengeluaran', fmt: fmtCurrency, cls:'num', width:80},
+    {idx: IDX.PENDAPATAN, label: 'Pendapatan', fmt: fmtCurrency, cls:'num', width:80},
+    {idx: IDX.ASET, label: 'Aset', fmt: fmtCurrency, cls:'num', width:80},
+    {idx: IDX.TENAGA_KERJA, label: 'Naker', fmt: fmtNumber, cls:'num', width:50},
+    {idx: IDX.AA, label: 'Rasio KA', fmt: fmtNumber, cls:'num', width:60},
+    {idx: IDX.AB, label: 'Rasio NTB', fmt: fmtNumber, cls:'num', width:60},
+    {idx: IDX.AC, label: 'NTB Ideal', fmt: fmtNumber, cls:'num', width:60},
+    {idx: IDX.AD, label: 'BOP Est', fmt: fmtNumber, cls:'num', width:58},
+    {idx: IDX.AE, label: 'Balas Jasa', fmt: fmtCurrency, cls:'num', width:80},
+    //{idx: IDX.AF, label: 'UMK', fmt: fmtCurrency, cls:'num'},
+    {idx: IDX.AG, label: 'Nilai Tambah', fmt: fmtCurrencyRaw, cls:'num', width:90},
+    {idx: IDX.AH, label: 'Link', fmt: fmtLink, cls:'link', width:38},
     
-    {idx: IDX_VERIFIKATOR, label: 'Verifikator', fmt: fmtVerifikator, cls:'link'},
-    {idx: IDX_STATUS, label: 'Status', fmt: fmtStatus, cls:'link'},
-    {idx: IDX_AKSI, label: 'Aksi', fmt: fmtAksi, cls:'link'}
+    {idx: IDX_VERIFIKATOR, label: 'Verifikator', fmt: fmtVerifikator, cls:'link', width:100},
+    {idx: IDX_STATUS, label: 'Status', fmt: fmtStatus, cls:'link', width:110},
+    {idx: IDX_AKSI, label: 'Aksi', fmt: fmtAksi, cls:'link', width:78}
   ];
+
+  el('colGroup').innerHTML = colDefs.map(c => `<col style="width:${c.width}px">`).join('');
 }
 
 function uniqueSorted(rows, idx){
@@ -661,34 +771,205 @@ function renderPager(totalPages){
   addBtn('›', currentPage + 1, {disabled: currentPage === totalPages});
 }
 
-function updateSummary(rows){
-  let sumPengeluaran=0, sumPendapatan=0, sumAset=0, sumNilaiTambah=0, sumTK=0;
-  let sumNTB=0, countNTB=0, sumBOP=0, countBOP=0;
-
+function statAgg(rows, idx){
+  let sum=0, count=0, min=Infinity, max=-Infinity;
   rows.forEach(r=>{
-    const pg = parseNum(r[IDX.PENGELUARAN]); if(!isNaN(pg)) sumPengeluaran += pg;
-    const p = parseNum(r[IDX.PENDAPATAN]); if(!isNaN(p)) sumPendapatan += p;
-    const a = parseNum(r[IDX.ASET]); if(!isNaN(a)) sumAset += a;
-    const nt = parseNum(r[IDX.AG]); if(!isNaN(nt)) sumNilaiTambah += nt;
-    const t = parseNum(r[IDX.TENAGA_KERJA]); if(!isNaN(t)) sumTK += t;
-
-    // Perhitungan Rata-rata NTB & BOP (hanya yang datanya berupa angka valid)
-    const ntb = parseNum(r[IDX.AB]); if(!isNaN(ntb)) { sumNTB += ntb; countNTB++; }
-    const bop = parseNum(r[IDX.AD]); if(!isNaN(bop)) { sumBOP += bop; countBOP++; }
+    const n = parseNum(r[idx]);
+    if(!isNaN(n)){
+      sum += n; count++;
+      if(n < min) min = n;
+      if(n > max) max = n;
+    }
   });
+  return {
+    sum,
+    avg: count > 0 ? sum / count : 0,
+    min: count > 0 ? min : 0,
+    max: count > 0 ? max : 0
+  };
+}
+
+function updateSummary(rows){
+  const agg = {
+    pengeluaran: statAgg(rows, IDX.PENGELUARAN),
+    pendapatan: statAgg(rows, IDX.PENDAPATAN),
+    aset: statAgg(rows, IDX.ASET),
+    nilaiTambah: statAgg(rows, IDX.AG),
+    tk: statAgg(rows, IDX.TENAGA_KERJA),
+    ntb: statAgg(rows, IDX.AB),
+    bop: statAgg(rows, IDX.AD)
+  };
 
   el('cardTotal').textContent = rows.length.toLocaleString('id-ID');
-  el('cardPengeluaran').textContent = 'Rp ' + Math.round(sumPengeluaran * 1000).toLocaleString('id-ID');
-  el('cardPendapatan').textContent = 'Rp ' + Math.round(sumPendapatan * 1000).toLocaleString('id-ID');
-  el('cardAset').textContent = 'Rp ' + Math.round(sumAset * 1000).toLocaleString('id-ID');
-  el('cardNilaiTambah').textContent = 'Rp ' + Math.round(sumNilaiTambah).toLocaleString('id-ID');
-  el('cardTK').textContent = Math.round(sumTK).toLocaleString('id-ID');
 
-  // Menyematkan nilai rata-rata ke DOM baru
-  const avgNTB = countNTB > 0 ? (sumNTB / countNTB) : 0;
-  const avgBOP = countBOP > 0 ? (sumBOP / countBOP) : 0;
-  el('cardAvgNTB').textContent = avgNTB.toLocaleString('id-ID', {maximumFractionDigits:2});
-  el('cardAvgBOP').textContent = avgBOP.toLocaleString('id-ID', {maximumFractionDigits:2});
+  // Pengeluaran (satuan ribuan -> x1000, ditampilkan dalam juta)
+  el('cardPengeluaran').textContent = fmtJuta(agg.pengeluaran.sum * 1000);
+  el('cardPengeluaranAvg').textContent = fmtJuta(agg.pengeluaran.avg * 1000);
+  el('cardPengeluaranMin').textContent = fmtJuta(agg.pengeluaran.min * 1000);
+  el('cardPengeluaranMax').textContent = fmtJuta(agg.pengeluaran.max * 1000);
+
+  // Pendapatan
+  el('cardPendapatan').textContent = fmtJuta(agg.pendapatan.sum * 1000);
+  el('cardPendapatanAvg').textContent = fmtJuta(agg.pendapatan.avg * 1000);
+  el('cardPendapatanMin').textContent = fmtJuta(agg.pendapatan.min * 1000);
+  el('cardPendapatanMax').textContent = fmtJuta(agg.pendapatan.max * 1000);
+
+  // Aset
+  el('cardAset').textContent = fmtJuta(agg.aset.sum * 1000);
+  el('cardAsetAvg').textContent = fmtJuta(agg.aset.avg * 1000);
+  el('cardAsetMin').textContent = fmtJuta(agg.aset.min * 1000);
+  el('cardAsetMax').textContent = fmtJuta(agg.aset.max * 1000);
+
+  // Nilai Tambah (raw, tanpa x1000, ditampilkan dalam juta)
+  el('cardNilaiTambah').textContent = fmtJuta(agg.nilaiTambah.sum);
+  el('cardNilaiTambahAvg').textContent = fmtJuta(agg.nilaiTambah.avg);
+  el('cardNilaiTambahMin').textContent = fmtJuta(agg.nilaiTambah.min);
+  el('cardNilaiTambahMax').textContent = fmtJuta(agg.nilaiTambah.max);
+
+  // Tenaga Kerja
+  el('cardTK').textContent = Math.round(agg.tk.sum).toLocaleString('id-ID');
+  el('cardTKAvg').textContent = agg.tk.avg.toLocaleString('id-ID', {maximumFractionDigits:2});
+  el('cardTKMin').textContent = Math.round(agg.tk.min).toLocaleString('id-ID');
+  el('cardTKMax').textContent = Math.round(agg.tk.max).toLocaleString('id-ID');
+
+  // Rasio NTB (rata-rata sudah jadi nilai utama, tambahkan min/maks)
+  el('cardAvgNTB').textContent = agg.ntb.avg.toLocaleString('id-ID', {maximumFractionDigits:2});
+  el('cardNTBMin').textContent = agg.ntb.min.toLocaleString('id-ID', {maximumFractionDigits:2});
+  el('cardNTBMax').textContent = agg.ntb.max.toLocaleString('id-ID', {maximumFractionDigits:2});
+
+  // Est. BOP (rata-rata sudah jadi nilai utama, tambahkan min/maks)
+  el('cardAvgBOP').textContent = agg.bop.avg.toLocaleString('id-ID', {maximumFractionDigits:2});
+  el('cardBOPMin').textContent = agg.bop.min.toLocaleString('id-ID', {maximumFractionDigits:2});
+  el('cardBOPMax').textContent = agg.bop.max.toLocaleString('id-ID', {maximumFractionDigits:2});
+
+  lastFilteredRows = rows;
+  renderAllCharts();
+}
+
+/* ===== Grafik per Kategori ===== */
+
+const CHART_METRICS = [
+  { key:'pengeluaran',  idx: IDX.PENGELUARAN,   label:'Pengeluaran',       multiplier:1000, unit:'jt', defaultAgg:'sum' },
+  { key:'pendapatan',   idx: IDX.PENDAPATAN,    label:'Total Pendapatan',  multiplier:1000, unit:'jt', defaultAgg:'sum' },
+  { key:'aset',         idx: IDX.ASET,          label:'Total Aset',       multiplier:1000, unit:'jt', defaultAgg:'sum' },
+  { key:'nilaiTambah',  idx: IDX.AG,            label:'Nilai Tambah',      multiplier:1,    unit:'jt', defaultAgg:'sum' },
+  { key:'tk',           idx: IDX.TENAGA_KERJA,  label:'Total TK',          multiplier:1,    unit:'',   defaultAgg:'sum' },
+  { key:'ntb',          idx: IDX.AB,            label:'Rasio NTB',         multiplier:1,    unit:'',   defaultAgg:'avg' },
+  { key:'bop',          idx: IDX.AD,            label:'Est. BOP',          multiplier:1,    unit:'',   defaultAgg:'avg' }
+];
+
+const AGG_LABELS = { sum:'Jumlah', min:'Minimum', max:'Maksimum', avg:'Rata-rata' };
+
+let chartAggState = {};
+CHART_METRICS.forEach(m => { chartAggState[m.key] = m.defaultAgg; });
+let lastFilteredRows = [];
+
+function buildChartCards(){
+  const container = el('chartsRow');
+  container.innerHTML = CHART_METRICS.map(m => `
+    <div class="chart-card">
+      <div class="chart-card-title">${escapeHtml(m.label)}</div>
+      <select class="chart-agg-select" data-metric="${m.key}">
+        ${Object.keys(AGG_LABELS).map(k => `<option value="${k}" ${chartAggState[m.key]===k?'selected':''}>${AGG_LABELS[k]}</option>`).join('')}
+      </select>
+      <div class="chart-svg-wrap" id="chartSvg_${m.key}"></div>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.chart-agg-select').forEach(sel => {
+    sel.addEventListener('change', function(){
+      chartAggState[this.dataset.metric] = this.value;
+      renderOneChart(CHART_METRICS.find(m => m.key === this.dataset.metric));
+    });
+  });
+}
+
+function computeCategoryAgg(rows, metric){
+  const groups = {};
+  rows.forEach(r => {
+    const kat = (r[IDX.KATEGORI] || '(kosong)').toString().trim() || '(kosong)';
+    const n = parseNum(r[metric.idx]);
+    if (isNaN(n)) return;
+    if (!groups[kat]) groups[kat] = { sum:0, count:0, min:Infinity, max:-Infinity };
+    const g = groups[kat];
+    g.sum += n * metric.multiplier;
+    g.count++;
+    const vScaled = n * metric.multiplier;
+    if (vScaled < g.min) g.min = vScaled;
+    if (vScaled > g.max) g.max = vScaled;
+  });
+
+  const aggType = chartAggState[metric.key];
+  const categories = Object.keys(groups).sort((a,b)=>a.localeCompare(b,'id'));
+  const values = categories.map(kat => {
+    const g = groups[kat];
+    if (aggType === 'sum') return g.sum;
+    if (aggType === 'min') return g.count ? g.min : 0;
+    if (aggType === 'max') return g.count ? g.max : 0;
+    return g.count ? g.sum / g.count : 0; // avg
+  });
+  return { categories, values };
+}
+
+function fmtChartValue(v, metric){
+  if (metric.unit === 'jt'){
+    return (v/1000000).toLocaleString('id-ID',{maximumFractionDigits:1}) + ' Jt';
+  }
+  return v.toLocaleString('id-ID',{maximumFractionDigits:1});
+}
+
+function renderBarChart(containerId, categories, values, metric){
+  const wrap = el(containerId);
+  if (!categories.length){
+    wrap.innerHTML = '<div class="chart-empty">Tidak ada data</div>';
+    return;
+  }
+
+  const totalW = 210;
+  const labelW = 24;
+  const valueW = 56;
+  const rowH = 16;
+  const marginTop = 4, marginBottom = 4;
+  const plotX0 = labelW;
+  const plotX1 = totalW - valueW;
+  const plotWidth = plotX1 - plotX0;
+  const H = categories.length * rowH + marginTop + marginBottom;
+
+  const domainMax = Math.max(0, ...values);
+  const domainMin = Math.min(0, ...values);
+  const range = (domainMax - domainMin) || 1;
+  const scale = plotWidth / range;
+  const zeroX = plotX0 + (0 - domainMin) * scale;
+
+  let rows = '';
+  categories.forEach((kat, i) => {
+    const v = values[i];
+    const y = marginTop + i * rowH;
+    const midY = y + rowH/2 + 3;
+    const barY = y + 3;
+    const barH = rowH - 6;
+    const barEndX = plotX0 + (v - domainMin) * scale;
+    const x1 = Math.min(zeroX, barEndX);
+    const barW = Math.max(1, Math.abs(barEndX - zeroX));
+    const color = v >= 0 ? 'var(--accent)' : '#DC2626';
+
+    rows += `<text x="1" y="${midY.toFixed(1)}" style="font-size:8.5px;fill:var(--text-soft);">${escapeHtml(kat)}</text>`;
+    rows += `<rect x="${x1.toFixed(1)}" y="${barY.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" style="fill:${color}" rx="2"></rect>`;
+    rows += `<text x="${(plotX1+4).toFixed(1)}" y="${midY.toFixed(1)}" style="font-size:8px;fill:var(--main);font-weight:700;">${escapeHtml(fmtChartValue(v, metric))}</text>`;
+  });
+
+  const zeroLine = `<line x1="${zeroX.toFixed(1)}" y1="${marginTop}" x2="${zeroX.toFixed(1)}" y2="${H-marginBottom}" stroke="var(--line)" stroke-width="1"></line>`;
+
+  wrap.innerHTML = `<svg viewBox="0 0 ${totalW} ${H}" xmlns="http://www.w3.org/2000/svg">${zeroLine}${rows}</svg>`;
+}
+
+function renderOneChart(metric){
+  const { categories, values } = computeCategoryAgg(lastFilteredRows, metric);
+  renderBarChart('chartSvg_' + metric.key, categories, values, metric);
+}
+
+function renderAllCharts(){
+  CHART_METRICS.forEach(renderOneChart);
 }
 
 function refreshCascade(triggeredBy){
@@ -753,6 +1034,7 @@ Papa.parse(CSV_URL, {
     });
 
     buildColDefs();
+    buildChartCards();
     fillSelect(el('fKategori'), uniqueSorted(rawRows, IDX.KATEGORI), '');
     fillSelect(el('fKec'), uniqueSorted(rawRows, IDX.KEC), '');
     fillSelect(el('fDesa'), uniqueSorted(rawRows, IDX.DESA), '');
