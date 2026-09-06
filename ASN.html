@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Data Petugas</title>
+<title>Dashboard Cek NIK dan KK ASN</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <style>
@@ -273,9 +273,8 @@ table.dataTable tbody button.btn-save.saved{background:#2E7D32;}
 
   <div class="se-header">
     <div>
-      <h1>Dashboard Data Petugas</h1>
-      <p>Rekap penugasan PPL &amp; PML per wilayah &mdash; Kecamatan, Desa, dan Dusun SLS</p>
-    </div>
+      <h1>Dashboard Cek NIK dan KK ASN</h1>
+      </div>
     <div class="count-pill">
       <span>Baris ditampilkan</span>
       <b id="rowCount">&ndash;</b>
@@ -322,6 +321,14 @@ table.dataTable tbody button.btn-save.saved{background:#2E7D32;}
         </select>
       </div>
       <div class="filter-item">
+        <label for="fPerlu">Perlu</label>
+        <select id="fPerlu">
+          <option value="">Semua</option>
+          <option value="CARI">CARI</option>
+          <option value="TIDAK">TIDAK</option>
+        </select>
+      </div>
+      <div class="filter-item">
         <label for="fVerifStatus">Verifikator</label>
         <select id="fVerifStatus"><option value="">Semua</option></select>
       </div>
@@ -353,6 +360,7 @@ table.dataTable tbody button.btn-save.saved{background:#2E7D32;}
           <th>PPL</th>
           <th>PML</th>
           <th>Link</th>
+          <th>Perlu</th>
           <th>Verifikator</th>
           <th>Alasan</th>
           <th>Aksi</th>
@@ -369,11 +377,8 @@ table.dataTable tbody button.btn-save.saved{background:#2E7D32;}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script>
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSswmBtUfw8r1fL2Eb19fCzv4YGL9kXiNUg8FiLG95ZkR_TyO3SUVDzoJiPe4j5Z8t5gm71c_X3uoKh/pub?output=csv";
-
-// GANTI dengan URL Web App hasil deploy VerifikasiAPI.gs (diakhiri /exec)
 const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyrVumxRvYtsCUhBGRCpyD883Yn4emsHr7E6qnjeFu5F_LDl11SPdz1Fgf2i_0tEeQH/exec";
 
-// Daftar nama verifikator
 const VERIFIKATOR_LIST = [
   "Zidan", "Herlinda", "Permana", "Sutama", "Purnami", 
   "Sukma", "Asya", "Indri", "Budiriani", "Rosma", 
@@ -382,32 +387,15 @@ const VERIFIKATOR_LIST = [
   "Suparta", "Sudiasa", "Komang Ari"
 ];
 
-// Daftar pilihan alasan verifikasi
 const ALASAN_OPTIONS = [
   "ASN Sudah Didata",
   "ASN Belum Didata",
   "Bukan ASN (PPPK Paruh Waktu)",
-  "ASN Tidak Tinggal di Klungkung"
+  "ASN Tidak Tinggal di Klungkung",
+  "Beda Alamat",
+  "Pensiun",
+  "Selesai atau Berhenti"
 ];
-
-// Kandidat nama header di CSV
-const HEADER_MAP = {
-  status: ["PNS/PPPK"],
-  nama: ["NAMA TANPA GELAR", "NAMA"],
-  nik: ["NIK"],
-  kk: ["KK"],
-  kecamatan: ["KECAMATAN"],
-  desa: ["DESA"],
-  dusun: ["DUSUN"],
-  alamat: ["ALAMAT"],
-  dusunsls: ["DUSUN SLS"],
-  ppl: ["PPL"],
-  pml: ["PML"],
-  link: ["LINK URL", "LINK_URL", "URL LINK", "LINK"],
-  verifikator: ["VERIFIKATOR"],
-  alasan: ["ALASAN"],
-  kode: ["KODE"]
-};
 
 let RAW = [];
 let table;
@@ -415,18 +403,9 @@ let table;
 function norm(s){ return (s || "").toString().trim(); }
 function normKey(s){ return norm(s).toUpperCase(); }
 
-// Cek apakah string link sebenarnya kosong/error/strip
 function checkLinkExists(rawVal) {
   let v = norm(rawVal).replace(/["'🔗]/g, '');
   return !(!v || v === "-" || v.startsWith('#'));
-}
-
-function findKey(headers, candidates){
-  for(const c of candidates){
-    const hit = headers.find(h => normKey(h) === normKey(c));
-    if(hit) return hit;
-  }
-  return null;
 }
 
 function splitPeople(cell){
@@ -467,28 +446,15 @@ function refreshCascadingSelects(){
 }
 
 function buildLinkCell(rawVal){
-  if(!checkLinkExists(rawVal)) {
-    return '<span class="link-no">-</span>';
-  }
-  
+  if(!checkLinkExists(rawVal)) return '<span class="link-no">-</span>';
   let v = rawVal.replace(/["'迫]/g, '').trim();
-  
-  // PERBAIKAN: Langsung potong kalau ada garis bawah (_), 
-  // tidak peduli dia ada http-nya atau tidak.
-  if (v.includes('_')) {
-    v = v.split('_')[0]; 
-  }
+  if (v.includes('_')) v = v.split('_')[0]; 
   
   let href = v;
   const match = v.match(/https?:\/\/[^\s]+/i);
-  
-  if (match) {
-    href = match[0];
-  } else if (v.includes('bps.go.id')) {
-    href = 'https://' + v;
-  } else {
-    href = 'https://fasih-sm.bps.go.id/app/assignment-detail/' + v;
-  }
+  if (match) href = match[0];
+  else if (v.includes('bps.go.id')) href = 'https://' + v;
+  else href = 'https://fasih-sm.bps.go.id/app/assignment-detail/' + v;
 
   return `<a class="link-yes" href="${escapeHtml(href)}" target="_blank" rel="noopener" style="background: var(--accent-light); padding: 4px 10px; border-radius: 6px; display: inline-block; text-decoration: none; color: var(--accent); font-weight: 600;">&#128279; Buka Link</a>`;
 }
@@ -505,9 +471,7 @@ function buildVerifikatorSelect(nik, current, locked){
     return `<option value="${escapeAttr(name)}"${sel}>${escapeHtml(name)}</option>`;
   }).join('');
   const dis = locked ? ' disabled' : '';
-  return `<select class="verif-select" data-nik="${escapeAttr(nik)}"${dis}>
-    <option value="">Pilih...</option>${opts}
-  </select>`;
+  return `<select class="verif-select" data-nik="${escapeAttr(nik)}"${dis}><option value="">Pilih...</option>${opts}</select>`;
 }
 
 function buildAlasanSelect(nik, current, locked){
@@ -516,9 +480,7 @@ function buildAlasanSelect(nik, current, locked){
     return `<option value="${escapeAttr(name)}"${sel}>${escapeHtml(name)}</option>`;
   }).join('');
   const dis = locked ? ' disabled' : '';
-  return `<select class="alasan-select" data-nik="${escapeAttr(nik)}"${dis}>
-    <option value="">Pilih...</option>${opts}
-  </select>`;
+  return `<select class="alasan-select" data-nik="${escapeAttr(nik)}"${dis}><option value="">Pilih...</option>${opts}</select>`;
 }
 
 function buildAksiButton(nik, sudah){
@@ -535,6 +497,7 @@ function renderTable(rows){
     const pmlTags = splitPeople(r.pml).map(n=>`<span class="person-tag">${escapeHtml(n)}</span>`).join(' ') || '<span class="link-no">-</span>';
     const linkCell = buildLinkCell(r.link);
     const locked = !!r.verifikator;
+    
     return [
       r.status ? `<span class="badge-status">${escapeHtml(r.status)}</span>` : '-',
       truncCell(r.nama),
@@ -548,6 +511,7 @@ function renderTable(rows){
       pplTags,
       pmlTags,
       linkCell,
+      truncCell(r.perlu), 
       buildVerifikatorSelect(r.nik, r.verifikator, locked),
       buildAlasanSelect(r.nik, r.alasan, locked),
       buildAksiButton(r.nik, locked)
@@ -579,9 +543,10 @@ function renderTable(rows){
         { targets: 8, width: '105px' },
         { targets: [9,10], width: '160px', className: 'wrap-cell' },
         { targets: 11, width: '70px' },
-        { targets: 12, width: '150px' },
-        { targets: 13, width: '160px' },
-        { targets: 14, width: '125px', className: 'wrap-cell' }
+        { targets: 12, width: '70px', className: 'dt-center' }, 
+        { targets: 13, width: '150px' },
+        { targets: 14, width: '160px' },
+        { targets: 15, width: '125px', className: 'wrap-cell' } 
       ],
       language: {
         search: "Cari:",
@@ -613,6 +578,7 @@ function applyFilters(){
   const pml = $('#fPML').val();
   const linkMode = $('#fLink').val();
   const kode = $('#fKode').val();
+  const perluMode = normKey($('#fPerlu').val()); 
   const verifStatus = $('#fVerifStatus').val();
   const search = normKey($('#fSearch').val());
 
@@ -623,15 +589,12 @@ function applyFilters(){
     if(ppl && !splitPeople(r.ppl).includes(ppl)) return false;
     if(pml && !splitPeople(r.pml).includes(pml)) return false;
     
-    // Perbaikan Filter: Cek link secara akurat
     const hasLink = checkLinkExists(r.link);
     if(linkMode === 'ada' && !hasLink) return false;
     if(linkMode === 'kosong' && hasLink) return false;
     
-    // Filter KODE
     if(kode && r.kode.toUpperCase() !== kode.toUpperCase()) return false;
-
-    // Filter status verifikasi / nama verifikator
+    if(perluMode && r.perlu.toUpperCase() !== perluMode) return false;
     if(verifStatus === 'BELUM' && r.verifikator) return false;
     if(verifStatus && verifStatus !== 'BELUM' && r.verifikator !== verifStatus) return false;
     
@@ -652,6 +615,7 @@ function applyFilters(){
   if(pml) parts.push(`PML: ${pml}`);
   if(linkMode) parts.push(linkMode === 'ada' ? 'Ada link' : 'Belum ada link');
   if(kode) parts.push(`Kode: ${kode}`);
+  if(perluMode) parts.push(`Perlu: ${perluMode}`);
   if(verifStatus) parts.push(`Verifikator: ${verifStatus === 'BELUM' ? 'Belum diverifikasi' : verifStatus}`);
   if(search) parts.push(`Cari: "${$('#fSearch').val()}"`);
   $('#activeNote').text(parts.length ? `Filter aktif: ${parts.join(' | ')}` : '');
@@ -675,7 +639,6 @@ async function saveVerifikasi(nik, nama, kecamatan, desa, verifikator, alasan, $
     try{
       data = await res.json();
     } catch(parseErr){
-      console.error('Respon bukan JSON, mungkin bukan halaman Web App yang benar / butuh login:', parseErr);
       $status.text('Gagal: respon server tidak valid (cek deployment).').addClass('err');
       $btn.prop('disabled', false).text(originalLabel);
       return;
@@ -687,16 +650,12 @@ async function saveVerifikasi(nik, nama, kecamatan, desa, verifikator, alasan, $
       if(row){ row.verifikator = verifikator; row.alasan = alasan; }
       if($row){ $row.find('.verif-select, .alasan-select').prop('disabled', true); }
       $btn.prop('disabled', false).addClass('btn-edit').attr('data-mode', 'locked');
-      setTimeout(() => {
-        applyFilters();
-      }, 900);
+      setTimeout(() => { applyFilters(); }, 900);
     } else {
-      console.error('Gagal menyimpan:', data.message);
       $status.text(data.message || 'Gagal menyimpan.').removeClass('ok').addClass('err');
       $btn.prop('disabled', false).text(originalLabel);
     }
   } catch(err){
-    console.error('Gagal terhubung ke server:', err);
     $status.text('Gagal terhubung ke server (' + err.message + ')').removeClass('ok').addClass('err');
     $btn.prop('disabled', false).text(originalLabel);
   }
@@ -708,7 +667,6 @@ function initVerifikasiActions(){
     const $row = $btn.closest('tr');
     const $status = $row.find('.save-status');
 
-    // Jika sedang terkunci (sudah tersimpan), klik ini hanya membuka kunci untuk edit
     if($btn.attr('data-mode') === 'locked'){
       $row.find('.verif-select, .alasan-select').prop('disabled', false);
       $btn.removeClass('btn-edit').attr('data-mode', 'edit').text('Simpan');
@@ -743,7 +701,7 @@ function initFilters(){
   fillVerifStatusSelect();
   refreshCascadingSelects();
 
-  $('#fKecamatan, #fDesa, #fDusunSLS, #fPPL, #fPML, #fLink, #fKode, #fVerifStatus').on('change', function(e){
+  $('#fKecamatan, #fDesa, #fDusunSLS, #fPPL, #fPML, #fLink, #fKode, #fPerlu, #fVerifStatus').on('change', function(e){
     if(e.target.id === 'fKecamatan'){
       $('#fDesa').val('');
       $('#fDusunSLS').val('');
@@ -762,7 +720,7 @@ function initFilters(){
   });
 
   $('#btnReset').on('click', function(){
-    $('#fKecamatan, #fDesa, #fDusunSLS, #fPPL, #fPML, #fLink, #fKode, #fVerifStatus').val('');
+    $('#fKecamatan, #fDesa, #fDusunSLS, #fPPL, #fPML, #fLink, #fKode, #fPerlu, #fVerifStatus').val('');
     $('#fSearch').val('');
     refreshCascadingSelects();
     applyFilters();
@@ -783,45 +741,95 @@ function fillVerifStatusSelect(){
 
 function loadData(){
   const cacheBustedUrl = CSV_URL + (CSV_URL.indexOf('?') === -1 ? '?' : '&') + '_ts=' + Date.now();
+  
   Papa.parse(cacheBustedUrl, {
     download: true,
-    header: true,
+    header: false, // Baca sebagai array mentah
     skipEmptyLines: true,
     complete: function(results){
-      const headers = results.meta.fields || [];
-      const keys = {};
-      Object.keys(HEADER_MAP).forEach(k => { keys[k] = findKey(headers, HEADER_MAP[k]); });
+      const rows = results.data;
+      
+      // Cari letak baris judul secara otomatis (yang ada kata NAMA)
+      let hRowIdx = 0;
+      for (let i = 0; i < Math.min(10, rows.length); i++) {
+        if (rows[i].join('').toUpperCase().includes('NAMA')) {
+          hRowIdx = i;
+          break;
+        }
+      }
+      
+      const headers = rows[hRowIdx];
 
-      // Kunci patokan: Paksa ambil kolom index ke-18 (Kolom S)
-      const headerKolomS = headers[18];
+      function cariIndeks(kataKunciList, hindariKata = null) {
+        for(let c of kataKunciList) {
+          let idx = headers.findIndex(h => normKey(h) === normKey(c));
+          if(idx !== -1) return idx;
+        }
+        for(let c of kataKunciList) {
+          let idx = headers.findIndex(h => {
+             let hNorm = normKey(h);
+             if(hindariKata && hNorm.includes(hindariKata)) return false;
+             return hNorm.includes(normKey(c));
+          });
+          if(idx !== -1) return idx;
+        }
+        return -1;
+      }
 
-      RAW = results.data.map(row => {
+      const k = {
+        status: cariIndeks(["PNS/PPPK"]),
+        nama: cariIndeks(["NAMA TANPA GELAR", "NAMA"], "CEK"),
+        nik: cariIndeks(["NIK"], "CEK"), 
+        kk: cariIndeks(["KK"]),
+        kecamatan: cariIndeks(["KECAMATAN"]),
+        desa: cariIndeks(["DESA"]),
+        dusun: cariIndeks(["DUSUN"], "SLS"),
+        alamat: cariIndeks(["ALAMAT"]),
+        dusunsls: cariIndeks(["DUSUN SLS", "SLS"], "DUSUN"),
+        kode: cariIndeks(["KODE"]),
+        ppl: cariIndeks(["PPL"]),
+        pml: cariIndeks(["PML"]),
+        link: cariIndeks(["LINK", "FASIH", "URL"])
+      };
+
+      RAW = [];
+      for (let i = hRowIdx + 1; i < rows.length; i++) {
+        const row = rows[i];
         
-        // Ambil nilai murni dari Kolom S
-        let linkVal = headerKolomS ? norm(row[headerKolomS]) : '';
+        let namaVal = k.nama !== -1 ? norm(row[k.nama]) : '';
+        let nikVal = k.nik !== -1 ? norm(row[k.nik]) : '';
+        
+        if (!namaVal && !nikVal) continue; 
 
-        return {
-          status: keys.status ? norm(row[keys.status]) : '',
-          nama: keys.nama ? norm(row[keys.nama]) : '',
-          nik: keys.nik ? norm(row[keys.nik]) : '',
-          kk: keys.kk ? norm(row[keys.kk]) : '',
-          kecamatan: keys.kecamatan ? norm(row[keys.kecamatan]) : '',
-          desa: keys.desa ? norm(row[keys.desa]) : '',
-          dusun: keys.dusun ? norm(row[keys.dusun]) : '',
-          alamat: keys.alamat ? norm(row[keys.alamat]) : '',
-          dusunsls: keys.dusunsls ? norm(row[keys.dusunsls]) : '',
-          ppl: keys.ppl ? norm(row[keys.ppl]) : '',
-          pml: keys.pml ? norm(row[keys.pml]) : '',
-          link: linkVal, 
-          verifikator: keys.verifikator ? norm(row[keys.verifikator]) : '',
-          alasan: keys.alasan ? norm(row[keys.alasan]) : '',
-          kode: keys.kode ? norm(row[keys.kode]) : ''
-        };
-      }).filter(r => {
-        const adaNama = r.nama && r.nama !== '-';
-        const adaNik = r.nik && r.nik !== '-';
-        return adaNama || adaNik; 
-      });
+        // RADAR OTOMATIS: Cari CARI/TIDAK di seluruh isi sel dalam baris ini
+        let perluVal = '';
+        for (let j = 0; j < row.length; j++) {
+            const v = normKey(row[j]);
+            if (v === 'CARI' || v === 'TIDAK') {
+                perluVal = v;
+                break;
+            }
+        }
+
+        RAW.push({
+          status: k.status !== -1 ? norm(row[k.status]) : '',
+          nama: namaVal,
+          nik: nikVal,
+          kk: k.kk !== -1 ? norm(row[k.kk]) : '',
+          kecamatan: k.kecamatan !== -1 ? norm(row[k.kecamatan]) : '',
+          desa: k.desa !== -1 ? norm(row[k.desa]) : '',
+          dusun: k.dusun !== -1 ? norm(row[k.dusun]) : '',
+          alamat: k.alamat !== -1 ? norm(row[k.alamat]) : '',
+          dusunsls: k.dusunsls !== -1 ? norm(row[k.dusunsls]) : '',
+          kode: k.kode !== -1 ? norm(row[k.kode]) : '',
+          ppl: k.ppl !== -1 ? norm(row[k.ppl]) : '',
+          pml: k.pml !== -1 ? norm(row[k.pml]) : '',
+          link: k.link !== -1 ? norm(row[k.link]) : '',
+          perlu: perluVal, 
+          verifikator: '', 
+          alasan: '' 
+        });
+      }
 
       $('#loadingState').hide();
       $('#dataTable').show();
@@ -857,7 +865,6 @@ async function loadVerifikasiStatus(){
         r.alasan = norm(hit.alasan);
       }
     });
-
     applyFilters();
   } catch(err){
     console.error('Gagal memuat status verifikasi:', err);
