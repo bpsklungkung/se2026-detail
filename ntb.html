@@ -79,7 +79,7 @@
     margin-bottom:20px;
   }
   .filters .field label{display:block;font-size:12px;color:var(--text-soft);margin-bottom:5px;font-weight:600;}
-  .filters select, .filters input[type="text"]{
+  .filters select, .filters input[type="text"], .filters input[type="number"]{
     width:100%;
     padding:8px 10px;
     border:1px solid var(--line);
@@ -89,6 +89,9 @@
     background:#fff;
   }
   .filters select:focus, .filters input:focus{outline:2px solid var(--accent);outline-offset:1px;}
+  .filters .field.range-field{grid-column:span 1;}
+  .filters .range-inputs{display:flex;gap:6px;}
+  .filters .range-inputs input{width:0;flex:1 1 0;}
 
   .btn-reset{
     grid-column:1/-1;
@@ -350,6 +353,22 @@
       <label for="fPPL">PPL</label>
       <select id="fPPL"><option value="">Semua</option></select>
     </div>
+    <div class="field range-field">
+      <label for="fNumericKolom">Filter Nilai (Kolom)</label>
+      <select id="fNumericKolom"><option value="">- Pilih Kolom -</option></select>
+    </div>
+    <div class="field range-field">
+      <label for="fNumericMin">Nilai Minimum</label>
+      <div class="range-inputs">
+        <input type="number" id="fNumericMin" placeholder="Min">
+      </div>
+    </div>
+    <div class="field range-field">
+      <label for="fNumericMax">Nilai Maksimum</label>
+      <div class="range-inputs">
+        <input type="number" id="fNumericMax" placeholder="Maks">
+      </div>
+    </div>
     <button class="btn-reset" id="btnReset">Reset Filter</button>
   </div>
 
@@ -604,6 +623,75 @@ function buildColDefs(){
   el('colGroup').innerHTML = colDefs.map(c => `<col style="width:${c.width}px">`).join('');
 }
 
+/* ===== Filter Rentang Nilai (kolom numerik pilihan user) ===== */
+
+function getNumericColDefs(){
+  return colDefs.filter(c => c.cls && c.cls.includes('num'));
+}
+
+function buildNumericFilterOptions(){
+  const numCols = getNumericColDefs();
+  el('fNumericKolom').innerHTML = '<option value="">- Pilih Kolom -</option>' +
+    numCols.map(c => `<option value="${c.idx}">${escapeHtml(c.label)}</option>`).join('');
+}
+
+// Mengembalikan nilai numerik suatu kolom sesuai satuan yang ditampilkan di tabel
+// (mis. kolom yang diformat fmtCurrency dikalikan 1000 seperti tampilannya di tabel)
+function getDisplayNumericValue(colDef, raw){
+  const n = parseNum(raw);
+  if (isNaN(n)) return NaN;
+  if (colDef.fmt === fmtCurrency) return n * 1000;
+  return n;
+}
+
+function applyNumericRange(rows){
+  const numColIdx = el('fNumericKolom').value;
+  if (numColIdx === '') return rows;
+  const colDef = colDefs.find(c => c.idx === parseInt(numColIdx, 10));
+  if (!colDef) return rows;
+
+  const minRaw = el('fNumericMin').value;
+  const maxRaw = el('fNumericMax').value;
+  const hasMin = minRaw !== '';
+  const hasMax = maxRaw !== '';
+  if (!hasMin && !hasMax) return rows;
+
+  const minVal = hasMin ? parseFloat(minRaw) : -Infinity;
+  const maxVal = hasMax ? parseFloat(maxRaw) : Infinity;
+
+  return rows.filter(r => {
+    const v = getDisplayNumericValue(colDef, r[colDef.idx]);
+    if (isNaN(v)) return false;
+    return v >= minVal && v <= maxVal;
+  });
+}
+
+// Update placeholder Min/Maks agar user tahu rentang data yang tersedia
+// berdasarkan filter kategori (dropdown) yang sedang aktif, di luar filter rentang itu sendiri
+function updateNumericPlaceholders(){
+  const numColIdx = el('fNumericKolom').value;
+  if (numColIdx === ''){
+    el('fNumericMin').placeholder = 'Min';
+    el('fNumericMax').placeholder = 'Maks';
+    return;
+  }
+  const colDef = colDefs.find(c => c.idx === parseInt(numColIdx, 10));
+  if (!colDef) return;
+
+  const pool = getFilteredByDropdowns();
+  let min = Infinity, max = -Infinity;
+  pool.forEach(r => {
+    const v = getDisplayNumericValue(colDef, r[colDef.idx]);
+    if (!isNaN(v)){
+      if (v < min) min = v;
+      if (v > max) max = v;
+    }
+  });
+  if (min === Infinity){ min = 0; max = 0; }
+  el('fNumericMin').placeholder = 'Min: ' + Math.round(min).toLocaleString('id-ID');
+  el('fNumericMax').placeholder = 'Maks: ' + Math.round(max).toLocaleString('id-ID');
+}
+
 function uniqueSorted(rows, idx){
   const set = new Set();
   rows.forEach(r => { const v = (r[idx]||'').toString().trim(); if (v) set.add(v); });
@@ -681,7 +769,8 @@ window.handleSort = function(idx) {
 
 function renderTable(){
   const dropdownFiltered = getFilteredByDropdowns();
-  const searched = applySearch(dropdownFiltered);
+  const rangeFiltered = applyNumericRange(dropdownFiltered);
+  const searched = applySearch(rangeFiltered);
   const sorted = applySort(searched); 
 
   const total = sorted.length;
@@ -985,7 +1074,7 @@ function refreshCascade(triggeredBy){
   fillSelect(el('fSLS'), uniqueSorted(poolForSLS, IDX.SLS), (triggeredBy==='desa' || triggeredBy==='kec') ? undefined : el('fSLS').value);
 }
 
-function onFilterChange(){ currentPage = 1; renderTable(); }
+function onFilterChange(){ currentPage = 1; updateNumericPlaceholders(); renderTable(); }
 
 el('fKategori').addEventListener('change', onFilterChange);
 el('fKec').addEventListener('change', function(){ refreshCascade('kec'); onFilterChange(); });
@@ -993,6 +1082,18 @@ el('fDesa').addEventListener('change', function(){ refreshCascade('desa'); onFil
 el('fSLS').addEventListener('change', onFilterChange);
 el('fPML').addEventListener('change', onFilterChange);
 el('fPPL').addEventListener('change', onFilterChange);
+
+el('fNumericKolom').addEventListener('change', function(){
+  updateNumericPlaceholders();
+  onFilterChange();
+});
+let numericDebounce;
+['fNumericMin','fNumericMax'].forEach(id => {
+  el(id).addEventListener('input', function(){
+    clearTimeout(numericDebounce);
+    numericDebounce = setTimeout(onFilterChange, 250);
+  });
+});
 el('pageSizeSel').addEventListener('change', function(){
   pageSize = this.value === 'all' ? 'all' : parseInt(this.value, 10);
   currentPage = 1;
@@ -1013,6 +1114,10 @@ el('btnReset').addEventListener('click', function(){
   ['fKategori','fKec','fDesa','fSLS','fPML','fPPL'].forEach(id => el(id).value = '');
   fillSelect(el('fDesa'), uniqueSorted(rawRows, IDX.DESA), '');
   fillSelect(el('fSLS'), uniqueSorted(rawRows, IDX.SLS), '');
+  el('fNumericKolom').value = '';
+  el('fNumericMin').value = '';
+  el('fNumericMax').value = '';
+  updateNumericPlaceholders();
   el('searchBox').value = '';
   searchTerm = '';
   sortCol = null;
@@ -1035,6 +1140,8 @@ Papa.parse(CSV_URL, {
 
     buildColDefs();
     buildChartCards();
+    buildNumericFilterOptions();
+    updateNumericPlaceholders();
     fillSelect(el('fKategori'), uniqueSorted(rawRows, IDX.KATEGORI), '');
     fillSelect(el('fKec'), uniqueSorted(rawRows, IDX.KEC), '');
     fillSelect(el('fDesa'), uniqueSorted(rawRows, IDX.DESA), '');
