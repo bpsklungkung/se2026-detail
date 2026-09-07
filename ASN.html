@@ -125,21 +125,21 @@ body{
 }
 table.dataTable{
   border-collapse:collapse;
-  font-size:13px;
+  font-size:11px; /* Font lebih kecil & rapat */
 }
 table.dataTable thead th{
   background:var(--main);
   color:#fff;
   font-weight:600;
-  font-size:12px;
-  padding:10px 8px;
+  font-size:10.5px;
+  padding:5px 4px; /* Padding header dirapatkan */
   border:none !important;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
 }
 table.dataTable tbody td{
-  padding:9px 8px;
+  padding:4px 5px; /* Padding isi sel sangat rapat */
   border-bottom:1px solid var(--line);
   vertical-align:middle;
   overflow:hidden;
@@ -148,7 +148,7 @@ table.dataTable tbody td{
 }
 table.dataTable tbody td.wrap-cell{
   white-space:normal;
-  line-height:1.7;
+  line-height:1.4;
 }
 table.dataTable tbody td span.trunc{
   display:block;
@@ -163,10 +163,10 @@ table.dataTable tbody tr:hover{background:var(--accent-light);}
   display:inline-block;
   background:var(--accent-light);
   color:var(--soft);
-  border-radius:6px;
-  padding:1px 7px;
-  margin:2px 3px 2px 0;
-  font-size:11px;
+  border-radius:4px;
+  padding:1px 4px;
+  margin:1px 2px 1px 0;
+  font-size:9.5px;
   white-space:nowrap;
 }
 .link-yes{
@@ -175,7 +175,7 @@ table.dataTable tbody tr:hover{background:var(--accent-light);}
   text-decoration:none;
 }
 .link-yes:hover{text-decoration:underline;}
-.link-no{color:var(--soft-text);font-size:12px;}
+.link-no{color:var(--soft-text);font-size:10.5px;}
 .dt-search-wrap{margin-bottom:12px;}
 .dataTables_wrapper .dataTables_paginate .paginate_button.current{
   background:var(--main) !important;
@@ -187,20 +187,20 @@ table.dataTable tbody tr:hover{background:var(--accent-light);}
   border-radius:6px;
 }
 .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter{
-  font-size:12px;
+  font-size:11px;
   color:var(--soft-text);
 }
 .loading-state{
   padding:60px 0;
   text-align:center;
   color:var(--soft-text);
-  font-size:14px;
+  font-size:13px;
 }
 .badge-status{
   display:inline-block;
-  padding:2px 9px;
+  padding:2px 6px;
   border-radius:999px;
-  font-size:11px;
+  font-size:9.5px;
   font-weight:600;
   background:var(--accent-light);
   color:var(--main);
@@ -210,10 +210,10 @@ table.dataTable tbody select.verif-select,
 table.dataTable tbody td.wrap-cell select.alasan-select,
 table.dataTable tbody select.alasan-select{
   width:100%;
-  padding:6px 6px;
+  padding:3px 4px;
   border:1px solid var(--line);
-  border-radius:7px;
-  font-size:12px;
+  border-radius:4px;
+  font-size:10.5px;
   font-family:'Inter',sans-serif;
   background:#fff;
   color:var(--text);
@@ -239,9 +239,9 @@ table.dataTable tbody button.btn-save{
   background:var(--main);
   color:#fff;
   border:none;
-  border-radius:7px;
-  padding:6px 12px;
-  font-size:12px;
+  border-radius:4px;
+  padding:3px 8px;
+  font-size:10.5px;
   font-weight:600;
   cursor:pointer;
   white-space:nowrap;
@@ -250,26 +250,24 @@ table.dataTable tbody button.btn-save{
 table.dataTable tbody button.btn-save:hover{background:var(--soft);}
 table.dataTable tbody button.btn-save:disabled{opacity:.7;cursor:default;}
 table.dataTable tbody button.btn-save.saved{background:#2E7D32;}
-.aksi-wrap{display:flex;flex-direction:column;gap:3px;}
-.save-status{font-size:10.5px;line-height:1.3;white-space:normal;}
+.aksi-wrap{display:flex;flex-direction:column;gap:1px;}
+.save-status{font-size:9.5px;line-height:1.1;white-space:normal;}
 .save-status.ok{color:#2E7D32;font-weight:600;}
 .save-status.err{color:var(--accent);font-weight:600;}
 .verif-badge{
   display:inline-block;
-  font-size:10px;
+  font-size:9px;
   font-weight:700;
   color:#2E7D32;
   background:#E4F3E6;
-  border-radius:5px;
-  padding:2px 6px;
+  border-radius:3px;
+  padding:1px 4px;
   white-space:nowrap;
 }
 ::-webkit-scrollbar{height:8px;width:8px;}
 ::-webkit-scrollbar-thumb{background:var(--soft-text);border-radius:8px;}
 .rekap-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
-  gap:20px;
+  display:block;
   margin-top:20px;
 }
 .rekap-panel{
@@ -344,6 +342,26 @@ table.recap-table thead th:not(:first-child){text-align:right;}
   flex-wrap:wrap;
 }
 .rekap-panel-header h2{margin:0;}
+.rekap-mini-grid{
+  display:flex;
+  flex-wrap:nowrap;
+  gap:15px;
+  overflow-x:auto;
+  padding-bottom:10px;
+}
+.rekap-mini-panel{
+  flex:1 1 0;
+  min-width:180px;
+}
+.rekap-mini-panel h3{
+  font-family:'Fraunces',serif;
+  font-size:14px;
+  margin:0 0 10px;
+  color:var(--main);
+}
+table.recap-table.mini{font-size:12.5px;}
+table.recap-table.mini thead th,
+table.recap-table.mini tbody td{padding:6px 8px;white-space:normal;}
 .table-toolbar{
   display:flex;
   justify-content:flex-end;
@@ -444,63 +462,45 @@ table.recap-table thead th:not(:first-child){text-align:right;}
   <div class="rekap-grid">
     <div class="rekap-panel">
       <div class="rekap-panel-header">
-        <h2>Rekap Wilayah &amp; Petugas</h2>
-        <button class="btn-export small" id="btnExportRekap1">&#11015; Unduh Excel</button>
+        <h2>Rekap Data</h2>
+        <button class="btn-export small" id="btnExportRekap2">&#11015; Export Rekap</button>
       </div>
-      <div class="rekap-groupby">
-        <label for="rekap1GroupBy">Kelompokkan Berdasarkan</label>
-        <select id="rekap1GroupBy">
-          <option value="kecamatan">Kecamatan</option>
-          <option value="desa">Desa</option>
-          <option value="dusunsls">Dusun SLS</option>
-          <option value="ppl">PPL</option>
-          <option value="pml">PML</option>
-        </select>
-      </div>
-      <div class="rekap-table-wrap">
-        <table class="recap-table" id="rekapTable1">
-          <thead>
-            <tr>
-              <th>Kecamatan</th>
-              <th>Total</th>
-              <th>Perlu CARI</th>
-              <th>Perlu TIDAK</th>
-              <th>Sudah Verifikasi</th>
-              <th>Belum Verifikasi</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="rekap-panel">
-      <div class="rekap-panel-header">
-        <h2>Rekap Kode &amp; Verifikasi</h2>
-        <button class="btn-export small" id="btnExportRekap2">&#11015; Unduh Excel</button>
-      </div>
-      <div class="rekap-groupby">
-        <label for="rekap2GroupBy">Kelompokkan Berdasarkan</label>
-        <select id="rekap2GroupBy">
-          <option value="kode">Kode</option>
-          <option value="perlu" selected>Perlu</option>
-          <option value="verifikator">Verifikator</option>
-        </select>
-      </div>
-      <div class="rekap-table-wrap">
-        <table class="recap-table" id="rekapTable2">
-          <thead>
-            <tr>
-              <th>Perlu</th>
-              <th>Total</th>
-              <th>Perlu CARI</th>
-              <th>Perlu TIDAK</th>
-              <th>Sudah Verifikasi</th>
-              <th>Belum Verifikasi</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+      <div class="rekap-mini-grid">
+        <div class="rekap-mini-panel">
+          <h3>Rekap per Link</h3>
+          <table class="recap-table mini" id="rekapMiniLink">
+            <thead><tr><th>Link</th><th>Jumlah</th><th>%</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="rekap-mini-panel">
+          <h3>Rekap per Kode</h3>
+          <table class="recap-table mini" id="rekapMiniKode">
+            <thead><tr><th>Kode</th><th>Jumlah</th><th>%</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="rekap-mini-panel">
+          <h3>Rekap per Perlu</h3>
+          <table class="recap-table mini" id="rekapMiniPerlu">
+            <thead><tr><th>Perlu</th><th>Jumlah</th><th>%</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="rekap-mini-panel">
+          <h3>Rekap per Verifikator</h3>
+          <table class="recap-table mini" id="rekapMiniVerifikator">
+            <thead><tr><th>Verifikator</th><th>Jumlah</th><th>%</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="rekap-mini-panel">
+          <h3>Rekap per Alasan</h3>
+          <table class="recap-table mini" id="rekapMiniAlasan">
+            <thead><tr><th>Alasan</th><th>Jumlah</th><th>%</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -566,8 +566,7 @@ const ALASAN_OPTIONS = [
 let RAW = [];
 let table;
 let CURRENT_FILTERED = [];
-let CURRENT_REKAP1 = { field: 'kecamatan', map: new Map() };
-let CURRENT_REKAP2 = { field: 'perlu', map: new Map() };
+let CURRENT_REKAP2 = { grandTotal: 0, results: {} };
 
 function norm(s){ return (s || "").toString().trim(); }
 function normKey(s){ return norm(s).toUpperCase(); }
@@ -625,7 +624,7 @@ function buildLinkCell(rawVal){
   else if (v.includes('bps.go.id')) href = 'https://' + v;
   else href = 'https://fasih-sm.bps.go.id/app/assignment-detail/' + v;
 
-  return `<a class="link-yes" href="${escapeHtml(href)}" target="_blank" rel="noopener" style="background: var(--accent-light); padding: 4px 10px; border-radius: 6px; display: inline-block; text-decoration: none; color: var(--accent); font-weight: 600;">&#128279; Buka Link</a>`;
+  return `<a class="link-yes" href="${escapeHtml(href)}" target="_blank" rel="noopener" style="background: var(--accent-light); padding: 3px 8px; border-radius: 4px; display: inline-block; text-decoration: none; color: var(--accent); font-weight: 600; font-size: 10.5px;">&#128279; Buka Link</a>`;
 }
 
 function truncCell(value){
@@ -701,21 +700,21 @@ function renderTable(rows){
       scrollCollapse: true,
       autoWidth: false,
       columnDefs: [
-        { targets: 0, width: '62px' },
-        { targets: 1, width: '170px' },
-        { targets: 2, width: '110px' },
-        { targets: 3, width: '110px' },
-        { targets: 4, width: '105px' },
-        { targets: 5, width: '100px' },
-        { targets: 6, width: '85px' },
-        { targets: 7, width: '160px' },
-        { targets: 8, width: '105px' },
-        { targets: [9,10], width: '160px', className: 'wrap-cell' },
-        { targets: 11, width: '70px' },
-        { targets: 12, width: '70px', className: 'dt-center' }, 
-        { targets: 13, width: '150px' },
-        { targets: 14, width: '160px' },
-        { targets: 15, width: '125px', className: 'wrap-cell' } 
+        { targets: 0, width: '55px' },  // Status
+        { targets: 1, width: '150px' }, // Nama
+        { targets: 2, width: '95px' },  // NIK
+        { targets: 3, width: '95px' },  // KK
+        { targets: 4, width: '90px' },  // Kecamatan
+        { targets: 5, width: '85px' },  // Desa
+        { targets: 6, width: '55px' },  // Dusun (Diperkecil)
+        { targets: 7, width: '110px' }, // Alamat (Diperkecil)
+        { targets: 8, width: '90px' },  // Dusun SLS
+        { targets: [9,10], width: '130px', className: 'wrap-cell' }, // PPL, PML
+        { targets: 11, width: '65px' }, // Link
+        { targets: 12, width: '60px', className: 'dt-center' }, // Perlu
+        { targets: 13, width: '130px' }, // Verifikator
+        { targets: 14, width: '140px' }, // Alasan
+        { targets: 15, width: '110px', className: 'wrap-cell' } // Aksi
       ],
       language: {
         search: "Cari:",
@@ -898,85 +897,60 @@ function initFilters(){
   });
 }
 
-const REKAP_FIELD_LABELS = {
-  kecamatan: 'Kecamatan',
-  desa: 'Desa',
-  dusunsls: 'Dusun SLS',
-  ppl: 'PPL',
-  pml: 'PML',
-  kode: 'Kode',
-  perlu: 'Perlu',
-  verifikator: 'Verifikator'
-};
+function alasanBucket(alasanRaw){
+  const v = norm(alasanRaw);
+  if(!v) return '(Kosong)';
+  return ALASAN_OPTIONS.includes(v) ? v : 'Lainnya';
+}
 
-function computeRekap(rows, field){
+const MINI_REKAP_FIELDS = [
+  { id: 'rekapMiniLink', label: 'Link', getKey: r => checkLinkExists(r.link) ? 'Ada Link' : 'Belum Ada Link' },
+  { id: 'rekapMiniKode', label: 'Kode', getKey: r => norm(r.kode) || '(Kosong)' },
+  { id: 'rekapMiniPerlu', label: 'Perlu', getKey: r => normKey(r.perlu) || '(Kosong)' },
+  { id: 'rekapMiniVerifikator', label: 'Verifikator', getKey: r => r.verifikator ? norm(r.verifikator) : 'Belum Diverifikasi' },
+  { id: 'rekapMiniAlasan', label: 'Alasan', getKey: r => alasanBucket(r.alasan) }
+];
+
+function computeSingleRekap(rows, getKey){
   const map = new Map();
   rows.forEach(r => {
-    let keys;
-    if(field === 'ppl' || field === 'pml'){
-      keys = splitPeople(r[field]);
-      if(!keys.length) keys = ['(Kosong)'];
-    } else if(field === 'verifikator'){
-      keys = [r.verifikator ? r.verifikator : 'Belum Diverifikasi'];
-    } else {
-      const v = norm(r[field]);
-      keys = [v || '(Kosong)'];
-    }
-    keys.forEach(key => {
-      if(!map.has(key)) map.set(key, { total:0, cari:0, tidak:0, sudah:0, belum:0 });
-      const o = map.get(key);
-      o.total++;
-      const perlu = normKey(r.perlu);
-      if(perlu === 'CARI') o.cari++;
-      else if(perlu === 'TIDAK') o.tidak++;
-      if(r.verifikator) o.sudah++; else o.belum++;
-    });
+    const key = getKey(r);
+    map.set(key, (map.get(key) || 0) + 1);
   });
   return map;
 }
 
-function renderRekap(tableId, field, map){
-  const $table = $('#'+tableId);
-  $table.find('thead th').first().text(REKAP_FIELD_LABELS[field] || field);
-  const $tbody = $table.find('tbody').empty();
-
+function renderSingleRekap(tableId, map, grandTotal){
+  const $tbody = $('#'+tableId).find('tbody').empty();
   if(map.size === 0){
-    $tbody.append('<tr><td colspan="6" style="text-align:center;color:var(--soft-text);">Tidak ada data</td></tr>');
+    $tbody.append('<tr><td colspan="3" style="text-align:center;color:var(--soft-text);">Tidak ada data</td></tr>');
     return;
   }
-
-  const entries = [...map.entries()].sort((a,b) => b[1].total - a[1].total);
-  const grand = { total:0, cari:0, tidak:0, sudah:0, belum:0 };
-  entries.forEach(([key, o]) => {
-    grand.total += o.total; grand.cari += o.cari; grand.tidak += o.tidak;
-    grand.sudah += o.sudah; grand.belum += o.belum;
-    $tbody.append(`<tr><td>${escapeHtml(key)}</td><td>${o.total}</td><td>${o.cari}</td><td>${o.tidak}</td><td>${o.sudah}</td><td>${o.belum}</td></tr>`);
+  const entries = [...map.entries()].sort((a,b) => b[1] - a[1]);
+  entries.forEach(([key, count]) => {
+    const pct = grandTotal ? Math.round((count / grandTotal) * 100) : 0;
+    $tbody.append(`<tr><td>${escapeHtml(key)}</td><td>${count}</td><td>${pct}%</td></tr>`);
   });
-  $tbody.append(`<tr class="recap-total-row"><td>Total</td><td>${grand.total}</td><td>${grand.cari}</td><td>${grand.tidak}</td><td>${grand.sudah}</td><td>${grand.belum}</td></tr>`);
-}
-
-function updateRekap1(){
-  const field = $('#rekap1GroupBy').val();
-  const map = computeRekap(RAW, field);
-  CURRENT_REKAP1 = { field, map };
-  renderRekap('rekapTable1', field, map);
+  $tbody.append(`<tr class="recap-total-row"><td>Total</td><td>${grandTotal}</td><td>100%</td></tr>`);
 }
 
 function updateRekap2(){
-  const field = $('#rekap2GroupBy').val();
-  const map = computeRekap(RAW, field);
-  CURRENT_REKAP2 = { field, map };
-  renderRekap('rekapTable2', field, map);
+  const grandTotal = RAW.length;
+  const results = {};
+  MINI_REKAP_FIELDS.forEach(f => {
+    const map = computeSingleRekap(RAW, f.getKey);
+    results[f.id] = { label: f.label, map };
+    renderSingleRekap(f.id, map, grandTotal);
+  });
+  CURRENT_REKAP2 = { grandTotal, results };
 }
 
 function updateAllRekap(){
-  updateRekap1();
   updateRekap2();
 }
 
 function initRekapPanels(){
-  $('#rekap1GroupBy').on('change', updateRekap1);
-  $('#rekap2GroupBy').on('change', updateRekap2);
+  // Dikosongkan
 }
 
 function downloadWorkbook(workbook, filename, $btn){
@@ -1023,30 +997,31 @@ function exportMainTableExcel($btn){
   downloadWorkbook(wb, `Data_ASN_${ts}.xlsx`, $btn);
 }
 
-function exportRekapExcel(rekapData, sheetTitle, filenamePrefix, $btn){
+function exportMultiRekapExcel(rekapData, $btn){
   const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet(sheetTitle.slice(0,31));
-  const label = REKAP_FIELD_LABELS[rekapData.field] || rekapData.field;
-  ws.addRow([label, 'Total', 'Perlu CARI', 'Perlu TIDAK', 'Sudah Verifikasi', 'Belum Verifikasi']);
-  styleHeaderRow(ws.getRow(1));
-  const entries = [...rekapData.map.entries()].sort((a,b) => b[1].total - a[1].total);
-  const grand = { total:0, cari:0, tidak:0, sudah:0, belum:0 };
-  entries.forEach(([key, o]) => {
-    grand.total += o.total; grand.cari += o.cari; grand.tidak += o.tidak;
-    grand.sudah += o.sudah; grand.belum += o.belum;
-    ws.addRow([key, o.total, o.cari, o.tidak, o.sudah, o.belum]);
+  const grandTotal = rekapData.grandTotal;
+  MINI_REKAP_FIELDS.forEach(f => {
+    const r = rekapData.results[f.id];
+    if(!r) return;
+    const ws = wb.addWorksheet(('Rekap ' + f.label).slice(0,31));
+    ws.addRow([f.label, 'Jumlah', '%']);
+    styleHeaderRow(ws.getRow(1));
+    const entries = [...r.map.entries()].sort((a,b) => b[1] - a[1]);
+    entries.forEach(([key, count]) => {
+      const pct = grandTotal ? Math.round((count / grandTotal) * 100) : 0;
+      ws.addRow([key, count, pct + '%']);
+    });
+    const totalRow = ws.addRow(['Total', grandTotal, '100%']);
+    totalRow.eachCell(cell => { cell.font = { bold: true }; });
+    ws.columns.forEach(col => { col.width = 22; });
   });
-  const totalRow = ws.addRow(['Total', grand.total, grand.cari, grand.tidak, grand.sudah, grand.belum]);
-  totalRow.eachCell(cell => { cell.font = { bold: true }; });
-  ws.columns.forEach(col => { col.width = 20; });
   const ts = new Date().toISOString().slice(0,10);
-  downloadWorkbook(wb, `${filenamePrefix}_${ts}.xlsx`, $btn);
+  downloadWorkbook(wb, `Rekap_Data_ASN_${ts}.xlsx`, $btn);
 }
 
 function initExportButtons(){
   $('#btnExportExcel').on('click', function(){ exportMainTableExcel($(this)); });
-  $('#btnExportRekap1').on('click', function(){ exportRekapExcel(CURRENT_REKAP1, 'Rekap Wilayah Petugas', 'Rekap_Wilayah_Petugas', $(this)); });
-  $('#btnExportRekap2').on('click', function(){ exportRekapExcel(CURRENT_REKAP2, 'Rekap Kode Verifikasi', 'Rekap_Kode_Verifikasi', $(this)); });
+  $('#btnExportRekap2').on('click', function(){ exportMultiRekapExcel(CURRENT_REKAP2, $(this)); });
 }
 
 function fillVerifStatusSelect(){
@@ -1066,12 +1041,11 @@ function loadData(){
   
   Papa.parse(cacheBustedUrl, {
     download: true,
-    header: false, // Baca sebagai array mentah
+    header: false, 
     skipEmptyLines: true,
     complete: function(results){
       const rows = results.data;
       
-      // Cari letak baris judul secara otomatis (yang ada kata NAMA)
       let hRowIdx = 0;
       for (let i = 0; i < Math.min(10, rows.length); i++) {
         if (rows[i].join('').toUpperCase().includes('NAMA')) {
@@ -1123,7 +1097,6 @@ function loadData(){
         
         if (!namaVal && !nikVal) continue; 
 
-        // RADAR OTOMATIS: Cari CARI/TIDAK di seluruh isi sel dalam baris ini
         let perluVal = '';
         for (let j = 0; j < row.length; j++) {
             const v = normKey(row[j]);
