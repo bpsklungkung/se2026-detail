@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Verifikasi UTP</title>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
   <style>
     :root{
       --primary: #4A1620;
@@ -267,6 +268,18 @@
 
     .hl-red { color: #ff6b6b; font-weight: bold; }
     .hl-green { color: #51cf66; font-weight: bold; }
+
+    .recap-grid{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:start;
+    }
+    .recap-box h3{
+      margin:0 0 8px;font-size:14px;color:var(--primary);
+    }
+    .recap-box table{font-size:12px}
+    .recap-box th{background:var(--primary);color:#fff;padding:6px 8px;text-align:left}
+    .recap-box td{padding:6px 8px;border-bottom:1px solid var(--border)}
+    @media(max-width:1100px){.recap-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:600px){.recap-grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
@@ -279,6 +292,31 @@
   <div class="summary-grid" id="summaryCards"></div>
 
   <section class="card">
+    <div class="meta">
+      <span>Rekap Data</span>
+      <button id="exportRecapBtn" type="button">📊 Export Rekap</button>
+    </div>
+    <div class="recap-grid">
+      <div class="recap-box">
+        <h3>Rekap per Kecamatan</h3>
+        <div class="table-wrap"><table id="recapKecamatan"></table></div>
+      </div>
+      <div class="recap-box">
+        <h3>Rekap per Kemungkinan</h3>
+        <div class="table-wrap"><table id="recapKemungkinan"></table></div>
+      </div>
+      <div class="recap-box">
+        <h3>Rekap per Tindakan</h3>
+        <div class="table-wrap"><table id="recapTindakan"></table></div>
+      </div>
+      <div class="recap-box">
+        <h3>Rekap per Verifikator</h3>
+        <div class="table-wrap"><table id="recapVerifikator"></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
     <div class="filters" id="filters"></div>
     <div class="toolbar">
       <div class="search">
@@ -286,6 +324,7 @@
         <input id="searchInput" type="search" placeholder="Cari di seluruh data..." />
       </div>
       <button id="resetBtn">Reset Filter</button>
+      <button id="exportExcelBtn" type="button">📊 Export Excel</button>
     </div>
   </section>
 
@@ -671,8 +710,176 @@ function renderSummaryCards() {
   container.innerHTML = html;
 }
 
+function buildRecap(getValueFn) {
+  const counts = {};
+  filteredRows.forEach(row => {
+    const v = clean(getValueFn(row)) || "(Kosong)";
+    counts[v] = (counts[v] || 0) + 1;
+  });
+  return counts;
+}
+
+function renderRecapTable(tableId, counts, labelHeader) {
+  const container = document.getElementById(tableId);
+  if (!container) return;
+
+  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+  const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+
+  let html = `<thead><tr><th>${escapeHtml(labelHeader)}</th><th>Jumlah</th><th>%</th></tr></thead><tbody>`;
+  if (!entries.length) {
+    html += `<tr><td colspan="3" class="empty">Tidak ada data</td></tr>`;
+  } else {
+    entries.forEach(([label, count]) => {
+      const pct = total ? Math.round((count / total) * 100) : 0;
+      html += `<tr><td>${escapeHtml(label)}</td><td style="text-align:center">${count.toLocaleString("id-ID")}</td><td style="text-align:center">${pct}%</td></tr>`;
+    });
+    html += `<tr style="font-weight:700;background:var(--hover)"><td>Total</td><td style="text-align:center">${total.toLocaleString("id-ID")}</td><td style="text-align:center">100%</td></tr>`;
+  }
+  html += "</tbody>";
+  container.innerHTML = html;
+}
+
+function renderRecapTables() {
+  renderRecapTable(
+    "recapKecamatan",
+    buildRecap(row => row[findColumnByHeader("KECAMATAN")]),
+    "Kecamatan"
+  );
+  renderRecapTable(
+    "recapKemungkinan",
+    buildRecap(row => row[findColumnByHeader("Kemungkinan")]),
+    "Kemungkinan"
+  );
+  renderRecapTable(
+    "recapTindakan",
+    buildRecap(row => row[findColumnByHeader("Tindakan")]),
+    "Tindakan"
+  );
+  renderRecapTable(
+    "recapVerifikator",
+    buildRecap(row => {
+      const saved = submittedMap[getRowKey(row)];
+      return saved && saved.verifikasi ? saved.verifikasi : "Belum";
+    }),
+    "Verifikator"
+  );
+}
+
+async function exportRecapToExcel() {
+  const btn = document.getElementById("exportRecapBtn");
+  if (btn) { btn.disabled = true; btn.textContent = "Menyiapkan..."; }
+  try {
+    const workbook = new ExcelJS.Workbook();
+
+    const recaps = [
+      { name: "Kecamatan", counts: buildRecap(row => row[findColumnByHeader("KECAMATAN")]) },
+      { name: "Kemungkinan", counts: buildRecap(row => row[findColumnByHeader("Kemungkinan")]) },
+      { name: "Tindakan", counts: buildRecap(row => row[findColumnByHeader("Tindakan")]) },
+      { name: "Verifikator", counts: buildRecap(row => {
+          const saved = submittedMap[getRowKey(row)];
+          return saved && saved.verifikasi ? saved.verifikasi : "Belum";
+        })
+      }
+    ];
+
+    recaps.forEach(r => {
+      const sheet = workbook.addWorksheet(r.name);
+      const total = Object.values(r.counts).reduce((a, b) => a + b, 0);
+      const entries = Object.entries(r.counts).sort((a, b) => b[1] - a[1]);
+
+      const headerRow = sheet.addRow([r.name, "Jumlah", "%"]);
+      headerRow.eachCell(cell => {
+        cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF4A1620" } };
+        cell.alignment = { vertical: "middle" };
+      });
+
+      entries.forEach(([label, count]) => {
+        const pct = total ? Math.round((count / total) * 100) : 0;
+        sheet.addRow([label, count, `${pct}%`]);
+      });
+
+      const totalRow = sheet.addRow(["Total", total, "100%"]);
+      totalRow.eachCell(cell => { cell.font = { bold: true }; });
+
+      sheet.columns = [{ width: 26 }, { width: 14 }, { width: 10 }];
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/octet-stream" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Rekap_UTP_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error(err);
+    alert("Gagal membuat file Excel rekap.");
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "📊 Export Rekap"; }
+  }
+}
+
+document.getElementById("exportRecapBtn").addEventListener("click", exportRecapToExcel);
+
+async function exportToExcel() {
+  const btn = document.getElementById("exportExcelBtn");
+  if (btn) { btn.disabled = true; btn.textContent = "Menyiapkan..."; }
+  try {
+    const visibleColumns = getVisibleColumns();
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Data UTP");
+
+    const headerLabels = visibleColumns.map(i => headers[i] || `Kolom ${i + 1}`)
+      .concat(["JENIS", "LINK", "VERIFIKASI", "KETERANGAN"]);
+    const headerRow = sheet.addRow(headerLabels);
+    headerRow.eachCell(cell => {
+      cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF4A1620" } };
+      cell.alignment = { vertical: "middle" };
+    });
+
+    filteredRows.forEach(row => {
+      const key = getRowKey(row);
+      const saved = submittedMap[key];
+      const dataRow = visibleColumns.map(i => clean(row[i]));
+      dataRow.push(getUnifiedHJI(row));
+      dataRow.push(clean(row[LINK_COLUMN]));
+      dataRow.push(saved ? saved.verifikasi : "Belum");
+      dataRow.push(saved ? (saved.keterangan || "") : "");
+      sheet.addRow(dataRow);
+    });
+
+    sheet.columns.forEach(col => { col.width = 18; });
+    sheet.views = [{ state: "frozen", ySplit: 1 }];
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/octet-stream" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Data_UTP_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error(err);
+    alert("Gagal membuat file Excel.");
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "📊 Export Excel"; }
+  }
+}
+
+document.getElementById("exportExcelBtn").addEventListener("click", exportToExcel);
+
 function renderTable() {
   renderSummaryCards();
+  renderRecapTables();
   const table = document.getElementById("dataTable");
   const visibleColumns = getVisibleColumns();
   const pagination = document.getElementById("pagination");
