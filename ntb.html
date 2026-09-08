@@ -261,6 +261,72 @@
   .chart-svg-wrap{max-height:220px;overflow-y:auto;}
   .chart-svg-wrap svg{width:100%;height:auto;display:block;overflow:visible;}
   .chart-empty{font-size:11px;color:var(--text-soft);text-align:center;padding:20px 0;}
+
+  /* Dropdown multi-select untuk kolom Status */
+  .msel{position:relative;display:inline-block;width:100%;}
+  .msel-btn{
+    width:100%;
+    text-align:left;
+    padding:3px 6px;
+    border:1px solid var(--line);
+    border-radius:4px;
+    font-size:9.5px;
+    background:#fff;
+    cursor:pointer;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    color:var(--text);
+  }
+  .msel-btn:hover{border-color:var(--accent);}
+  .msel-panel{
+    display:none;
+    position:absolute;
+    z-index:80;
+    top:100%;
+    left:0;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:6px;
+    box-shadow:0 4px 14px rgba(0,0,0,.18);
+    padding:6px;
+    min-width:180px;
+    white-space:nowrap;
+  }
+  .msel-panel.open{display:block;}
+  .msel-opt{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:11px;
+    padding:4px 5px;
+    cursor:pointer;
+    border-radius:4px;
+    color:var(--text);
+  }
+  .msel-opt:hover{background:var(--accent-light);}
+  .status-badge{
+    display:inline-block;
+    color:#fff;
+    font-size:9px;
+    font-weight:700;
+    padding:2px 6px;
+    border-radius:10px;
+    margin:1px 2px 1px 0;
+    white-space:nowrap;
+  }
+
+  /* Rekap Verifikator & Status berdampingan */
+  .rekap-row{display:flex;gap:16px;flex-wrap:wrap;}
+  .rekap-col{flex:1 1 280px;min-width:240px;}
+  .rekap-col-title{font-size:12px;font-weight:700;color:var(--main);margin-bottom:6px;}
+  table.rekap-table{width:100%;border-collapse:collapse;font-size:11.5px;}
+  table.rekap-table thead th{background:var(--main);color:#fff;padding:6px 8px;text-align:left;position:static;}
+  table.rekap-table td{padding:5px 8px;border-bottom:1px solid var(--line);}
+  table.rekap-table tr.total-row td{font-weight:700;background:var(--accent-light);}
+  .trend-up{color:#166534;font-weight:700;}
+  .trend-down{color:#B23A48;font-weight:700;}
+  .trend-flat{color:var(--text-soft);}
 </style>
 </head>
 <body>
@@ -407,6 +473,26 @@
   </div>
 
   <div class="table-card" style="margin-top:20px;">
+    <div class="charts-title">Rekap Verifikasi</div>
+    <div class="rekap-row">
+      <div class="rekap-col">
+        <div class="rekap-col-title">Rekap per Verifikator</div>
+        <table class="rekap-table">
+          <thead><tr><th>Verifikator</th><th style="text-align:right">Jumlah</th><th style="text-align:center">Tren</th></tr></thead>
+          <tbody id="rekapVerifikatorBody"></tbody>
+        </table>
+      </div>
+      <div class="rekap-col">
+        <div class="rekap-col-title">Rekap per Status</div>
+        <table class="rekap-table">
+          <thead><tr><th>Status</th><th style="text-align:right">Jumlah</th><th style="text-align:center">Tren</th></tr></thead>
+          <tbody id="rekapStatusBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card" style="margin-top:20px;">
     <div class="charts-title">Grafik per Kategori</div>
     <div class="charts-row" id="chartsRow"></div>
   </div>
@@ -417,7 +503,15 @@
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxY84SCvN3krrPBJ9jp6-mxiWWB4rqNjHmLwrhBmArACUeZpfyHlNkADJq7fNW3h2lDoA/exec";
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKNHy1T-JkECJNniuxlfRxjZOdkzhJpmKmfn0Unqs7FTcqHwtkLsTQrLBG6cNAbib3v3Xkb3GSg00S/pub?output=csv";
 const VERIFIKATORS = ["Zidan", "Herlinda", "Permana", "Sutama", "Purnami", "Sukma", "Asya", "Indri", "Budiriani", "Rosma", "Eka", "Yoga", "Ave", "Monic", "Suparta", "Halim", "Okta", "Bajra", "Dharma", "Sudiasa", "Ary"];
-const STATUSES = ["Sudah Sesuai", "Perbaiki Nilai"];
+const STATUSES = ["Sudah Sesuai", "Perbaiki Nilai", "Perbaiki Pendapatan", "Perbaiki Pengeluaran", "Perbaiki Naker", "Perbaiki Aset"];
+const STATUS_COLORS = {
+  "Sudah Sesuai": "#166534",
+  "Perbaiki Nilai": "#B23A48",
+  "Perbaiki Pendapatan": "#C1440E",
+  "Perbaiki Pengeluaran": "#8C6BAF",
+  "Perbaiki Naker": "#3E6E8E",
+  "Perbaiki Aset": "#4B86B4"
+};
 
 let actionStates = {};
 
@@ -498,7 +592,7 @@ function fmtLink(v){
 function getVState(r) {
   const assignId = r[IDX.ASSIGNMENT_ID];
   if (actionStates[assignId]) return actionStates[assignId];
-  return { v: '', s: '', saved: false };
+  return { v: '', s: [], saved: false };
 }
 
 function fmtVerifikator(val, r) {
@@ -511,12 +605,33 @@ function fmtVerifikator(val, r) {
 function fmtStatus(val, r) {
   const state = getVState(r);
   const oIdx = r.originalIndex;
+  const selected = Array.isArray(state.s) ? state.s : (state.s ? [state.s] : []);
   if (state.saved) {
-    const color = state.s === 'Sudah Sesuai' ? 'green' : 'red';
-    return `<span style="font-weight:bold;color:${color}">${escapeHtml(state.s)}</span>`;
+    if (!selected.length) return '<span style="color:var(--text-soft)">-</span>';
+    return selected.map(s => `<span class="status-badge" style="background:${STATUS_COLORS[s] || '#6b7280'}">${escapeHtml(s)}</span>`).join('');
   }
-  let opts = `<option value="">- Pilih -</option>` + STATUSES.map(s => `<option value="${s}" ${state.s===s?'selected':''}>${s}</option>`).join('');
-  return `<select id="sel_s_${oIdx}" class="sel-aksi">${opts}</select>`;
+  const opts = STATUSES.map(s => `<label class="msel-opt"><input type="checkbox" value="${escapeHtml(s)}" ${selected.includes(s)?'checked':''}> ${escapeHtml(s)}</label>`).join('');
+  const label = selected.length ? selected.join(', ') : '- Pilih -';
+  return `<div class="msel" id="msel_${oIdx}">
+    <button type="button" class="msel-btn" onclick="toggleMsel(${oIdx})" title="${escapeHtml(label)}">${escapeHtml(label)}</button>
+    <div class="msel-panel" id="mselPanel_${oIdx}">${opts}</div>
+  </div>`;
+}
+
+window.toggleMsel = function(oIdx){
+  document.querySelectorAll('.msel-panel.open').forEach(p => { if (p.id !== `mselPanel_${oIdx}`) p.classList.remove('open'); });
+  const panel = el(`mselPanel_${oIdx}`);
+  if (panel) panel.classList.toggle('open');
+}
+document.addEventListener('click', function(e){
+  if (!e.target.closest('.msel')) {
+    document.querySelectorAll('.msel-panel.open').forEach(p => p.classList.remove('open'));
+  }
+});
+function getSelectedStatuses(oIdx){
+  const panel = el(`mselPanel_${oIdx}`);
+  if (!panel) return [];
+  return Array.from(panel.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
 }
 function fmtAksi(val, r) {
   const state = getVState(r);
@@ -533,7 +648,14 @@ function fetchVerifications() {
     .then(res => res.json())
     .then(res => {
       if(res.status === 'success' && res.data) {
-        actionStates = res.data; 
+        const raw = res.data;
+        const parsed = {};
+        Object.keys(raw).forEach(id => {
+          const d = raw[id] || {};
+          const sArr = (d.s || '').toString().split(',').map(s => s.trim()).filter(Boolean);
+          parsed[id] = { v: d.v || '', s: sArr, saved: true, t: d.t || null };
+        });
+        actionStates = parsed;
         renderTable(); 
       }
     })
@@ -542,12 +664,13 @@ function fetchVerifications() {
 
 window.saveState = function(idx) {
   const selV = el(`sel_v_${idx}`).value;
-  const selS = el(`sel_s_${idx}`).value;
-  
-  if (!selV || !selS) {
-    alert("Harap pilih Verifikator dan Status terlebih dahulu!");
+  const selSArr = getSelectedStatuses(idx);
+
+  if (!selV || !selSArr.length) {
+    alert("Harap pilih Verifikator dan minimal satu Status terlebih dahulu!");
     return;
   }
+  const selS = selSArr.join(', ');
 
   const btn = el(`btn_aksi_${idx}`);
   btn.textContent = "Loading...";
@@ -568,7 +691,7 @@ window.saveState = function(idx) {
   .then(res => res.json())
   .then(data => {
     if (data.status === 'success') {
-      actionStates[assignId] = {v: selV, s: selS, saved: true};
+      actionStates[assignId] = {v: selV, s: selSArr, saved: true, t: new Date().toISOString()};
       renderTable(); 
     } else {
       alert("Error dari server: " + data.message);
@@ -616,7 +739,7 @@ function buildColDefs(){
     {idx: IDX.AH, label: 'Link', fmt: fmtLink, cls:'link', width:38},
     
     {idx: IDX_VERIFIKATOR, label: 'Verifikator', fmt: fmtVerifikator, cls:'link', width:100},
-    {idx: IDX_STATUS, label: 'Status', fmt: fmtStatus, cls:'link', width:110},
+    {idx: IDX_STATUS, label: 'Status', fmt: fmtStatus, cls:'link', width:150},
     {idx: IDX_AKSI, label: 'Aksi', fmt: fmtAksi, cls:'link', width:78}
   ];
 
@@ -931,8 +1054,67 @@ function updateSummary(rows){
   el('cardBOPMin').textContent = agg.bop.min.toLocaleString('id-ID', {maximumFractionDigits:2});
   el('cardBOPMax').textContent = agg.bop.max.toLocaleString('id-ID', {maximumFractionDigits:2});
 
+  buildRekapTables(rows);
   lastFilteredRows = rows;
   renderAllCharts();
+}
+
+/* ===== Rekap Verifikator & Status (dengan tren vs kemarin) ===== */
+
+function buildRekapTables(rows){
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const vNow = {}, vPrev = {};
+  const sNow = {}, sPrev = {};
+
+  rows.forEach(r => {
+    const assignId = r[IDX.ASSIGNMENT_ID];
+    const state = actionStates[assignId];
+    if (!state || !state.saved) return;
+    // Baris tanpa timestamp (data lama) dianggap sudah ada sejak sebelum hari ini
+    const isOld = !state.t || new Date(state.t) < todayStart;
+
+    if (state.v) {
+      vNow[state.v] = (vNow[state.v] || 0) + 1;
+      if (isOld) vPrev[state.v] = (vPrev[state.v] || 0) + 1;
+    }
+    const sList = Array.isArray(state.s) ? state.s : [];
+    sList.forEach(s => {
+      sNow[s] = (sNow[s] || 0) + 1;
+      if (isOld) sPrev[s] = (sPrev[s] || 0) + 1;
+    });
+  });
+
+  const trendHtml = (now, prev) => {
+    const diff = now - (prev || 0);
+    if (diff > 0) return `<span class="trend-up">▲ ${diff}</span>`;
+    if (diff < 0) return `<span class="trend-down">▼ ${Math.abs(diff)}</span>`;
+    return `<span class="trend-flat">–</span>`;
+  };
+
+  // Rekap Verifikator: hanya nama yang sudah punya verifikasi, urut jumlah terbanyak
+  const vNames = Object.keys(vNow).sort((a, b) => vNow[b] - vNow[a]);
+  let vTotal = 0;
+  let vRows = vNames.map(name => {
+    vTotal += vNow[name];
+    return `<tr><td>${escapeHtml(name)}</td><td style="text-align:right">${vNow[name]}</td><td style="text-align:center">${trendHtml(vNow[name], vPrev[name])}</td></tr>`;
+  }).join('');
+  if (!vRows) vRows = `<tr><td colspan="3" style="text-align:center;color:var(--text-soft)">Belum ada verifikasi</td></tr>`;
+  const vPrevTotal = Object.values(vPrev).reduce((a, b) => a + b, 0);
+  vRows += `<tr class="total-row"><td>Total</td><td style="text-align:right">${vTotal}</td><td style="text-align:center">${trendHtml(vTotal, vPrevTotal)}</td></tr>`;
+  el('rekapVerifikatorBody').innerHTML = vRows;
+
+  // Rekap Status: selalu tampilkan semua status yang tersedia (walau 0)
+  let sTotal = 0;
+  let sRows = STATUSES.map(s => {
+    const now = sNow[s] || 0;
+    sTotal += now;
+    return `<tr><td><span class="status-badge" style="background:${STATUS_COLORS[s] || '#6b7280'}">${escapeHtml(s)}</span></td><td style="text-align:right">${now}</td><td style="text-align:center">${trendHtml(now, sPrev[s])}</td></tr>`;
+  }).join('');
+  const sPrevTotal = Object.values(sPrev).reduce((a, b) => a + b, 0);
+  sRows += `<tr class="total-row"><td>Total</td><td style="text-align:right">${sTotal}</td><td style="text-align:center">${trendHtml(sTotal, sPrevTotal)}</td></tr>`;
+  el('rekapStatusBody').innerHTML = sRows;
 }
 
 /* ===== Grafik per Kategori ===== */
