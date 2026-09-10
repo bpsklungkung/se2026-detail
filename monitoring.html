@@ -115,6 +115,33 @@
   .stat-num{font-family:'Fraunces',serif;font-size:24px;font-weight:700;color:var(--orange);}
   .stat-label{font-size:11.5px;color:var(--brown-soft);text-transform:uppercase;letter-spacing:.06em;margin-top:1px;}
 
+  .summary-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;
+  }
+  @media (max-width:760px){ .summary-grid{grid-template-columns:1fr;} }
+  .summary-card{
+    background:var(--white);border:1px solid var(--line);border-radius:16px;
+    box-shadow:var(--shadow);padding:14px 16px 10px;
+    min-width:0;
+  }
+  .summary-card h3{
+    margin:0 0 10px;font-family:'Fraunces',serif;font-size:15px;color:var(--brown);
+  }
+  .summary-scroll{ max-height:352px;overflow:auto;-webkit-overflow-scrolling:touch;min-width:0; }
+  .summary-table{ width:100%;border-collapse:collapse;font-size:12.5px; }
+  .summary-table thead th{
+    position:sticky;top:0;background:var(--brown);color:var(--peach);
+    text-align:left;padding:6px 8px;font-weight:600;font-size:11.5px;z-index:1;
+  }
+  .summary-table th.num,.summary-table td.num{ text-align:center; }
+  .summary-table td{ padding:6px 8px;border-bottom:1px solid var(--line); }
+  .summary-table td.num{ font-weight:700;color:var(--orange); }
+  .summary-delta{ font-size:11.5px;font-weight:700; }
+  .summary-delta.up{ color:var(--ok); }
+  .summary-delta.down{ color:var(--orange); }
+  .summary-delta.zero{ color:var(--brown-soft);font-weight:600; }
+  .summary-note{ font-size:10.5px;color:var(--brown-soft);margin-top:6px; }
+
   .panel{
     background:var(--white);border:1px solid var(--line);border-radius:16px;
     box-shadow:var(--shadow);padding:14px 20px 12px;margin-bottom:14px;
@@ -294,7 +321,31 @@
   .badge-tidak{background:#FBE6E2;color:#B23A48;}
   .badge-ganda{background:#EDE4F7;color:#6b3fa0;}
   .badge-tutup{background:#E7E2DA;color:#5c5346;}
+  .badge-paksa{background:var(--peach);color:var(--orange);}
   .verif-meta{font-size:10.5px;color:#A8A0A4;margin-top:3px;}
+
+  .status-chip-wrap{ display:flex;flex-wrap:wrap;gap:4px; }
+  .status-chip{
+    display:inline-block;font-size:10px;font-weight:700;
+    padding:2px 7px;border-radius:20px;white-space:nowrap;
+  }
+
+  .summary-table.pivot-table{ min-width:280px; }
+  .summary-table.pivot-table thead th{ text-align:center; }
+  .summary-table.pivot-table thead th:first-child{ text-align:left; }
+  .pivot-table th,.pivot-table td{ padding:6px 12px; }
+  .pivot-table th,.pivot-table td{ text-align:center;white-space:nowrap; }
+  .pivot-table th:first-child,.pivot-table td:first-child{ text-align:left;white-space:normal; }
+  .pivot-num{ font-weight:700;color:var(--brown); }
+  .pivot-num.zero{ color:var(--line); }
+  .pivot-delta{ font-size:9.5px;font-weight:700;line-height:1.3; }
+  .pivot-delta.up{ color:var(--ok); }
+  .pivot-delta.down{ color:var(--orange); }
+  .pivot-total{ font-weight:700;color:var(--orange); }
+  .pivot-table tfoot td{
+    position:sticky;bottom:0;background:var(--peach);color:var(--brown);
+    font-weight:700;border-top:2px solid var(--brown);border-bottom:none;
+  }
 
   .btn-cek-serupa{
     background:var(--peach);border:none;border-radius:8px;padding:6px 10px;
@@ -448,6 +499,24 @@
   </header>
 
   <div class="stats" id="statsRow"></div>
+
+  <div class="summary-grid" id="summaryGrid">
+    <div class="summary-card">
+      <h3>Rekap Hasil Verifikasi</h3>
+      <div class="summary-scroll">
+        <table class="summary-table">
+          <thead><tr><th>Status</th><th class="num">Jumlah</th><th class="num">Hari Ini</th></tr></thead>
+          <tbody id="summaryVerifBody"></tbody>
+        </table>
+      </div>
+      <div class="summary-note">"Hari Ini" = perubahan dibanding kemarin, dihitung dari waktu update terakhir.</div>
+    </div>
+    <div class="summary-card">
+      <h3>Rekap per Verifikator</h3>
+      <div class="summary-scroll" id="summaryVerifikatorWrap"></div>
+      <div class="summary-note">Klik header kolom untuk urutkan. Total Injek = jumlah dengan status varian "(Injek)". Angka kecil di bawah jumlah = perubahan dibanding kemarin. Baris "Total" di bawah = jumlah semua verifikator. Menampilkan 10 baris pertama, geser untuk melihat selebihnya.</div>
+    </div>
+  </div>
 
   <div class="panel">
     <div class="panel-title">
@@ -1357,9 +1426,156 @@ function renderTable(){
   const rows = fullyFiltered();
   lastFilteredRows = rows;
   renderStats(rows);
+  renderSummaryTables(rows);
   renderMap(rows);
   lastSortedRows = computeSortedRows(rows);
   renderTableBody();
+}
+
+// ── Rekap ringkas: hasil verifikasi & verifikator ──────────────────────────
+// "Hari Ini" dihitung dari field "Waktu Update" pada statusCache (diisi server
+// saat verifikasi disimpan). Karena tidak ada snapshot histori tersendiri,
+// angka ini mendekati "perubahan dibanding kemarin" dengan asumsi status yang
+// sudah terverifikasi umumnya tidak berbalik lagi ke status lain di hari yang
+// sama — jadi hitungannya adalah baris yang baru ditambahkan/diubah hari ini.
+function isUpdatedToday(dateStr){
+  if(!dateStr) return false;
+  const d = new Date(dateStr);
+  if(isNaN(d.getTime())) return false;
+  const now = new Date();
+  return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
+}
+
+function formatDelta(n){
+  if(n > 0) return `<span class="summary-delta up">+${n.toLocaleString('id')}</span>`;
+  if(n < 0) return `<span class="summary-delta down">${n.toLocaleString('id')}</span>`;
+  return `<span class="summary-delta zero">0</span>`;
+}
+
+function renderSummaryVerifikasi(rows){
+  const order = [{ value:'__belum', label:'Belum Diverifikasi' }, ...STATUS_OPTIONS];
+  const counts = {};
+  order.forEach(o=> counts[o.value] = { total:0, today:0 });
+
+  rows.forEach(r=>{
+    const rec = statusCache[r.rowId];
+    const cur = rec ? rec.Status : '';
+    const key = counts[cur] ? cur : '__belum';
+    counts[key].total++;
+    if(cur && rec && isUpdatedToday(rec['Waktu Update'])) counts[key].today++;
+  });
+
+  // Baris "Belum Diverifikasi" turun sebesar jumlah yang baru terverifikasi hari ini.
+  const verifiedToday = order
+    .filter(o=>o.value !== '__belum')
+    .reduce((sum,o)=> sum + counts[o.value].today, 0);
+  counts['__belum'].delta = -verifiedToday;
+
+  const tbody = document.getElementById('summaryVerifBody');
+  tbody.innerHTML = order.map(o=>{
+    const c = counts[o.value];
+    const delta = o.value === '__belum' ? c.delta : c.today;
+    return `<tr><td>${escapeHtml(o.label)}</td><td class="num">${c.total.toLocaleString('id')}</td><td class="num">${formatDelta(delta)}</td></tr>`;
+  }).join('');
+}
+
+// Status "(Injek)" adalah kelompok status tersendiri (ganda_injek,
+// tidak_ditemukan_injek, tutup_injek); direkap sebagai satu kolom "Total Injek"
+// di samping Total keseluruhan supaya tabel tidak terlalu lebar.
+function isInjekStatus(value){ return /_injek$/.test(norm(value)); }
+
+function pivotCellHtml(total, todayDelta){
+  const numCls = total > 0 ? 'pivot-num' : 'pivot-num zero';
+  const numTxt = total > 0 ? total.toLocaleString('id') : '–';
+  let deltaHtml = '';
+  if(todayDelta > 0) deltaHtml = `<div class="pivot-delta up">+${todayDelta.toLocaleString('id')}</div>`;
+  else if(todayDelta < 0) deltaHtml = `<div class="pivot-delta down">${todayDelta.toLocaleString('id')}</div>`;
+  return `<div class="${numCls}">${numTxt}</div>${deltaHtml}`;
+}
+
+let verifikatorSort = { key:'total', dir:-1 }; // key: name|total|injek, dir: 1 asc / -1 desc
+
+function verifikatorSortArrow(key){
+  if(verifikatorSort.key !== key) return '↕';
+  return verifikatorSort.dir === 1 ? '↑' : '↓';
+}
+
+function sortVerifikatorBy(key){
+  if(verifikatorSort.key === key){
+    verifikatorSort.dir *= -1;
+  }else{
+    verifikatorSort.key = key;
+    verifikatorSort.dir = (key === 'name') ? 1 : -1;
+  }
+  renderSummaryVerifikator(lastFilteredRows);
+}
+
+function renderSummaryVerifikator(rows){
+  const byVerifikator = {};
+  rows.forEach(r=>{
+    const rec = statusCache[r.rowId];
+    if(!rec || !rec.Status) return;
+    const name = norm(rec.Supervisor) || 'Tanpa Nama';
+    if(!byVerifikator[name]) byVerifikator[name] = { total:0, totalToday:0, injek:0, injekToday:0 };
+    const v = byVerifikator[name];
+    const today = isUpdatedToday(rec['Waktu Update']);
+    v.total++;
+    if(today) v.totalToday++;
+    if(isInjekStatus(rec.Status)){
+      v.injek++;
+      if(today) v.injekToday++;
+    }
+  });
+
+  const wrap = document.getElementById('summaryVerifikatorWrap');
+  const list = Object.keys(byVerifikator).map(name=>({ name, ...byVerifikator[name] }));
+
+  if(list.length === 0){
+    wrap.innerHTML = `<div style="text-align:center;color:var(--brown-soft);padding:16px 8px;">Belum ada verifikasi.</div>`;
+    return;
+  }
+
+  list.sort((a,b)=>{
+    let cmp;
+    if(verifikatorSort.key === 'name') cmp = a.name.localeCompare(b.name,'id');
+    else if(verifikatorSort.key === 'injek') cmp = a.injek - b.injek;
+    else cmp = a.total - b.total;
+    if(cmp === 0) cmp = a.name.localeCompare(b.name,'id');
+    return cmp * verifikatorSort.dir;
+  });
+
+  const sum = list.reduce((acc,v)=>{
+    acc.total += v.total; acc.totalToday += v.totalToday;
+    acc.injek += v.injek; acc.injekToday += v.injekToday;
+    return acc;
+  }, { total:0, totalToday:0, injek:0, injekToday:0 });
+
+  const th = key => `<th class="sortable${verifikatorSort.key===key?' sort-active':''}" onclick="sortVerifikatorBy('${key}')">${key==='name'?'Verifikator':(key==='total'?'Total':'Total Injek')}<span class="sort-arrow">${verifikatorSortArrow(key)}</span></th>`;
+
+  const bodyRows = list.map(v=>{
+    return `<tr>
+      <td>${escapeHtml(v.name)}</td>
+      <td>${pivotCellHtml(v.total, v.totalToday)}</td>
+      <td>${pivotCellHtml(v.injek, v.injekToday)}</td>
+    </tr>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <table class="summary-table pivot-table">
+      <thead><tr>${th('name')}${th('total')}${th('injek')}</tr></thead>
+      <tbody>${bodyRows}</tbody>
+      <tfoot><tr>
+        <td>Total</td>
+        <td>${pivotCellHtml(sum.total, sum.totalToday)}</td>
+        <td>${pivotCellHtml(sum.injek, sum.injekToday)}</td>
+      </tr></tfoot>
+    </table>
+  `;
+}
+
+function renderSummaryTables(rows){
+  renderSummaryVerifikasi(rows);
+  renderSummaryVerifikator(rows);
 }
 
 function renderTableBody(){
@@ -1448,7 +1664,10 @@ function wireEvents(){
   els.refreshBtn.addEventListener('click', loadData);
 }
 
+let isLoadingData = false;
 function loadData(){
+  if(isLoadingData) return;
+  isLoadingData = true;
   els.lastUpdated.textContent = "Memuat data…";
   els.tbody.innerHTML = `<tr><td colspan="9"><div class="loading-state"><div class="spinner"></div>Memuat data usaha…</div></td></tr>`;
 
@@ -1495,6 +1714,8 @@ function loadData(){
     }
   }).catch(err=>{
     showError(err.message || 'Gagal mengambil data CSV.');
+  }).finally(()=>{
+    isLoadingData = false;
   });
 }
 
