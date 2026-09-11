@@ -53,7 +53,7 @@
 
   /* ===== Hero ===== */
   .hero{
-    background: #4A1620;
+    background: var(--brown);
     border-bottom:none;
     max-width:1280px; margin:0 auto;
     padding:30px 24px 40px;
@@ -134,6 +134,23 @@
   @media (max-width: 860px){
     .tabbar-sticky-wrap{ flex-wrap:wrap; }
     .tabbar-stats{ order:2; width:100%; }
+  }
+
+  .palette-picker{
+    position:relative; flex-shrink:0;
+    display:flex; align-items:center; gap:6px;
+    background:var(--white); border:1px solid #E5E7EB; border-radius:12px;
+    box-shadow:var(--shadow); padding:0 10px 0 12px; height:38px;
+  }
+  .palette-picker .pp-icon{ font-size:13px; pointer-events:none; }
+  .palette-picker select{
+    font-family:'Inter',sans-serif; font-size:12px; font-weight:600; color:var(--brown);
+    background:transparent; border:none; outline:none; cursor:pointer;
+    padding:8px 4px; -webkit-appearance:none; appearance:none;
+  }
+  @media (max-width: 860px){
+    .palette-picker{ padding:0 8px; }
+    .palette-picker select{ font-size:11.5px; }
   }
 
   /* ===== Layout ===== */
@@ -1027,7 +1044,7 @@
   .surface-cell{
     padding:6px 8px;
     text-align:center;
-    color:#2E0D14;
+    color:var(--brown-deep);
     font-weight:600;
     min-width:52px;
     border:1px solid #fff;
@@ -1117,6 +1134,22 @@
   <div class="tabbar-sticky-wrap">
     <div class="tabbar" id="tabs"></div>
     <div class="tabbar-stats">
+      <div class="palette-picker" id="palettePickerWrap" title="Pilih palet warna dashboard">
+        <span class="pp-icon">🎨</span>
+        <select id="paletteSelect">
+          <option value="maroon">Maroon</option>
+          <option value="cherry">Cherry</option>
+          <option value="biru">Biru Laut</option>
+          <option value="hijau">Hijau Hutan</option>
+          <option value="ungu">Ungu Senja</option>
+          <option value="jingga">Jingga Senja</option>
+          <option value="teal">Teal Tropis</option>
+          <option value="abu">Abu Batu</option>
+          <option value="kuning">Kuning Mustard</option>
+          <option value="oranye">Oranye</option>
+          <option value="abuabu">Abu-Abu Netral</option>
+        </select>
+      </div>
       <div class="global-search" id="globalSearchBox">
         <span class="gs-icon">🔍</span>
         <input type="text" id="globalSearchInput" placeholder="Cari indikator...">
@@ -1221,6 +1254,120 @@ if(typeof Chart !== 'undefined'){
 }
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS0IHQMxQuwLfTdSgKoXUqA8guCT788uBZ4cwlE72X6co3LMRcGU6tk1PSMbi7nVeEB2g-kTVXYBPyv/pub?output=csv";
 
+/* ===== Palet Warna Dashboard ===== */
+const THEME_PRESETS = {
+  maroon:{
+    label:'Maroon', main:'#4A1620', mid:'#7A2636', deep:'#2E0D14', soft:'#A67885', accent:'#B23A48', light:'#F4E3E6',
+    compareColors:['#4A1620','#B23A48','#7A2636','#9C3B4C','#6B2737','#C4636F','#2E0D14','#8C4A56'],
+    kategoriPalette:['#4A1620','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#B23A48','#008080','#4C5C7D','#B23A48']
+  },
+  cherry:{
+    label:'Cherry', main:'#7A1B30', mid:'#A32C46', deep:'#4A0F1E', soft:'#C98A9B', accent:'#D94060', light:'#F7E3E8',
+    compareColors:['#7A1B30','#D94060','#A32C46','#C94E68','#8A2438','#E8829A','#4A0F1E','#B03A54'],
+    kategoriPalette:['#7A1B30','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#D94060','#008080','#4C5C7D','#D94060']
+  },
+  biru:{
+    label:'Biru Laut', main:'#123A5C', mid:'#1F5C86', deep:'#081E30', soft:'#7C9CB4', accent:'#1E88C7', light:'#E3EFF6',
+    compareColors:['#123A5C','#1E88C7','#1F5C86','#2C6E9E','#0E2E48','#5FAAD6','#081E30','#3E77A0'],
+    kategoriPalette:['#123A5C','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#1E88C7','#008080','#4C5C7D','#1E88C7']
+  },
+  hijau:{
+    label:'Hijau Hutan', main:'#1F4A2E', mid:'#2F6B41', deep:'#0E2617', soft:'#8CA894', accent:'#3C8A52', light:'#E5F0E7',
+    compareColors:['#1F4A2E','#3C8A52','#2F6B41','#4C9A5E','#173A22','#6FB37F','#0E2617','#357A47'],
+    kategoriPalette:['#1F4A2E','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#3C8A52','#008080','#4C5C7D','#3C8A52']
+  },
+  ungu:{
+    label:'Ungu Senja', main:'#3B1F4A', mid:'#5C2F6B', deep:'#1F0E26', soft:'#A88CA8', accent:'#7A3C8A', light:'#F0E5F0',
+    compareColors:['#3B1F4A','#7A3C8A','#5C2F6B','#8C4C9A','#2A1738','#B36FB3','#1F0E26','#6B357A'],
+    kategoriPalette:['#3B1F4A','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#7A3C8A','#008080','#4C5C7D','#7A3C8A']
+  },
+  jingga:{
+    label:'Jingga Senja', main:'#7A3B12', mid:'#A85A1E', deep:'#3D1D08', soft:'#C79A73', accent:'#D97B29', light:'#F5E6D3',
+    compareColors:['#7A3B12','#D97B29','#A85A1E','#C97A3F','#8A4A1C','#E0A868','#3D1D08','#B8672A'],
+    kategoriPalette:['#7A3B12','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#D97B29','#008080','#4C5C7D','#D97B29']
+  },
+  teal:{
+    label:'Teal Tropis', main:'#0F4C4C', mid:'#1F6E6E', deep:'#082626', soft:'#7FADAD', accent:'#1F9E9E', light:'#DFF2F2',
+    compareColors:['#0F4C4C','#1F9E9E','#1F6E6E','#2FB8B8','#134040','#6FCFCF','#082626','#237A7A'],
+    kategoriPalette:['#0F4C4C','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#1F9E9E','#008080','#4C5C7D','#1F9E9E']
+  },
+  abu:{
+    label:'Abu Batu', main:'#333B44', mid:'#4E5964', deep:'#181D21', soft:'#98A2AC', accent:'#5C7089', light:'#EDEFF2',
+    compareColors:['#333B44','#5C7089','#4E5964','#71879F','#3D4750','#A9BAC9','#181D21','#4F6172'],
+    kategoriPalette:['#333B44','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#5C7089','#008080','#4C5C7D','#5C7089']
+  },
+  kuning:{
+    label:'Kuning Mustard', main:'#6B5210', mid:'#95721A', deep:'#332708', soft:'#C4AB74', accent:'#E0A62B', light:'#F7EFD6',
+    compareColors:['#6B5210','#E0A62B','#95721A','#E8BE55','#7A5D15','#EDD98A','#332708','#A8862A'],
+    kategoriPalette:['#6B5210','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#E0A62B','#008080','#4C5C7D','#E0A62B']
+  },
+  oranye:{
+    label:'Oranye', main:'#8A3A0A', mid:'#B85419', deep:'#451D05', soft:'#D9A87D', accent:'#E8681F', light:'#FBE8D9',
+    compareColors:['#8A3A0A','#E8681F','#B85419','#EF8A4A','#9C4A14','#F5AC7C','#451D05','#C46527'],
+    kategoriPalette:['#8A3A0A','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#E8681F','#008080','#4C5C7D','#E8681F']
+  },
+  abuabu:{
+    label:'Abu-Abu Netral', main:'#3F3F3F', mid:'#5C5C5C', deep:'#1E1E1E', soft:'#A3A3A3', accent:'#707070', light:'#EFEFEF',
+    compareColors:['#3F3F3F','#707070','#5C5C5C','#8C8C8C','#4A4A4A','#B0B0B0','#1E1E1E','#666666'],
+    kategoriPalette:['#3F3F3F','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#707070','#008080','#4C5C7D','#707070']
+  }
+};
+let GROUP_COLOR_MAP = {};
+let currentPaletteName = 'maroon';
+let THEME = {};
+let COMPARE_COLORS = [];
+let KATEGORI_PALETTE = [];
+
+function applyPalette(name, opts){
+  opts = opts || {};
+  const preset = THEME_PRESETS[name];
+  if(!preset) return;
+  currentPaletteName = name;
+  THEME = { main:preset.main, mid:preset.mid, deep:preset.deep, soft:preset.soft, accent:preset.accent, light:preset.light,
+    c3:preset.compareColors[3], c4:preset.compareColors[4], c5:preset.compareColors[5], c7:preset.compareColors[7] };
+  COMPARE_COLORS = preset.compareColors.slice();
+  KATEGORI_PALETTE = preset.kategoriPalette.slice();
+  if(typeof GROUP_COLOR_MAP !== 'undefined') GROUP_COLOR_MAP = {};
+
+  const root = document.documentElement.style;
+  root.setProperty('--brown', THEME.main);
+  root.setProperty('--orange-deep', THEME.main);
+  root.setProperty('--brown-mid', THEME.mid);
+  root.setProperty('--brown-deep', THEME.deep);
+  root.setProperty('--brown-soft', THEME.soft);
+  root.setProperty('--rust', THEME.accent);
+  root.setProperty('--orange', THEME.accent);
+  root.setProperty('--rust-bg', THEME.light);
+  root.setProperty('--peach', THEME.light);
+  root.setProperty('--peach-soft', THEME.light);
+
+  try{ localStorage.setItem('klk_indeks_palette', name); }catch(e){}
+  const sel = document.getElementById('paletteSelect');
+  if(sel && sel.value !== name) sel.value = name;
+
+  if(!opts.skipRerender) rerenderCurrentView();
+}
+
+function rerenderCurrentView(){
+  if(typeof document==='undefined' || !document.getElementById('tabs')) return;
+  if(typeof STORE==='undefined' || !STORE.__order) return; // data belum selesai dimuat, palet akan otomatis terpakai saat render pertama
+  renderTabs();
+  if(typeof compareMode!=='undefined' && compareMode){ renderCompareView(); return; }
+  if(typeof infMode!=='undefined' && infMode){ renderInferensiaView(); return; }
+  if(typeof ssMode!=='undefined' && ssMode){ renderShiftShareView(); return; }
+  if(typeof lqMode!=='undefined' && lqMode){ renderLQView(); return; }
+  if(typeof convMode!=='undefined' && convMode){ renderKonvergensiView(); return; }
+  if(typeof divMode!=='undefined' && divMode){ renderDiversityView(); return; }
+  if(typeof advMode!=='undefined' && advMode){ renderAdvancedView(); return; }
+  if(typeof activePeriode!=='undefined' && activePeriode) renderContent(activePeriode);
+}
+
+(function initPaletteFromStorage(){
+  let saved = 'maroon';
+  try{ const s = localStorage.getItem('klk_indeks_palette'); if(s && THEME_PRESETS[s]) saved = s; }catch(e){}
+  applyPalette(saved, {skipRerender:true});
+})();
+
 let STORE = {};        
 let DEFINISI = {};     
 let SATUAN = {};       
@@ -1248,7 +1395,6 @@ let compareIsQuarterly = false; // apakah periode aktif punya data triwulan
 let normalizeCompare = false;
 let compareChart = null;
 let compareChartType = 'line';
-const COMPARE_COLORS = ['#4A1620','#B23A48','#7A2636','#9C3B4C','#6B2737','#C4636F','#2E0D14','#8C4A56'];
 
 /* ===== Analisis Inferensia (Regresi Linear & Korelasi) ===== */
 let infMode = false;
@@ -1402,8 +1548,6 @@ let convBaliChart2 = null;    // Growth Differential
 let convBaliChart3 = null;    // Absolute Log Gap
 let convMrChart = null;
 
-const KATEGORI_PALETTE = ['#4A1620','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#B23A48','#008080','#4C5C7D','#B23A48'];
-let GROUP_COLOR_MAP = {};
 function getGroupColor(kategori, kelompok){
   const key = kategori + '|||' + kelompok;
   if(!GROUP_COLOR_MAP[key]){
@@ -1454,7 +1598,7 @@ function getGroupChartType(kategori, kelompok, sub){
   return types[idx % types.length];
 }
 
-let currentDetailColor = '#B23A48';
+let currentDetailColor = THEME.accent;
 let currentDetailChartType = 'filled-area';
 
 function toNumber(v){
@@ -1864,7 +2008,7 @@ function makeSparkline(entries, color, type){
       const yBot = h - pad - ((Math.min(v,prev) - min) / range) * (h - pad * 2);
       const barH = Math.max(2, yBot - yTop);
       const x = pad + i * step - barW / 2;
-      const barColor = i === 0 ? color : (isUp ? '#3e5a2a' : '#B23A48');
+      const barColor = i === 0 ? color : (isUp ? '#3e5a2a' : THEME.accent);
       return `<rect x="${x.toFixed(1)}" y="${yTop.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" fill="${barColor}" rx="1"></rect>`;
     }).join('');
   } else if (type === 'funnel') {
@@ -1920,8 +2064,8 @@ function makeSparkline(entries, color, type){
       const isUp = v >= avg;
       const yTop = isUp ? y : zeroY;
       const barH = Math.max(1.5, Math.abs(zeroY - y));
-      return `<rect x="${x.toFixed(1)}" y="${yTop.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" fill="${isUp ? '#3e5a2a' : '#B23A48'}" rx="1"></rect>`;
-    }).join('') + `<line x1="${pad}" y1="${zeroY.toFixed(1)}" x2="${w-pad}" y2="${zeroY.toFixed(1)}" stroke="#7A2636" stroke-width="0.7" stroke-dasharray="2,2"></line>`;
+      return `<rect x="${x.toFixed(1)}" y="${yTop.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" fill="${isUp ? '#3e5a2a' : THEME.accent}" rx="1"></rect>`;
+    }).join('') + `<line x1="${pad}" y1="${zeroY.toFixed(1)}" x2="${w-pad}" y2="${zeroY.toFixed(1)}" stroke="${THEME.mid}" stroke-width="0.7" stroke-dasharray="2,2"></line>`;
   } else if (type === 'combo') {
     const barW = Math.max(3, (w - pad * 2) / vals.length * 0.55);
     const bars = vals.map((v, i) => {
@@ -1959,7 +2103,7 @@ function makeSparkline(entries, color, type){
       const y = h - pad - pct * (h - pad*2);
       return `${xPos.toFixed(1)},${y.toFixed(1)}`;
     }).join(' ');
-    svgContent = bars + `<polyline points="${cumPts}" fill="none" stroke="#4A1620" stroke-width="1.4"></polyline>`;
+    svgContent = bars + `<polyline points="${cumPts}" fill="none" stroke="${THEME.main}" stroke-width="1.4"></polyline>`;
   } else if (type === 'stream') {
     const midY = h / 2;
     const scaleY = range > 0 ? (h - pad*2) / 2 / (range/2) : 1;
@@ -2357,8 +2501,8 @@ function renderCompositionCardHtml(periode,kategori,kelompok,subObj,group,katCol
       shortName = shortName.slice(label.length).trim().replace(/^[-–:\/]\s*/,'');
     }
     if(!shortName) shortName = x.sub;
-    const pct = x.entry ? (x.entry.data/total*100) : 0;
-    return `<div class="comp-legend-item" title="${escapeHtml(x.sub)}: ${fmtNum(x.entry?x.entry.data:NaN)}"><span class="dot" style="background:${color}"></span>${escapeHtml(shortName)} <b>${pct.toFixed(1).replace('.',',')}%</b></div>`;
+    const valTeks = fmtNum(x.entry?x.entry.data:NaN) + (SATUAN[x.sub] ? ` ${SATUAN[x.sub]}` : '');
+    return `<div class="comp-legend-item" title="${escapeHtml(x.sub)}: ${fmtNum(x.entry?x.entry.data:NaN)}"><span class="dot" style="background:${color}"></span>${escapeHtml(shortName)} <b>${valTeks}</b></div>`;
   }).join('');
 
   const subtitle = kind==='konstan' ? `${segs.length} sektor · Klik untuk nilai &amp; pertumbuhan per tahun`
@@ -2962,7 +3106,7 @@ function refreshHargaBerlaku(subObj, segs, label, periodKey, periods){
           borderWidth:1, borderColor:'#fff'
         }]},
         options:{ responsive:true, maintainAspectRatio:false,
-          plugins:{ legend:{ position:'right', labels:{font:{family:'Inter',size:10.5},color:'#4A1620', boxWidth:12} },
+          plugins:{ legend:{ position:'right', labels:{font:{family:'Inter',size:10.5},color:THEME.main, boxWidth:12} },
             tooltip:{ callbacks:{ label:(it)=> `${it.label}: ${fmtNum(it.parsed)} (${(it.parsed/total*100).toFixed(1)}%)` } } }
         }
       });
@@ -2978,7 +3122,7 @@ function refreshHargaBerlaku(subObj, segs, label, periodKey, periods){
           plugins:{ legend:{ display:false }, tooltip:{ callbacks:{
             label:(it)=> `${it.parsed.x.toFixed(2)}% (${fmtNum(rows[it.dataIndex].value)} ${rows[it.dataIndex].satuan})`
           } } },
-          scales:{ x:{ ticks:{ callback:(v)=>v+'%', color:'#7A2636', font:{family:'Inter',size:10} }, grid:{color:'#F4E3E6'} }, y:{ ticks:{color:'#7A2636',font:{family:'Inter',size:9.5}}, grid:{display:false} } }
+          scales:{ x:{ ticks:{ callback:(v)=>v+'%', color:THEME.mid, font:{family:'Inter',size:10} }, grid:{color:THEME.light} }, y:{ ticks:{color:THEME.mid,font:{family:'Inter',size:9.5}}, grid:{display:false} } }
         }
       });
     }
@@ -3141,22 +3285,22 @@ function refreshKonstanSektoral(subObj, segs, label, periodKey, periods){
   if(hkChartInstance) hkChartInstance.destroy();
   hkChartInstance = new Chart(document.getElementById('hkChartCanvas'), {
     data:{ labels: rows.map(r=>r.short), datasets:[
-      { type:'line', label:'Nilai', data: rows.map(r=>r.value), borderColor:'#6B2737', backgroundColor:'rgba(62,110,142,0.28)', fill:true, tension:0.35, pointRadius:0, yAxisID:'y' },
-      { type:'line', label:'Pertumbuhan (%)', data: rows.map(r=>r.growth), borderColor:'#B23A48', backgroundColor:'rgba(31,111,107,0.28)', fill:true, tension:0.35, pointRadius:0, yAxisID:'y1', spanGaps:false }
+      { type:'line', label:'Nilai', data: rows.map(r=>r.value), borderColor:THEME.c4, backgroundColor:hexToRgba(THEME.c4,0.28), fill:true, tension:0.35, pointRadius:0, yAxisID:'y' },
+      { type:'line', label:'Pertumbuhan (%)', data: rows.map(r=>r.growth), borderColor:THEME.accent, backgroundColor:'rgba(31,111,107,0.28)', fill:true, tension:0.35, pointRadius:0, yAxisID:'y1', spanGaps:false }
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'} },
+      plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main} },
         tooltip:{ callbacks:{ label:(it)=> it.dataset.label==='Pertumbuhan (%)' ? `Pertumbuhan: ${it.parsed.y===null?'n/a':it.parsed.y.toFixed(2)+'%'}` : `Nilai: ${fmtNum(it.parsed.y)}` } } },
       scales:{
-        x:{ ticks:{ font:{family:'Inter',size:9.5}, color:'#7A2636', maxRotation:60, minRotation:40 }, grid:{display:false} },
-        y:{ position:'left', ticks:{color:'#7A2636'}, grid:{color:'#F4E3E6'}, title:{display:true,text:'Nilai'} },
-        y1:{ position:'right', ticks:{color:'#7A2636', callback:(v)=>v+'%'}, grid:{display:false}, title:{display:true,text:'Pertumbuhan (%)'} }
+        x:{ ticks:{ font:{family:'Inter',size:9.5}, color:THEME.mid, maxRotation:60, minRotation:40 }, grid:{display:false} },
+        y:{ position:'left', ticks:{color:THEME.mid}, grid:{color:THEME.light}, title:{display:true,text:'Nilai'} },
+        y1:{ position:'right', ticks:{color:THEME.mid, callback:(v)=>v+'%'}, grid:{display:false}, title:{display:true,text:'Pertumbuhan (%)'} }
       }
     }
   });
 
   const head = `<tr><th>Sektor</th><th>Nilai</th><th>${growthColLabel}</th></tr>`;
-  const bodyRows = rows.map(r=>`<tr><td>${escapeHtml(r.short)}</td><td>${fmtNum(r.value)} ${escapeHtml(r.satuan)}</td><td>${r.isNoGrowth ? '<span style="color:#7A2636;">— nilai konstan</span>' : (r.growth===null?'-':`<span class="badge ${r.growth>=0?'up':'down'}">${r.growth>=0?'▲ +':'▼ '}${r.growth.toFixed(2).replace('.',',')}%</span>`)}</td></tr>`).join('');
+  const bodyRows = rows.map(r=>`<tr><td>${escapeHtml(r.short)}</td><td>${fmtNum(r.value)} ${escapeHtml(r.satuan)}</td><td>${r.isNoGrowth ? `<span style="color:${THEME.mid};">— nilai konstan</span>` : (r.growth===null?'-':`<span class="badge ${r.growth>=0?'up':'down'}">${r.growth>=0?'▲ +':'▼ '}${r.growth.toFixed(2).replace('.',',')}%</span>`)}</td></tr>`).join('');
   document.getElementById('hkTable').innerHTML = `<thead>${head}</thead><tbody>${bodyRows}</tbody>`;
 
   document.getElementById('dlHkChart').onclick = ()=> triggerJPGDownload(hkChartInstance, `${label}_${fileTag}`);
@@ -3376,9 +3520,9 @@ function buildDumbbellSVG(segs, bySegSK, sortedSK, skMap){
     const minP = pts.reduce((a,b)=> a.v<b.v?a:b);
     const maxP = pts.reduce((a,b)=> a.v>b.v?a:b);
 
-    svg += `<text x="8" y="${(y+4).toFixed(1)}" font-size="10.5" font-family="Inter,sans-serif" fill="#7A2636">${escapeHtml(skMap.get(sk)||'')}</text>`;
+    svg += `<text x="8" y="${(y+4).toFixed(1)}" font-size="10.5" font-family="Inter,sans-serif" fill="${THEME.mid}">${escapeHtml(skMap.get(sk)||'')}</text>`;
     if(pts.length > 1){
-      svg += `<line x1="${xOf(minP.v).toFixed(1)}" y1="${y.toFixed(1)}" x2="${xOf(maxP.v).toFixed(1)}" y2="${y.toFixed(1)}" stroke="#A67885" stroke-width="2.5"></line>`;
+      svg += `<line x1="${xOf(minP.v).toFixed(1)}" y1="${y.toFixed(1)}" x2="${xOf(maxP.v).toFixed(1)}" y2="${y.toFixed(1)}" stroke="${THEME.soft}" stroke-width="2.5"></line>`;
     }
     pts.forEach(p=>{
       svg += `<circle cx="${xOf(p.v).toFixed(1)}" cy="${y.toFixed(1)}" r="6" fill="${p.color}" stroke="#fff" stroke-width="1.5"><title>${escapeHtml(p.name)}: ${fmtNum(p.v)}</title></circle>`;
@@ -3432,7 +3576,7 @@ function buildStreamSVG(segs, bySegSK, sortedSK, skMap){
   const labelStep = Math.max(1, Math.ceil(n/8));
   sortedSK.forEach((sk,ti)=>{
     if(ti % labelStep === 0 || ti === n-1){
-      svg += `<text x="${xAt(ti).toFixed(1)}" y="${(H-6).toFixed(1)}" font-size="9" text-anchor="middle" fill="#7A2636">${escapeHtml(skMap.get(sk)||'')}</text>`;
+      svg += `<text x="${xAt(ti).toFixed(1)}" y="${(H-6).toFixed(1)}" font-size="9" text-anchor="middle" fill="${THEME.mid}">${escapeHtml(skMap.get(sk)||'')}</text>`;
     }
   });
   svg += `</svg>`;
@@ -3463,7 +3607,7 @@ function buildMarimekkoSVG(segs, bySegSK, sortedSK, skMap){
       yCursor += shareH;
     });
     if(colW > 20){
-      svg += `<text x="${(xCursor+colW/2).toFixed(1)}" y="${(H-12).toFixed(1)}" font-size="9" text-anchor="middle" fill="#7A2636">${escapeHtml(skMap.get(sk)||'')}</text>`;
+      svg += `<text x="${(xCursor+colW/2).toFixed(1)}" y="${(H-12).toFixed(1)}" font-size="9" text-anchor="middle" fill="${THEME.mid}">${escapeHtml(skMap.get(sk)||'')}</text>`;
     }
     xCursor += colW;
   });
@@ -3566,7 +3710,7 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
               tooltip:{ callbacks:{ label:(c)=>`${c.label}: ${fmtNum(c.parsed.r ?? c.parsed)}` } }
             },
             scales:{
-              r:{ grid:{color:'#F4E3E6'}, angleLines:{color:'#F4E3E6'}, ticks:{ color:'#7A2636', backdropColor:'transparent', font:{family:'Inter', size:9.5} } }
+              r:{ grid:{color:THEME.light}, angleLines:{color:THEME.light}, ticks:{ color:THEME.mid, backdropColor:'transparent', font:{family:'Inter', size:9.5} } }
             }
           }
         });
@@ -3581,16 +3725,16 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
             labels: items.map(it=>it.name),
             datasets:[
               { type:'bar', data: items.map(it=>it.value), backgroundColor: items.map((_,i)=>COMPARE_COLORS[i % COMPARE_COLORS.length]), borderWidth:0, borderRadius:4, maxBarThickness:44, yAxisID:'y', order:2 },
-              { type:'line', data: cumPct, borderColor:'#4A1620', backgroundColor:'#4A1620', borderWidth:2.2, pointRadius:0, pointHoverRadius:4, tension:0.35, fill:false, yAxisID:'y1', order:1 }
+              { type:'line', data: cumPct, borderColor:THEME.main, backgroundColor:THEME.main, borderWidth:2.2, pointRadius:0, pointHoverRadius:4, tension:0.35, fill:false, yAxisID:'y1', order:1 }
             ]
           },
           options:{
             responsive:true, maintainAspectRatio:false,
             plugins:{ legend:{ display:false } },
             scales:{
-              x:{ grid:{display:false}, ticks:{ color:'#7A2636', font:{family:'Inter', size:10.5} } },
-              y:{ type:'linear', position:'left', grid:{color:'#F4E3E6'}, ticks:{ color:'#7A2636', font:{family:'Inter', size:11} } },
-              y1:{ type:'linear', position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{ color:'#7A2636', font:{family:'Inter', size:11}, callback:(v)=>v+'%' } }
+              x:{ grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } },
+              y:{ type:'linear', position:'left', grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
+              y1:{ type:'linear', position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11}, callback:(v)=>v+'%' } }
             }
           }
         });
@@ -3629,7 +3773,7 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
               },
               {
                 data:[totalSum],
-                backgroundColor:[currentCompKey ? getGroupColor(currentCompKey.kategori, currentCompKey.kelompok) : '#B23A48'],
+                backgroundColor:[currentCompKey ? getGroupColor(currentCompKey.kategori, currentCompKey.kelompok) : THEME.accent],
                 borderColor:'#fff', borderWidth:2, weight:0.55
               }
             ]
@@ -3666,8 +3810,8 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
               tooltip:{ mode:'index', intersect:false, callbacks:{ label:(c)=>`${c.dataset.label}: ${fmtNum(c.parsed.y)}` } }
             },
             scales:{
-              x:{ stacked:true, grid:{display:false}, ticks:{ color:'#7A2636', font:{family:'Inter', size:11} } },
-              y:{ stacked:true, grid:{color:'#F4E3E6'}, ticks:{ color:'#7A2636', font:{family:'Inter', size:11} } }
+              x:{ stacked:true, grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
+              y:{ stacked:true, grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } }
             }
           }
         });
@@ -3687,8 +3831,8 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
               }
             },
             scales:{
-              x:{ stacked:true, grid:{display:false}, ticks:{ color:'#7A2636', font:{family:'Inter', size:11} } },
-              y:{ stacked:true, grid:{color:'#F4E3E6'}, ticks:{ color:'#7A2636', font:{family:'Inter', size:11} } }
+              x:{ stacked:true, grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
+              y:{ stacked:true, grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } }
             }
           }
         });
@@ -4350,12 +4494,12 @@ function renderInfResult(){
   const methodLabel = xKeys.length===1 ? 'Regresi Linear Sederhana' : 'Regresi Linear Berganda';
 
   const bpLabel = res.bpP < 0.05 ? 'Terindikasi heteroskedastisitas' : 'Tidak terindikasi (homoskedastis)';
-  const bpColor = res.bpP < 0.05 ? '#B23A48' : '#3e5a2a';
+  const bpColor = res.bpP < 0.05 ? THEME.accent : '#3e5a2a';
   const dwLabel = res.dw==null ? 'N/A'
     : res.dw < 1.5 ? 'Indikasi autokorelasi positif'
     : res.dw > 2.5 ? 'Indikasi autokorelasi negatif'
     : 'Tidak ada indikasi autokorelasi';
-  const dwColor = (res.dw!=null && (res.dw<1.5 || res.dw>2.5)) ? '#B23A48' : '#3e5a2a';
+  const dwColor = (res.dw!=null && (res.dw<1.5 || res.dw>2.5)) ? THEME.accent : '#3e5a2a';
   const maxVif = res.vif.filter(v=>v!==null).length ? Math.max(...res.vif.filter(v=>v!==null && isFinite(v))) : null;
   const vifNote = res.k<2 ? 'VIF hanya relevan untuk regresi berganda (≥2 variabel X).'
     : (maxVif!=null && maxVif>=10) ? '⚠️ Ada VIF ≥ 10 — multikolinearitas cukup serius, pertimbangkan mengurangi/mengganti variabel X.'
@@ -4413,14 +4557,14 @@ function renderInfScatterChart(res, xKey, xTransform, yLabel, xLabel){
   const linePts = [{x:xMin, y: res.beta[0]+res.beta[1]*xMin}, {x:xMax, y: res.beta[0]+res.beta[1]*xMax}];
   infChart = new Chart(ctx, {
     data:{ datasets:[
-      { type:'scatter', label: yLabel, data: points, backgroundColor:'#B23A48', pointRadius:5, pointHoverRadius:7 },
-      { type:'line', label: 'Garis Regresi', data: linePts, borderColor:'#4A1620', borderWidth:2, pointRadius:0, fill:false }
+      { type:'scatter', label: yLabel, data: points, backgroundColor:THEME.accent, pointRadius:5, pointHoverRadius:7 },
+      { type:'line', label: 'Garis Regresi', data: linePts, borderColor:THEME.main, borderWidth:2, pointRadius:0, fill:false }
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:true, labels:{color:'#7A2636', font:{family:'Inter',size:11}}}},
+      plugins:{legend:{display:true, labels:{color:THEME.mid, font:{family:'Inter',size:11}}}},
       scales:{
-        x:{type:'linear', title:{display:true,text:xLabel,color:'#7A2636'}, ticks:{color:'#7A2636',font:{size:10}}, grid:{color:'#F4E3E6'}},
-        y:{title:{display:true,text:yLabel,color:'#7A2636'}, ticks:{color:'#7A2636',font:{size:10}}, grid:{color:'#F4E3E6'}}
+        x:{type:'linear', title:{display:true,text:xLabel,color:THEME.mid}, ticks:{color:THEME.mid,font:{size:10}}, grid:{color:THEME.light}},
+        y:{title:{display:true,text:yLabel,color:THEME.mid}, ticks:{color:THEME.mid,font:{size:10}}, grid:{color:THEME.light}}
       }
     }
   });
@@ -4633,14 +4777,14 @@ function renderArimaChart(periodLabels, forecastLabels, orig, forecastVals, labe
   arimaChart = new Chart(ctx, {
     type:'line',
     data:{ labels: allLabels, datasets:[
-      { label: labelText, data: histData, borderColor:'#4A1620', backgroundColor:'rgba(74,22,32,0.08)', fill:true, pointRadius:2, tension:0.3 },
-      { label:'Ramalan', data: foreData, borderColor:'#B23A48', borderDash:[6,4], pointRadius:2, fill:false, tension:0.3 }
+      { label: labelText, data: histData, borderColor:THEME.main, backgroundColor:'rgba(74,22,32,0.08)', fill:true, pointRadius:2, tension:0.3 },
+      { label:'Ramalan', data: foreData, borderColor:THEME.accent, borderDash:[6,4], pointRadius:2, fill:false, tension:0.3 }
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:true, labels:{color:'#7A2636', font:{family:'Inter',size:11}}}},
+      plugins:{legend:{display:true, labels:{color:THEME.mid, font:{family:'Inter',size:11}}}},
       scales:{
-        x:{ticks:{color:'#7A2636',font:{size:10}}, grid:{color:'#F4E3E6'}},
-        y:{ticks:{color:'#7A2636',font:{size:10}}, grid:{color:'#F4E3E6'}}
+        x:{ticks:{color:THEME.mid,font:{size:10}}, grid:{color:THEME.light}},
+        y:{ticks:{color:THEME.mid,font:{size:10}}, grid:{color:THEME.light}}
       }
     }
   });
@@ -4763,7 +4907,7 @@ function renderArimaxResult(){
     : base.dw < 1.5 ? 'Indikasi autokorelasi positif pada residual'
     : base.dw > 2.5 ? 'Indikasi autokorelasi negatif pada residual'
     : 'Tidak ada indikasi autokorelasi';
-  const dwColor = (base.dw!=null && (base.dw<1.5 || base.dw>2.5)) ? '#B23A48' : '#3e5a2a';
+  const dwColor = (base.dw!=null && (base.dw<1.5 || base.dw>2.5)) ? THEME.accent : '#3e5a2a';
 
   let residBlock = '';
   if(armaFit){
@@ -5092,9 +5236,9 @@ function renderCompareWaterfallChart(keys, seriesAnalysisData){
   wfData.push([0, running]);
   const colors = seriesAnalysisData.map(d=>{
     const delta = d.last - d.first;
-    return delta >= 0 ? hexToRgba('#3e5a2a',0.82) : hexToRgba('#B23A48',0.82);
+    return delta >= 0 ? hexToRgba('#3e5a2a',0.82) : hexToRgba(THEME.accent,0.82);
   });
-  colors.push(hexToRgba('#C4636F',0.85));
+  colors.push(hexToRgba(THEME.c5,0.85));
 
   compareChart = new Chart(ctx, {
     type:'bar',
@@ -5109,8 +5253,8 @@ function renderCompareWaterfallChart(keys, seriesAnalysisData){
         }}}
       },
       scales:{
-        x:{ grid:{display:false}, ticks:{ color:'#7A2636', font:{family:'Inter', size:10.5} } },
-        y:{ grid:{color:'#F4E3E6'}, ticks:{ color:'#7A2636', font:{family:'Inter', size:11} } }
+        x:{ grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } },
+        y:{ grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } }
       }
     }
   });
@@ -5136,8 +5280,8 @@ function renderCompareFunnelChart(keys, seriesAnalysisData){
         tooltip:{ callbacks:{ label:(c)=>`${fmtNum(c.parsed.x)}` } }
       },
       scales:{
-        x:{ grid:{color:'#F4E3E6'}, ticks:{ color:'#7A2636', font:{family:'Inter', size:11} } },
-        y:{ grid:{display:false}, ticks:{ color:'#7A2636', font:{family:'Inter', size:11} } }
+        x:{ grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
+        y:{ grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } }
       }
     }
   });
@@ -5184,14 +5328,14 @@ function renderCompareRadarChart(keys){
     options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{
-        legend:{ position:'bottom', labels:{ color:'#4A1620', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } }
+        legend:{ position:'bottom', labels:{ color:THEME.main, font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } }
       },
       scales:{
         r:{
-          grid:{ color:'#F4E3E6' },
-          angleLines:{ color:'#F4E3E6' },
-          pointLabels:{ color:'#7A2636', font:{family:'Inter', size:10.5} },
-          ticks:{ color:'#7A2636', backdropColor:'transparent', font:{family:'Inter', size:9.5} }
+          grid:{ color:THEME.light },
+          angleLines:{ color:THEME.light },
+          pointLabels:{ color:THEME.mid, font:{family:'Inter', size:10.5} },
+          ticks:{ color:THEME.mid, backdropColor:'transparent', font:{family:'Inter', size:9.5} }
         }
       }
     }
@@ -5211,14 +5355,14 @@ function renderComparePolarArea(keys, seriesAnalysisData){
     options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{
-        legend:{ position:'bottom', labels:{ color:'#4A1620', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } },
+        legend:{ position:'bottom', labels:{ color:THEME.main, font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } },
         tooltip:{ callbacks:{ label:(c)=>`${c.label}: ${fmtNum(c.parsed.r ?? c.parsed)}` } }
       },
       scales:{
         r:{
-          grid:{ color:'#F4E3E6' },
-          angleLines:{ color:'#F4E3E6' },
-          ticks:{ color:'#7A2636', backdropColor:'transparent', font:{family:'Inter', size:9.5} }
+          grid:{ color:THEME.light },
+          angleLines:{ color:THEME.light },
+          ticks:{ color:THEME.mid, backdropColor:'transparent', font:{family:'Inter', size:9.5} }
         }
       }
     }
@@ -5230,7 +5374,7 @@ function renderCompareDivergingBar(keys, seriesAnalysisData){
   const ctx = document.getElementById('compareChart').getContext('2d');
   const dbLabels = seriesAnalysisData.map(d=>d.name);
   const dbData = seriesAnalysisData.map(d=>d.pct);
-  const colors = seriesAnalysisData.map(d=> d.pct >= 0 ? hexToRgba('#3e5a2a',0.8) : hexToRgba('#B23A48',0.8));
+  const colors = seriesAnalysisData.map(d=> d.pct >= 0 ? hexToRgba('#3e5a2a',0.8) : hexToRgba(THEME.accent,0.8));
 
   compareChart = new Chart(ctx, {
     type:'bar',
@@ -5243,8 +5387,8 @@ function renderCompareDivergingBar(keys, seriesAnalysisData){
         tooltip:{ callbacks:{ label:(c)=>`${c.parsed.x>0?'+':''}${c.parsed.x.toFixed(1)}% (kumulatif)` } }
       },
       scales:{
-        x:{ grid:{color:'#F4E3E6'}, ticks:{ color:'#7A2636', font:{family:'Inter', size:11}, callback:(v)=>v+'%' } },
-        y:{ grid:{display:false}, ticks:{ color:'#7A2636', font:{family:'Inter', size:11} } }
+        x:{ grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11}, callback:(v)=>v+'%' } },
+        y:{ grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } }
       }
     }
   });
@@ -5266,16 +5410,16 @@ function renderComparePareto(keys, seriesAnalysisData){
       labels: pLabels,
       datasets:[
         { type:'bar', data: pData, backgroundColor: colors, borderWidth:0, borderRadius:4, maxBarThickness:44, yAxisID:'y', order:2 },
-        { type:'line', data: cumPct, borderColor:'#4A1620', backgroundColor:'#4A1620', borderWidth:2.2, pointRadius:0, pointHoverRadius:4, tension:0.35, fill:false, yAxisID:'y1', order:1 }
+        { type:'line', data: cumPct, borderColor:THEME.main, backgroundColor:THEME.main, borderWidth:2.2, pointRadius:0, pointHoverRadius:4, tension:0.35, fill:false, yAxisID:'y1', order:1 }
       ]
     },
     options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ display:false } },
       scales:{
-        x:{ grid:{display:false}, ticks:{ color:'#7A2636', font:{family:'Inter', size:10.5} } },
-        y:{ type:'linear', position:'left', grid:{color:'#F4E3E6'}, ticks:{ color:'#7A2636', font:{family:'Inter', size:11} } },
-        y1:{ type:'linear', position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{ color:'#7A2636', font:{family:'Inter', size:11}, callback:(v)=>v+'%' } }
+        x:{ grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } },
+        y:{ type:'linear', position:'left', grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
+        y1:{ type:'linear', position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11}, callback:(v)=>v+'%' } }
       }
     }
   });
@@ -5333,17 +5477,17 @@ function renderCompareBump(keys){
     options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{
-        legend:{ position:'bottom', labels:{ color:'#4A1620', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } },
+        legend:{ position:'bottom', labels:{ color:THEME.main, font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } },
         tooltip:{ callbacks:{ label:(c)=>`${c.dataset.label}: Peringkat ${c.parsed.y}` } }
       },
       scales:{
-        x:{ grid:{display:false}, ticks:{ color:'#7A2636', font:{family:'Inter', size:11} } },
+        x:{ grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
         y:{
           reverse:true,
           min:1,
           max: keys.length,
-          ticks:{ stepSize:1, color:'#7A2636', font:{family:'Inter', size:11} },
-          grid:{color:'#F4E3E6'}
+          ticks:{ stepSize:1, color:THEME.mid, font:{family:'Inter', size:11} },
+          grid:{color:THEME.light}
         }
       }
     }
@@ -5382,7 +5526,7 @@ function buildCompareSurfaceGrid(keys){
     html += `<tr><td class="surface-row-label" title="${escapeHtml(subLabel(info.sub))}">${escapeHtml(subLabel(info.sub))}</td>`;
     vals.forEach(v=>{
       if(v === null){
-        html += `<td class="surface-cell" style="background:#F4E3E6;"></td>`;
+        html += `<td class="surface-cell" style="background:${THEME.light};"></td>`;
       }else{
         const norm = (v-minV)/rangeV;
         const op = (0.15 + norm*0.75).toFixed(2);
@@ -5455,7 +5599,7 @@ function buildCompareStreamSVG(keys){
   const labelStep = Math.max(1, Math.ceil(n/8));
   sortedKeys.forEach((sk,ti)=>{
     if(ti % labelStep === 0 || ti === n-1){
-      svg += `<text x="${xAt(ti).toFixed(1)}" y="${(H-6).toFixed(1)}" font-size="9" text-anchor="middle" fill="#7A2636">${escapeHtml(uniqueLabelsMap.get(sk)||'')}</text>`;
+      svg += `<text x="${xAt(ti).toFixed(1)}" y="${(H-6).toFixed(1)}" font-size="9" text-anchor="middle" fill="${THEME.mid}">${escapeHtml(uniqueLabelsMap.get(sk)||'')}</text>`;
     }
   });
   svg += `</svg>`;
@@ -5509,7 +5653,7 @@ function buildCompareMarimekkoSVG(keys){
       yCursor += shareH;
     });
     if(colW > 20){
-      svg += `<text x="${(xCursor+colW/2).toFixed(1)}" y="${(H-12).toFixed(1)}" font-size="9" text-anchor="middle" fill="#7A2636">${escapeHtml(uniqueLabelsMap.get(sk)||'')}</text>`;
+      svg += `<text x="${(xCursor+colW/2).toFixed(1)}" y="${(H-12).toFixed(1)}" font-size="9" text-anchor="middle" fill="${THEME.mid}">${escapeHtml(uniqueLabelsMap.get(sk)||'')}</text>`;
     }
     xCursor += colW;
   });
@@ -5575,12 +5719,12 @@ function renderCompareCategoricalScatter(keys, seriesAnalysisData){
     options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{
-        legend:{ position:'bottom', labels:{ color:'#4A1620', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } },
+        legend:{ position:'bottom', labels:{ color:THEME.main, font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true } },
         tooltip:{ callbacks:{ label:(c)=> `${c.raw.y} · ${c.raw.x}: ${fmtNum(c.raw._raw)}` } }
       },
       scales:{
-        x:{ type:'category', labels: periodLabels, offset:true, grid:{color:'#F4E3E6'}, ticks:{ color:'#7A2636', font:{family:'Inter', size:11} } },
-        y:{ type:'category', labels: keyLabels, offset:true, grid:{color:'#F4E3E6'}, ticks:{ color:'#7A2636', font:{family:'Inter', size:10.5} } }
+        x:{ type:'category', labels: periodLabels, offset:true, grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
+        y:{ type:'category', labels: keyLabels, offset:true, grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } }
       }
     }
   });
@@ -5637,8 +5781,8 @@ function renderCompareDotPlot(keys, seriesAnalysisData){
         tooltip:{ callbacks:{ label:(c)=> `${c.raw.y} · ${c.raw._period}: ${fmtNum(c.raw.x)}` } }
       },
       scales:{
-        x:{ grid:{color:'#F4E3E6'}, ticks:{ color:'#7A2636', font:{family:'Inter', size:11} } },
-        y:{ type:'category', labels: keyLabels, offset:true, grid:{ display:true, color:'#F4E3E6' }, ticks:{ color:'#7A2636', font:{family:'Inter', size:10.5} } }
+        x:{ grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
+        y:{ type:'category', labels: keyLabels, offset:true, grid:{ display:true, color:THEME.light }, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } }
       }
     }
   });
@@ -5678,7 +5822,7 @@ function renderCompareRangePlot(keys, seriesAnalysisData){
       datasets:[{
         label:'Rentang nilai',
         data: rows.map(r=> [Math.min(r.first,r.last), Math.max(r.first,r.last)]),
-        backgroundColor: rows.map(r=> hexToRgba(r.naik ? '#3e5a2a' : '#B23A48', 0.75)),
+        backgroundColor: rows.map(r=> hexToRgba(r.naik ? '#3e5a2a' : THEME.accent, 0.75)),
         borderRadius: 4,
         borderSkipped: false,
         barThickness: 18
@@ -5700,8 +5844,8 @@ function renderCompareRangePlot(keys, seriesAnalysisData){
         }
       },
       scales:{
-        x:{ grid:{color:'#F4E3E6'}, ticks:{ color:'#7A2636', font:{family:'Inter', size:11} } },
-        y:{ grid:{display:false}, ticks:{ color:'#4A1620', font:{family:'Inter', size:11} } }
+        x:{ grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
+        y:{ grid:{display:false}, ticks:{ color:THEME.main, font:{family:'Inter', size:11} } }
       }
     }
   });
@@ -5753,7 +5897,7 @@ function buildCompareRadialBarSVG(keys){
   let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" id="cmpRadialBarSvg" style="width:100%;max-width:460px;height:auto;display:block;margin:0 auto;">`;
 
   [0.25,0.5,0.75,1].forEach(f=>{
-    svg += `<circle cx="${cx}" cy="${cy}" r="${(rInner + f*(rOuter-rInner)).toFixed(1)}" fill="none" stroke="#F4E3E6" stroke-width="1"></circle>`;
+    svg += `<circle cx="${cx}" cy="${cy}" r="${(rInner + f*(rOuter-rInner)).toFixed(1)}" fill="none" stroke="${THEME.light}" stroke-width="1"></circle>`;
   });
 
   sortedKeys.forEach((sk, ti)=>{
@@ -5770,7 +5914,7 @@ function buildCompareRadialBarSVG(keys){
     });
     const labelA = a0 + anglePer/2;
     const [lx,ly] = polar(rOuter+16, labelA);
-    svg += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="9.5" text-anchor="middle" dominant-baseline="middle" fill="#7A2636">${escapeHtml(uniqueLabelsMap.get(sk)||'')}</text>`;
+    svg += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="9.5" text-anchor="middle" dominant-baseline="middle" fill="${THEME.mid}">${escapeHtml(uniqueLabelsMap.get(sk)||'')}</text>`;
   });
 
   svg += `</svg>`;
@@ -5825,17 +5969,17 @@ function buildCompareBulletSVG(keys){
     const xAt = v => padLeft + (v-gMin)*scale;
 
     const bandY = y0 + 8, bandH = 22;
-    svg += `<rect x="${xAt(gMin).toFixed(1)}" y="${bandY}" width="${Math.max(0,xAt(r.avgV)-xAt(gMin)).toFixed(1)}" height="${bandH}" fill="#F4E3E6"></rect>`;
-    svg += `<rect x="${xAt(r.avgV).toFixed(1)}" y="${bandY}" width="${Math.max(0,xAt(gMax)-xAt(r.avgV)).toFixed(1)}" height="${bandH}" fill="#F4E3E6"></rect>`;
+    svg += `<rect x="${xAt(gMin).toFixed(1)}" y="${bandY}" width="${Math.max(0,xAt(r.avgV)-xAt(gMin)).toFixed(1)}" height="${bandH}" fill="${THEME.light}"></rect>`;
+    svg += `<rect x="${xAt(r.avgV).toFixed(1)}" y="${bandY}" width="${Math.max(0,xAt(gMax)-xAt(r.avgV)).toFixed(1)}" height="${bandH}" fill="${THEME.light}"></rect>`;
 
     const barY = bandY + bandH/2 - 5;
     svg += `<rect x="${xAt(gMin).toFixed(1)}" y="${barY}" width="${Math.max(0,xAt(r.latest)-xAt(gMin)).toFixed(1)}" height="10" fill="${r.color}"><title>${escapeHtml(r.label)}: ${fmtNum(r.latest)}</title></rect>`;
 
     const tx = xAt(r.target).toFixed(1);
-    svg += `<line x1="${tx}" y1="${bandY-4}" x2="${tx}" y2="${bandY+bandH+4}" stroke="#4A1620" stroke-width="2.5"><title>Periode sebelumnya: ${fmtNum(r.target)}</title></line>`;
+    svg += `<line x1="${tx}" y1="${bandY-4}" x2="${tx}" y2="${bandY+bandH+4}" stroke="${THEME.main}" stroke-width="2.5"><title>Periode sebelumnya: ${fmtNum(r.target)}</title></line>`;
 
     const shortLabel = r.label.length > 24 ? r.label.slice(0,22)+'…' : r.label;
-    svg += `<text x="${padLeft-10}" y="${(bandY+bandH/2+4).toFixed(1)}" font-size="10.5" text-anchor="end" fill="#4A1620">${escapeHtml(shortLabel)}</text>`;
+    svg += `<text x="${padLeft-10}" y="${(bandY+bandH/2+4).toFixed(1)}" font-size="10.5" text-anchor="end" fill="${THEME.main}">${escapeHtml(shortLabel)}</text>`;
   });
 
   svg += `</svg>`;
@@ -6196,7 +6340,7 @@ function renderCompareChart(){
         legend:{
           position:'bottom',
           labels:{
-            color:'#4A1620', font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true,
+            color:THEME.main, font:{family:'Inter', size:11.5}, boxWidth:10, usePointStyle:true,
             filter: (legendItem)=> compareChartType !== 'lollipop' || legendItem.datasetIndex % 2 === 1
           }
         },
@@ -6209,16 +6353,16 @@ function renderCompareChart(){
         }
       },
       scales:{
-        x:{ stacked: isStackedType, grid:{display:false}, ticks:{ color:'#7A2636', font:{family:'Inter', size:11} } },
+        x:{ stacked: isStackedType, grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
         y:{
           type: 'linear',
           display: true,
           position: 'left',
           stacked: isStackedType,
           max: compareChartType==='stacked-bar-100' ? 100 : undefined,
-          grid:{color:'#F4E3E6'},
+          grid:{color:THEME.light},
           ticks:{
-            color:'#7A2636', font:{family:'Inter', size:11},
+            color:THEME.mid, font:{family:'Inter', size:11},
             callback: compareChartType==='stacked-bar-100' ? (v)=> v+'%' : undefined
           }
         },
@@ -6227,7 +6371,7 @@ function renderCompareChart(){
           display: hasY1,
           position: 'right',
           grid:{ drawOnChartArea: false },
-          ticks:{ color:'#7A2636', font:{family:'Inter', size:11} }
+          ticks:{ color:THEME.mid, font:{family:'Inter', size:11} }
         }
       }
     }
@@ -6545,7 +6689,7 @@ function refreshDetail(entries, fromYear, toYear){
   const ctx = canvasEl.getContext('2d');
   if(chartInstance) chartInstance.destroy();
 
-  const accent = currentDetailColor || '#B23A48';
+  const accent = currentDetailColor || THEME.accent;
   const isBar = currentDetailChartType === 'bar' || currentDetailChartType === 'rounded-bar';
   const isLollipop = currentDetailChartType === 'lollipop';
   const isSpline = currentDetailChartType === 'spline';
@@ -6586,7 +6730,7 @@ function refreshDetail(entries, fromYear, toYear){
     const avg = values.reduce((s,v)=>s+v,0)/values.length;
     datasets = [{
       data: values.map(v=>v-avg),
-      backgroundColor: values.map(v=> v>=avg ? hexToRgba('#3e5a2a',0.8) : hexToRgba('#B23A48',0.8)),
+      backgroundColor: values.map(v=> v>=avg ? hexToRgba('#3e5a2a',0.8) : hexToRgba(THEME.accent,0.8)),
       borderWidth: 0,
       borderRadius: 3,
       maxBarThickness: 34,
@@ -6597,7 +6741,7 @@ function refreshDetail(entries, fromYear, toYear){
     const movingAvg = values.map((v,i)=>{ running += v; return running/(i+1); });
     datasets = [
       { type:'bar', data: values, backgroundColor: hexToRgba(accent,0.45), borderWidth:0, borderRadius:3, maxBarThickness:32, order:2 },
-      { type:'line', data: movingAvg, borderColor:'#4A1620', backgroundColor:'#4A1620', borderWidth:2, pointRadius:0, pointHoverRadius:4, tension:0.35, fill:false, order:1 }
+      { type:'line', data: movingAvg, borderColor:THEME.main, backgroundColor:THEME.main, borderWidth:2, pointRadius:0, pointHoverRadius:4, tension:0.35, fill:false, order:1 }
     ];
   } else if (isPareto) {
     const idxSorted = values.map((v,i)=>i).sort((a,b)=>values[b]-values[a]);
@@ -6608,7 +6752,7 @@ function refreshDetail(entries, fromYear, toYear){
     const cumPct = sortedVals.map(v=>{ cum += v; return (cum/total*100); });
     datasets = [
       { type:'bar', data: sortedVals, backgroundColor: hexToRgba(accent,0.6), borderWidth:0, borderRadius:3, maxBarThickness:34, yAxisID:'y', order:2 },
-      { type:'line', data: cumPct, borderColor:'#4A1620', backgroundColor:'#4A1620', borderWidth:2, pointRadius:0, pointHoverRadius:4, tension:0.35, fill:false, yAxisID:'y1', order:1 }
+      { type:'line', data: cumPct, borderColor:THEME.main, backgroundColor:THEME.main, borderWidth:2, pointRadius:0, pointHoverRadius:4, tension:0.35, fill:false, yAxisID:'y1', order:1 }
     ];
   } else if (isLollipop) {
     datasets = [
@@ -6709,7 +6853,7 @@ function refreshDetail(entries, fromYear, toYear){
     });
     const wfColors = values.map((v,i)=>{
       if(i===0) return hexToRgba(accent, 0.8);
-      return v >= values[i-1] ? hexToRgba('#3e5a2a', 0.82) : hexToRgba('#B23A48', 0.82);
+      return v >= values[i-1] ? hexToRgba('#3e5a2a', 0.82) : hexToRgba(THEME.accent, 0.82);
     });
     datasets = [{
       data: wfData,
@@ -6777,10 +6921,10 @@ function refreshDetail(entries, fromYear, toYear){
       plugins:{ legend:{display:false} },
       scales:{
         r:{
-          grid:{ color:'#F4E3E6' },
-          angleLines:{ color:'#F4E3E6' },
-          pointLabels:{ color:'#7A2636', font:{family:'Inter', size:10.5} },
-          ticks:{ color:'#7A2636', backdropColor:'transparent', font:{family:'Inter', size:9.5} }
+          grid:{ color:THEME.light },
+          angleLines:{ color:THEME.light },
+          pointLabels:{ color:THEME.mid, font:{family:'Inter', size:10.5} },
+          ticks:{ color:THEME.mid, backdropColor:'transparent', font:{family:'Inter', size:9.5} }
         }
       }
     } : isPolarArea ? {
@@ -6789,10 +6933,10 @@ function refreshDetail(entries, fromYear, toYear){
       plugins:{ legend:{display:false} },
       scales:{
         r:{
-          grid:{ color:'#F4E3E6' },
-          angleLines:{ color:'#F4E3E6' },
-          pointLabels:{ color:'#7A2636', font:{family:'Inter', size:10.5} },
-          ticks:{ color:'#7A2636', backdropColor:'transparent', font:{family:'Inter', size:9.5} }
+          grid:{ color:THEME.light },
+          angleLines:{ color:THEME.light },
+          pointLabels:{ color:THEME.mid, font:{family:'Inter', size:10.5} },
+          ticks:{ color:THEME.mid, backdropColor:'transparent', font:{family:'Inter', size:9.5} }
         }
       }
     } : isPareto ? {
@@ -6800,9 +6944,9 @@ function refreshDetail(entries, fromYear, toYear){
       maintainAspectRatio:false,
       plugins:{ legend:{display:false} },
       scales:{
-        x:{ grid:{display:false}, ticks:{ color:'#7A2636', font:{family:'Inter', size:10.5} } },
-        y:{ type:'linear', position:'left', grid:{color:'#F4E3E6'}, ticks:{ color:'#7A2636', font:{family:'Inter', size:11} } },
-        y1:{ type:'linear', position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{ color:'#7A2636', font:{family:'Inter', size:11}, callback:(v)=>v+'%' } }
+        x:{ grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } },
+        y:{ type:'linear', position:'left', grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
+        y1:{ type:'linear', position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11}, callback:(v)=>v+'%' } }
       }
     } : {
       responsive:true,
@@ -6811,10 +6955,10 @@ function refreshDetail(entries, fromYear, toYear){
       plugins:{ legend:{display:false} },
       scales:{
         x:{ 
-          grid:{display: isFunnel ? true : false, color:'#F4E3E6'}, 
-          ticks:{ color:'#7A2636', font:{family:'Inter', size:11} } 
+          grid:{display: isFunnel ? true : false, color:THEME.light}, 
+          ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } 
         },
-        y:{ grid:{color: isFunnel ? '#fff' : '#F4E3E6', display: (!isFunnel || true) && !isStream}, ticks:{ color:'#7A2636', font:{family:'Inter', size:11}, display: !isStream } }
+        y:{ grid:{color: isFunnel ? '#fff' : THEME.light, display: (!isFunnel || true) && !isStream}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11}, display: !isStream } }
       }
     }
   });
@@ -6935,15 +7079,15 @@ function buildSSDataset(){
 const SS_QUAD_LABELS = {
   tradisional: {
     1:{ title:'Kuadran I · Progresif', desc:'Bauran industri & keunggulan kompetitif sama-sama positif — sektor tumbuh cepat secara nasional dan makin unggul di wilayah.', color:'#3e5a2a' },
-    2:{ title:'Kuadran II · Kompetitif Lokal', desc:'Secara nasional bauran industrinya lambat, namun wilayah tetap unggul kompetitif pada sektor ini.', color:'#6B2737' },
-    3:{ title:'Kuadran III · Lamban', desc:'Bauran industri & keunggulan kompetitif sama-sama negatif — sektor tertinggal di kedua sisi.', color:'#B23A48' },
-    4:{ title:'Kuadran IV · Rentan', desc:'Secara nasional sektor tumbuh cepat, tetapi wilayah kalah bersaing (kurang kompetitif) di sektor ini.', color:'#9C3B4C' }
+    2:{ title:'Kuadran II · Kompetitif Lokal', desc:'Secara nasional bauran industrinya lambat, namun wilayah tetap unggul kompetitif pada sektor ini.', color:THEME.c4 },
+    3:{ title:'Kuadran III · Lamban', desc:'Bauran industri & keunggulan kompetitif sama-sama negatif — sektor tertinggal di kedua sisi.', color:THEME.accent },
+    4:{ title:'Kuadran IV · Rentan', desc:'Secara nasional sektor tumbuh cepat, tetapi wilayah kalah bersaing (kurang kompetitif) di sektor ini.', color:THEME.c3 }
   },
   spesialisasi: {
     1:{ title:'Kuadran I · Unggulan', desc:'Wilayah terspesialisasi pada sektor ini dan sekaligus unggul kompetitif — kombinasi ideal.', color:'#3e5a2a' },
-    2:{ title:'Kuadran II · Potensial', desc:'Belum terspesialisasi namun kompetitif — peluang untuk memperbesar porsi sektor ini.', color:'#6B2737' },
-    3:{ title:'Kuadran III · Bukan Unggulan', desc:'Tidak terspesialisasi dan tidak kompetitif di sektor ini.', color:'#B23A48' },
-    4:{ title:'Kuadran IV · Salah Spesialisasi', desc:'Wilayah terspesialisasi pada sektor ini tetapi kalah kompetitif — alokasi sumber daya kurang tepat (efek alokasi negatif).', color:'#9C3B4C' }
+    2:{ title:'Kuadran II · Potensial', desc:'Belum terspesialisasi namun kompetitif — peluang untuk memperbesar porsi sektor ini.', color:THEME.c4 },
+    3:{ title:'Kuadran III · Bukan Unggulan', desc:'Tidak terspesialisasi dan tidak kompetitif di sektor ini.', color:THEME.accent },
+    4:{ title:'Kuadran IV · Salah Spesialisasi', desc:'Wilayah terspesialisasi pada sektor ini tetapi kalah kompetitif — alokasi sumber daya kurang tepat (efek alokasi negatif).', color:THEME.c3 }
   }
 };
 
@@ -7326,27 +7470,27 @@ function renderSSComponentChart(perKategori, isTraditional){
   let datasets;
   if(ssMethod==='tradisional'){
     datasets = [
-      { label:'NS', data:perKategori.map(r=>r.NS), backgroundColor:'#9C3B4C' },
-      { label:'IM', data:perKategori.map(r=>r.IM), backgroundColor:'#6B2737' },
-      { label:'RS', data:perKategori.map(r=>r.RS), backgroundColor:'#B23A48' }
+      { label:'NS', data:perKategori.map(r=>r.NS), backgroundColor:THEME.c3 },
+      { label:'IM', data:perKategori.map(r=>r.IM), backgroundColor:THEME.c4 },
+      { label:'RS', data:perKategori.map(r=>r.RS), backgroundColor:THEME.accent }
     ];
   } else if(ssMethod==='em'){
     datasets = [
-      { label:'NS', data:perKategori.map(r=>r.NS), backgroundColor:'#9C3B4C' },
-      { label:'IM', data:perKategori.map(r=>r.IM), backgroundColor:'#6B2737' },
-      { label:'RS EM', data:perKategori.map(r=>r.RS_EM), backgroundColor:'#B23A48' },
-      { label:'Allocation', data:perKategori.map(r=>r.Alokasi), backgroundColor:'#C4636F' }
+      { label:'NS', data:perKategori.map(r=>r.NS), backgroundColor:THEME.c3 },
+      { label:'IM', data:perKategori.map(r=>r.IM), backgroundColor:THEME.c4 },
+      { label:'RS EM', data:perKategori.map(r=>r.RS_EM), backgroundColor:THEME.accent },
+      { label:'Allocation', data:perKategori.map(r=>r.Alokasi), backgroundColor:THEME.c5 }
     ];
   } else {
     datasets = [
-      { label:'NSE', data:perKategori.map(r=>r.NSE), backgroundColor:'#9C3B4C' },
-      { label:'NSD', data:perKategori.map(r=>r.NSD), backgroundColor:'#8C4A56' },
-      { label:'IME', data:perKategori.map(r=>r.IME), backgroundColor:'#6B2737' },
-      { label:'IMD', data:perKategori.map(r=>r.IMD), backgroundColor:'#6B2737' },
-      { label:'RGE', data:perKategori.map(r=>r.RGE), backgroundColor:'#B23A48' },
+      { label:'NSE', data:perKategori.map(r=>r.NSE), backgroundColor:THEME.c3 },
+      { label:'NSD', data:perKategori.map(r=>r.NSD), backgroundColor:THEME.c7 },
+      { label:'IME', data:perKategori.map(r=>r.IME), backgroundColor:THEME.c4 },
+      { label:'IMD', data:perKategori.map(r=>r.IMD), backgroundColor:THEME.c4 },
+      { label:'RGE', data:perKategori.map(r=>r.RGE), backgroundColor:THEME.accent },
       { label:'RGD', data:perKategori.map(r=>r.RGD), backgroundColor:'#D89AA3' },
-      { label:'RIE', data:perKategori.map(r=>r.RIE), backgroundColor:'#C4636F' },
-      { label:'RID', data:perKategori.map(r=>r.RID), backgroundColor:'#C4636F' }
+      { label:'RIE', data:perKategori.map(r=>r.RIE), backgroundColor:THEME.c5 },
+      { label:'RID', data:perKategori.map(r=>r.RID), backgroundColor:THEME.c5 }
     ];
   }
   ssChart = new Chart(ctx, {
@@ -7355,10 +7499,10 @@ function renderSSComponentChart(perKategori, isTraditional){
     options:{
       indexAxis:'y',
       responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:11}, color:'#4A1620' } } },
+      plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:11}, color:THEME.main } } },
       scales:{
-        x:{ stacked:true, grid:{color:'#F4E3E6'}, ticks:{ color:'#7A2636', font:{family:'Inter', size:10.5} } },
-        y:{ stacked:true, grid:{display:false}, ticks:{ color:'#7A2636', font:{family:'Inter', size:10.5} } }
+        x:{ stacked:true, grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } },
+        y:{ stacked:true, grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } }
       }
     }
   });
@@ -7370,7 +7514,7 @@ const ssCrosshairPlugin = {
     const {ctx, chartArea:{left,right,top,bottom}, scales:{x,y}} = chart;
     const x0 = x.getPixelForValue(0), y0 = y.getPixelForValue(0);
     ctx.save();
-    ctx.strokeStyle = '#A67885';
+    ctx.strokeStyle = THEME.soft;
     ctx.setLineDash([4,4]);
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(x0, top); ctx.lineTo(x0, bottom); ctx.stroke();
@@ -7413,8 +7557,8 @@ function renderSSQuadrantChart(perKategori, quadGroup, isTraditional){
         }
       },
       scales:{
-        x:{ min:-padX, max:padX, grid:{color:'#F4E3E6'}, title:{display:true, text:isTraditional?'Bauran Industri (IM)':'Spesialisasi (Σ eᵢ−h)', color:'#7A2636', font:{family:'Inter', size:11}}, ticks:{ color:'#7A2636', font:{family:'Inter', size:10} } },
-        y:{ min:-padY, max:padY, grid:{color:'#F4E3E6'}, title:{display:true, text:isTraditional?'Pergeseran Diferensial (RS)':'Keunggulan Kompetitif', color:'#7A2636', font:{family:'Inter', size:11}}, ticks:{ color:'#7A2636', font:{family:'Inter', size:10} } }
+        x:{ min:-padX, max:padX, grid:{color:THEME.light}, title:{display:true, text:isTraditional?'Bauran Industri (IM)':'Spesialisasi (Σ eᵢ−h)', color:THEME.mid, font:{family:'Inter', size:11}}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10} } },
+        y:{ min:-padY, max:padY, grid:{color:THEME.light}, title:{display:true, text:isTraditional?'Pergeseran Diferensial (RS)':'Keunggulan Kompetitif', color:THEME.mid, font:{family:'Inter', size:11}}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10} } }
       }
     },
     plugins:[ssCrosshairPlugin]
@@ -7529,9 +7673,9 @@ function lqStatusToKlas(status){
 
 const LQ_KLAS = {
   unggulan:    { label:'Unggulan',    desc:'Terspesialisasi (SLQ≥1) dan sedang tumbuh lebih cepat dari wilayah acuan (DLQ≥1) — sektor basis dengan momentum yang menguat.', color:'#3e5a2a' },
-  andalan:     { label:'Andalan',     desc:'Belum terspesialisasi (SLQ<1) namun tumbuh lebih cepat dari wilayah acuan (DLQ≥1) — berpotensi menjadi unggulan di masa depan.', color:'#6B2737' },
-  prospektif:  { label:'Prospektif',  desc:'Sudah terspesialisasi (SLQ≥1) tetapi pertumbuhannya melambat dibanding wilayah acuan (DLQ<1) — perlu diwaspadai despesialisasi.', color:'#9C3B4C' },
-  tertinggal:  { label:'Tertinggal',  desc:'Belum terspesialisasi (SLQ<1) dan pertumbuhannya juga lebih lambat (DLQ<1) — bukan sektor basis maupun berkembang.', color:'#B23A48' }
+  andalan:     { label:'Andalan',     desc:'Belum terspesialisasi (SLQ<1) namun tumbuh lebih cepat dari wilayah acuan (DLQ≥1) — berpotensi menjadi unggulan di masa depan.', color:THEME.c4 },
+  prospektif:  { label:'Prospektif',  desc:'Sudah terspesialisasi (SLQ≥1) tetapi pertumbuhannya melambat dibanding wilayah acuan (DLQ<1) — perlu diwaspadai despesialisasi.', color:THEME.c3 },
+  tertinggal:  { label:'Tertinggal',  desc:'Belum terspesialisasi (SLQ<1) dan pertumbuhannya juga lebih lambat (DLQ<1) — bukan sektor basis maupun berkembang.', color:THEME.accent }
 };
 
 function computeLQ(rows, year){
@@ -7737,11 +7881,11 @@ function renderLQBarChart(perKategori, isRaw){
   if(lqChart){ lqChart.destroy(); lqChart=null; }
   const labels = perKategori.map(r=>r.kategori);
   const datasets = isRaw ? [
-    { label:'SLQ', data:perKategori.map(r=>r.SLQ), backgroundColor:'#6B2737' },
-    { label:'DLQ', data:perKategori.map(r=>r.DLQ), backgroundColor:'#B23A48' }
+    { label:'SLQ', data:perKategori.map(r=>r.SLQ), backgroundColor:THEME.c4 },
+    { label:'DLQ', data:perKategori.map(r=>r.DLQ), backgroundColor:THEME.accent }
   ] : [
-    { label:'SSLQ', data:perKategori.map(r=>r.SSLQ), backgroundColor:'#6B2737' },
-    { label:'DSLQ', data:perKategori.map(r=>r.DSLQ), backgroundColor:'#B23A48' }
+    { label:'SSLQ', data:perKategori.map(r=>r.SSLQ), backgroundColor:THEME.c4 },
+    { label:'DSLQ', data:perKategori.map(r=>r.DSLQ), backgroundColor:THEME.accent }
   ];
   lqChart = new Chart(ctx, {
     type:'bar',
@@ -7749,10 +7893,10 @@ function renderLQBarChart(perKategori, isRaw){
     options:{
       indexAxis:'y',
       responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:11}, color:'#4A1620' } } },
+      plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:11}, color:THEME.main } } },
       scales:{
-        x:{ grid:{color:'#F4E3E6'}, ticks:{ color:'#7A2636', font:{family:'Inter', size:10.5} } },
-        y:{ grid:{display:false}, ticks:{ color:'#7A2636', font:{family:'Inter', size:10.5} } }
+        x:{ grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } },
+        y:{ grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } }
       }
     }
   });
@@ -7765,7 +7909,7 @@ function lqCrosshairPlugin(refX, refY){
       const {ctx, chartArea:{left,right,top,bottom}, scales:{x,y}} = chart;
       const x0 = x.getPixelForValue(refX), y0 = y.getPixelForValue(refY);
       ctx.save();
-      ctx.strokeStyle = '#A67885';
+      ctx.strokeStyle = THEME.soft;
       ctx.setLineDash([4,4]);
       ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(x0, top); ctx.lineTo(x0, bottom); ctx.stroke();
@@ -7811,8 +7955,8 @@ function renderLQQuadrantChart(perKategori, isRaw){
         }
       },
       scales:{
-        x:{ min:minX, max:(ref+(maxAbsX-ref)*1.15), grid:{color:'#F4E3E6'}, title:{display:true, text:isRaw?'SLQ':'SSLQ', color:'#7A2636', font:{family:'Inter', size:11}}, ticks:{ color:'#7A2636', font:{family:'Inter', size:10} } },
-        y:{ min:minY, max:(ref+(maxAbsY-ref)*1.15), grid:{color:'#F4E3E6'}, title:{display:true, text:isRaw?'DLQ':'DSLQ', color:'#7A2636', font:{family:'Inter', size:11}}, ticks:{ color:'#7A2636', font:{family:'Inter', size:10} } }
+        x:{ min:minX, max:(ref+(maxAbsX-ref)*1.15), grid:{color:THEME.light}, title:{display:true, text:isRaw?'SLQ':'SSLQ', color:THEME.mid, font:{family:'Inter', size:11}}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10} } },
+        y:{ min:minY, max:(ref+(maxAbsY-ref)*1.15), grid:{color:THEME.light}, title:{display:true, text:isRaw?'DLQ':'DSLQ', color:THEME.mid, font:{family:'Inter', size:11}}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10} } }
       }
     },
     plugins:[lqCrosshairPlugin(ref, ref)]
@@ -7833,23 +7977,25 @@ async function exportLQExcel(perKategori){
    lqParseNum() yang sudah ada dari modul LQ.
    ========================================================= */
 
-const CONV_STATUS_COLOR = {
-  CONVERGING: '#3e5a2a',
-  DIVERGING: '#B23A48',
-  STABLE: '#6B2737',
-  BASE: '#7A2636',
-  'MEAN-REVERTING': '#3e5a2a',
-  PERSISTENT: '#6B2737',
-  HIGH: '#3e5a2a',
-  MEDIUM: '#9C3B4C',
-  LOW: '#B23A48',
-  'SANGAT MIRIP': '#3e5a2a',
-  BERBEDA: '#B23A48'
-};
+function getConvStatusColor(){
+  return {
+    CONVERGING: '#3e5a2a',
+    DIVERGING: THEME.accent,
+    STABLE: THEME.c4,
+    BASE: THEME.mid,
+    'MEAN-REVERTING': '#3e5a2a',
+    PERSISTENT: THEME.c4,
+    HIGH: '#3e5a2a',
+    MEDIUM: THEME.c3,
+    LOW: THEME.accent,
+    'SANGAT MIRIP': '#3e5a2a',
+    BERBEDA: THEME.accent
+  };
+}
 
 function convStatusBadge(status){
   const s = (status||'').toString().trim().toUpperCase();
-  const color = CONV_STATUS_COLOR[s] || '#7A2636';
+  const color = getConvStatusColor()[s] || THEME.mid;
   return `<span class="ss-badge-quad" style="background:${color}">${escapeHtml(s||'-')}</span>`;
 }
 
@@ -8003,16 +8149,16 @@ function renderConvBali(){
   body.innerHTML = `
     <div class="ss-method-note">
       <div class="mn-row"><b class="mn-label">📖 Cara membaca</b><ul class="mn-points"><li><b>Relative Level</b> = PDRB Klungkung ÷ PDRB Bali (seberapa besar ekonomi Klungkung dibanding Bali).</li><li><b>Absolute Log Gap</b> = |ln(Klungkung/Bali)| — makin kecil, makin dekat secara relatif ke Bali (konvergen).</li><li><b>Growth Differential</b> = selisih laju pertumbuhan Klungkung dikurangi Bali dalam poin persentase (pp): positif berarti Klungkung tumbuh lebih cepat.</li></ul></div>
-      <div style="margin-top:6px"><b class="mn-label">💡 Status</b> <span style="color:${CONV_STATUS_COLOR.CONVERGING};font-weight:700;">CONVERGING</span> — gap terhadap Bali mengecil dibanding tahun sebelumnya. <span style="color:${CONV_STATUS_COLOR.DIVERGING};font-weight:700;">DIVERGING</span> — gap melebar. <span style="color:${CONV_STATUS_COLOR.STABLE};font-weight:700;">STABLE</span> — relatif tidak berubah.</div>
+      <div style="margin-top:6px"><b class="mn-label">💡 Status</b> <span style="color:${getConvStatusColor().CONVERGING};font-weight:700;">CONVERGING</span> — gap terhadap Bali mengecil dibanding tahun sebelumnya. <span style="color:${getConvStatusColor().DIVERGING};font-weight:700;">DIVERGING</span> — gap melebar. <span style="color:${getConvStatusColor().STABLE};font-weight:700;">STABLE</span> — relatif tidak berubah.</div>
     </div>
 
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Tahun Terbaru</div><div class="stat-value" style="font-size:15px;">${last.tahun}</div></div>
       <div class="stat-box"><div class="stat-label">Relative Level</div><div class="stat-value" style="font-size:15px;">${(last.relLevel*100).toFixed(2)}%</div></div>
       <div class="stat-box"><div class="stat-label">Growth Differential</div><div class="stat-value" style="font-size:15px;color:${last.growthDiff>=0?'var(--green)':'var(--rust)'};">${last.growthDiff>=0?'+':''}${last.growthDiff.toFixed(2)} pp</div></div>
-      <div class="stat-box"><div class="stat-label">Status Terbaru</div><div class="stat-value" style="font-size:14px;color:${CONV_STATUS_COLOR[last.status]||'var(--brown)'};">${escapeHtml(last.status)}</div></div>
-      <div class="stat-box"><div class="stat-label">Tahun Converging</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.CONVERGING};">${cCounts.CONVERGING}</div></div>
-      <div class="stat-box"><div class="stat-label">Tahun Diverging</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.DIVERGING};">${cCounts.DIVERGING}</div></div>
+      <div class="stat-box"><div class="stat-label">Status Terbaru</div><div class="stat-value" style="font-size:14px;color:${getConvStatusColor()[last.status]||'var(--brown)'};">${escapeHtml(last.status)}</div></div>
+      <div class="stat-box"><div class="stat-label">Tahun Converging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().CONVERGING};">${cCounts.CONVERGING}</div></div>
+      <div class="stat-box"><div class="stat-label">Tahun Diverging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().DIVERGING};">${cCounts.DIVERGING}</div></div>
     </div>
 
     <div class="ss-section-title">Growth Klungkung vs Bali</div>
@@ -8048,12 +8194,12 @@ function renderConvBali(){
   convBaliChart1 = new Chart(document.getElementById('convChart1'), {
     type:'line',
     data:{ labels, datasets:[
-      { label:'Growth Klungkung', data:rows.map(r=> isNaN(r.growthK)?null:r.growthK*100), borderColor:'#B23A48', backgroundColor:'#B23A48', tension:0.35, pointRadius:0 },
-      { label:'Growth Bali', data:rows.map(r=> isNaN(r.growthB)?null:r.growthB*100), borderColor:'#6B2737', backgroundColor:'#6B2737', tension:0.35, pointRadius:0 }
+      { label:'Growth Klungkung', data:rows.map(r=> isNaN(r.growthK)?null:r.growthK*100), borderColor:THEME.accent, backgroundColor:THEME.accent, tension:0.35, pointRadius:0 },
+      { label:'Growth Bali', data:rows.map(r=> isNaN(r.growthB)?null:r.growthB*100), borderColor:THEME.c4, backgroundColor:THEME.c4, tension:0.35, pointRadius:0 }
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'} }, tooltip:{ callbacks:{ label:(it)=> `${it.dataset.label}: ${it.parsed.y.toFixed(2)}%` } } },
-      scales:{ x:{grid:{display:false}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}}, y:{grid:{color:'#F4E3E6'}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}, callback:(v)=>v+'%'}} }
+      plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main} }, tooltip:{ callbacks:{ label:(it)=> `${it.dataset.label}: ${it.parsed.y.toFixed(2)}%` } } },
+      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}, callback:(v)=>v+'%'}} }
     }
   });
 
@@ -8061,11 +8207,11 @@ function renderConvBali(){
   convBaliChart2 = new Chart(document.getElementById('convChart2'), {
     type:'bar',
     data:{ labels, datasets:[
-      { label:'Growth Differential (pp)', data:rows.map(r=> isNaN(r.growthDiff)?null:r.growthDiff), backgroundColor: rows.map(r=> r.growthDiff>=0 ? '#3e5a2a' : '#B23A48') }
+      { label:'Growth Differential (pp)', data:rows.map(r=> isNaN(r.growthDiff)?null:r.growthDiff), backgroundColor: rows.map(r=> r.growthDiff>=0 ? '#3e5a2a' : THEME.accent) }
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ display:false } },
-      scales:{ x:{grid:{display:false}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}}, y:{grid:{color:'#F4E3E6'}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}} }
+      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} }
     }
   });
 
@@ -8073,11 +8219,11 @@ function renderConvBali(){
   convBaliChart3 = new Chart(document.getElementById('convChart3'), {
     type:'line',
     data:{ labels, datasets:[
-      { label:'Absolute Log Gap', data:rows.map(r=> isNaN(r.absLogGap)?null:r.absLogGap), borderColor:'#9C3B4C', backgroundColor:'rgba(185,139,39,0.15)', fill:true, tension:0.35, pointRadius:0 }
+      { label:'Absolute Log Gap', data:rows.map(r=> isNaN(r.absLogGap)?null:r.absLogGap), borderColor:THEME.c3, backgroundColor:hexToRgba(THEME.c3,0.15), fill:true, tension:0.35, pointRadius:0 }
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ display:false } },
-      scales:{ x:{grid:{display:false}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}}, y:{grid:{color:'#F4E3E6'}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}} }
+      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} }
     }
   });
 
@@ -8292,8 +8438,8 @@ function renderConvSektorDetail(){
     <div class="ss-controls">${convYearSelectHtml('convSektorDetailYear', years, convSektorYear)}</div>
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Rata-rata Gap</div><div class="stat-value" style="font-size:15px;">${avgGap.toFixed(2)} pp</div></div>
-      <div class="stat-box"><div class="stat-label">Sektor Converging</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.CONVERGING};">${cConv}</div></div>
-      <div class="stat-box"><div class="stat-label">Sektor Diverging</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.DIVERGING};">${cDiv}</div></div>
+      <div class="stat-box"><div class="stat-label">Sektor Converging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().CONVERGING};">${cConv}</div></div>
+      <div class="stat-box"><div class="stat-label">Sektor Diverging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().DIVERGING};">${cDiv}</div></div>
       <div class="stat-box"><div class="stat-label">Gap Terbesar</div><div class="stat-value" style="font-size:11px;line-height:1.4;">${rows[0]?escapeHtml(rows[0].sektor)+' ('+rows[0].absGap.toFixed(2)+' pp)':'-'}</div></div>
     </div>
     <div class="ss-section-title">Absolute Growth Gap per Sektor — ${convSektorYear}</div>
@@ -8307,10 +8453,10 @@ function renderConvSektorDetail(){
   if(convSektorChart1) convSektorChart1.destroy();
   convSektorChart1 = new Chart(document.getElementById('convSektorDetailChart'), {
     type:'bar',
-    data:{ labels: rows.map(r=>r.sektor), datasets:[{ label:'Absolute Growth Gap (pp)', data: rows.map(r=>r.absGap), backgroundColor: rows.map(r=> CONV_STATUS_COLOR[r.status] || '#7A2636') }] },
+    data:{ labels: rows.map(r=>r.sektor), datasets:[{ label:'Absolute Growth Gap (pp)', data: rows.map(r=>r.absGap), backgroundColor: rows.map(r=> getConvStatusColor()[r.status] || THEME.mid) }] },
     options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
       plugins:{ legend:{ display:false } },
-      scales:{ x:{grid:{color:'#F4E3E6'}, ticks:{color:'#7A2636',font:{family:'Inter',size:10}}}, y:{grid:{display:false}, ticks:{color:'#7A2636',font:{family:'Inter',size:9.5}}} }
+      scales:{ x:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10}}}, y:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:9.5}}} }
     }
   });
 
@@ -8348,8 +8494,8 @@ function renderConvSektorTrajectory(){
   el.innerHTML = `
     <div class="ss-method-note"><div class="mn-row"><b class="mn-label">💡 Cara membaca</b><ul class="mn-points"><li>Ringkasan tren tiap sektor sepanjang 2011–2025.</li><li><b>Convergence Rate</b> negatif berarti gap makin melebar; positif berarti gap makin menyempit dari 2011 ke 2025.</li></ul></div></div>
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">Sektor Trajectory Converging</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.CONVERGING};">${nConv}</div></div>
-      <div class="stat-box"><div class="stat-label">Sektor Trajectory Diverging</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.DIVERGING};">${nDiv}</div></div>
+      <div class="stat-box"><div class="stat-label">Sektor Trajectory Converging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().CONVERGING};">${nConv}</div></div>
+      <div class="stat-box"><div class="stat-label">Sektor Trajectory Diverging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().DIVERGING};">${nDiv}</div></div>
       <div class="stat-box"><div class="stat-label">Paling Konvergen</div><div class="stat-value" style="font-size:11px;line-height:1.4;">${rows[0]?escapeHtml(rows[0].sektor):'-'}</div></div>
       <div class="stat-box"><div class="stat-label">Paling Divergen</div><div class="stat-value" style="font-size:11px;line-height:1.4;">${rows[rows.length-1]?escapeHtml(rows[rows.length-1].sektor):'-'}</div></div>
     </div>
@@ -8363,12 +8509,12 @@ function renderConvSektorTrajectory(){
   convSektorChart1 = new Chart(document.getElementById('convSektorTrajChart'), {
     type:'bar',
     data:{ labels: rows.map(r=>r.sektor), datasets:[
-      { label:'Gap 2011 (pp)', data: rows.map(r=>r.gapAwal), backgroundColor:'#6B2737' },
-      { label:'Gap 2025 (pp)', data: rows.map(r=>r.gapAkhir), backgroundColor:'#B23A48' }
+      { label:'Gap 2011 (pp)', data: rows.map(r=>r.gapAwal), backgroundColor:THEME.c4 },
+      { label:'Gap 2025 (pp)', data: rows.map(r=>r.gapAkhir), backgroundColor:THEME.accent }
     ]},
     options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
-      plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'} } },
-      scales:{ x:{grid:{color:'#F4E3E6'}, ticks:{color:'#7A2636',font:{family:'Inter',size:10}}}, y:{grid:{display:false}, ticks:{color:'#7A2636',font:{family:'Inter',size:9.5}}} }
+      plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main} } },
+      scales:{ x:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10}}}, y:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:9.5}}} }
     }
   });
 
@@ -8453,8 +8599,8 @@ function renderConvSektorSnapshot(){
     <div class="ss-method-note"><div><b class="mn-label">📖 Apa ini</b> Potret satu tahun: sektor mana yang laju pertumbuhannya <b>SANGAT MIRIP</b> dengan Bali (gap &lt; ${SNAPSHOT_THRESHOLD}pp) dan mana yang <b>BERBEDA</b> jauh (gap ≥ ${SNAPSHOT_THRESHOLD}pp). Dihitung langsung dari data per-tahun, jadi tahun bisa diganti bebas.</div></div>
     <div class="ss-controls">${convYearSelectHtml('convSektorSnapYear', years, convSektorYear)}</div>
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">Sangat Mirip</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR['SANGAT MIRIP']};">${nMirip}</div></div>
-      <div class="stat-box"><div class="stat-label">Berbeda</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.BERBEDA};">${nBeda}</div></div>
+      <div class="stat-box"><div class="stat-label">Sangat Mirip</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor()['SANGAT MIRIP']};">${nMirip}</div></div>
+      <div class="stat-box"><div class="stat-label">Berbeda</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().BERBEDA};">${nBeda}</div></div>
     </div>
     <div class="table-head-row"><span class="table-head-label">Snapshot ${convSektorYear}</span><button class="dl-btn" id="convSektorSnapExcelBtn" style="position:static;">⬇ Excel</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="convSektorSnapTable"></table></div>
@@ -8500,9 +8646,9 @@ function renderConvSektorSync(){
     <div class="ss-method-note"><div><b class="mn-label">📖 Apa ini</b> <b>Synchronization Index</b> = seberapa dekat gap pertumbuhan sektor tsb dibanding gap sektor paling ekstrem di tahun yang sama (1 = paling serempak, 0 = paling menyimpang).</div></div>
     <div class="ss-controls">${convYearSelectHtml('convSektorSyncYear', years, convSektorYear)}</div>
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">Sinkronisasi Tinggi</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.HIGH};">${nHigh}</div></div>
-      <div class="stat-box"><div class="stat-label">Sinkronisasi Sedang</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.MEDIUM};">${nMed}</div></div>
-      <div class="stat-box"><div class="stat-label">Sinkronisasi Rendah</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.LOW};">${nLow}</div></div>
+      <div class="stat-box"><div class="stat-label">Sinkronisasi Tinggi</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().HIGH};">${nHigh}</div></div>
+      <div class="stat-box"><div class="stat-label">Sinkronisasi Sedang</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().MEDIUM};">${nMed}</div></div>
+      <div class="stat-box"><div class="stat-label">Sinkronisasi Rendah</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().LOW};">${nLow}</div></div>
     </div>
     <div class="ss-section-title">Synchronization Index per Sektor — ${convSektorYear}</div>
     <div class="chart-box-wrap"><button class="dl-btn" id="dlConvSektorSyncChart">⬇ JPG</button><div class="chart-box" style="height:340px;"><canvas id="convSektorSyncChart"></canvas></div></div>
@@ -8515,10 +8661,10 @@ function renderConvSektorSync(){
   if(convSektorChart1) convSektorChart1.destroy();
   convSektorChart1 = new Chart(document.getElementById('convSektorSyncChart'), {
     type:'bar',
-    data:{ labels: rows.map(r=>r.sektor), datasets:[{ label:'Synchronization Index', data: rows.map(r=>r.syncIndex), backgroundColor: rows.map(r=> CONV_STATUS_COLOR[r.status] || '#7A2636') }] },
+    data:{ labels: rows.map(r=>r.sektor), datasets:[{ label:'Synchronization Index', data: rows.map(r=>r.syncIndex), backgroundColor: rows.map(r=> getConvStatusColor()[r.status] || THEME.mid) }] },
     options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
       plugins:{ legend:{ display:false } },
-      scales:{ x:{min:0, max:1, grid:{color:'#F4E3E6'}, ticks:{color:'#7A2636',font:{family:'Inter',size:10}}}, y:{grid:{display:false}, ticks:{color:'#7A2636',font:{family:'Inter',size:9.5}}} }
+      scales:{ x:{min:0, max:1, grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10}}}, y:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:9.5}}} }
     }
   });
 
@@ -8556,8 +8702,8 @@ function renderConvSektorYearly(){
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Tahun Terbaru</div><div class="stat-value" style="font-size:15px;">${last.tahun}</div></div>
       <div class="stat-box"><div class="stat-label">Mean Gap Terbaru</div><div class="stat-value" style="font-size:15px;">${last.meanGap.toFixed(2)} pp</div></div>
-      <div class="stat-box"><div class="stat-label">Sektor Converging</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.CONVERGING};">${isNaN(last.sectorsConv)?'-':last.sectorsConv}</div></div>
-      <div class="stat-box"><div class="stat-label">Sektor Diverging</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.DIVERGING};">${isNaN(last.sectorsDiv)?'-':last.sectorsDiv}</div></div>
+      <div class="stat-box"><div class="stat-label">Sektor Converging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().CONVERGING};">${isNaN(last.sectorsConv)?'-':last.sectorsConv}</div></div>
+      <div class="stat-box"><div class="stat-label">Sektor Diverging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().DIVERGING};">${isNaN(last.sectorsDiv)?'-':last.sectorsDiv}</div></div>
     </div>
     <div class="ss-section-title">Mean & Median Absolute Gap per Tahun</div>
     <div class="chart-box-wrap"><button class="dl-btn" id="dlConvSektorYearlyChart">⬇ JPG</button><div class="chart-box" style="height:300px;"><canvas id="convSektorYearlyChart"></canvas></div></div>
@@ -8570,12 +8716,12 @@ function renderConvSektorYearly(){
   convSektorChart1 = new Chart(document.getElementById('convSektorYearlyChart'), {
     type:'line',
     data:{ labels, datasets:[
-      { label:'Mean Gap (pp)', data: rows.map(r=>r.meanGap), borderColor:'#B23A48', backgroundColor:'#B23A48', tension:0.35, pointRadius:0 },
-      { label:'Median Gap (pp)', data: rows.map(r=>r.medianGap), borderColor:'#6B2737', backgroundColor:'#6B2737', tension:0.35, pointRadius:0 }
+      { label:'Mean Gap (pp)', data: rows.map(r=>r.meanGap), borderColor:THEME.accent, backgroundColor:THEME.accent, tension:0.35, pointRadius:0 },
+      { label:'Median Gap (pp)', data: rows.map(r=>r.medianGap), borderColor:THEME.c4, backgroundColor:THEME.c4, tension:0.35, pointRadius:0 }
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'} } },
-      scales:{ x:{grid:{display:false}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}}, y:{grid:{color:'#F4E3E6'}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}} }
+      plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main} } },
+      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} }
     }
   });
 
@@ -8727,18 +8873,18 @@ function renderConvMr(){
     <div class="ss-method-note">
       <div><b class="mn-label">📖 Apa ini</b> Melihat apakah penyimpangan pertumbuhan Klungkung dari rata-rata historisnya (Growth Gap) cenderung <b>kembali normal</b> atau <b>makin melebar</b> dari tahun ke tahun. Ada 3 status, bukan 2:</div>
       <ul class="formula-list" style="font-family:'Inter',sans-serif !important;font-weight:600 !important;font-size:12.5px !important;">
-        <li style="color:${CONV_STATUS_COLOR['MEAN-REVERTING']}">MEAN-REVERTING — gap terhadap rata-rata mengecil. Contoh: +5pp → +3pp → +1pp.</li>
-        <li style="color:${CONV_STATUS_COLOR.PERSISTENT}">PERSISTENT — gap relatif bertahan. Contoh: +5pp → +5,1pp → +4,9pp.</li>
-        <li style="color:${CONV_STATUS_COLOR.DIVERGING}">DIVERGING — gap semakin membesar. Contoh: +2pp → +4pp → +6pp.</li>
+        <li style="color:${getConvStatusColor()['MEAN-REVERTING']}">MEAN-REVERTING — gap terhadap rata-rata mengecil. Contoh: +5pp → +3pp → +1pp.</li>
+        <li style="color:${getConvStatusColor().PERSISTENT}">PERSISTENT — gap relatif bertahan. Contoh: +5pp → +5,1pp → +4,9pp.</li>
+        <li style="color:${getConvStatusColor().DIVERGING}">DIVERGING — gap semakin membesar. Contoh: +2pp → +4pp → +6pp.</li>
       </ul>
     </div>
 
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Tahun Terbaru</div><div class="stat-value" style="font-size:15px;">${last.tahun}</div></div>
-      <div class="stat-box"><div class="stat-label">Status Terbaru</div><div class="stat-value" style="font-size:13px;color:${CONV_STATUS_COLOR[last.status]||'var(--brown)'};">${escapeHtml(last.status)}</div></div>
-      <div class="stat-box"><div class="stat-label">Mean-Reverting</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR['MEAN-REVERTING']};">${counts['MEAN-REVERTING']}</div></div>
-      <div class="stat-box"><div class="stat-label">Persistent</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.PERSISTENT};">${counts.PERSISTENT}</div></div>
-      <div class="stat-box"><div class="stat-label">Diverging</div><div class="stat-value" style="font-size:15px;color:${CONV_STATUS_COLOR.DIVERGING};">${counts.DIVERGING}</div></div>
+      <div class="stat-box"><div class="stat-label">Status Terbaru</div><div class="stat-value" style="font-size:13px;color:${getConvStatusColor()[last.status]||'var(--brown)'};">${escapeHtml(last.status)}</div></div>
+      <div class="stat-box"><div class="stat-label">Mean-Reverting</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor()['MEAN-REVERTING']};">${counts['MEAN-REVERTING']}</div></div>
+      <div class="stat-box"><div class="stat-label">Persistent</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().PERSISTENT};">${counts.PERSISTENT}</div></div>
+      <div class="stat-box"><div class="stat-label">Diverging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().DIVERGING};">${counts.DIVERGING}</div></div>
     </div>
 
     <div class="ss-section-title">Growth Gap per Tahun</div>
@@ -8761,14 +8907,14 @@ function renderConvMr(){
   convMrChart = new Chart(document.getElementById('convMrChartCanvas'), {
     type:'bar',
     data:{ labels, datasets:[
-      { label:'Growth Gap', data:rows.map(r=> isNaN(r.growthGap)?null:r.growthGap*100), backgroundColor: rows.map(r=> CONV_STATUS_COLOR[r.status] || '#7A2636') }
+      { label:'Growth Gap', data:rows.map(r=> isNaN(r.growthGap)?null:r.growthGap*100), backgroundColor: rows.map(r=> getConvStatusColor()[r.status] || THEME.mid) }
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ display:false }, tooltip:{ callbacks:{
         label:(it)=> `Growth Gap: ${it.parsed.y.toFixed(2)} pp`,
         afterLabel:(it)=> `Status: ${rows[it.dataIndex].status}`
       } } },
-      scales:{ x:{grid:{display:false}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}}, y:{grid:{color:'#F4E3E6'}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}, callback:(v)=>v+' pp'}} }
+      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}, callback:(v)=>v+' pp'}} }
     }
   });
 
@@ -8914,8 +9060,8 @@ function buildDivSeries(){
 
 function divHHIBadge(hhi){
   if(hhi < 0.15) return { label:'Terdiversifikasi', color:'#3e5a2a' };
-  if(hhi < 0.25) return { label:'Konsentrasi Sedang', color:'#9C3B4C' };
-  return { label:'Sangat Terkonsentrasi', color:'#B23A48' };
+  if(hhi < 0.25) return { label:'Konsentrasi Sedang', color:THEME.c3 };
+  return { label:'Sangat Terkonsentrasi', color:THEME.accent };
 }
 
 function renderDiversityView(){
@@ -9211,16 +9357,16 @@ function renderDivTimeSeriesChart(series, showBali){
   if(divTsChart){ divTsChart.destroy(); divTsChart=null; }
   const labels = series.map(s=>s.tahun);
   const allDatasets = [
-    { m:'entropy', ds:{ label:'K Entropy', data:series.map(s=>s.kEntropy), borderColor:'#6B2737', backgroundColor:'rgba(62,110,142,0.16)', yAxisID:'yEntropy', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } },
-    { m:'hhi', ds:{ label:'K HHI', data:series.map(s=>s.kHhi), borderColor:'#B23A48', backgroundColor:'rgba(193,68,14,0.14)', yAxisID:'yHhiRei', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } },
-    { m:'rei', ds:{ label:'K REI', data:series.map(s=>s.kRei), borderColor:'#C4636F', backgroundColor:'rgba(140,107,175,0.14)', yAxisID:'yHhiRei', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', spanGaps:true } },
-    { m:'tress', ds:{ label:'K Tress', data:series.map(s=>s.kTress), borderColor:'#9C3B4C', backgroundColor:'rgba(185,139,39,0.14)', yAxisID:'yTress', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } }
+    { m:'entropy', ds:{ label:'K Entropy', data:series.map(s=>s.kEntropy), borderColor:THEME.c4, backgroundColor:hexToRgba(THEME.c4,0.16), yAxisID:'yEntropy', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } },
+    { m:'hhi', ds:{ label:'K HHI', data:series.map(s=>s.kHhi), borderColor:THEME.accent, backgroundColor:'rgba(193,68,14,0.14)', yAxisID:'yHhiRei', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } },
+    { m:'rei', ds:{ label:'K REI', data:series.map(s=>s.kRei), borderColor:THEME.c5, backgroundColor:hexToRgba(THEME.c5,0.14), yAxisID:'yHhiRei', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', spanGaps:true } },
+    { m:'tress', ds:{ label:'K Tress', data:series.map(s=>s.kTress), borderColor:THEME.c3, backgroundColor:hexToRgba(THEME.c3,0.14), yAxisID:'yTress', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } }
   ];
   if(showBali){
     allDatasets.push(
-      { m:'entropy', ds:{ label:'B Entropy', data:series.map(s=>s.bEntropy), borderColor:'#6B2737', borderDash:[5,4], backgroundColor:'transparent', yAxisID:'yEntropy', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } },
-      { m:'hhi', ds:{ label:'B HHI', data:series.map(s=>s.bHhi), borderColor:'#B23A48', borderDash:[5,4], backgroundColor:'transparent', yAxisID:'yHhiRei', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } },
-      { m:'tress', ds:{ label:'B Tress', data:series.map(s=>s.bTress), borderColor:'#9C3B4C', borderDash:[5,4], backgroundColor:'transparent', yAxisID:'yTress', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } }
+      { m:'entropy', ds:{ label:'B Entropy', data:series.map(s=>s.bEntropy), borderColor:THEME.c4, borderDash:[5,4], backgroundColor:'transparent', yAxisID:'yEntropy', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } },
+      { m:'hhi', ds:{ label:'B HHI', data:series.map(s=>s.bHhi), borderColor:THEME.accent, borderDash:[5,4], backgroundColor:'transparent', yAxisID:'yHhiRei', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } },
+      { m:'tress', ds:{ label:'B Tress', data:series.map(s=>s.bTress), borderColor:THEME.c3, borderDash:[5,4], backgroundColor:'transparent', yAxisID:'yTress', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } }
     );
   }
   const datasets = allDatasets.filter(d=> divChartMetrics.has(d.m)).map(d=>d.ds);
@@ -9230,11 +9376,11 @@ function renderDivTimeSeriesChart(series, showBali){
     options:{
       responsive:true, maintainAspectRatio:false,
       interaction:{ mode:'nearest', intersect:false },
-      plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:10.5}, color:'#4A1620', boxWidth:14 } } },
+      plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:10.5}, color:THEME.main, boxWidth:14 } } },
       scales:{
-        x:{ grid:{display:false}, ticks:{ color:'#7A2636', font:{family:'Inter', size:10.5} } },
-        yEntropy:{ position:'left', grid:{color:'#F4E3E6'}, title:{display:true, text:'Entropy', color:'#6B2737', font:{size:10}}, ticks:{ color:'#7A2636', font:{size:10} } },
-        yHhiRei:{ position:'right', min:0, max:1, grid:{display:false}, title:{display:true, text:'HHI / REI', color:'#B23A48', font:{size:10}}, ticks:{ color:'#7A2636', font:{size:10} } },
+        x:{ grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } },
+        yEntropy:{ position:'left', grid:{color:THEME.light}, title:{display:true, text:'Entropy', color:THEME.c4, font:{size:10}}, ticks:{ color:THEME.mid, font:{size:10} } },
+        yHhiRei:{ position:'right', min:0, max:1, grid:{display:false}, title:{display:true, text:'HHI / REI', color:THEME.accent, font:{size:10}}, ticks:{ color:THEME.mid, font:{size:10} } },
         yTress:{ display:false, min:0, max:100 }
       }
     }
@@ -9246,9 +9392,9 @@ function renderDivCompositionChart(s){
   const ctx = document.getElementById('divCompCanvas');
   if(divCompChart){ divCompChart.destroy(); divCompChart=null; }
   const entries = Object.entries(s.kShares).sort((a,b)=> b[1]-a[1]);
-  const datasets = [{ label:`Klungkung ${s.tahun}`, data:entries.map(e=>e[1]*100), backgroundColor:'#B23A48' }];
+  const datasets = [{ label:`Klungkung ${s.tahun}`, data:entries.map(e=>e[1]*100), backgroundColor:THEME.accent }];
   if(divCompareBali && s.bShares){
-    datasets.push({ label:`Bali ${s.tahun}`, data:entries.map(e=> (s.bShares[e[0]]||0)*100), backgroundColor:'#6B2737' });
+    datasets.push({ label:`Bali ${s.tahun}`, data:entries.map(e=> (s.bShares[e[0]]||0)*100), backgroundColor:THEME.c4 });
   }
   divCompChart = new Chart(ctx, {
     type:'bar',
@@ -9256,10 +9402,10 @@ function renderDivCompositionChart(s){
     options:{
       indexAxis:'y',
       responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ display: datasets.length>1, position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'} } },
+      plugins:{ legend:{ display: datasets.length>1, position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main} } },
       scales:{
-        x:{ grid:{color:'#F4E3E6'}, title:{display:true, text:'% terhadap Total PDRB', color:'#7A2636', font:{size:10.5}}, ticks:{ color:'#7A2636', font:{family:'Inter', size:10.5}, callback:v=>v+'%' } },
-        y:{ grid:{display:false}, ticks:{ color:'#7A2636', font:{family:'Inter', size:10.5} } }
+        x:{ grid:{color:THEME.light}, title:{display:true, text:'% terhadap Total PDRB', color:THEME.mid, font:{size:10.5}}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5}, callback:v=>v+'%' } },
+        y:{ grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } }
       }
     }
   });
@@ -9446,8 +9592,8 @@ function advBuildGrowthDiffSeries(){
 }
 function growthDiffBadge(status){
   if(/lebih cepat/i.test(status)) return {label:'Klungkung Lebih Cepat', color:'#3e5a2a'};
-  if(/lebih lambat/i.test(status)) return {label:'Klungkung Lebih Lambat', color:'#B23A48'};
-  return {label:status||'Sama', color:'#7A2636'};
+  if(/lebih lambat/i.test(status)) return {label:'Klungkung Lebih Lambat', color:THEME.accent};
+  return {label:status||'Sama', color:THEME.mid};
 }
 function renderAdvGrowthDiff(){
   if(!advEnsureLoaded('growth_diff')) return;
@@ -9491,27 +9637,27 @@ function renderAdvGrowthDiff(){
   advCharts.growthTs = new Chart(tsCtx, {
     type:'line',
     data:{ labels: series.map(s=>s.tahun), datasets:[
-      {label:'Klungkung', data: series.map(s=> isNaN(s.growthK)?null:s.growthK*100), borderColor:'#B23A48', backgroundColor:'rgba(31,111,107,0.15)', fill:true, tension:0.4, spanGaps:true, pointRadius:0, pointHoverRadius:4, pointHitRadius:10},
-      {label:'Bali', data: series.map(s=> isNaN(s.growthB)?null:s.growthB*100), borderColor:'#6B2737', backgroundColor:'rgba(62,110,142,0.15)', fill:true, tension:0.4, spanGaps:true, pointRadius:0, pointHoverRadius:4, pointHitRadius:10}
+      {label:'Klungkung', data: series.map(s=> isNaN(s.growthK)?null:s.growthK*100), borderColor:THEME.accent, backgroundColor:'rgba(31,111,107,0.15)', fill:true, tension:0.4, spanGaps:true, pointRadius:0, pointHoverRadius:4, pointHitRadius:10},
+      {label:'Bali', data: series.map(s=> isNaN(s.growthB)?null:s.growthB*100), borderColor:THEME.c4, backgroundColor:hexToRgba(THEME.c4,0.15), fill:true, tension:0.4, spanGaps:true, pointRadius:0, pointHoverRadius:4, pointHitRadius:10}
     ]},
     options:{ responsive:true, maintainAspectRatio:false, interaction:{intersect:false, mode:'index'},
-      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'}}},
-      scales:{ x:{grid:{display:false}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}}, y:{grid:{color:'#F4E3E6'}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5},callback:v=>v+'%'}} } }
+      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main}}},
+      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>v+'%'}} } }
   });
 
   const diffCtx = document.getElementById('advGrowthDiffCanvas');
   if(advCharts.growthDiff){ advCharts.growthDiff.destroy(); }
   advCharts.growthDiff = new Chart(diffCtx, {
     data:{ labels: series.map(s=>s.tahun), datasets:[
-      {type:'bar', label:'Growth Diff (pp)', data: series.map(s=>s.diffPp), backgroundColor: series.map(s=> s.diffPp>=0?'#3e5a2a':'#B23A48'), yAxisID:'y'},
-      {type:'line', label:'Cumulative Relative Gap (%)', data: series.map(s=> isNaN(s.cumGap)?null:s.cumGap*100), borderColor:'#9C3B4C', backgroundColor:'rgba(185,139,39,0.18)', fill:true, tension:0.4, pointRadius:0, pointHoverRadius:4, pointHitRadius:10, yAxisID:'y1'}
+      {type:'bar', label:'Growth Diff (pp)', data: series.map(s=>s.diffPp), backgroundColor: series.map(s=> s.diffPp>=0?'#3e5a2a':THEME.accent), yAxisID:'y'},
+      {type:'line', label:'Cumulative Relative Gap (%)', data: series.map(s=> isNaN(s.cumGap)?null:s.cumGap*100), borderColor:THEME.c3, backgroundColor:hexToRgba(THEME.c3,0.18), fill:true, tension:0.4, pointRadius:0, pointHoverRadius:4, pointHitRadius:10, yAxisID:'y1'}
     ]},
     options:{ responsive:true, maintainAspectRatio:false, interaction:{intersect:false, mode:'index'},
-      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'}}},
+      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main}}},
       scales:{
-        x:{grid:{display:false}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}},
-        y:{position:'left', grid:{color:'#F4E3E6'}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}, title:{display:true,text:'pp',color:'#7A2636',font:{family:'Inter',size:10.5}}},
-        y1:{position:'right', grid:{display:false}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5},callback:v=>v+'%'}}
+        x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}},
+        y:{position:'left', grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}, title:{display:true,text:'pp',color:THEME.mid,font:{family:'Inter',size:10.5}}},
+        y1:{position:'right', grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>v+'%'}}
       } }
   });
 
@@ -9594,12 +9740,12 @@ function renderAdvStructChange(){
   advCharts.sciTs = new Chart(tsCtx, {
     type:'line',
     data:{ labels: sciSeries.map(s=>s.tahun), datasets:[
-      {label:'SCI Klungkung', data: sciSeries.map(s=>s.sciK*100), borderColor:'#B23A48', backgroundColor:'rgba(31,111,107,0.15)', fill:true, tension:0.4, pointRadius:0, pointHoverRadius:4, pointHitRadius:10},
-      {label:'SCI Bali', data: sciSeries.map(s=>s.sciB*100), borderColor:'#6B2737', backgroundColor:'rgba(62,110,142,0.15)', fill:true, tension:0.4, pointRadius:0, pointHoverRadius:4, pointHitRadius:10}
+      {label:'SCI Klungkung', data: sciSeries.map(s=>s.sciK*100), borderColor:THEME.accent, backgroundColor:'rgba(31,111,107,0.15)', fill:true, tension:0.4, pointRadius:0, pointHoverRadius:4, pointHitRadius:10},
+      {label:'SCI Bali', data: sciSeries.map(s=>s.sciB*100), borderColor:THEME.c4, backgroundColor:hexToRgba(THEME.c4,0.15), fill:true, tension:0.4, pointRadius:0, pointHoverRadius:4, pointHitRadius:10}
     ]},
     options:{ responsive:true, maintainAspectRatio:false, interaction:{intersect:false, mode:'index'},
-      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'}}},
-      scales:{ x:{grid:{display:false}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}}, y:{grid:{color:'#F4E3E6'}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5},callback:v=>v+'%'}} } }
+      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main}}},
+      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>v+'%'}} } }
   });
   document.getElementById('dlAdvSciTs').onclick = ()=> triggerJPGDownload(advCharts.sciTs, `sci_tren`);
 
@@ -9620,12 +9766,12 @@ function renderAdvSciForYear(rows){
   advCharts.sciSektor = new Chart(ctx, {
     type:'bar',
     data:{ labels: yr.map(r=>r.sektor), datasets:[
-      {label:'Δ Share Klungkung (pp)', data: yr.map(r=> isNaN(r.deltaK)?0:r.deltaK*100), backgroundColor:'#B23A48'},
-      {label:'Δ Share Bali (pp)', data: yr.map(r=> isNaN(r.deltaB)?0:r.deltaB*100), backgroundColor:'#6B2737'}
+      {label:'Δ Share Klungkung (pp)', data: yr.map(r=> isNaN(r.deltaK)?0:r.deltaK*100), backgroundColor:THEME.accent},
+      {label:'Δ Share Bali (pp)', data: yr.map(r=> isNaN(r.deltaB)?0:r.deltaB*100), backgroundColor:THEME.c4}
     ] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'}}},
-      scales:{ x:{grid:{color:'#F4E3E6'}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5},callback:v=>v+' pp'}}, y:{grid:{display:false},ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}} } }
+      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main}}},
+      scales:{ x:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>v+' pp'}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
   });
   document.getElementById('dlAdvSciSektor').onclick = ()=> triggerJPGDownload(advCharts.sciSektor, `sci_sektor_${advCompYear.structural_change}`);
   document.getElementById('advSciTable').innerHTML = `<thead><tr><th>Sektor</th><th>Share K</th><th>Share Bali</th><th>Δ Share K</th><th>Δ Share Bali</th><th>Gap Sektoral</th></tr></thead><tbody>${
@@ -9661,9 +9807,9 @@ function advBuildKrugmanSeries(){
 }
 function krugmanBadge(status){
   if(/very similar/i.test(status)) return {label:'Sangat Mirip', color:'#3e5a2a'};
-  if(/similar/i.test(status)) return {label:'Mirip', color:'#9C3B4C'};
-  if(/different/i.test(status)) return {label:'Berbeda Struktural', color:'#B23A48'};
-  return {label:status||'-', color:'#7A2636'};
+  if(/similar/i.test(status)) return {label:'Mirip', color:THEME.c3};
+  if(/different/i.test(status)) return {label:'Berbeda Struktural', color:THEME.accent};
+  return {label:status||'-', color:THEME.mid};
 }
 function renderAdvKrugman(){
   if(!advEnsureLoaded('krugman')) return;
@@ -9704,11 +9850,11 @@ function renderAdvKrugman(){
   advCharts.krugman = new Chart(ctx, {
     type:'line',
     data:{ labels: series.map(s=>s.tahun), datasets:[
-      {label:'Krugman Index (Half)', data: series.map(s=>s.half), borderColor:'#B23A48', backgroundColor:'rgba(193,68,14,0.18)', fill:true, tension:0.4, pointRadius:0, pointHoverRadius:4, pointHitRadius:10}
+      {label:'Krugman Index (Half)', data: series.map(s=>s.half), borderColor:THEME.accent, backgroundColor:'rgba(193,68,14,0.18)', fill:true, tension:0.4, pointRadius:0, pointHoverRadius:4, pointHitRadius:10}
     ]},
     options:{ responsive:true, maintainAspectRatio:false, interaction:{intersect:false, mode:'index'},
       plugins:{legend:{display:false}},
-      scales:{ x:{grid:{display:false}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}}, y:{grid:{color:'#F4E3E6'}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}} } }
+      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
   });
 
   document.getElementById('dlAdvKrugman').onclick = ()=> triggerJPGDownload(advCharts.krugman, `krugman_index_tren`);
@@ -9752,8 +9898,8 @@ function advBuildSimilaritySeries(){
 }
 function ssiBadge(pct){
   if(pct>=85) return {label:'Sangat Mirip', color:'#3e5a2a'};
-  if(pct>=70) return {label:'Cukup Mirip', color:'#9C3B4C'};
-  return {label:'Berbeda', color:'#B23A48'};
+  if(pct>=70) return {label:'Cukup Mirip', color:THEME.c3};
+  return {label:'Berbeda', color:THEME.accent};
 }
 function renderAdvSimilarity(){
   if(!advEnsureLoaded('similarity')) return;
@@ -9800,8 +9946,8 @@ function renderAdvSimilarity(){
   if(advCharts.simTs){ advCharts.simTs.destroy(); }
   advCharts.simTs = new Chart(ctx, {
     type:'line',
-    data:{ labels: series.map(s=>s.tahun), datasets:[{ label:'SSI (%)', data: series.map(s=>s.ssiPct), borderColor:'#4A1620', backgroundColor:'rgba(74,22,32,0.14)', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}}, y:{min:0,max:100,grid:{color:'#F4E3E6'}, ticks:{color:'#7A2636',font:{size:10},callback:v=>v+'%'}} } }
+    data:{ labels: series.map(s=>s.tahun), datasets:[{ label:'SSI (%)', data: series.map(s=>s.ssiPct), borderColor:THEME.main, backgroundColor:'rgba(74,22,32,0.14)', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{min:0,max:100,grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{size:10},callback:v=>v+'%'}} } }
   });
 
   renderAdvSimCompChart(series.find(s=>s.tahun===advCompYear.similarity));
@@ -9820,12 +9966,12 @@ function renderAdvSimCompChart(s){
   advCharts.simComp = new Chart(ctx, {
     type:'bar',
     data:{ labels: entries, datasets:[
-      {label:`Klungkung ${s.tahun}`, data: entries.map(k=>s.kShares[k]*100), backgroundColor:'#B23A48'},
-      {label:`Bali ${s.tahun}`, data: entries.map(k=>(s.bShares[k]||0)*100), backgroundColor:'#6B2737'}
+      {label:`Klungkung ${s.tahun}`, data: entries.map(k=>s.kShares[k]*100), backgroundColor:THEME.accent},
+      {label:`Bali ${s.tahun}`, data: entries.map(k=>(s.bShares[k]||0)*100), backgroundColor:THEME.c4}
     ]},
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'}}},
-      scales:{ x:{grid:{color:'#F4E3E6'}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5},callback:v=>v+'%'}}, y:{grid:{display:false},ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}} } }
+      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main}}},
+      scales:{ x:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>v+'%'}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
   });
 }
 
@@ -9897,9 +10043,9 @@ function renderAdvGapForYear(rows){
   if(advCharts.gap){ advCharts.gap.destroy(); }
   advCharts.gap = new Chart(ctx, {
     type:'bar',
-    data:{ labels: yr.map(r=>r.sektor), datasets:[{ label:'Gap Contribution (%)', data: yr.map(r=>r.contrib*100), backgroundColor: yr.map((r,i)=> i===0?'#B23A48':'#B23A48') }] },
+    data:{ labels: yr.map(r=>r.sektor), datasets:[{ label:'Gap Contribution (%)', data: yr.map(r=>r.contrib*100), backgroundColor: yr.map((r,i)=> i===0?THEME.accent:THEME.accent) }] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
-      scales:{ x:{grid:{color:'#F4E3E6'}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5},callback:v=>v+'%'}}, y:{grid:{display:false},ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}} } }
+      scales:{ x:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>v+'%'}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
   });
   document.getElementById('advGapTable').innerHTML = `<thead><tr><th>Rank</th><th>Sektor</th><th>K Share</th><th>B Share</th><th>Absolute Gap</th><th>Kontribusi</th></tr></thead><tbody>${
     yr.map(r=>`<tr><td>${r.rank}</td><td>${escapeHtml(r.sektor)}</td><td>${(r.kShare*100).toFixed(2)}%</td><td>${(r.bShare*100).toFixed(2)}%</td><td>${r.gap.toFixed(4)}</td><td>${(r.contrib*100).toFixed(1)}%</td></tr>`).join('')
@@ -10077,8 +10223,8 @@ function renderAdvComplexity(){
   if(advCharts.ecpTs){ advCharts.ecpTs.destroy(); }
   advCharts.ecpTs = new Chart(ctx, {
     type:'line',
-    data:{ labels: years, datasets:[{ label:'ECP Normalized', data: yearSeries.map(y=>y.ecpNorm), borderColor:'#C4636F', backgroundColor:'rgba(140,107,175,0.18)', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false},ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}}, y:{min:0,max:100,grid:{color:'#F4E3E6'},ticks:{color:'#7A2636',font:{size:10}}} } }
+    data:{ labels: years, datasets:[{ label:'ECP Normalized', data: yearSeries.map(y=>y.ecpNorm), borderColor:THEME.c5, backgroundColor:hexToRgba(THEME.c5,0.18), fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{min:0,max:100,grid:{color:THEME.light},ticks:{color:THEME.mid,font:{size:10}}} } }
   });
 
   renderAdvEcpRcaChart(byYear[advCompYear.complexity]);
@@ -10096,9 +10242,9 @@ function renderAdvEcpRcaChart(yearData){
   const sorted = [...yearData.sektor].sort((a,b)=> b.rca-a.rca);
   advCharts.ecpRca = new Chart(ctx, {
     type:'bar',
-    data:{ labels: sorted.map(s=>s.sektor), datasets:[{ label:'RCA', data: sorted.map(s=>s.rca), backgroundColor: sorted.map(s=> s.rca>=1?'#3e5a2a':'#B23A48') }] },
+    data:{ labels: sorted.map(s=>s.sektor), datasets:[{ label:'RCA', data: sorted.map(s=>s.rca), backgroundColor: sorted.map(s=> s.rca>=1?'#3e5a2a':THEME.accent) }] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
-      scales:{ x:{grid:{color:'#F4E3E6'}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}}, y:{grid:{display:false},ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}} } }
+      scales:{ x:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
   });
 }
 
@@ -10137,8 +10283,8 @@ function advBuildResilienceRows(){
 }
 function reriBadge(v){
   if(v>=80) return {label:'Sangat Tahan', color:'#3e5a2a'};
-  if(v>=60) return {label:'Cukup Tahan', color:'#9C3B4C'};
-  return {label:'Rentan', color:'#B23A48'};
+  if(v>=60) return {label:'Cukup Tahan', color:THEME.c3};
+  return {label:'Rentan', color:THEME.accent};
 }
 function renderAdvResilience(){
   if(!advEnsureLoaded('resilience')) return;
@@ -10222,17 +10368,17 @@ function renderAdvReriChart(rows){
   const ctx = document.getElementById('advReriCanvas');
   if(advCharts.reri){ advCharts.reri.destroy(); }
   const allDatasets = [
-    { m:'reri', ds:{ label:'RERI', data: rows.map(r=>r.reri), borderColor:'#4A1620', backgroundColor:'rgba(16,26,30,0.14)', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100' } },
-    { m:'de', ds:{ label:'Diversifikasi (DE)', data: rows.map(r=>r.de*100), borderColor:'#6B2737', backgroundColor:'transparent', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100' } },
-    { m:'stability', ds:{ label:'Stabilitas', data: rows.map(r=>r.stability*100), borderColor:'#9C3B4C', backgroundColor:'transparent', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100' } },
+    { m:'reri', ds:{ label:'RERI', data: rows.map(r=>r.reri), borderColor:THEME.main, backgroundColor:'rgba(16,26,30,0.14)', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100' } },
+    { m:'de', ds:{ label:'Diversifikasi (DE)', data: rows.map(r=>r.de*100), borderColor:THEME.c4, backgroundColor:'transparent', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100' } },
+    { m:'stability', ds:{ label:'Stabilitas', data: rows.map(r=>r.stability*100), borderColor:THEME.c3, backgroundColor:'transparent', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100' } },
     { m:'rc', ds:{ label:'Recovery Capacity', data: rows.map(r=>r.rc!==null?r.rc*100:null), borderColor:'#3e5a2a', backgroundColor:'transparent', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100', spanGaps:false } }
   ];
   const datasets = allDatasets.filter(d=> advReriMetrics.has(d.m)).map(d=>d.ds);
   advCharts.reri = new Chart(ctx, {
     type:'line',
     data:{ labels: rows.map(r=>r.tahun), datasets },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:10.5},color:'#4A1620',boxWidth:14}}},
-      scales:{ x:{grid:{display:false},ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}}, y100:{min:0,max:100,grid:{color:'#F4E3E6'},ticks:{color:'#7A2636',font:{size:10}}} } }
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:10.5},color:THEME.main,boxWidth:14}}},
+      scales:{ x:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y100:{min:0,max:100,grid:{color:THEME.light},ticks:{color:THEME.mid,font:{size:10}}} } }
   });
 }
 
@@ -10267,10 +10413,10 @@ function advBuildTrajectoryRows(){
 }
 const TRAJ_INFO = {
   'Persistent Leader': {color:'#3e5a2a', desc:'Konsisten jadi sektor unggulan (SLQ≥1) sejak awal periode hingga sekarang.'},
-  'Emerging': {color:'#6B2737', desc:'Awalnya bukan unggulan, tapi tren SLQ-nya naik — kandidat sektor unggulan baru.'},
-  'Declining Specialist': {color:'#B23A48', desc:'Dulunya unggulan, tapi SLQ-nya menurun — berisiko kehilangan status basisnya.'},
-  'Persistent Non-specialist': {color:'#7A2636', desc:'Konsisten bukan sektor unggulan sepanjang periode.'},
-  'Potential': {color:'#9C3B4C', desc:'Belum unggulan, tren belum cukup jelas naik/turun — perlu dipantau lebih lanjut.'}
+  'Emerging': {color:THEME.c4, desc:'Awalnya bukan unggulan, tapi tren SLQ-nya naik — kandidat sektor unggulan baru.'},
+  'Declining Specialist': {color:THEME.accent, desc:'Dulunya unggulan, tapi SLQ-nya menurun — berisiko kehilangan status basisnya.'},
+  'Persistent Non-specialist': {color:THEME.mid, desc:'Konsisten bukan sektor unggulan sepanjang periode.'},
+  'Potential': {color:THEME.c3, desc:'Belum unggulan, tren belum cukup jelas naik/turun — perlu dipantau lebih lanjut.'}
 };
 function renderAdvTrajectory(){
   if(!advEnsureLoaded('trajectory')) return;
@@ -10326,12 +10472,12 @@ function renderAdvTrajectory(){
   advCharts.traj = new Chart(ctx, {
     type:'bar',
     data:{ labels: summary.map(s=>s.sektor), datasets:[
-      { label:'SLQ Awal (2010)', data: summary.map(s=>s.slqAwal), backgroundColor:'#8C4A56' },
+      { label:'SLQ Awal (2010)', data: summary.map(s=>s.slqAwal), backgroundColor:THEME.c7 },
       { label:`SLQ ${latestYear}`, data: summary.map(s=>s.slqLatest), backgroundColor: summary.map(s=>(TRAJ_INFO[s.trajectory]||{color:'#999'}).color) }
     ]},
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:'#4A1620'}}},
-      scales:{ x:{grid:{color:'#F4E3E6'}, ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}}, y:{grid:{display:false},ticks:{color:'#7A2636',font:{family:'Inter',size:10.5}}} } }
+      plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main}}},
+      scales:{ x:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
   });
 
   document.getElementById('dlAdvTraj').onclick = ()=> triggerJPGDownload(advCharts.traj, 'dynamic_specialization');
@@ -10369,6 +10515,12 @@ document.getElementById('globalSearchClear').addEventListener('click', ()=>{
   applyGlobalSearch('');
   input.focus();
 });
+
+const paletteSelectEl = document.getElementById('paletteSelect');
+if(paletteSelectEl){
+  paletteSelectEl.value = currentPaletteName;
+  paletteSelectEl.addEventListener('change', (e)=> applyPalette(e.target.value));
+}
 
 loadData();
 </script>
