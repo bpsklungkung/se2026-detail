@@ -401,6 +401,13 @@
     cursor:pointer;transition:.15s;
   }
   .lvl-btn.active{background:var(--orange);border-color:var(--orange);color:#fff;}
+  .similar-sort-toggle{display:flex;gap:8px;margin-top:10px;}
+  .sort-btn{
+    flex:1;padding:7px 10px;border-radius:9px;border:1.5px solid var(--line);
+    background:#fff;color:var(--brown-soft);font-size:11.5px;font-weight:700;
+    cursor:pointer;transition:.15s;
+  }
+  .sort-btn.active{background:var(--brown);border-color:var(--brown);color:#fff;}
   .similar-search{
     width:100%;margin-top:10px;padding:8px 10px;border-radius:9px;border:1.5px solid var(--line);
     background:var(--cream);color:var(--brown);font-family:'Inter',sans-serif;font-size:13px;outline:none;
@@ -514,8 +521,7 @@
     <div class="summary-card">
       <h3>Rekap per Verifikator</h3>
       <div class="summary-scroll" id="summaryVerifikatorWrap"></div>
-      <div class="summary-note">Klik header kolom untuk urutkan. Total Injek = jumlah dengan status varian "(Injek)". Angka kecil di bawah jumlah = perubahan dibanding kemarin. Baris "Total" di bawah = jumlah semua verifikator. Menampilkan 10 baris pertama, geser untuk melihat selebihnya.</div>
-    </div>
+      </div>
   </div>
 
   <div class="panel">
@@ -634,9 +640,7 @@
       </table>
     </div>
   </div>
-
-  <footer class="credit">Dashboard internal BPS Kabupaten Klungkung · Data ditarik langsung dari Google Sheets</footer>
-</div>
+  </div>
 
 <div class="side-panel-overlay" id="verifPanelOverlay" onclick="closeModals(true)"></div>
 
@@ -689,6 +693,10 @@
       <button type="button" class="lvl-btn" data-level="kecamatan" onclick="switchSimilarLevel('kecamatan')">Level Kecamatan</button>
     </div>
     <input type="text" id="similarSearch" class="similar-search" placeholder="Cari nama usaha di hasil ini…" oninput="onSimilarSearchInput(this.value)">
+    <div class="similar-sort-toggle">
+      <button type="button" class="sort-btn active" data-sort="score" onclick="switchSimilarSort('score')">Kecocokan Tertinggi</button>
+      <button type="button" class="sort-btn" data-sort="distance" onclick="switchSimilarSort('distance')">Jarak Terdekat</button>
+    </div>
   </div>
   <div class="side-panel-body">
     <div class="similar-list" id="similarList"></div>
@@ -732,6 +740,7 @@ let currentSimilarRowId = null;
 let currentSimilarLevel = 'sls';
 let currentSimilarMatches = [];
 let currentSimilarSearch = '';
+let currentSimilarSort = 'score'; // 'score' (kecocokan tertinggi, default) atau 'distance' (jarak terdekat)
 let pendingSelectedIdentity = null; // { rowId, text } — hasil klik "Pilih" pada card Cek Serupa
 let state = { kecamatan:"", desa:"", sls:"", ppl:"", pml:"", verif:"", status:"", search:"" };
 
@@ -1595,8 +1604,11 @@ function renderTableBody(){
   els.tbody.innerHTML = shown.map(r=>{
     const link = buildMapsLink(r);
     const sourceLink = /^https?:\/\//i.test(norm(r.link)) ? r.link : null;
+    const googleQuery = encodeURIComponent([r.nama_usaha, r.alamat, r.desa, r.kecamatan].filter(Boolean).join(' '));
+    const googleLink = `https://www.google.com/search?q=${googleQuery}`;
     const locCell = (link ? `<a class="loc-btn" href="${escapeAttr(link)}" target="_blank" rel="noopener">📍 Lihat Peta</a>` : `<span class="loc-none">Tidak ada titik</span>`)
-      + (sourceLink ? `<br><a class="loc-btn" style="margin-top:4px;background:var(--brown-soft);" href="${escapeAttr(sourceLink)}" target="_blank" rel="noopener">🔗 Sumber</a>` : '');
+      + (sourceLink ? `<br><a class="loc-btn" style="margin-top:4px;background:var(--brown-soft);" href="${escapeAttr(sourceLink)}" target="_blank" rel="noopener">🔗 Fasih</a>` : '')
+      + `<br><a class="loc-btn" style="margin-top:4px;background:#4285F4;" href="${escapeAttr(googleLink)}" target="_blank" rel="noopener">🔎 Cek Google</a>`;
     const statusCell = r.statusLabel
       ? `<span class="verif-badge ${r.statusBadge}">${escapeHtml(r.statusLabel)}</span>`
       : `<span class="loc-none">–</span>`;
@@ -1735,10 +1747,14 @@ function openSimilarPopup(e, rowId){
   currentSimilarRowId = rowId;
   currentSimilarLevel = 'sls';
   currentSimilarSearch = '';
+  currentSimilarSort = 'score';
   const searchEl = document.getElementById('similarSearch');
   if(searchEl) searchEl.value = '';
   document.querySelectorAll('#similarModal .lvl-btn').forEach(b=>{
     b.classList.toggle('active', b.dataset.level === 'sls');
+  });
+  document.querySelectorAll('#similarModal .sort-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.sort === 'score');
   });
   renderSimilarList();
   document.getElementById('similarModal').classList.add('open');
@@ -1755,6 +1771,14 @@ function switchSimilarLevel(level){
   currentSimilarLevel = level;
   document.querySelectorAll('#similarModal .lvl-btn').forEach(b=>{
     b.classList.toggle('active', b.dataset.level === level);
+  });
+  renderSimilarList();
+}
+
+function switchSimilarSort(sortBy){
+  currentSimilarSort = sortBy;
+  document.querySelectorAll('#similarModal .sort-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.sort === sortBy);
   });
   renderSimilarList();
 }
@@ -1795,9 +1819,16 @@ function renderSimilarList(){
 
   const allMatches = findSimilarUsaha(rec, currentSimilarLevel);
   const q = currentSimilarSearch;
-  const matches = q
+  let matches = q
     ? allMatches.filter(m => (m.rec.nama_usaha||'').toLowerCase().includes(q) || (m.rec.alamat||'').toLowerCase().includes(q))
     : allMatches;
+  if(currentSimilarSort === 'distance'){
+    matches = [...matches].sort((a,b)=>{
+      const dA = (a.distanceM === null || a.distanceM === undefined || isNaN(a.distanceM)) ? Infinity : a.distanceM;
+      const dB = (b.distanceM === null || b.distanceM === undefined || isNaN(b.distanceM)) ? Infinity : b.distanceM;
+      return dA - dB;
+    });
+  }
   currentSimilarMatches = matches;
 
   if(allMatches.length === 0){
