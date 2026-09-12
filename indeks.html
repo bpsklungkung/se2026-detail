@@ -700,7 +700,7 @@
     position:relative;
   }
   .card::after{
-    content: attr(data-kel);
+    content: attr(data-sub);
     position:absolute;
     top:-32px; left:16px; right:16px;
     font-family:'Sora',sans-serif;
@@ -766,6 +766,11 @@
     gap:6px;
   }
   .card-top-row .card-label{ flex:1; }
+  .card-label-hidden{
+    position:absolute; width:1px; height:1px; overflow:hidden;
+    clip:rect(0 0 0 0); white-space:nowrap; margin:0; padding:0; border:0;
+  }
+  .card-top-row-noLabel{ justify-content:flex-end; }
   .chart-style-select{
     flex-shrink:0;
     font-size:9.5px;
@@ -836,7 +841,7 @@
   .badge.down{ background:var(--green-bg); color:var(--green); }
   .badge.flat{ background:var(--cream-deep); color:var(--brown-soft); }
   .badge.na{ background:var(--cream-deep); color:var(--brown-soft); }
-  .spark-wrap{ height:32px; width:100%; overflow:hidden; }
+  .spark-wrap{ height:44px; width:100%; overflow:hidden; }
   .spark-wrap svg{ display:block; width:100%; height:100%; }
 
   /* Loading / empty */
@@ -2285,9 +2290,9 @@ function renderContent(periode){
           const satuanTeks = SATUAN[sub] ? `<span class="card-unit">${escapeHtml(SATUAN[sub])}</span>` : '';
           const styleOptionsHtml = CHART_STYLE_OPTIONS.map(o=>`<option value="${o.value}" ${o.value===subChartType?'selected':''}>${o.label}</option>`).join('');
 
-          html += `<div class="card" data-key='${key}' data-kel="${escapeHtml(kelompok)}">
-              <div class="card-top-row">
-                <div class="card-label">${escapeHtml(sub)}</div>
+          html += `<div class="card" data-key='${key}' data-kel="${escapeHtml(kelompok)}" data-sub="${escapeHtml(sub)}">
+              <div class="card-label card-label-hidden">${escapeHtml(sub)}</div>
+              <div class="card-top-row card-top-row-noLabel">
                 <select class="chart-style-select" data-stylekey="${escapeHtml(styleKey)}" title="Ubah gaya grafik">${styleOptionsHtml}</select>
               </div>
               <div>
@@ -2513,17 +2518,7 @@ function renderCompositionCardHtml(periode,kategori,kelompok,subObj,group,katCol
   const isSimpleCard = kind==='berlaku' || kind==='konstan';
 
   const key = encodeURIComponent(JSON.stringify([periode,kategori,kelompok,label,segs,kind||'pct']));
-  const gradientColors = latestEntries.map((_,i)=>COMPARE_COLORS[i % COMPARE_COLORS.length]);
-  let stripGradient = gradientColors[0] || katColor;
-  if(gradientColors.length > 1){
-    const n = gradientColors.length;
-    const stops = gradientColors.map((c,i)=>{
-      const startPct = (i/n*100).toFixed(2);
-      const endPct = ((i+1)/n*100).toFixed(2);
-      return `${c} ${startPct}%, ${c} ${endPct}%`;
-    }).join(', ');
-    stripGradient = `linear-gradient(90deg, ${stops})`;
-  }
+  const stripGradient = katColor;
 
   if(isSimpleCard){
     return `<div class="card comp-card" data-compkey='${key}'>
@@ -5184,7 +5179,7 @@ function updatePickerColors(){
     const idx = keys.indexOf(key);
     if(idx >= 0){
       item.classList.add('picked');
-      item.style.setProperty('--dotcolor', COMPARE_COLORS[idx % COMPARE_COLORS.length]);
+      item.style.setProperty('--dotcolor', KATEGORI_PALETTE[idx % KATEGORI_PALETTE.length]);
     }else{
       item.classList.remove('picked');
       item.style.removeProperty('--dotcolor');
@@ -6252,7 +6247,7 @@ function renderCompareChart(){
       }
     }
     
-    const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+    const color = KATEGORI_PALETTE[i % KATEGORI_PALETTE.length];
     const isStackedType = compareChartType === 'stacked-area' || compareChartType === 'stacked-bar' || compareChartType === 'stacked-bar-100';
     const yAxisID = (!isStackedType && !normalizeCompare && keys.length > 1 && i % 2 === 1) ? 'y1' : 'y';
 
