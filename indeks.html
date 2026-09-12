@@ -615,6 +615,11 @@
   table.ss-table tbody tr:hover{ background:var(--cream); }
   table.ss-table td.pos{ color:var(--green); font-weight:700; }
   table.ss-table td.neg{ color:var(--rust); font-weight:700; }
+  /* Tabel Data Perbandingan: semua kolom kecuali Periode berisi angka,
+     jadi dibuat rata tengah (bukan mengikuti aturan .ss-table umum yang
+     menganggap kolom ke-2 selalu label teks). */
+  table.ss-table.cmp-table thead th:not(:first-child){ text-align:center; }
+  table.ss-table.cmp-table td:not(:first-child){ text-align:center; color:var(--brown-mid); font-weight:400; }
   .ss-table-scroll{ max-height:420px; overflow:auto; }
   .ss-badge-quad{
     display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px;
@@ -842,6 +847,33 @@
   .badge.flat{ background:var(--cream-deep); color:var(--brown-soft); }
   .badge.na{ background:var(--cream-deep); color:var(--brown-soft); }
   .spark-wrap{ height:44px; width:100%; overflow:hidden; }
+
+  /* Popover color picker: dipakai untuk mengganti warna seri di chart mana pun,
+     juga dot legenda kartu komposit & swatch kartu indikator biasa. */
+  .color-picker-pop{
+    position:absolute; z-index:9999; background:var(--card-bg,#fff);
+    border:1px solid var(--line); border-radius:10px;
+    box-shadow:0 8px 22px rgba(0,0,0,.18); padding:7px 8px;
+    display:flex; gap:7px; align-items:center;
+  }
+  .color-picker-pop .cp-input{
+    width:32px; height:26px; border:1px solid var(--line); border-radius:6px;
+    padding:0; cursor:pointer; background:none;
+  }
+  .color-picker-pop .cp-reset{
+    font-size:11px; font-family:'Inter',sans-serif; border:1px solid var(--line);
+    background:var(--cream); border-radius:6px; padding:4px 8px; cursor:pointer;
+    color:var(--brown-mid); white-space:nowrap;
+  }
+  .color-picker-pop .cp-reset:hover:not(:disabled){ background:var(--peach); }
+  .color-picker-pop .cp-reset:disabled{ opacity:.4; cursor:default; }
+  .color-swatch-btn{
+    width:14px; height:14px; border-radius:50%; border:1.5px solid rgba(0,0,0,.15);
+    cursor:pointer; flex-shrink:0; display:inline-block; padding:0;
+  }
+  .color-swatch-btn:hover{ transform:scale(1.15); }
+  .comp-legend-item .dot, .cmp-legend-item .dot{ cursor:pointer; }
+  .comp-legend-item .dot:hover, .cmp-legend-item .dot:hover{ transform:scale(1.3); }
   .spark-wrap svg{ display:block; width:100%; height:100%; }
 
   /* Loading / empty */
@@ -1257,6 +1289,143 @@ if(typeof Chart !== 'undefined'){
   Chart.defaults.elements.point.hitRadius = 10;
   Chart.defaults.elements.line.tension = 0.4;
 }
+
+/* =========================================================
+   WARNA CUSTOM PER SERI — klik legenda mana pun (chart apa pun,
+   termasuk kartu & semua modul analisis) untuk ganti warnanya sendiri.
+   Tersimpan di localStorage, TETAP dipakai meski ganti palet tema.
+   ========================================================= */
+let CUSTOM_COLORS = {};
+(function loadCustomColors(){
+  try{
+    const raw = localStorage.getItem('klk_custom_colors');
+    if(raw) CUSTOM_COLORS = JSON.parse(raw) || {};
+  }catch(e){ CUSTOM_COLORS = {}; }
+})();
+function saveCustomColors(){
+  try{ localStorage.setItem('klk_custom_colors', JSON.stringify(CUSTOM_COLORS)); }catch(e){}
+}
+function seriesColor(key, fallback){
+  return CUSTOM_COLORS[key] || fallback;
+}
+function setSeriesColor(key, hex){
+  CUSTOM_COLORS[key] = hex;
+  saveCustomColors();
+}
+function resetSeriesColor(key){
+  delete CUSTOM_COLORS[key];
+  saveCustomColors();
+}
+
+/* Popover color picker kecil, dipakai untuk semua titik "klik utk ganti warna". */
+function closeColorPicker(){
+  const active = window.__activeColorPicker;
+  if(active){
+    active.pop.remove();
+    document.removeEventListener('mousedown', active.outsideHandler, true);
+    window.__activeColorPicker = null;
+  }
+}
+function openColorPicker(key, currentColor, clientX, clientY, onChange, onReset){
+  closeColorPicker();
+  const pop = document.createElement('div');
+  pop.className = 'color-picker-pop';
+  const hasCustom = !!CUSTOM_COLORS[key];
+  pop.innerHTML = `
+    <input type="color" class="cp-input" value="${currentColor}">
+    <button type="button" class="cp-reset" ${hasCustom?'':'disabled'} title="Kembalikan ke warna default">↺ Default</button>
+  `;
+  document.body.appendChild(pop);
+  const top = Math.min(window.scrollY + clientY + 10, window.scrollY + document.documentElement.clientHeight - 60);
+  const left = Math.min(window.scrollX + clientX + 8, window.scrollX + document.documentElement.clientWidth - 160);
+  pop.style.top = top + 'px';
+  pop.style.left = Math.max(8, left) + 'px';
+
+  const input = pop.querySelector('.cp-input');
+  input.addEventListener('input', ()=>{
+    setSeriesColor(key, input.value);
+    if(onChange) onChange(input.value);
+  });
+  pop.querySelector('.cp-reset').addEventListener('click', ()=>{
+    resetSeriesColor(key);
+    if(onReset) onReset();
+    closeColorPicker();
+  });
+
+  function outsideHandler(e){
+    if(!pop.contains(e.target)) closeColorPicker();
+  }
+  setTimeout(()=> document.addEventListener('mousedown', outsideHandler, true), 0);
+  window.__activeColorPicker = { pop, outsideHandler };
+  input.focus();
+}
+
+/* Terapkan warna baru ke satu dataset Chart.js (line/bar/dll) lalu update chart-nya. */
+function applyDatasetColor(chart, datasetIndex, hex){
+  const ds = chart.data.datasets[datasetIndex];
+  if(!ds) return;
+  if(typeof ds.borderColor === 'string' || ds.borderColor === undefined) ds.borderColor = hex;
+  if(typeof ds.backgroundColor === 'string'){
+    ds.backgroundColor = ds.backgroundColor.startsWith('rgba') ? hexToRgba(hex, rgbaAlpha(ds.backgroundColor)) : hex;
+  } else if(ds.backgroundColor === undefined){
+    ds.backgroundColor = hex;
+  }
+  if(ds.pointBackgroundColor && typeof ds.pointBackgroundColor === 'string') ds.pointBackgroundColor = hex;
+  if(ds.pointBorderColor && typeof ds.pointBorderColor === 'string') ds.pointBorderColor = hex;
+  chart.update();
+}
+function rgbaAlpha(rgbaStr){
+  const m = rgbaStr.match(/rgba?\([^)]+,\s*([\d.]+)\)/);
+  return m ? parseFloat(m[1]) : 1;
+}
+
+/* Handler default: klik legenda chart mana pun (Chart.js) langsung buka color picker,
+   menggantikan perilaku bawaan (toggle tampil/sembunyi seri). Berlaku global untuk
+   SEMUA chart di dashboard ini kecuali chart tsb secara eksplisit override onClick-nya. */
+if(typeof Chart !== 'undefined'){
+  Chart.defaults.plugins.legend.onClick = function(e, legendItem, legend){
+    const chart = legend.chart;
+    const ds = chart.data.datasets[legendItem.datasetIndex];
+    if(!ds) return;
+    const label = legendItem.text || ds.label || ('Seri ' + (legendItem.datasetIndex+1));
+    const colorKey = 'chart:' + label;
+    const current = (typeof ds.borderColor === 'string' && ds.borderColor) ||
+      (typeof ds.backgroundColor === 'string' && ds.backgroundColor) || THEME.accent;
+    const evt = e.native || e;
+    openColorPicker(colorKey, current, evt.clientX||0, evt.clientY||0,
+      (hex)=> applyDatasetColor(chart, legendItem.datasetIndex, hex),
+      ()=> { rerenderCurrentView(); }
+    );
+  };
+
+  /* Terapkan warna custom yang sudah tersimpan ke chart yang BARU dibuat, supaya
+     pilihan warna tetap kepakai walau chart-nya di-render ulang (ganti tab, ganti
+     palet tema, dsb). Dilakukan dengan membungkus constructor Chart sekali saja. */
+  const __OrigChart = Chart;
+  const __ChartWrapper = function(ctx, config){
+    try{
+      if(config && config.data && Array.isArray(config.data.datasets)){
+        config.data.datasets.forEach(ds=>{
+          const custom = ds && ds.label ? CUSTOM_COLORS['chart:'+ds.label] : null;
+          if(custom){
+            if(typeof ds.borderColor === 'string' || ds.borderColor===undefined) ds.borderColor = custom;
+            if(typeof ds.backgroundColor === 'string'){
+              ds.backgroundColor = ds.backgroundColor.startsWith('rgba') ? hexToRgba(custom, rgbaAlpha(ds.backgroundColor)) : custom;
+            } else if(ds.backgroundColor===undefined){
+              ds.backgroundColor = custom;
+            }
+            if(ds.pointBackgroundColor && typeof ds.pointBackgroundColor==='string') ds.pointBackgroundColor = custom;
+          }
+        });
+      }
+    }catch(e){}
+    return new __OrigChart(ctx, config);
+  };
+  __ChartWrapper.prototype = __OrigChart.prototype;
+  Object.assign(__ChartWrapper, __OrigChart);
+  Chart = __ChartWrapper;
+}
+
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS0IHQMxQuwLfTdSgKoXUqA8guCT788uBZ4cwlE72X6co3LMRcGU6tk1PSMbi7nVeEB2g-kTVXYBPyv/pub?output=csv";
 
 /* ===== Palet Warna Dashboard ===== */
@@ -1559,7 +1728,7 @@ function getGroupColor(kategori, kelompok){
     const idx = Object.keys(GROUP_COLOR_MAP).length % KATEGORI_PALETTE.length;
     GROUP_COLOR_MAP[key] = KATEGORI_PALETTE[idx];
   }
-  return GROUP_COLOR_MAP[key];
+  return seriesColor('grp:'+key, GROUP_COLOR_MAP[key]);
 }
 
 let CHART_STYLE_OVERRIDES = {};
@@ -2293,6 +2462,7 @@ function renderContent(periode){
           html += `<div class="card" data-key='${key}' data-kel="${escapeHtml(kelompok)}" data-sub="${escapeHtml(sub)}">
               <div class="card-label card-label-hidden">${escapeHtml(sub)}</div>
               <div class="card-top-row card-top-row-noLabel">
+                <button type="button" class="color-swatch-btn" style="background:${kelColor}" data-colorkey="grp:${escapeHtml(kategori)}|||${escapeHtml(kelompok)}" data-fallbackcolor="${kelColor}" title="Ganti warna kelompok ini"></button>
                 <select class="chart-style-select" data-stylekey="${escapeHtml(styleKey)}" title="Ubah gaya grafik">${styleOptionsHtml}</select>
               </div>
               <div>
@@ -2352,6 +2522,32 @@ function renderContent(periode){
       CHART_STYLE_OVERRIDES[sel.dataset.stylekey] = sel.value;
       renderContent(activePeriode || periode);
     });
+  });
+
+  document.querySelectorAll('.color-swatch-btn[data-colorkey]').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      e.stopPropagation();
+      const key = btn.dataset.colorkey;
+      const current = seriesColor(key, btn.dataset.fallbackcolor);
+      openColorPicker(key, current, e.clientX, e.clientY,
+        ()=>{ renderContent(activePeriode || periode); },
+        ()=>{ renderContent(activePeriode || periode); }
+      );
+    });
+    btn.addEventListener('mousedown', e=>e.stopPropagation());
+  });
+
+  document.querySelectorAll('.comp-legend-item .dot[data-colorkey]').forEach(dot=>{
+    dot.addEventListener('click', e=>{
+      e.stopPropagation();
+      const key = dot.dataset.colorkey;
+      const current = seriesColor(key, dot.dataset.fallbackcolor);
+      openColorPicker(key, current, e.clientX, e.clientY,
+        ()=>{ renderContent(activePeriode || periode); },
+        ()=>{ renderContent(activePeriode || periode); }
+      );
+    });
+    dot.addEventListener('mousedown', e=>e.stopPropagation());
   });
 
   document.querySelectorAll('.comp-card').forEach(card=>{
@@ -2416,6 +2612,45 @@ function longestCommonPrefix(strs){
   return prefix;
 }
 
+/* Untuk grup komposisi persentase (mis. "40% Penduduk Berpendapatan Rendah/Sedang/Tinggi"),
+   nama kartu diambil dari bagian subkelompok yang sama (setelah angka % dibuang), bukan
+   nama kelompok generik — supaya lebih deskriptif kalau ada beberapa kartu komposit
+   dalam satu kelompok. */
+function derivePctGroupLabel(segs, kelompok){
+  const stripped = segs.map(s=>s.replace(/^\d+(\.\d+)?%\s*/,'').trim()).filter(Boolean);
+  if(stripped.length < 2) return kelompok;
+  const prefix = longestCommonPrefix(stripped).trim();
+  return prefix.length >= 4 ? prefix : kelompok;
+}
+
+/* Buat beberapa shade dari satu warna dasar (kelColor) untuk segmen bar/legend
+   kartu komposit, supaya tiap kelompok punya nuansa warnanya sendiri (bukan
+   palet umum COMPARE_COLORS yang sama untuk semua kelompok). */
+function hexToRgbArr(hex){
+  hex = hex.replace('#','');
+  if(hex.length===3) hex = hex.split('').map(c=>c+c).join('');
+  return [parseInt(hex.substring(0,2),16), parseInt(hex.substring(2,4),16), parseInt(hex.substring(4,6),16)];
+}
+function shadeHex(hex, percent){
+  const [r,g,b] = hexToRgbArr(hex);
+  const toHex = v => Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0');
+  if(percent >= 0){
+    return '#' + toHex(r+(255-r)*percent) + toHex(g+(255-g)*percent) + toHex(b+(255-b)*percent);
+  }
+  const p = 1+percent;
+  return '#' + toHex(r*p) + toHex(g*p) + toHex(b*p);
+}
+function getKelompokShades(baseColor, n){
+  if(n<=1) return [baseColor];
+  const shades = [];
+  for(let i=0;i<n;i++){
+    const t = i/(n-1); // 0..1
+    const percent = -0.32 + t*0.62; // dari lebih gelap ke lebih terang
+    shades.push(shadeHex(baseColor, percent));
+  }
+  return shades;
+}
+
 /* Pola prefix PDRB yang dikenal — dipakai untuk deteksi grup DAN untuk memotong
    label di grafik/legend (hanya sisakan nama sektor/komponen pengeluaran).
    "Bruto" opsional supaya menangani variasi penamaan ("Nilai Tambah Bruto Harga
@@ -2462,7 +2697,7 @@ function splitHargaKonstanGroups(subObj){
 function getCompositionGroups(subObj, kelompok){
   const groups = [];
   const pctSegs = splitCompositionSegments(subObj);
-  if(pctSegs) groups.push({ label:kelompok, segs:pctSegs, normalized:true, kind:'pct' });
+  if(pctSegs) groups.push({ label:derivePctGroupLabel(pctSegs, kelompok), segs:pctSegs, normalized:true, kind:'pct' });
   const claimed = new Set(pctSegs || []);
 
   splitHargaBerlakuGroups(subObj).forEach(hb=>{
@@ -2492,22 +2727,25 @@ function renderCompositionCardHtml(periode,kategori,kelompok,subObj,group,katCol
   });
   const total = latestEntries.reduce((sum,x)=>sum + (x.entry?x.entry.data:0), 0) || 1;
   const latestLabel = latestEntries[0].entry ? periodLabel(latestEntries[0].entry) : '';
+  const kelShades = getKelompokShades(katColor, latestEntries.length);
+  const segColors = latestEntries.map((x,i)=> seriesColor('comp:'+kelompok+':'+x.sub, kelShades[i]));
 
   const barSegs = latestEntries.map((x,i)=>{
     const pct = x.entry ? (x.entry.data/total*100) : 0;
-    const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+    const color = segColors[i];
     return `<div class="comp-bar-seg" style="flex:${Math.max(pct,0.5)};background:${color};" title="${escapeHtml(x.sub)}: ${fmtNum(x.entry?x.entry.data:NaN)}"></div>`;
   }).join('');
 
   const legend = latestEntries.map((x,i)=>{
-    const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+    const color = segColors[i];
     let shortName = x.sub;
     if(shortName.startsWith(label)){
       shortName = shortName.slice(label.length).trim().replace(/^[-–:\/]\s*/,'');
     }
     if(!shortName) shortName = x.sub;
     const valTeks = fmtNum(x.entry?x.entry.data:NaN) + (SATUAN[x.sub] ? ` ${SATUAN[x.sub]}` : '');
-    return `<div class="comp-legend-item" title="${escapeHtml(x.sub)}: ${fmtNum(x.entry?x.entry.data:NaN)}"><span class="dot" style="background:${color}"></span>${escapeHtml(shortName)} <b>${valTeks}</b></div>`;
+    const colorKey = 'comp:'+kelompok+':'+x.sub;
+    return `<div class="comp-legend-item" title="${escapeHtml(x.sub)}: ${fmtNum(x.entry?x.entry.data:NaN)}"><span class="dot" data-colorkey="${escapeHtml(colorKey)}" data-fallbackcolor="${kelShades[i]}" style="background:${color}"></span>${escapeHtml(shortName)} <b>${valTeks}</b></div>`;
   }).join('');
 
   const subtitle = kind==='konstan' ? `${segs.length} sektor · Klik untuk nilai &amp; pertumbuhan per tahun`
@@ -2777,7 +3015,7 @@ async function exportStyledExcel(filename, sheetName, header, rows){
       };
       if(typeof cell.value === 'number'){
         cell.numFmt = '#,##0.00';
-        cell.alignment = { horizontal:'right' };
+        cell.alignment = { horizontal:'center' };
       }else{
         cell.alignment = { horizontal: colNumber===1 ? 'left' : 'center' };
       }
@@ -5179,7 +5417,10 @@ function updatePickerColors(){
     const idx = keys.indexOf(key);
     if(idx >= 0){
       item.classList.add('picked');
-      item.style.setProperty('--dotcolor', KATEGORI_PALETTE[idx % KATEGORI_PALETTE.length]);
+      const info = compareIndex[key];
+      const fallback = KATEGORI_PALETTE[idx % KATEGORI_PALETTE.length];
+      const color = info ? seriesColor('chart:'+subLabel(info.sub), fallback) : fallback;
+      item.style.setProperty('--dotcolor', color);
     }else{
       item.classList.remove('picked');
       item.style.removeProperty('--dotcolor');
@@ -6531,7 +6772,7 @@ function renderCompareDataTable(keys){
   box.style.display='block';
 
   const { header, rows } = buildCompareTableData(keys);
-  let html = '<table class="ss-table"><thead><tr>';
+  let html = '<table class="ss-table cmp-table"><thead><tr>';
   header.forEach(h=> html += `<th>${escapeHtml(h)}</th>`);
   html += '</tr></thead><tbody>';
   rows.forEach(r=>{
