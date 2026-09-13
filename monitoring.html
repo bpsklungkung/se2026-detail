@@ -1489,9 +1489,10 @@ function renderSummaryVerifikasi(rows){
 }
 
 // Status "(Injek)" adalah kelompok status tersendiri (ganda_injek,
-// tidak_ditemukan_injek, tutup_injek); direkap sebagai satu kolom "Total Injek"
-// di samping Total keseluruhan supaya tabel tidak terlalu lebar.
-function isInjekStatus(value){ return /_injek$/.test(norm(value)); }
+// tidak_ditemukan_injek, tutup_injek), dan status "Paksa" juga dihitung
+// sebagai bagian dari kolom "Total Injek" di samping Total keseluruhan
+// supaya tabel tidak terlalu lebar.
+function isInjekStatus(value){ const v = norm(value); return /_injek$/.test(v) || v === 'paksa'; }
 
 function pivotCellHtml(total, todayDelta){
   const numCls = total > 0 ? 'pivot-num' : 'pivot-num zero';
@@ -1559,7 +1560,7 @@ function renderSummaryVerifikator(rows){
     return acc;
   }, { total:0, totalToday:0, injek:0, injekToday:0 });
 
-  const th = key => `<th class="sortable${verifikatorSort.key===key?' sort-active':''}" onclick="sortVerifikatorBy('${key}')">${key==='name'?'Verifikator':(key==='total'?'Total':'Total Injek')}<span class="sort-arrow">${verifikatorSortArrow(key)}</span></th>`;
+  const th = key => `<th class="sortable${verifikatorSort.key===key?' sort-active':''}" onclick="sortVerifikatorBy('${key}')">${key==='name'?'Verifikator':(key==='total'?'Total':'Total Injek dan Paksa')}<span class="sort-arrow">${verifikatorSortArrow(key)}</span></th>`;
 
   const bodyRows = list.map(v=>{
     return `<tr>
