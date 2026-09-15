@@ -419,6 +419,10 @@
       <label for="fPPL">PPL</label>
       <select id="fPPL"><option value="">Semua</option></select>
     </div>
+    <div class="field">
+      <label for="fVerifikator">Verifikator</label>
+      <select id="fVerifikator"><option value="">Semua</option></select>
+    </div>
     <div class="field range-field">
       <label for="fNumericKolom">Filter Nilai (Kolom)</label>
       <select id="fNumericKolom"><option value="">- Pilih Kolom -</option></select>
@@ -503,14 +507,15 @@
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxY84SCvN3krrPBJ9jp6-mxiWWB4rqNjHmLwrhBmArACUeZpfyHlNkADJq7fNW3h2lDoA/exec";
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKNHy1T-JkECJNniuxlfRxjZOdkzhJpmKmfn0Unqs7FTcqHwtkLsTQrLBG6cNAbib3v3Xkb3GSg00S/pub?output=csv";
 const VERIFIKATORS = ["Zidan", "Herlinda", "Permana", "Sutama", "Purnami", "Sukma", "Asya", "Indri", "Budiriani", "Rosma", "Eka", "Yoga", "Ave", "Monic", "Suparta", "Halim", "Okta", "Bajra", "Dharma", "Sudiasa", "Ary"];
-const STATUSES = ["Sudah Sesuai", "Perbaiki Nilai", "Perbaiki Pendapatan", "Perbaiki Pengeluaran", "Perbaiki Naker", "Perbaiki Aset"];
+const STATUSES = ["Sudah Sesuai", "Perbaiki Nilai", "Perbaiki Pendapatan", "Perbaiki Pengeluaran", "Perbaiki Naker", "Perbaiki Aset", "Ganti KBLI"];
 const STATUS_COLORS = {
   "Sudah Sesuai": "#166534",
   "Perbaiki Nilai": "#B23A48",
   "Perbaiki Pendapatan": "#C1440E",
   "Perbaiki Pengeluaran": "#8C6BAF",
   "Perbaiki Naker": "#3E6E8E",
-  "Perbaiki Aset": "#4B86B4"
+  "Perbaiki Aset": "#4B86B4",
+  "Ganti KBLI": "#A6740C"
 };
 
 let actionStates = {};
@@ -518,6 +523,7 @@ let actionStates = {};
 const IDX = {
   ASSIGNMENT_ID: 0, 
   KATEGORI: 1,   
+  KBLI: 2,
   KEC: 4,        
   DESA: 5,       
   SLS: 6,        
@@ -719,6 +725,7 @@ window.editState = function(idx) {
 function buildColDefs(){
   colDefs = [
     {idx: IDX.KATEGORI, label: 'Kat', fmt: fmtText, cls:'', width:40},
+    {idx: IDX.KBLI, label: 'KBLI', fmt: fmtText, cls:'', width:56},
     //{idx: IDX.KEC, label: 'Kecamatan', fmt: fmtText, cls:''},
     //{idx: IDX.DESA, label: 'Desa', fmt: fmtText, cls:''},
     //{idx: IDX.SLS, label: 'SLS', fmt: fmtText, cls:''},
@@ -834,6 +841,7 @@ function getFilteredByDropdowns(){
   const sls = el('fSLS').value;
   const pml = el('fPML').value;
   const ppl = el('fPPL').value;
+  const verifikator = el('fVerifikator').value;
   return rawRows.filter(r=>{
     if (kategori && (r[IDX.KATEGORI]||'').trim() !== kategori) return false;
     if (kec && (r[IDX.KEC]||'').trim() !== kec) return false;
@@ -841,6 +849,8 @@ function getFilteredByDropdowns(){
     if (sls && (r[IDX.SLS]||'').trim() !== sls) return false;
     if (pml && (r[IDX.PML]||'').trim() !== pml) return false;
     if (ppl && (r[IDX.PPL]||'').trim() !== ppl) return false;
+    if (verifikator === '__BELUM__') { if (getVState(r).v) return false; }
+    else if (verifikator && getVState(r).v !== verifikator) return false;
     return true;
   });
 }
@@ -1264,6 +1274,7 @@ el('fDesa').addEventListener('change', function(){ refreshCascade('desa'); onFil
 el('fSLS').addEventListener('change', onFilterChange);
 el('fPML').addEventListener('change', onFilterChange);
 el('fPPL').addEventListener('change', onFilterChange);
+el('fVerifikator').addEventListener('change', onFilterChange);
 
 el('fNumericKolom').addEventListener('change', function(){
   updateNumericPlaceholders();
@@ -1293,7 +1304,7 @@ el('searchBox').addEventListener('input', function(){
 });
 
 el('btnReset').addEventListener('click', function(){
-  ['fKategori','fKec','fDesa','fSLS','fPML','fPPL'].forEach(id => el(id).value = '');
+  ['fKategori','fKec','fDesa','fSLS','fPML','fPPL','fVerifikator'].forEach(id => el(id).value = '');
   fillSelect(el('fDesa'), uniqueSorted(rawRows, IDX.DESA), '');
   fillSelect(el('fSLS'), uniqueSorted(rawRows, IDX.SLS), '');
   el('fNumericKolom').value = '';
@@ -1330,6 +1341,7 @@ Papa.parse(CSV_URL, {
     fillSelect(el('fSLS'), uniqueSorted(rawRows, IDX.SLS), '');
     fillSelect(el('fPML'), uniqueSorted(rawRows, IDX.PML), '');
     fillSelect(el('fPPL'), uniqueSorted(rawRows, IDX.PPL), '');
+    el('fVerifikator').innerHTML = '<option value="">Semua</option><option value="__BELUM__">Belum</option>' + VERIFIKATORS.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
 
     el('loadingMsg').style.display = 'none';
     el('tableArea').style.display = 'block';
