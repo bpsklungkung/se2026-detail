@@ -423,6 +423,10 @@
       <label for="fVerifikator">Verifikator</label>
       <select id="fVerifikator"><option value="">Semua</option></select>
     </div>
+    <div class="field">
+      <label for="fKBLI2">KBLI (2 Digit)</label>
+      <select id="fKBLI2"><option value="">Semua</option></select>
+    </div>
     <div class="field range-field">
       <label for="fNumericKolom">Filter Nilai (Kolom)</label>
       <select id="fNumericKolom"><option value="">- Pilih Kolom -</option></select>
@@ -828,6 +832,16 @@ function uniqueSorted(rows, idx){
   return Array.from(set).sort((a,b)=>a.localeCompare(b, 'id'));
 }
 
+function kbli2(v){
+  return (v||'').toString().trim().slice(0,2);
+}
+
+function uniqueKbli2(rows){
+  const set = new Set();
+  rows.forEach(r => { const v = kbli2(r[IDX.KBLI]); if (v) set.add(v); });
+  return Array.from(set).sort();
+}
+
 function fillSelect(sel, values, keepValue){
   const current = keepValue !== undefined ? keepValue : sel.value;
   sel.innerHTML = '<option value="">Semua</option>' + values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
@@ -842,6 +856,7 @@ function getFilteredByDropdowns(){
   const pml = el('fPML').value;
   const ppl = el('fPPL').value;
   const verifikator = el('fVerifikator').value;
+  const kbli2Val = el('fKBLI2').value;
   return rawRows.filter(r=>{
     if (kategori && (r[IDX.KATEGORI]||'').trim() !== kategori) return false;
     if (kec && (r[IDX.KEC]||'').trim() !== kec) return false;
@@ -851,6 +866,7 @@ function getFilteredByDropdowns(){
     if (ppl && (r[IDX.PPL]||'').trim() !== ppl) return false;
     if (verifikator === '__BELUM__') { if (getVState(r).v) return false; }
     else if (verifikator && getVState(r).v !== verifikator) return false;
+    if (kbli2Val && kbli2(r[IDX.KBLI]) !== kbli2Val) return false;
     return true;
   });
 }
@@ -1275,6 +1291,7 @@ el('fSLS').addEventListener('change', onFilterChange);
 el('fPML').addEventListener('change', onFilterChange);
 el('fPPL').addEventListener('change', onFilterChange);
 el('fVerifikator').addEventListener('change', onFilterChange);
+el('fKBLI2').addEventListener('change', onFilterChange);
 
 el('fNumericKolom').addEventListener('change', function(){
   updateNumericPlaceholders();
@@ -1304,7 +1321,7 @@ el('searchBox').addEventListener('input', function(){
 });
 
 el('btnReset').addEventListener('click', function(){
-  ['fKategori','fKec','fDesa','fSLS','fPML','fPPL','fVerifikator'].forEach(id => el(id).value = '');
+  ['fKategori','fKec','fDesa','fSLS','fPML','fPPL','fVerifikator','fKBLI2'].forEach(id => el(id).value = '');
   fillSelect(el('fDesa'), uniqueSorted(rawRows, IDX.DESA), '');
   fillSelect(el('fSLS'), uniqueSorted(rawRows, IDX.SLS), '');
   el('fNumericKolom').value = '';
@@ -1342,6 +1359,7 @@ Papa.parse(CSV_URL, {
     fillSelect(el('fPML'), uniqueSorted(rawRows, IDX.PML), '');
     fillSelect(el('fPPL'), uniqueSorted(rawRows, IDX.PPL), '');
     el('fVerifikator').innerHTML = '<option value="">Semua</option><option value="__BELUM__">Belum</option>' + VERIFIKATORS.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+    fillSelect(el('fKBLI2'), uniqueKbli2(rawRows), '');
 
     el('loadingMsg').style.display = 'none';
     el('tableArea').style.display = 'block';
