@@ -778,11 +778,6 @@
     transform:translateY(-2px);
     border-left-color:var(--orange); border-right-color:var(--orange); border-bottom-color:var(--orange);
   }
-  /* Kelompok pertama di halaman (paling atas) sengaja dibuat mencolok pakai warna paling cerah,
-     kelompok lain tetap pakai warna tema per-kelompok (kat-accent) seperti semula. */
-  .kelompok-block.kelompok-first .card{
-    border-top-color: var(--orange);
-  }
   .card.comp-card{
     display:flex;
     flex-direction:column;
@@ -2052,7 +2047,7 @@ function computeHeroStats(){
 /* ===== Cari Data (form permintaan data ke pengunjung) ===== */
 let cariMode = false;
 let cariSubmitState = 'idle'; // idle | sending | success | error
-const CARI_DATA_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyCzTQjTacJpekC6ysXuom3-dk7rkcPt7E4VC2b8TzbrJy1y1ou8bSCReIWY4A3TBaKQg/exec';
+const CARI_DATA_WEBAPP_URL = 'https://script.google.com/macros/s/GANTI_DENGAN_URL_DEPLOYMENT_ANDA/exec';
 
 function renderTabs(){
   const containers = [document.getElementById('tabs'), document.getElementById('tabsVertical')].filter(Boolean);
@@ -2624,7 +2619,8 @@ function renderContent(periode){
     visibleKelompok.forEach(kelompok=>{
       const subObj = kelObj[kelompok];
       const compGroups = getCompositionGroups(subObj, kelompok);
-      const kelColor = getGroupColor(kategori, kelompok);
+      const rawKelColor = getGroupColor(kategori, kelompok);
+      const kelColor = isFirstKelompokBlock ? THEME.accent : rawKelColor;
       const claimedSubs = new Set(compGroups.flatMap(g=>g.segs));
       const normalSubs = Object.keys(subObj).filter(s=>!claimedSubs.has(s));
 
