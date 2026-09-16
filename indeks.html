@@ -53,7 +53,7 @@
 
   /* ===== Hero ===== */
   .hero{
-    background: var(--brown);
+    background: var(--orange);
     border-bottom:none;
     max-width:1280px; margin:0 auto;
     padding:30px 24px 40px;
@@ -365,9 +365,37 @@
   }
   .cmp-normalize{ display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; color:var(--brown-mid); cursor:pointer; }
 
+  /* ===== Cari Data (form permintaan data) ===== */
+  .cari-form{
+    max-width:560px;
+    display:flex; flex-direction:column; gap:14px;
+    background:var(--card-bg); border:1px solid var(--line); border-radius:14px;
+    padding:22px 24px; margin-top:16px;
+  }
+  .cari-field{ display:flex; flex-direction:column; gap:5px; }
+  .cari-field label{ font-size:12.5px; font-weight:700; color:var(--brown-mid); }
+  .cari-field label .req{ color:var(--orange); margin-left:2px; }
+  .cari-field input, .cari-field textarea{
+    font-family:'Inter',sans-serif; font-size:13px; color:var(--brown-deep);
+    background:var(--cream); border:1px solid var(--line); border-radius:9px;
+    padding:9px 12px; resize:vertical;
+  }
+  .cari-field input:focus, .cari-field textarea:focus{ outline:2px solid var(--orange); outline-offset:1px; }
+  .cari-submit-btn{
+    align-self:flex-start;
+    font-family:'Inter',sans-serif; font-size:13px; font-weight:700;
+    padding:10px 22px; border-radius:999px; border:1px solid var(--orange); background:var(--orange);
+    color:#fff; cursor:pointer;
+  }
+  .cari-submit-btn:hover{ background:var(--orange-deep); border-color:var(--orange-deep); }
+  .cari-submit-btn:disabled{ opacity:.6; cursor:default; }
+  .cari-status{ font-size:12.5px; font-weight:600; margin-top:2px; }
+  .cari-status.ok{ color:var(--green); }
+  .cari-status.err{ color:var(--rust); }
+
   .cmp-suggest{
     display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-    background:linear-gradient(160deg, var(--peach-soft) 0%, var(--card-bg) 60%);
+    background:var(--peach-soft);
     border:1px solid var(--border); border-left:3px solid var(--orange);
     border-radius:10px; padding:9px 14px; margin-bottom:14px;
     font-size:12.5px; color:var(--brown); line-height:1.5;
@@ -381,7 +409,7 @@
   }
   .cmp-suggest-btn:hover{ background:var(--orange-deep); border-color:var(--orange-deep); }
   .cmp-suggest.cmp-suggest-match{
-    background:linear-gradient(160deg, var(--green-bg) 0%, var(--card-bg) 60%);
+    background:var(--green-bg);
     border-left-color:var(--green);
   }
   .cmp-suggest.cmp-suggest-match b{ color:var(--green); }
@@ -435,7 +463,7 @@
     gap:12px;
   }
   .ai-insight-box{
-    background: linear-gradient(160deg, var(--peach-soft) 0%, var(--card-bg) 55%);
+    background: var(--peach-soft);
     border:1px solid var(--border); border-left:3px solid var(--orange);
     border-radius:12px;
     padding:16px 18px;
@@ -505,7 +533,7 @@
   .inf-diag-note{ font-size:11px; color:var(--brown-soft); margin-top:6px; }
   .inf-formula{
     font-family:'JetBrains Mono','Menlo','Consolas',monospace; font-weight:600; font-size:14.5px;
-    color:var(--brown-deep); background:var(--cream-deep); padding:11px 16px;
+    color:var(--brown-deep); background:var(--peach-soft); padding:11px 16px;
     border-radius:8px; letter-spacing:.01em; line-height:1.7; overflow-x:auto;
   }
   .inf-formula-caption{ margin:6px 0 2px 2px; font-size:11.5px; font-style:italic; color:var(--brown-soft); line-height:1.5; }
@@ -543,7 +571,7 @@
   .ss-method-tab:hover:not(.active){ background:var(--peach-soft); }
 
   .ss-method-note{
-    background:linear-gradient(160deg, var(--peach-soft) 0%, var(--card-bg) 55%);
+    background:var(--peach-soft);
     border:1px solid var(--border); border-left:3px solid var(--orange); border-radius:12px; padding:13px 17px; margin-bottom:14px;
     font-size:12px; line-height:1.55; color:var(--brown);
   }
@@ -553,9 +581,9 @@
     font-weight:700; font-size:11px; letter-spacing:.05em; text-transform:uppercase;
     color:var(--orange-deep); margin-bottom:5px;
   }
-  .ss-method-note .formula-list{ margin:4px 0 2px 0; padding:9px 16px 9px 32px; background:var(--cream-deep); border-radius:8px; }
-  .ss-method-note .formula-list li{ margin-bottom:4px; font-family:'JetBrains Mono','Menlo','Consolas',monospace; font-size:14.5px; font-weight:600; color:var(--brown-deep); }
-  .ss-method-note .formula-caption{ margin:6px 0 2px 4px; font-size:11.5px; font-style:italic; color:var(--brown-soft); line-height:1.5; }
+  .formula-list{ margin:4px 0 2px 0; padding:9px 16px 9px 32px; background:transparent; border-radius:8px; }
+  .formula-list li{ margin-bottom:4px; font-family:'JetBrains Mono','Menlo','Consolas',monospace; font-size:14.5px; font-weight:600; color:var(--brown-deep); }
+  .formula-caption{ margin:6px 0 2px 4px; font-size:11.5px; font-style:italic; color:var(--brown-soft); line-height:1.5; }
   .ss-method-note .component-list{ margin:4px 0 8px 20px; padding:0; }
   .ss-method-note .component-list li{ margin-bottom:5px; }
   .ss-method-note .mn-points{ margin:2px 0 0; padding-left:19px; list-style:disc; }
@@ -701,7 +729,7 @@
   }
 
   .insight-card{
-    background:linear-gradient(120deg, var(--kat-accent, var(--orange))17, var(--card-bg) 55%);
+    background:var(--peach-soft);
     border:1px solid var(--line);
     border-top:4px solid var(--kat-accent, var(--orange));
     border-left:5px solid var(--kat-accent, var(--orange));
@@ -749,7 +777,11 @@
   .card:hover{
     transform:translateY(-2px);
     border-left-color:var(--orange); border-right-color:var(--orange); border-bottom-color:var(--orange);
-    box-shadow:0 3px 6px rgba(16,26,30,.08), 0 10px 22px rgba(16,26,30,.12);
+  }
+  /* Kelompok pertama di halaman (paling atas) sengaja dibuat mencolok pakai warna paling cerah,
+     kelompok lain tetap pakai warna tema per-kelompok (kat-accent) seperti semula. */
+  .kelompok-block.kelompok-first .card{
+    border-top-color: var(--orange);
   }
   .card.comp-card{
     display:flex;
@@ -1181,10 +1213,9 @@
     background:var(--white);
     border:1px solid var(--border);
     display:flex; align-items:center; justify-content:center;
-    transition:transform .15s, box-shadow .15s;
-    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+    transition:transform .15s;
   }
-  .footer-social-icons a:hover{ transform:translateY(-3px); box-shadow:0 5px 14px rgba(0,0,0,0.14); }
+  .footer-social-icons a:hover{ transform:translateY(-3px); }
   .footer-social-icons svg{ width:20px; height:20px; display:block; }
 </style>
 </head>
@@ -1569,6 +1600,7 @@ function rerenderCurrentView(){
   if(typeof convMode!=='undefined' && convMode){ renderKonvergensiView(); return; }
   if(typeof divMode!=='undefined' && divMode){ renderDiversityView(); return; }
   if(typeof advMode!=='undefined' && advMode){ renderAdvancedView(); return; }
+  if(typeof cariMode!=='undefined' && cariMode){ renderCariDataView(); return; }
   if(typeof activePeriode!=='undefined' && activePeriode) renderContent(activePeriode);
 }
 
@@ -2017,15 +2049,20 @@ function computeHeroStats(){
   if(elTerbaru) elTerbaru.textContent = isFinite(maxTahun) ? maxTahun : '–';
 }
 
+/* ===== Cari Data (form permintaan data ke pengunjung) ===== */
+let cariMode = false;
+let cariSubmitState = 'idle'; // idle | sending | success | error
+const CARI_DATA_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyCzTQjTacJpekC6ysXuom3-dk7rkcPt7E4VC2b8TzbrJy1y1ou8bSCReIWY4A3TBaKQg/exec';
+
 function renderTabs(){
   const containers = [document.getElementById('tabs'), document.getElementById('tabsVertical')].filter(Boolean);
   containers.forEach(tabsEl=>{
     tabsEl.innerHTML = '';
     STORE.__order.forEach(p=>{
       const btn = document.createElement('button');
-      btn.className = 'tab' + (!compareMode && !ssMode && p===activePeriode?' active':'');
+      btn.className = 'tab' + (!compareMode && !ssMode && !cariMode && p===activePeriode?' active':'');
       btn.textContent = p;
-      btn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; activePeriode = p; renderTabs(); renderContent(p); };
+      btn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; activePeriode = p; renderTabs(); renderContent(p); };
       tabsEl.appendChild(btn);
     });
 
@@ -2036,44 +2073,156 @@ function renderTabs(){
     const cmpBtn = document.createElement('button');
     cmpBtn.className = 'tab' + (compareMode ? ' active' : '');
     cmpBtn.textContent = 'Bandingkan';
-    cmpBtn.onclick = ()=>{ compareMode = true; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; renderTabs(); renderCompareView(); };
+    cmpBtn.onclick = ()=>{ compareMode = true; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; renderTabs(); renderCompareView(); };
     tabsEl.appendChild(cmpBtn);
 
     const infBtn = document.createElement('button');
     infBtn.className = 'tab' + (infMode ? ' active' : '');
     infBtn.textContent = 'Inferensia';
-    infBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = true; renderTabs(); renderInferensiaView(); };
+    infBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = true; cariMode = false; renderTabs(); renderInferensiaView(); };
     tabsEl.appendChild(infBtn);
 
     const ssBtn = document.createElement('button');
     ssBtn.className = 'tab' + (ssMode ? ' active' : '');
     ssBtn.textContent = 'Shift-Share';
-    ssBtn.onclick = ()=>{ compareMode = false; ssMode = true; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; renderTabs(); renderShiftShareView(); };
+    ssBtn.onclick = ()=>{ compareMode = false; ssMode = true; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; renderTabs(); renderShiftShareView(); };
     tabsEl.appendChild(ssBtn);
 
     const lqBtn = document.createElement('button');
     lqBtn.className = 'tab' + (lqMode ? ' active' : '');
     lqBtn.textContent = 'LQ';
-    lqBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = true; convMode = false; divMode = false; advMode = false; infMode = false; renderTabs(); renderLQView(); };
+    lqBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = true; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; renderTabs(); renderLQView(); };
     tabsEl.appendChild(lqBtn);
 
     const convBtn = document.createElement('button');
     convBtn.className = 'tab' + (convMode ? ' active' : '');
     convBtn.textContent = 'Konvergensi';
-    convBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = true; divMode = false; advMode = false; infMode = false; renderTabs(); renderKonvergensiView(); };
+    convBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = true; divMode = false; advMode = false; infMode = false; cariMode = false; renderTabs(); renderKonvergensiView(); };
     tabsEl.appendChild(convBtn);
 
     const divBtn = document.createElement('button');
     divBtn.className = 'tab' + (divMode ? ' active' : '');
     divBtn.textContent = 'Diversitas';
-    divBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = true; advMode = false; infMode = false; renderTabs(); renderDiversityView(); };
+    divBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = true; advMode = false; infMode = false; cariMode = false; renderTabs(); renderDiversityView(); };
     tabsEl.appendChild(divBtn);
 
     const advBtn = document.createElement('button');
     advBtn.className = 'tab' + (advMode ? ' active' : '');
     advBtn.textContent = 'Struktural';
-    advBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = true; infMode = false; renderTabs(); renderAdvancedView(); };
+    advBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = true; infMode = false; cariMode = false; renderTabs(); renderAdvancedView(); };
     tabsEl.appendChild(advBtn);
+
+    const sep2 = document.createElement('span');
+    sep2.className = 'tab-sep';
+    tabsEl.appendChild(sep2);
+
+    const cariBtn = document.createElement('button');
+    cariBtn.className = 'tab' + (cariMode ? ' active' : '');
+    cariBtn.textContent = 'Cari Data';
+    cariBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = true; renderTabs(); renderCariDataView(); };
+    tabsEl.appendChild(cariBtn);
+  });
+}
+
+/* ===== Cari Data: form permintaan data, dikirim ke Google Sheet via Apps Script Web App ===== */
+function renderCariDataView(){
+  const filterPanel = document.getElementById('kelFilterPanel');
+  if(filterPanel) filterPanel.style.display = 'none';
+  const main = document.getElementById('main');
+
+  main.innerHTML = `
+    <section class="ss-wrap">
+      <div class="ss-intro">
+        <h2>Cari Data</h2>
+        <p>Tidak menemukan indikator yang Anda butuhkan di dashboard ini? Isi formulir di bawah, tim kami akan menindaklanjuti dan mengirimkan balasan ke email yang Anda cantumkan.</p>
+      </div>
+      <form class="cari-form" id="cariForm">
+        <div class="cari-field">
+          <label for="cariNama">Nama<span class="req">*</span></label>
+          <input type="text" id="cariNama" name="nama" required autocomplete="name">
+        </div>
+        <div class="cari-field">
+          <label for="cariAlamat">Alamat<span class="req">*</span></label>
+          <input type="text" id="cariAlamat" name="alamat" required autocomplete="street-address">
+        </div>
+        <div class="cari-field">
+          <label for="cariPekerjaan">Pekerjaan<span class="req">*</span></label>
+          <input type="text" id="cariPekerjaan" name="pekerjaan" required autocomplete="organization-title">
+        </div>
+        <div class="cari-field">
+          <label for="cariDataDicari">Data yang Dicari<span class="req">*</span></label>
+          <textarea id="cariDataDicari" name="dataDicari" rows="4" required placeholder="Jelaskan data/indikator apa yang Anda cari, mencakup periode, wilayah, atau rincian lain yang relevan."></textarea>
+        </div>
+        <div class="cari-field">
+          <label for="cariEmail">Email (untuk balasan)<span class="req">*</span></label>
+          <input type="email" id="cariEmail" name="email" required autocomplete="email" placeholder="nama@contoh.com">
+        </div>
+        <button type="submit" class="cari-submit-btn" id="cariSubmitBtn">Kirim Permintaan</button>
+        <div class="cari-status" id="cariStatus"></div>
+      </form>
+    </section>`;
+
+  document.getElementById('cariForm').addEventListener('submit', function(ev){
+    ev.preventDefault();
+    submitCariData();
+  });
+}
+
+function submitCariData(){
+  if(cariSubmitState === 'sending') return;
+  const statusEl = document.getElementById('cariStatus');
+  const btnEl = document.getElementById('cariSubmitBtn');
+
+  const payload = {
+    nama: document.getElementById('cariNama').value.trim(),
+    alamat: document.getElementById('cariAlamat').value.trim(),
+    pekerjaan: document.getElementById('cariPekerjaan').value.trim(),
+    dataDicari: document.getElementById('cariDataDicari').value.trim(),
+    email: document.getElementById('cariEmail').value.trim(),
+  };
+  if(!payload.nama || !payload.alamat || !payload.pekerjaan || !payload.dataDicari || !payload.email){
+    cariSubmitState = 'error';
+    statusEl.className = 'cari-status err';
+    statusEl.textContent = 'Semua kolom wajib diisi.';
+    return;
+  }
+  if(!/^\S+@\S+\.\S+$/.test(payload.email)){
+    cariSubmitState = 'error';
+    statusEl.className = 'cari-status err';
+    statusEl.textContent = 'Format email tidak valid.';
+    return;
+  }
+  if(CARI_DATA_WEBAPP_URL.includes('GANTI_DENGAN_URL_DEPLOYMENT_ANDA')){
+    cariSubmitState = 'error';
+    statusEl.className = 'cari-status err';
+    statusEl.textContent = 'Form ini belum tersambung ke Google Sheet — set CARI_DATA_WEBAPP_URL di kode dengan URL Web App Apps Script Anda (lihat CariDataAPI.gs).';
+    return;
+  }
+
+  cariSubmitState = 'sending';
+  btnEl.disabled = true;
+  statusEl.className = 'cari-status';
+  statusEl.textContent = 'Mengirim…';
+
+  // Apps Script Web App tidak mengizinkan header CORS kustom, jadi dikirim sebagai
+  // text/plain (dianggap "simple request" oleh browser) — mode 'no-cors' karena
+  // respons tidak perlu dibaca balik, cukup tahu request terkirim.
+  fetch(CARI_DATA_WEBAPP_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  }).then(()=>{
+    cariSubmitState = 'success';
+    btnEl.disabled = false;
+    statusEl.className = 'cari-status ok';
+    statusEl.textContent = 'Permintaan terkirim. Kami akan membalas ke email yang Anda cantumkan.';
+    document.getElementById('cariForm').reset();
+  }).catch(()=>{
+    cariSubmitState = 'error';
+    btnEl.disabled = false;
+    statusEl.className = 'cari-status err';
+    statusEl.textContent = 'Gagal mengirim, periksa koneksi internet Anda dan coba lagi.';
   });
 }
 
@@ -2463,6 +2612,7 @@ function renderContent(periode){
 
   let html = '';
   let anyVisible = false;
+  let isFirstKelompokBlock = true;
   Object.keys(katObj).forEach(kategori=>{
     const kelObj = katObj[kategori];
     const visibleKelompok = Object.keys(kelObj).filter(kel=>ENABLED_KELOMPOK.has(`${kategori}|||${kel}`));
@@ -2478,9 +2628,10 @@ function renderContent(periode){
       const claimedSubs = new Set(compGroups.flatMap(g=>g.segs));
       const normalSubs = Object.keys(subObj).filter(s=>!claimedSubs.has(s));
 
-      html += `<div class="kelompok-block" style="--kat-accent:${kelColor}">
+      html += `<div class="kelompok-block${isFirstKelompokBlock ? ' kelompok-first' : ''}" style="--kat-accent:${kelColor}">
         <div class="kelompok-chip" style="color:${kelColor}">${escapeHtml(kelompok)}</div>
         <div class="card-grid">`;
+      isFirstKelompokBlock = false;
 
       compGroups.forEach(g=>{
         html += renderCompositionCardHtml(periode,kategori,kelompok,subObj,g,kelColor);
