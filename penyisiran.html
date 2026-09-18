@@ -309,7 +309,7 @@ table.dataTable tbody button.btn-save:disabled{opacity:.7;cursor:default;}
   </div>
 
   <div class="panel">
-    <h2>Filter Wilayah</h2>
+    <h2>Filter Data</h2>
     <div class="filter-grid">
       <div class="filter-item">
         <label for="fKabupaten">Kabupaten</label>
@@ -327,11 +327,17 @@ table.dataTable tbody button.btn-save:disabled{opacity:.7;cursor:default;}
         <label for="fSls">SLS</label>
         <select id="fSls"><option value="">Semua SLS</option></select>
       </div>
-    </div>
-    <div class="filter-item">
+      <!-- Filter Level dipindah ke dalam grid agar rapi -->
+      <div class="filter-item">
         <label for="fLevel">Level</label>
         <select id="fLevel"><option value="">Semua Level</option></select>
       </div>
+      <!-- Tambahan Filter Status dari Kolom M -->
+      <div class="filter-item">
+        <label for="fStatus">Status</label>
+        <select id="fStatus"><option value="">Semua Status</option></select>
+      </div>
+    </div>
     <div class="filter-actions">
       <button class="btn-reset" id="btnReset">Reset Filter</button>
       <span class="active-note" id="activeNote"></span>
@@ -373,9 +379,7 @@ table.dataTable tbody button.btn-save:disabled{opacity:.7;cursor:default;}
 // URL CSV ANDA
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQIqk8j8_Z6o_BnO0H0ycRNmcCm0jhIztOrayn8gh4kWNKnhNS43Krsbl-s0naqlrWlljSsn2Q1wzZN/pub?gid=0&single=true&output=csv";
 
-// ==============================================================
-// GANTI TEKS DI BAWAH INI DENGAN URL WEB APP YANG BARU DI-DEPLOY
-// ==============================================================
+// URL WEB APP
 const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwMMQaPA0xdbs2R9U4NklJWv29wuoIxVC_r0jGSVjtdPHyN7ZqyXTvdawFe_srDgmqi/exec"; 
 
 const VERIFIKATOR_LIST = [
@@ -486,20 +490,21 @@ function refreshCascadingSelects(){
 
 function initFilters(){
   fillSelect('#fKabupaten', uniqueSorted(RAW.map(r=>r.kabupaten)), 'Semua Kabupaten');
-  // Tambahkan baris ini untuk mengisi opsi Level
   fillSelect('#fLevel', uniqueSorted(RAW.map(r=>r.level)), 'Semua Level');
+  // Tambahan inisialisasi dropdown Status
+  fillSelect('#fStatus', uniqueSorted(RAW.map(r=>r.status)), 'Semua Status');
   
   refreshCascadingSelects();
 
-  // Tambahkan #fLevel pada event on change
-  $('#fKabupaten, #fKecamatan, #fDesa, #fSls, #fLevel').on('change', function(){
+  // Tambahkan #fStatus pada event on change
+  $('#fKabupaten, #fKecamatan, #fDesa, #fSls, #fLevel, #fStatus').on('change', function(){
     refreshCascadingSelects();
     applyFilters();
   });
   
   $('#btnReset').on('click', function(){
-    // Tambahkan #fLevel agar ikut tereset
-    $('#fKabupaten, #fKecamatan, #fDesa, #fSls, #fLevel').val('');
+    // Tambahkan #fStatus agar ikut tereset
+    $('#fKabupaten, #fKecamatan, #fDesa, #fSls, #fLevel, #fStatus').val('');
     refreshCascadingSelects();
     applyFilters();
   });
@@ -627,7 +632,8 @@ function applyFilters(){
   const kec = $('#fKecamatan').val();
   const desa = $('#fDesa').val();
   const sls = $('#fSls').val();
-  const lvl = $('#fLevel').val(); // Tambahkan baris ini
+  const lvl = $('#fLevel').val();
+  const stat = $('#fStatus').val(); // Ambil nilai Status
 
   const filtered = RAW.filter(r => {
     if(r.ditemukankeluargalain !== '0') return false;
@@ -635,7 +641,8 @@ function applyFilters(){
     if(kec && r.kecamatan !== kec) return false;
     if(desa && r.desa !== desa) return false;
     if(sls && r.sls !== sls) return false;
-    if(lvl && r.level !== lvl) return false; // Tambahkan baris ini
+    if(lvl && r.level !== lvl) return false;
+    if(stat && r.status !== stat) return false; // Filter Status diaplikasikan
     return true;
   });
 
@@ -652,7 +659,8 @@ function applyFilters(){
   if(kec) parts.push(`Kec: ${kec}`);
   if(desa) parts.push(`Desa: ${desa}`);
   if(sls) parts.push(`SLS: ${sls}`);
-  if(lvl) parts.push(`Level: ${lvl}`); // Tambahkan baris ini
+  if(lvl) parts.push(`Level: ${lvl}`);
+  if(stat) parts.push(`Status: ${stat}`); // Label untuk Note
   $('#activeNote').text(parts.length ? `Filter aktif: ${parts.join(' | ')}` : '');
 }
 
@@ -733,7 +741,8 @@ function loadData(){
         ditemukankeluargalain: idx('DITEMUKAN_DI_KELUARGA_LAIN'),
         level: idx('LEVEL'),
         wilayah: idx('WILAYAH'),
-        nik: idx('NIK')
+        nik: idx('NIK'),
+        status: idx('STATUS') // Mapping kolom Status dari CSV
       };
 
       RAW = [];
@@ -752,6 +761,7 @@ function loadData(){
           nikditemukan: norm(row[k.nikditemukan]),
           ditemukankeluargalain: norm(row[k.ditemukankeluargalain]),
           level: norm(row[k.level]),
+          status: norm(row[k.status]), // Menyimpan data Status
           wilayah: norm(row[k.wilayah]),
           nik: norm(row[k.nik]),
           verifikator: '',
