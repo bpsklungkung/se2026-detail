@@ -219,6 +219,30 @@ table.dataTable tbody button.btn-save.btn-edit:hover{background:#eccdd2;}
 table.dataTable tbody button.btn-save:hover{background:var(--soft);}
 table.dataTable tbody button.btn-save:disabled{opacity:.7;cursor:default;}
 .aksi-wrap{display:flex;flex-direction:column;gap:1px;}
+.verif-edit{
+  display:flex;
+  flex-direction:row;
+  flex-wrap:nowrap;
+  align-items:center;
+  gap:5px;
+  min-width:260px;
+  padding:2px 0;
+}
+.verif-edit select.verif-select{width:auto;min-width:80px;flex:1 1 auto;}
+.verif-edit button.btn-save{width:auto;padding:5px 10px;flex-shrink:0;}
+.verif-edit .save-status{flex-basis:100%;}
+.verif-summary{
+  display:flex;
+  flex-direction:row;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:5px;
+  min-width:220px;
+  padding:2px 0;
+}
+.verif-summary .row{display:flex;gap:3px;white-space:normal;font-size:10px;}
+.verif-summary .row .lbl{color:var(--soft-text);font-weight:600;flex-shrink:0;}
+.verif-summary button.btn-save{width:auto;padding:4px 10px;margin-top:0;}
 .save-status{font-size:9.5px;line-height:1.1;white-space:normal;}
 .save-status.ok{color:#2E7D32;font-weight:600;}
 .save-status.err{color:var(--accent);font-weight:600;}
@@ -234,6 +258,67 @@ table.dataTable tbody button.btn-save:disabled{opacity:.7;cursor:default;}
 }
 ::-webkit-scrollbar{height:8px;width:8px;}
 ::-webkit-scrollbar-thumb{background:var(--soft-text);border-radius:8px;}
+
+@media (max-width: 640px){
+  body{padding-top:8px;}
+  .wrap{padding:0 12px 28px;}
+
+  .se-header{padding:18px 18px;border-radius:14px;align-items:flex-start;}
+  .se-header h1{font-size:19px;}
+  .se-header p{font-size:12px;}
+  .count-pill{padding:6px 14px;font-size:11.5px;}
+  .count-pill b{font-size:15px;}
+
+  .panel{padding:14px 14px;border-radius:12px;margin-top:14px;}
+  .panel h2{font-size:14px;}
+  .filter-grid{grid-template-columns:1fr 1fr;gap:10px;}
+  .filter-item select, .filter-item input{
+    font-size:16px; /* cegah auto-zoom iOS saat fokus */
+    padding:10px 10px;
+  }
+  .filter-actions{flex-wrap:wrap;}
+  .btn-reset{width:100%;padding:11px 16px;font-size:14px;}
+  .active-note{width:100%;}
+
+  .stats-row{gap:8px;}
+  .stat-card{min-width:calc(50% - 4px);padding:10px 12px;}
+  .stat-card .value{font-size:18px;}
+
+  .table-card{padding:12px 10px 14px;border-radius:12px;margin-top:14px;}
+  table.dataTable{font-size:12px;}
+  table.dataTable thead th{font-size:11px;padding:7px 6px;}
+  table.dataTable tbody td{padding:7px 6px;}
+  .dataTables_scrollBody{-webkit-overflow-scrolling:touch;}
+
+  /* kontrol DataTables (cari/panjang/info/paginasi) ditumpuk & full-width agar mudah disentuh */
+  .dataTables_wrapper .dataTables_length,
+  .dataTables_wrapper .dataTables_filter,
+  .dataTables_wrapper .dataTables_info,
+  .dataTables_wrapper .dataTables_paginate{
+    width:100%;
+    text-align:left;
+    margin-bottom:8px;
+    float:none;
+  }
+  .dataTables_wrapper .dataTables_filter input{
+    font-size:16px;
+    padding:8px 10px;
+    margin-left:6px;
+    width:60%;
+  }
+  .dataTables_wrapper .dataTables_length select{
+    font-size:16px;
+    padding:6px 8px;
+  }
+  .dataTables_wrapper .dataTables_paginate .paginate_button{
+    padding:6px 10px;
+    margin:2px;
+  }
+
+  /* target sentuh lebih besar untuk dropdown & tombol aksi verifikasi (tetap sejajar, tabel sudah scroll horizontal) */
+  table.dataTable tbody select.verif-select{font-size:16px;padding:7px 6px;}
+  table.dataTable tbody button.btn-save{padding:8px 12px;font-size:12px;}
+}
 </style>
 </head>
 <body>
@@ -293,11 +378,8 @@ table.dataTable tbody button.btn-save:disabled{opacity:.7;cursor:default;}
           <th>SLS</th>
           <th>Desa</th>
           <th>Kecamatan</th>
-          <th>Kabupaten</th>
           <th>NIK Ditemukan</th>
-          <th>Ditemukan Keluarga Lain</th>
           <th>Level</th>
-          <th>Wilayah</th>
           <th>Verifikator</th>
         </tr>
       </thead>
@@ -322,6 +404,7 @@ const VERIFIKATOR_LIST = Array.from({length:51}, (_, i) => String(i+1));
 let RAW = [];
 let table;
 let CURRENT_FILTERED = [];
+let EDITING = new Set();
 
 function norm(s){ return (s || "").toString().trim(); }
 function normKey(s){ return norm(s).toUpperCase(); }
@@ -397,18 +480,43 @@ function buildVerifikatorSelect(key, current, locked){
   return `<select class="verif-select" data-key="${escapeAttr(key)}"${dis}><option value="">Pilih...</option>${opts}</select>`;
 }
 
-function buildAksiButton(key, sudah){
-  const label = sudah ? 'Ubah' : 'Simpan';
-  const mode = sudah ? 'locked' : 'edit';
-  const editClass = sudah ? ' btn-edit' : '';
-  const badge = sudah ? '<span class="verif-badge">&#10003; Tersimpan</span>' : '';
-  return `<div class="aksi-wrap">${badge}<button class="btn-save${editClass}" data-key="${escapeAttr(key)}" data-mode="${mode}">${label}</button><span class="save-status" data-key="${escapeAttr(key)}"></span></div>`;
+function buildAlasanSelect(key, current, locked){
+  const opts = ['Berhasil Didata', 'Tidak Berhasil Didata'].map(name => {
+    const sel = name === current ? ' selected' : '';
+    return `<option value="${escapeAttr(name)}"${sel}>${escapeHtml(name)}</option>`;
+  }).join('');
+  const dis = locked ? ' disabled' : '';
+  return `<select class="verif-select alasan-select" data-key="${escapeAttr(key)}"${dis}><option value="">Pilih Alasan...</option>${opts}</select>`;
+}
+
+function buildEditCell(key, r){
+  return `<div class="verif-edit">
+    ${buildVerifikatorSelect(key, r.verifikator, false)}
+    ${buildAlasanSelect(key, r.alasan, false)}
+    <button class="btn-save" data-key="${escapeAttr(key)}" data-mode="edit">Simpan</button>
+    <span class="save-status" data-key="${escapeAttr(key)}"></span>
+  </div>`;
+}
+
+function buildSummaryCell(key, r){
+  return `<div class="verif-summary">
+    <span class="verif-badge">&#10003; Tersimpan</span>
+    <div class="row"><span class="lbl">Verif:</span> ${escapeHtml(r.verifikator)}</div>
+    <div class="row"><span class="lbl">Alasan:</span> ${escapeHtml(r.alasan)}</div>
+    <button class="btn-save btn-edit" data-key="${escapeAttr(key)}" data-mode="locked">Ubah</button>
+    <span class="save-status" data-key="${escapeAttr(key)}"></span>
+  </div>`;
+}
+
+function buildAksiCell(key, r){
+  const locked = !!(r.verifikator && r.alasan);
+  if(locked && !EDITING.has(key)) return buildSummaryCell(key, r);
+  return buildEditCell(key, r);
 }
 
 function renderTable(rows){
   const body = rows.map(r => {
     const key = rowKey(r);
-    const locked = !!r.verifikator;
     const badge = r.nikditemukan === '1'
       ? '<span class="badge-status found">DITEMUKAN</span>'
       : '<span class="badge-status notfound">TIDAK DITEMUKAN</span>';
@@ -420,12 +528,9 @@ function renderTable(rows){
       truncCell(r.sls),
       truncCell(r.desa),
       truncCell(r.kecamatan),
-      truncCell(r.kabupaten),
       badge,
-      r.ditemukankeluargalain,
       truncCell(r.level),
-      truncCell(r.wilayah),
-      `<div>${buildVerifikatorSelect(key, r.verifikator, locked)}${buildAksiButton(key, locked)}</div>`
+      buildAksiCell(key, r)
     ];
   });
 
@@ -436,8 +541,8 @@ function renderTable(rows){
   } else {
     table = $('#dataTable').DataTable({
       data: body,
-      pageLength: 15,
-      lengthMenu: [15,20,25,50,100],
+      pageLength: 10,
+      lengthMenu: [10,15,20,25,50,100],
       order: [],
       scrollX: true,
       scrollCollapse: true,
@@ -455,15 +560,23 @@ function renderTable(rows){
     $('#dataTable tbody').on('click', 'button.btn-save', function(){
       const $btn = $(this);
       const key = $btn.data('key');
-      const $row = $btn.closest('tr');
-      const $sel = $row.find('select.verif-select');
-      const verifikator = $sel.val();
-      const $status = $row.find('.save-status');
-      if(!verifikator){
-        $status.text('Pilih verifikator dulu.').removeClass('ok').addClass('err');
+      const mode = $btn.data('mode');
+
+      if(mode === 'locked'){
+        EDITING.add(key);
+        renderTable(CURRENT_FILTERED);
         return;
       }
-      saveVerifikasi(key, verifikator, $btn, $status);
+
+      const $row = $btn.closest('tr');
+      const verifikator = $row.find('select.verif-select').not('.alasan-select').val();
+      const alasan = $row.find('select.alasan-select').val();
+      const $status = $row.find('.save-status');
+      if(!verifikator || !alasan){
+        $status.text('Pilih verifikator dan alasan dulu.').removeClass('ok').addClass('err');
+        return;
+      }
+      saveVerifikasi(key, verifikator, alasan, $btn, $status);
     });
   }
   $('#rowCount').text(rows.length.toLocaleString('id-ID'));
@@ -500,12 +613,12 @@ function applyFilters(){
   $('#activeNote').text(parts.length ? `Filter aktif: ${parts.join(' | ')}` : '');
 }
 
-async function saveVerifikasi(key, verifikator, $btn, $status){
+async function saveVerifikasi(key, verifikator, alasan, $btn, $status){
   $btn.prop('disabled', true).text('Menyimpan...');
   $status.text('').removeClass('ok err');
 
   const rowData = RAW.find(r => rowKey(r) === key);
-  if(rowData) rowData.verifikator = verifikator;
+  if(rowData){ rowData.verifikator = verifikator; rowData.alasan = alasan; }
 
   if(!WEBAPP_URL || WEBAPP_URL.indexOf('GANTI_DENGAN') !== -1){
     $status.text('URL Web App belum diisi, tersimpan sementara di tampilan saja.').removeClass('ok').addClass('err');
@@ -518,11 +631,12 @@ async function saveVerifikasi(key, verifikator, $btn, $status){
     const res = await fetch(WEBAPP_URL, {
       method: 'POST',
       headers: {'Content-Type': 'text/plain;charset=utf-8'},
-      body: JSON.stringify({ key, verifikator, timestamp: new Date().toISOString() })
+      body: JSON.stringify({ key, verifikator, alasan, timestamp: new Date().toISOString() })
     });
     const data = await res.json();
     if(data && data.success){
       $status.text('Tersimpan.').removeClass('err').addClass('ok');
+      EDITING.delete(key);
       applyFilters();
     } else {
       throw new Error(data && data.message ? data.message : 'Gagal menyimpan');
@@ -540,10 +654,10 @@ async function loadVerifikasiStatus(){
     const data = await res.json();
     if(!data || !data.success || !Array.isArray(data.data)) return;
     const map = {};
-    data.data.forEach(item => { if(item.key) map[item.key] = item.verifikator; });
+    data.data.forEach(item => { if(item.key) map[item.key] = item; });
     RAW.forEach(r => {
       const hit = map[rowKey(r)];
-      if(hit) r.verifikator = hit;
+      if(hit){ r.verifikator = hit.verifikator || ''; r.alasan = hit.alasan || ''; }
     });
     applyFilters();
   } catch(err){
@@ -597,7 +711,8 @@ function loadData(){
           level: norm(row[k.level]),
           wilayah: norm(row[k.wilayah]),
           nik: norm(row[k.nik]),
-          verifikator: ''
+          verifikator: '',
+          alasan: ''
         });
       }
 
