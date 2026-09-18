@@ -328,6 +328,10 @@ table.dataTable tbody button.btn-save:disabled{opacity:.7;cursor:default;}
         <select id="fSls"><option value="">Semua SLS</option></select>
       </div>
     </div>
+    <div class="filter-item">
+        <label for="fLevel">Level</label>
+        <select id="fLevel"><option value="">Semua Level</option></select>
+      </div>
     <div class="filter-actions">
       <button class="btn-reset" id="btnReset">Reset Filter</button>
       <span class="active-note" id="activeNote"></span>
@@ -484,14 +488,20 @@ function refreshCascadingSelects(){
 
 function initFilters(){
   fillSelect('#fKabupaten', uniqueSorted(RAW.map(r=>r.kabupaten)), 'Semua Kabupaten');
+  // Tambahkan baris ini untuk mengisi opsi Level
+  fillSelect('#fLevel', uniqueSorted(RAW.map(r=>r.level)), 'Semua Level');
+  
   refreshCascadingSelects();
 
-  $('#fKabupaten, #fKecamatan, #fDesa, #fSls').on('change', function(){
+  // Tambahkan #fLevel pada event on change
+  $('#fKabupaten, #fKecamatan, #fDesa, #fSls, #fLevel').on('change', function(){
     refreshCascadingSelects();
     applyFilters();
   });
+  
   $('#btnReset').on('click', function(){
-    $('#fKabupaten, #fKecamatan, #fDesa, #fSls').val('');
+    // Tambahkan #fLevel agar ikut tereset
+    $('#fKabupaten, #fKecamatan, #fDesa, #fSls, #fLevel').val('');
     refreshCascadingSelects();
     applyFilters();
   });
@@ -619,6 +629,7 @@ function applyFilters(){
   const kec = $('#fKecamatan').val();
   const desa = $('#fDesa').val();
   const sls = $('#fSls').val();
+  const lvl = $('#fLevel').val(); // Tambahkan baris ini
 
   const filtered = RAW.filter(r => {
     if(r.ditemukankeluargalain !== '0') return false;
@@ -626,6 +637,7 @@ function applyFilters(){
     if(kec && r.kecamatan !== kec) return false;
     if(desa && r.desa !== desa) return false;
     if(sls && r.sls !== sls) return false;
+    if(lvl && r.level !== lvl) return false; // Tambahkan baris ini
     return true;
   });
 
@@ -642,6 +654,7 @@ function applyFilters(){
   if(kec) parts.push(`Kec: ${kec}`);
   if(desa) parts.push(`Desa: ${desa}`);
   if(sls) parts.push(`SLS: ${sls}`);
+  if(lvl) parts.push(`Level: ${lvl}`); // Tambahkan baris ini
   $('#activeNote').text(parts.length ? `Filter aktif: ${parts.join(' | ')}` : '');
 }
 
