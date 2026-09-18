@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Verifikasi Pencarian DTSEN</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<style>
+:root{
+  --main:#4A1620;
+  --accent:#B23A48;
+  --soft:#7A2636;
+  --accent-light:#F4E3E6;
+  --soft-text:#A67885;
+  --line:#E5E7EB;
+  --base:#FFFFFF;
+  --text:#2B1418;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--base);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  padding-top:14px;
+}
+.wrap{max-width:1280px;margin:0 auto;padding:0 20px 40px;}
+
+.se-header{
+  background:var(--main);
+  border-radius:20px;
+  padding:28px 32px;
+  color:#fff;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  flex-wrap:wrap;
+  gap:16px;
+}
+.se-header h1{
+  font-family:'Fraunces',serif;
+  font-weight:600;
+  font-size:26px;
+  margin:0 0 6px;
+}
+.se-header p{
+  margin:0;
+  color:var(--accent-light);
+  font-size:13px;
+}
+.count-pill{
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.25);
+  border-radius:999px;
+  padding:8px 18px;
+  font-size:13px;
+  white-space:nowrap;
+}
+.count-pill b{font-size:18px;display:block;font-family:'Fraunces',serif;}
+
+.panel{
+  margin-top:20px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:20px 22px;
+}
+.panel h2{
+  font-family:'Fraunces',serif;
+  font-size:16px;
+  margin:0 0 14px;
+  color:var(--main);
+}
+.filter-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:14px;
+}
+.filter-item label{
+  display:block;
+  font-size:12px;
+  color:var(--soft-text);
+  margin-bottom:5px;
+  font-weight:600;
+}
+.filter-item select, .filter-item input{
+  width:100%;
+  padding:9px 10px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  font-family:'Inter',sans-serif;
+  font-size:13px;
+  background:#fff;
+  color:var(--text);
+}
+.filter-item select:focus, .filter-item input:focus{
+  outline:none;
+  border-color:var(--accent);
+}
+.filter-actions{
+  margin-top:16px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.btn-reset{
+  background:var(--accent-light);
+  color:var(--main);
+  border:1px solid var(--accent-light);
+  border-radius:9px;
+  padding:9px 16px;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+}
+.btn-reset:hover{background:#eccdd2;}
+.active-note{font-size:12px;color:var(--soft-text);}
+
+.stats-row{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;}
+.stat-card{
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px 16px;
+  flex:1;
+  min-width:150px;
+}
+.stat-card .label{font-size:10.5px;color:var(--soft-text);text-transform:uppercase;letter-spacing:.04em;}
+.stat-card .value{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--main);margin-top:2px;}
+
+.table-card{
+  margin-top:20px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:18px 22px 22px;
+}
+table.dataTable{
+  border-collapse:collapse;
+  font-size:11px;
+}
+table.dataTable thead th{
+  background:var(--main);
+  color:#fff;
+  font-weight:600;
+  font-size:10.5px;
+  padding:5px 4px;
+  border:none !important;
+  white-space:nowrap;
+}
+table.dataTable tbody td{
+  padding:4px 5px;
+  border-bottom:1px solid var(--line);
+  vertical-align:middle;
+  white-space:nowrap;
+}
+table.dataTable tbody td.wrap-cell{white-space:normal;line-height:1.4;}
+table.dataTable tbody td span.trunc{
+  display:block;
+  max-width:180px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+table.dataTable tbody tr:hover{background:var(--accent-light);}
+.dataTables_scrollBody{border-bottom:none !important;}
+.badge-status{
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:999px;
+  font-size:9.5px;
+  font-weight:600;
+}
+.badge-status.found{background:#E3EEDD;color:#2E7D32;}
+.badge-status.notfound{background:#F7E1E4;color:var(--accent);}
+.dataTables_wrapper .dataTables_paginate .paginate_button.current{
+  background:var(--main) !important;
+  color:#fff !important;
+  border-color:var(--main) !important;
+  border-radius:6px;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button{border-radius:6px;}
+.dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter{
+  font-size:11px;
+  color:var(--soft-text);
+}
+.loading-state{padding:60px 0;text-align:center;color:var(--soft-text);font-size:13px;}
+
+table.dataTable tbody select.verif-select{
+  width:100%;
+  padding:3px 4px;
+  border:1px solid var(--line);
+  border-radius:4px;
+  font-size:10.5px;
+  font-family:'Inter',sans-serif;
+  background:#fff;
+  color:var(--text);
+}
+table.dataTable tbody select.verif-select:focus{outline:none;border-color:var(--accent);}
+table.dataTable tbody select.verif-select:disabled{
+  background:#F2F0F0;
+  color:var(--soft-text);
+  cursor:not-allowed;
+  border-color:var(--line);
+}
+table.dataTable tbody button.btn-save{
+  background:var(--main);
+  color:#fff;
+  border:none;
+  border-radius:4px;
+  padding:3px 8px;
+  font-size:10.5px;
+  font-weight:600;
+  cursor:pointer;
+  white-space:nowrap;
+  font-family:'Inter',sans-serif;
+}
+table.dataTable tbody button.btn-save.btn-edit{background:var(--accent-light);color:var(--main);}
+table.dataTable tbody button.btn-save.btn-edit:hover{background:#eccdd2;}
+table.dataTable tbody button.btn-save:hover{background:var(--soft);}
+table.dataTable tbody button.btn-save:disabled{opacity:.7;cursor:default;}
+.aksi-wrap{display:flex;flex-direction:column;gap:1px;}
+.save-status{font-size:9.5px;line-height:1.1;white-space:normal;}
+.save-status.ok{color:#2E7D32;font-weight:600;}
+.save-status.err{color:var(--accent);font-weight:600;}
+.verif-badge{
+  display:inline-block;
+  font-size:9px;
+  font-weight:700;
+  color:#2E7D32;
+  background:#E4F3E6;
+  border-radius:3px;
+  padding:1px 4px;
+  white-space:nowrap;
+}
+::-webkit-scrollbar{height:8px;width:8px;}
+::-webkit-scrollbar-thumb{background:var(--soft-text);border-radius:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="se-header">
+    <div>
+      <h1>Dashboard Verifikasi Pencarian DTSEN</h1>
+      <p>Kabupaten Klungkung — data yang tidak ditemukan pada keluarga lain (verifikasi lapangan)</p>
+    </div>
+    <div class="count-pill">
+      <span>Baris ditampilkan</span>
+      <b id="rowCount">&ndash;</b>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Filter Wilayah</h2>
+    <div class="filter-grid">
+      <div class="filter-item">
+        <label for="fKabupaten">Kabupaten</label>
+        <select id="fKabupaten"><option value="">Semua Kabupaten</option></select>
+      </div>
+      <div class="filter-item">
+        <label for="fKecamatan">Kecamatan</label>
+        <select id="fKecamatan"><option value="">Semua Kecamatan</option></select>
+      </div>
+      <div class="filter-item">
+        <label for="fDesa">Desa</label>
+        <select id="fDesa"><option value="">Semua Desa</option></select>
+      </div>
+      <div class="filter-item">
+        <label for="fSls">SLS</label>
+        <select id="fSls"><option value="">Semua SLS</option></select>
+      </div>
+    </div>
+    <div class="filter-actions">
+      <button class="btn-reset" id="btnReset">Reset Filter</button>
+      <span class="active-note" id="activeNote"></span>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="label">Total Baris</div><div class="value" id="stTotal">0</div></div>
+      <div class="stat-card"><div class="label">NIK Ditemukan</div><div class="value" id="stDitemukan">0</div></div>
+      <div class="stat-card"><div class="label">NIK Tidak Ditemukan</div><div class="value" id="stTidak">0</div></div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div id="loadingState" class="loading-state">Memuat data...</div>
+    <table id="dataTable" class="display" style="width:100%; display:none;">
+      <thead>
+        <tr>
+          <th>Nama KK</th>
+          <th>Nama AK</th>
+          <th>Kode Sub SLS</th>
+          <th>Alamat</th>
+          <th>SLS</th>
+          <th>Desa</th>
+          <th>Kecamatan</th>
+          <th>Kabupaten</th>
+          <th>NIK Ditemukan</th>
+          <th>Ditemukan Keluarga Lain</th>
+          <th>Level</th>
+          <th>Wilayah</th>
+          <th>Verifikator</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script>
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQIqk8j8_Z6o_BnO0H0ycRNmcCm0jhIztOrayn8gh4kWNKnhNS43Krsbl-s0naqlrWlljSsn2Q1wzZN/pub?gid=0&single=true&output=csv";
+
+// Ganti dengan URL Web App Apps Script (lihat VerifikasiDTSENAPI.gs) setelah di-deploy.
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzYJekoEzZpyHJoIUXd2PhNFWSP3__S-hlHL0ciZy_KcntGvfVllglPnO7cFPB8_AYF/exec" 
+
+// Placeholder 1 - 51, ganti manual dengan nama verifikator sebenarnya di sini.
+const VERIFIKATOR_LIST = Array.from({length:51}, (_, i) => String(i+1));
+
+let RAW = [];
+let table;
+let CURRENT_FILTERED = [];
+
+function norm(s){ return (s || "").toString().trim(); }
+function normKey(s){ return norm(s).toUpperCase(); }
+function escapeHtml(s){ return $('<div>').text(norm(s)).html(); }
+function escapeAttr(s){ return escapeHtml(s).replace(/"/g,'&quot;'); }
+function uniqueSorted(arr){ return [...new Set(arr.filter(v => v !== ""))].sort((a,b)=>a.localeCompare(b,'id')); }
+
+function fillSelect(id, values, placeholder){
+  const $sel = $(id);
+  const current = $sel.val();
+  $sel.empty().append(`<option value="">${placeholder}</option>`);
+  values.forEach(v => $sel.append(`<option value="${escapeAttr(v)}">${escapeHtml(v)}</option>`));
+  if(current && values.includes(current)) $sel.val(current);
+}
+
+function rowKey(r){
+  return r.nik || (r.namakk + '|' + r.kodesubsls + '|' + r.namaak);
+}
+
+function buildFilterOptions(rows, kabFilter, kecFilter, desaFilter){
+  let scopedKec = rows;
+  if(kabFilter) scopedKec = scopedKec.filter(r => r.kabupaten === kabFilter);
+  const kecOpts = uniqueSorted(scopedKec.map(r=>r.kecamatan));
+
+  let scopedDesa = scopedKec;
+  if(kecFilter) scopedDesa = scopedDesa.filter(r => r.kecamatan === kecFilter);
+  const desaOpts = uniqueSorted(scopedDesa.map(r=>r.desa));
+
+  let scopedSls = scopedDesa;
+  if(desaFilter) scopedSls = scopedSls.filter(r => r.desa === desaFilter);
+  const slsOpts = uniqueSorted(scopedSls.map(r=>r.sls));
+
+  return { kecOpts, desaOpts, slsOpts };
+}
+
+function refreshCascadingSelects(){
+  const kab = $('#fKabupaten').val();
+  const kec = $('#fKecamatan').val();
+  const desa = $('#fDesa').val();
+  const { kecOpts, desaOpts, slsOpts } = buildFilterOptions(RAW, kab, kec, desa);
+  fillSelect('#fKecamatan', kecOpts, 'Semua Kecamatan');
+  fillSelect('#fDesa', desaOpts, 'Semua Desa');
+  fillSelect('#fSls', slsOpts, 'Semua SLS');
+}
+
+function initFilters(){
+  fillSelect('#fKabupaten', uniqueSorted(RAW.map(r=>r.kabupaten)), 'Semua Kabupaten');
+  refreshCascadingSelects();
+
+  $('#fKabupaten, #fKecamatan, #fDesa, #fSls').on('change', function(){
+    refreshCascadingSelects();
+    applyFilters();
+  });
+  $('#btnReset').on('click', function(){
+    $('#fKabupaten, #fKecamatan, #fDesa, #fSls').val('');
+    refreshCascadingSelects();
+    applyFilters();
+  });
+}
+
+function truncCell(value){
+  const v = norm(value);
+  if(!v) return '-';
+  return `<span class="trunc" title="${escapeAttr(v)}">${escapeHtml(v)}</span>`;
+}
+
+function buildVerifikatorSelect(key, current, locked){
+  const opts = VERIFIKATOR_LIST.map(name => {
+    const sel = name === current ? ' selected' : '';
+    return `<option value="${escapeAttr(name)}"${sel}>${escapeHtml(name)}</option>`;
+  }).join('');
+  const dis = locked ? ' disabled' : '';
+  return `<select class="verif-select" data-key="${escapeAttr(key)}"${dis}><option value="">Pilih...</option>${opts}</select>`;
+}
+
+function buildAksiButton(key, sudah){
+  const label = sudah ? 'Ubah' : 'Simpan';
+  const mode = sudah ? 'locked' : 'edit';
+  const editClass = sudah ? ' btn-edit' : '';
+  const badge = sudah ? '<span class="verif-badge">&#10003; Tersimpan</span>' : '';
+  return `<div class="aksi-wrap">${badge}<button class="btn-save${editClass}" data-key="${escapeAttr(key)}" data-mode="${mode}">${label}</button><span class="save-status" data-key="${escapeAttr(key)}"></span></div>`;
+}
+
+function renderTable(rows){
+  const body = rows.map(r => {
+    const key = rowKey(r);
+    const locked = !!r.verifikator;
+    const badge = r.nikditemukan === '1'
+      ? '<span class="badge-status found">DITEMUKAN</span>'
+      : '<span class="badge-status notfound">TIDAK DITEMUKAN</span>';
+    return [
+      truncCell(r.namakk),
+      truncCell(r.namaak),
+      truncCell(r.kodesubsls),
+      truncCell(r.alamat),
+      truncCell(r.sls),
+      truncCell(r.desa),
+      truncCell(r.kecamatan),
+      truncCell(r.kabupaten),
+      badge,
+      r.ditemukankeluargalain,
+      truncCell(r.level),
+      truncCell(r.wilayah),
+      `<div>${buildVerifikatorSelect(key, r.verifikator, locked)}${buildAksiButton(key, locked)}</div>`
+    ];
+  });
+
+  if(table){
+    table.clear();
+    table.rows.add(body);
+    table.draw();
+  } else {
+    table = $('#dataTable').DataTable({
+      data: body,
+      pageLength: 15,
+      lengthMenu: [15,20,25,50,100],
+      order: [],
+      scrollX: true,
+      scrollCollapse: true,
+      autoWidth: false,
+      language: {
+        search: "Cari:",
+        lengthMenu: "Tampilkan _MENU_ baris",
+        info: "Menampilkan _START_&ndash;_END_ dari _TOTAL_ baris",
+        infoEmpty: "Tidak ada data",
+        infoFiltered: "(difilter dari _MAX_ total baris)",
+        paginate: { previous: "Sebelumnya", next: "Berikutnya" },
+        emptyTable: "Tidak ada data yang cocok dengan filter"
+      }
+    });
+    $('#dataTable tbody').on('click', 'button.btn-save', function(){
+      const $btn = $(this);
+      const key = $btn.data('key');
+      const $row = $btn.closest('tr');
+      const $sel = $row.find('select.verif-select');
+      const verifikator = $sel.val();
+      const $status = $row.find('.save-status');
+      if(!verifikator){
+        $status.text('Pilih verifikator dulu.').removeClass('ok').addClass('err');
+        return;
+      }
+      saveVerifikasi(key, verifikator, $btn, $status);
+    });
+  }
+  $('#rowCount').text(rows.length.toLocaleString('id-ID'));
+}
+
+function applyFilters(){
+  const kab = $('#fKabupaten').val();
+  const kec = $('#fKecamatan').val();
+  const desa = $('#fDesa').val();
+  const sls = $('#fSls').val();
+
+  const filtered = RAW.filter(r => {
+    if(r.ditemukankeluargalain !== '0') return false;
+    if(kab && r.kabupaten !== kab) return false;
+    if(kec && r.kecamatan !== kec) return false;
+    if(desa && r.desa !== desa) return false;
+    if(sls && r.sls !== sls) return false;
+    return true;
+  });
+
+  renderTable(filtered);
+  CURRENT_FILTERED = filtered;
+
+  const stDitemukan = filtered.filter(r => r.nikditemukan === '1').length;
+  $('#stTotal').text(filtered.length.toLocaleString('id-ID'));
+  $('#stDitemukan').text(stDitemukan.toLocaleString('id-ID'));
+  $('#stTidak').text((filtered.length - stDitemukan).toLocaleString('id-ID'));
+
+  const parts = [];
+  if(kab) parts.push(`Kabupaten: ${kab}`);
+  if(kec) parts.push(`Kec: ${kec}`);
+  if(desa) parts.push(`Desa: ${desa}`);
+  if(sls) parts.push(`SLS: ${sls}`);
+  $('#activeNote').text(parts.length ? `Filter aktif: ${parts.join(' | ')}` : '');
+}
+
+async function saveVerifikasi(key, verifikator, $btn, $status){
+  $btn.prop('disabled', true).text('Menyimpan...');
+  $status.text('').removeClass('ok err');
+
+  const rowData = RAW.find(r => rowKey(r) === key);
+  if(rowData) rowData.verifikator = verifikator;
+
+  if(!WEBAPP_URL || WEBAPP_URL.indexOf('GANTI_DENGAN') !== -1){
+    $status.text('URL Web App belum diisi, tersimpan sementara di tampilan saja.').removeClass('ok').addClass('err');
+    $btn.prop('disabled', false).text('Simpan');
+    applyFilters();
+    return;
+  }
+
+  try{
+    const res = await fetch(WEBAPP_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain;charset=utf-8'},
+      body: JSON.stringify({ key, verifikator, timestamp: new Date().toISOString() })
+    });
+    const data = await res.json();
+    if(data && data.success){
+      $status.text('Tersimpan.').removeClass('err').addClass('ok');
+      applyFilters();
+    } else {
+      throw new Error(data && data.message ? data.message : 'Gagal menyimpan');
+    }
+  } catch(err){
+    $status.text('Gagal: ' + err.message).removeClass('ok').addClass('err');
+    $btn.prop('disabled', false).text('Simpan');
+  }
+}
+
+async function loadVerifikasiStatus(){
+  if(!WEBAPP_URL || WEBAPP_URL.indexOf('GANTI_DENGAN') !== -1) return;
+  try{
+    const res = await fetch(WEBAPP_URL + (WEBAPP_URL.indexOf('?') === -1 ? '?' : '&') + '_ts=' + Date.now());
+    const data = await res.json();
+    if(!data || !data.success || !Array.isArray(data.data)) return;
+    const map = {};
+    data.data.forEach(item => { if(item.key) map[item.key] = item.verifikator; });
+    RAW.forEach(r => {
+      const hit = map[rowKey(r)];
+      if(hit) r.verifikator = hit;
+    });
+    applyFilters();
+  } catch(err){
+    console.error('Gagal memuat status verifikasi:', err);
+  }
+}
+
+function loadData(){
+  const cacheBustedUrl = CSV_URL + (CSV_URL.indexOf('?') === -1 ? '?' : '&') + '_ts=' + Date.now();
+
+  Papa.parse(cacheBustedUrl, {
+    download: true,
+    header: false,
+    skipEmptyLines: true,
+    complete: function(results){
+      const rows = results.data;
+      const headers = rows[0].map(h => normKey(h));
+
+      function idx(name){ return headers.indexOf(name); }
+      const k = {
+        namakk: idx('NAMA_KK'),
+        namaak: idx('NAMA_AK'),
+        kodesubsls: idx('KODE_SUB_SLS'),
+        alamat: idx('ALAMAT'),
+        sls: idx('NAMA_SLS'),
+        desa: idx('NAMA_DESA'),
+        kecamatan: idx('NAMA_KECAMATAN'),
+        kabupaten: idx('NAMA_KABUPATEN'),
+        nikditemukan: idx('NIK_DITEMUKAN'),
+        ditemukankeluargalain: idx('DITEMUKAN_DI_KELUARGA_LAIN'),
+        level: idx('LEVEL'),
+        wilayah: idx('WILAYAH'),
+        nik: idx('NIK')
+      };
+
+      RAW = [];
+      for(let i = 1; i < rows.length; i++){
+        const row = rows[i];
+        if(row.length < 2) continue;
+        RAW.push({
+          namakk: norm(row[k.namakk]),
+          namaak: norm(row[k.namaak]),
+          kodesubsls: norm(row[k.kodesubsls]),
+          alamat: norm(row[k.alamat]),
+          sls: norm(row[k.sls]),
+          desa: norm(row[k.desa]),
+          kecamatan: norm(row[k.kecamatan]),
+          kabupaten: norm(row[k.kabupaten]),
+          nikditemukan: norm(row[k.nikditemukan]),
+          ditemukankeluargalain: norm(row[k.ditemukankeluargalain]),
+          level: norm(row[k.level]),
+          wilayah: norm(row[k.wilayah]),
+          nik: norm(row[k.nik]),
+          verifikator: ''
+        });
+      }
+
+      $('#loadingState').hide();
+      $('#dataTable').show();
+      initFilters();
+      applyFilters();
+      loadVerifikasiStatus();
+    },
+    error: function(err){
+      $('#loadingState').text('Gagal memuat data: ' + err.message);
+    }
+  });
+}
+
+$(document).ready(loadData);
+</script>
+</body>
+</html>
