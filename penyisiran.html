@@ -262,60 +262,33 @@ table.dataTable tbody button.btn-save:disabled{opacity:.7;cursor:default;}
 @media (max-width: 640px){
   body{padding-top:8px;}
   .wrap{padding:0 12px 28px;}
-
   .se-header{padding:18px 18px;border-radius:14px;align-items:flex-start;}
   .se-header h1{font-size:19px;}
   .se-header p{font-size:12px;}
   .count-pill{padding:6px 14px;font-size:11.5px;}
   .count-pill b{font-size:15px;}
-
   .panel{padding:14px 14px;border-radius:12px;margin-top:14px;}
   .panel h2{font-size:14px;}
   .filter-grid{grid-template-columns:1fr 1fr;gap:10px;}
-  .filter-item select, .filter-item input{
-    font-size:16px; /* cegah auto-zoom iOS saat fokus */
-    padding:10px 10px;
-  }
+  .filter-item select, .filter-item input{font-size:16px; padding:10px 10px;}
   .filter-actions{flex-wrap:wrap;}
   .btn-reset{width:100%;padding:11px 16px;font-size:14px;}
   .active-note{width:100%;}
-
   .stats-row{gap:8px;}
   .stat-card{min-width:calc(50% - 4px);padding:10px 12px;}
   .stat-card .value{font-size:18px;}
-
   .table-card{padding:12px 10px 14px;border-radius:12px;margin-top:14px;}
   table.dataTable{font-size:12px;}
   table.dataTable thead th{font-size:11px;padding:7px 6px;}
   table.dataTable tbody td{padding:7px 6px;}
   .dataTables_scrollBody{-webkit-overflow-scrolling:touch;}
-
-  /* kontrol DataTables (cari/panjang/info/paginasi) ditumpuk & full-width agar mudah disentuh */
   .dataTables_wrapper .dataTables_length,
   .dataTables_wrapper .dataTables_filter,
   .dataTables_wrapper .dataTables_info,
-  .dataTables_wrapper .dataTables_paginate{
-    width:100%;
-    text-align:left;
-    margin-bottom:8px;
-    float:none;
-  }
-  .dataTables_wrapper .dataTables_filter input{
-    font-size:16px;
-    padding:8px 10px;
-    margin-left:6px;
-    width:60%;
-  }
-  .dataTables_wrapper .dataTables_length select{
-    font-size:16px;
-    padding:6px 8px;
-  }
-  .dataTables_wrapper .dataTables_paginate .paginate_button{
-    padding:6px 10px;
-    margin:2px;
-  }
-
-  /* target sentuh lebih besar untuk dropdown & tombol aksi verifikasi (tetap sejajar, tabel sudah scroll horizontal) */
+  .dataTables_wrapper .dataTables_paginate{width:100%; text-align:left; margin-bottom:8px; float:none;}
+  .dataTables_wrapper .dataTables_filter input{font-size:16px; padding:8px 10px; margin-left:6px; width:60%;}
+  .dataTables_wrapper .dataTables_length select{font-size:16px; padding:6px 8px;}
+  .dataTables_wrapper .dataTables_paginate .paginate_button{padding:6px 10px; margin:2px;}
   table.dataTable tbody select.verif-select{font-size:16px;padding:7px 6px;}
   table.dataTable tbody button.btn-save{padding:8px 12px;font-size:12px;}
 }
@@ -393,12 +366,14 @@ table.dataTable tbody button.btn-save:disabled{opacity:.7;cursor:default;}
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script>
+// URL CSV ANDA
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQIqk8j8_Z6o_BnO0H0ycRNmcCm0jhIztOrayn8gh4kWNKnhNS43Krsbl-s0naqlrWlljSsn2Q1wzZN/pub?gid=0&single=true&output=csv";
 
-// Ganti dengan URL Web App Apps Script (lihat VerifikasiDTSENAPI.gs) setelah di-deploy.
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzYJekoEzZpyHJoIUXd2PhNFWSP3__S-hlHL0ciZy_KcntGvfVllglPnO7cFPB8_AYF/exec" 
+// ==============================================================
+// GANTI TEKS DI BAWAH INI DENGAN URL WEB APP YANG BARU DI-DEPLOY
+// ==============================================================
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwMMQaPA0xdbs2R9U4NklJWv29wuoIxVC_r0jGSVjtdPHyN7ZqyXTvdawFe_srDgmqi/exec"; 
 
-// Placeholder 1 - 51, ganti manual dengan nama verifikator sebenarnya di sini.
 const VERIFIKATOR_LIST = Array.from({length:51}, (_, i) => String(i+1));
 
 let RAW = [];
@@ -408,20 +383,25 @@ let EDITING = new Set();
 
 function norm(s){ return (s || "").toString().trim(); }
 function normKey(s){ return norm(s).toUpperCase(); }
+function normNumeric(s){
+  let v = norm(s);
+  if(/^\d+$/.test(v)) v = v.replace(/^0+(?=\d)/, '');
+  return v;
+}
 function escapeHtml(s){ return $('<div>').text(norm(s)).html(); }
 function escapeAttr(s){ return escapeHtml(s).replace(/"/g,'&quot;'); }
 function uniqueSorted(arr){ return [...new Set(arr.filter(v => v !== ""))].sort((a,b)=>a.localeCompare(b,'id')); }
 
 function fillSelect(id, values, placeholder){
-  const $sel = $(id);
-  const current = $sel.val();
-  $sel.empty().append(`<option value="">${placeholder}</option>`);
+  const $sel =$(id);
+  const current = $sel.val();$sel.empty().append(`<option value="">${placeholder}</option>`);
   values.forEach(v => $sel.append(`<option value="${escapeAttr(v)}">${escapeHtml(v)}</option>`));
   if(current && values.includes(current)) $sel.val(current);
 }
 
 function rowKey(r){
-  return r.nik || (r.namakk + '|' + r.kodesubsls + '|' + r.namaak);
+  const parts = [normNumeric(r.kodesubsls), norm(r.namakk).toUpperCase(), norm(r.namaak).toUpperCase(), norm(r.alamat).toUpperCase(), normNumeric(r.nik)];
+  return parts.filter(Boolean).join('|');
 }
 
 function buildFilterOptions(rows, kabFilter, kecFilter, desaFilter){
@@ -558,7 +538,7 @@ function renderTable(rows){
       }
     });
     $('#dataTable tbody').on('click', 'button.btn-save', function(){
-      const $btn = $(this);
+      const $btn =$(this);
       const key = $btn.data('key');
       const mode = $btn.data('mode');
 
@@ -568,15 +548,15 @@ function renderTable(rows){
         return;
       }
 
-      const $row = $btn.closest('tr');
+      const $row =$btn.closest('tr');
       const verifikator = $row.find('select.verif-select').not('.alasan-select').val();
       const alasan = $row.find('select.alasan-select').val();
-      const $status = $row.find('.save-status');
+      const $status =$row.find('.save-status');
       if(!verifikator || !alasan){
-        $status.text('Pilih verifikator dan alasan dulu.').removeClass('ok').addClass('err');
+        $status.text('Pilih verifikator & alasan.').removeClass('ok').addClass('err');
         return;
       }
-      saveVerifikasi(key, verifikator, alasan, $btn, $status);
+      saveVerifikasi(key, verifikator, alasan, $btn,$status);
     });
   }
   $('#rowCount').text(rows.length.toLocaleString('id-ID'));
@@ -613,17 +593,14 @@ function applyFilters(){
   $('#activeNote').text(parts.length ? `Filter aktif: ${parts.join(' | ')}` : '');
 }
 
-async function saveVerifikasi(key, verifikator, alasan, $btn, $status){
-  $btn.prop('disabled', true).text('Menyimpan...');
-  $status.text('').removeClass('ok err');
+async function saveVerifikasi(key, verifikator, alasan, $btn,$status){
+  $btn.prop('disabled', true).text('Menyimpan...');$status.text('').removeClass('ok err');
 
   const rowData = RAW.find(r => rowKey(r) === key);
   if(rowData){ rowData.verifikator = verifikator; rowData.alasan = alasan; }
 
-  if(!WEBAPP_URL || WEBAPP_URL.indexOf('GANTI_DENGAN') !== -1){
-    $status.text('URL Web App belum diisi, tersimpan sementara di tampilan saja.').removeClass('ok').addClass('err');
-    $btn.prop('disabled', false).text('Simpan');
-    applyFilters();
+  if(!WEBAPP_URL || WEBAPP_URL === "MASUKKAN_URL_WEB_APP_DI_SINI"){
+    $status.text('URL Web App belum diisi!').removeClass('ok').addClass('err');$btn.prop('disabled', false).text('Simpan');
     return;
   }
 
@@ -639,26 +616,29 @@ async function saveVerifikasi(key, verifikator, alasan, $btn, $status){
       EDITING.delete(key);
       applyFilters();
     } else {
-      throw new Error(data && data.message ? data.message : 'Gagal menyimpan');
+      throw new Error(data.message || 'Gagal menyimpan');
     }
   } catch(err){
-    $status.text('Gagal: ' + err.message).removeClass('ok').addClass('err');
-    $btn.prop('disabled', false).text('Simpan');
+    $status.text('Gagal: ' + err.message).removeClass('ok').addClass('err');$btn.prop('disabled', false).text('Simpan');
   }
 }
 
 async function loadVerifikasiStatus(){
-  if(!WEBAPP_URL || WEBAPP_URL.indexOf('GANTI_DENGAN') !== -1) return;
+  if(!WEBAPP_URL || WEBAPP_URL === "MASUKKAN_URL_WEB_APP_DI_SINI") return;
   try{
-    const res = await fetch(WEBAPP_URL + (WEBAPP_URL.indexOf('?') === -1 ? '?' : '&') + '_ts=' + Date.now());
+    const res = await fetch(WEBAPP_URL + '?_ts=' + Date.now());
     const data = await res.json();
-    if(!data || !data.success || !Array.isArray(data.data)) return;
+    if(!data || !data.success) return;
+    
     const map = {};
     data.data.forEach(item => { if(item.key) map[item.key] = item; });
+
     RAW.forEach(r => {
-      const hit = map[rowKey(r)];
+      const computedKey = rowKey(r);
+      const hit = map[computedKey];
       if(hit){ r.verifikator = hit.verifikator || ''; r.alasan = hit.alasan || ''; }
     });
+    
     applyFilters();
   } catch(err){
     console.error('Gagal memuat status verifikasi:', err);
@@ -666,7 +646,7 @@ async function loadVerifikasiStatus(){
 }
 
 function loadData(){
-  const cacheBustedUrl = CSV_URL + (CSV_URL.indexOf('?') === -1 ? '?' : '&') + '_ts=' + Date.now();
+  const cacheBustedUrl = CSV_URL + '&_ts=' + Date.now();
 
   Papa.parse(cacheBustedUrl, {
     download: true,
