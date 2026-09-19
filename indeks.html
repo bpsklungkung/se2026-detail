@@ -133,7 +133,7 @@
   .stat-pill-mini .lbl{ color:var(--brown-mid); font-size:8.5px; margin-top:2px; letter-spacing:.05em; }
   @media (max-width: 860px){
     .tabbar-sticky-wrap{ flex-wrap:wrap; }
-    .tabbar-stats{ order:2; width:100%; }
+    .tabbar-stats{ order:2; width:100%; flex-wrap:wrap; }
   }
 
   .palette-picker{
@@ -142,7 +142,8 @@
     background:var(--white); border:1px solid var(--border); border-radius:12px;
     box-shadow:var(--shadow); padding:0 10px 0 12px; height:38px;
   }
-  .palette-picker .pp-icon{ font-size:13px; pointer-events:none; }
+  .palette-picker .pp-icon{ display:flex; align-items:center; color:var(--brown-mid); pointer-events:none; }
+  .palette-picker .pp-icon svg{ width:15px; height:15px; }
   .palette-picker select{
     font-family:'Inter',sans-serif; font-size:12px; font-weight:600; color:var(--brown);
     background:transparent; border:none; outline:none; cursor:pointer;
@@ -232,7 +233,7 @@
   .content-row .center-col{ flex:1; min-width:0; display:flex; align-items:flex-start; gap:16px; }
   .content-row .center-col main{ flex:1; min-width:0; }
   @media (max-width:900px){
-    .content-row .center-col{ flex-direction:column; }
+    .content-row .center-col{ flex-direction:column; align-items:stretch; width:100%; }
   }
   .left-col{
     display:flex; flex-direction:column; gap:16px;
@@ -286,7 +287,7 @@
   .kel-filter-item:hover{ background:var(--cream); color:var(--brown); }
   .kel-filter-item input{ accent-color:var(--orange); cursor:pointer; flex-shrink:0; }
   @media (max-width:900px){
-    .content-row{ flex-direction:column; }
+    .content-row{ flex-direction:column; align-items:stretch; }
     .left-col{
       width:100%;
       position:static;
@@ -1212,6 +1213,10 @@
   }
   .footer-social-icons a:hover{ transform:translateY(-3px); }
   .footer-social-icons svg{ width:20px; height:20px; display:block; }
+  /* Naker */
+  .nk-caption{ font-size:11.5px; font-style:italic; color:var(--brown-soft); line-height:1.5; margin:6px 2px 10px; text-align:justify; }
+  table.ss-table.nk-heat thead th:not(:first-child){ text-align:center; }
+  table.ss-table.nk-heat td:not(:first-child){ text-align:center; font-weight:400; color:var(--brown-mid); }
 </style>
 </head>
 <body>
@@ -1231,7 +1236,7 @@
     <div class="tabbar" id="tabs"></div>
     <div class="tabbar-stats">
       <div class="palette-picker" id="palettePickerWrap" title="Pilih palet warna dashboard">
-        <span class="pp-icon">🎨</span>
+        <span class="pp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13.5" cy="6.5" r=".6" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".6" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".6" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".6" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg></span>
         <select id="paletteSelect">
           <option value="maroon">Maroon</option>
           <option value="cherry">Cherry</option>
@@ -1596,6 +1601,7 @@ function rerenderCurrentView(){
   if(typeof divMode!=='undefined' && divMode){ renderDiversityView(); return; }
   if(typeof advMode!=='undefined' && advMode){ renderAdvancedView(); return; }
   if(typeof cariMode!=='undefined' && cariMode){ renderCariDataView(); return; }
+  if(typeof nkMode!=='undefined' && nkMode){ renderNakerView(); return; }
   if(typeof activePeriode!=='undefined' && activePeriode) renderContent(activePeriode);
 }
 
@@ -2046,6 +2052,22 @@ function computeHeroStats(){
 
 /* ===== Cari Data (form permintaan data ke pengunjung) ===== */
 let cariMode = false;
+
+/* ===== Naker (Analisis Ketenagakerjaan) ===== */
+const NK_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQej8sy14g9l-nLlN3Jm9H9VFb0Bjz7ExOO2vvOcblNJr6qVqqMYhue8TKucHrQTASbgs0g8I_MhyIZ/pub?gid=852397166&single=true&output=csv";
+let nkMode = false;
+let nkSubTab = 'ringkasan';
+let nkLoadState = 'idle';   // idle | loading | error | ready
+let nkLoadError = '';
+let nkData = null;
+let nkYear = null;          // tahun terpilih (t)
+let nkBase = null;          // tahun pembanding
+let nkBaseAuto = true;      // true = pembanding otomatis tahun sebelumnya
+let nkCharts = {};
+let nkProdScale = 'log';    // log | linear
+let nkTrenMetric = 'shTK';
+let nkTrenSectors = null;   // Set nama sektor terpilih
+let nkTrenBali = false;
 let cariSubmitState = 'idle'; // idle | sending | success | error
 const CARI_DATA_WEBAPP_URL = 'https://script.google.com/macros/s/GANTI_DENGAN_URL_DEPLOYMENT_ANDA/exec';
 
@@ -2055,9 +2077,9 @@ function renderTabs(){
     tabsEl.innerHTML = '';
     STORE.__order.forEach(p=>{
       const btn = document.createElement('button');
-      btn.className = 'tab' + (!compareMode && !ssMode && !cariMode && p===activePeriode?' active':'');
+      btn.className = 'tab' + (!compareMode && !ssMode && !lqMode && !convMode && !divMode && !advMode && !infMode && !cariMode && !nkMode && p===activePeriode?' active':'');
       btn.textContent = p;
-      btn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; activePeriode = p; renderTabs(); renderContent(p); };
+      btn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; nkMode = false; activePeriode = p; renderTabs(); renderContent(p); };
       tabsEl.appendChild(btn);
     });
 
@@ -2068,44 +2090,50 @@ function renderTabs(){
     const cmpBtn = document.createElement('button');
     cmpBtn.className = 'tab' + (compareMode ? ' active' : '');
     cmpBtn.textContent = 'Bandingkan';
-    cmpBtn.onclick = ()=>{ compareMode = true; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; renderTabs(); renderCompareView(); };
+    cmpBtn.onclick = ()=>{ compareMode = true; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; nkMode = false; renderTabs(); renderCompareView(); };
     tabsEl.appendChild(cmpBtn);
 
     const infBtn = document.createElement('button');
     infBtn.className = 'tab' + (infMode ? ' active' : '');
     infBtn.textContent = 'Inferensia';
-    infBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = true; cariMode = false; renderTabs(); renderInferensiaView(); };
+    infBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = true; cariMode = false; nkMode = false; renderTabs(); renderInferensiaView(); };
     tabsEl.appendChild(infBtn);
 
     const ssBtn = document.createElement('button');
     ssBtn.className = 'tab' + (ssMode ? ' active' : '');
     ssBtn.textContent = 'Shift-Share';
-    ssBtn.onclick = ()=>{ compareMode = false; ssMode = true; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; renderTabs(); renderShiftShareView(); };
+    ssBtn.onclick = ()=>{ compareMode = false; ssMode = true; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; nkMode = false; renderTabs(); renderShiftShareView(); };
     tabsEl.appendChild(ssBtn);
 
     const lqBtn = document.createElement('button');
     lqBtn.className = 'tab' + (lqMode ? ' active' : '');
     lqBtn.textContent = 'LQ';
-    lqBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = true; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; renderTabs(); renderLQView(); };
+    lqBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = true; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; nkMode = false; renderTabs(); renderLQView(); };
     tabsEl.appendChild(lqBtn);
 
     const convBtn = document.createElement('button');
     convBtn.className = 'tab' + (convMode ? ' active' : '');
     convBtn.textContent = 'Konvergensi';
-    convBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = true; divMode = false; advMode = false; infMode = false; cariMode = false; renderTabs(); renderKonvergensiView(); };
+    convBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = true; divMode = false; advMode = false; infMode = false; cariMode = false; nkMode = false; renderTabs(); renderKonvergensiView(); };
     tabsEl.appendChild(convBtn);
 
     const divBtn = document.createElement('button');
     divBtn.className = 'tab' + (divMode ? ' active' : '');
     divBtn.textContent = 'Diversitas';
-    divBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = true; advMode = false; infMode = false; cariMode = false; renderTabs(); renderDiversityView(); };
+    divBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = true; advMode = false; infMode = false; cariMode = false; nkMode = false; renderTabs(); renderDiversityView(); };
     tabsEl.appendChild(divBtn);
 
     const advBtn = document.createElement('button');
     advBtn.className = 'tab' + (advMode ? ' active' : '');
     advBtn.textContent = 'Struktural';
-    advBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = true; infMode = false; cariMode = false; renderTabs(); renderAdvancedView(); };
+    advBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = true; infMode = false; cariMode = false; nkMode = false; renderTabs(); renderAdvancedView(); };
     tabsEl.appendChild(advBtn);
+
+    const nkBtn = document.createElement('button');
+    nkBtn.className = 'tab' + (nkMode ? ' active' : '');
+    nkBtn.textContent = 'Naker';
+    nkBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; nkMode = true; renderTabs(); renderNakerView(); };
+    tabsEl.appendChild(nkBtn);
 
     const sep2 = document.createElement('span');
     sep2.className = 'tab-sep';
@@ -2114,7 +2142,7 @@ function renderTabs(){
     const cariBtn = document.createElement('button');
     cariBtn.className = 'tab' + (cariMode ? ' active' : '');
     cariBtn.textContent = 'Cari Data';
-    cariBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = true; renderTabs(); renderCariDataView(); };
+    cariBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = true; nkMode = false; renderTabs(); renderCariDataView(); };
     tabsEl.appendChild(cariBtn);
   });
 }
@@ -3172,6 +3200,7 @@ function downloadCompareChartJPG(){
 }
 
 async function exportStyledExcel(filename, sheetName, header, rows){
+  if(!/\.xlsx$/i.test(filename)) filename += '.xlsx';   // pastikan file terunduh berekstensi .xlsx
   if(typeof ExcelJS === 'undefined'){ alert('Gagal memuat library Excel. Coba refresh halaman.'); return; }
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet(sheetName);
@@ -7499,15 +7528,15 @@ function buildSSDataset(){
 const SS_QUAD_LABELS = {
   tradisional: {
     1:{ title:'Kuadran I · Progresif', desc:'Bauran industri & keunggulan kompetitif sama-sama positif — sektor tumbuh cepat secara nasional dan makin unggul di wilayah.', color:'#3e5a2a' },
-    2:{ title:'Kuadran II · Kompetitif Lokal', desc:'Secara nasional bauran industrinya lambat, namun wilayah tetap unggul kompetitif pada sektor ini.', color:THEME.c4 },
-    3:{ title:'Kuadran III · Lamban', desc:'Bauran industri & keunggulan kompetitif sama-sama negatif — sektor tertinggal di kedua sisi.', color:THEME.accent },
-    4:{ title:'Kuadran IV · Rentan', desc:'Secara nasional sektor tumbuh cepat, tetapi wilayah kalah bersaing (kurang kompetitif) di sektor ini.', color:THEME.c3 }
+    2:{ title:'Kuadran II · Kompetitif Lokal', desc:'Secara nasional bauran industrinya lambat, namun wilayah tetap unggul kompetitif pada sektor ini.', get color(){ return THEME.c4; } },
+    3:{ title:'Kuadran III · Lamban', desc:'Bauran industri & keunggulan kompetitif sama-sama negatif — sektor tertinggal di kedua sisi.', get color(){ return THEME.accent; } },
+    4:{ title:'Kuadran IV · Rentan', desc:'Secara nasional sektor tumbuh cepat, tetapi wilayah kalah bersaing (kurang kompetitif) di sektor ini.', get color(){ return THEME.c3; } }
   },
   spesialisasi: {
     1:{ title:'Kuadran I · Unggulan', desc:'Wilayah terspesialisasi pada sektor ini dan sekaligus unggul kompetitif — kombinasi ideal.', color:'#3e5a2a' },
-    2:{ title:'Kuadran II · Potensial', desc:'Belum terspesialisasi namun kompetitif — peluang untuk memperbesar porsi sektor ini.', color:THEME.c4 },
-    3:{ title:'Kuadran III · Bukan Unggulan', desc:'Tidak terspesialisasi dan tidak kompetitif di sektor ini.', color:THEME.accent },
-    4:{ title:'Kuadran IV · Salah Spesialisasi', desc:'Wilayah terspesialisasi pada sektor ini tetapi kalah kompetitif — alokasi sumber daya kurang tepat (efek alokasi negatif).', color:THEME.c3 }
+    2:{ title:'Kuadran II · Potensial', desc:'Belum terspesialisasi namun kompetitif — peluang untuk memperbesar porsi sektor ini.', get color(){ return THEME.c4; } },
+    3:{ title:'Kuadran III · Bukan Unggulan', desc:'Tidak terspesialisasi dan tidak kompetitif di sektor ini.', get color(){ return THEME.accent; } },
+    4:{ title:'Kuadran IV · Salah Spesialisasi', desc:'Wilayah terspesialisasi pada sektor ini tetapi kalah kompetitif — alokasi sumber daya kurang tepat (efek alokasi negatif).', get color(){ return THEME.c3; } }
   }
 };
 
@@ -8093,9 +8122,9 @@ function lqStatusToKlas(status){
 
 const LQ_KLAS = {
   unggulan:    { label:'Unggulan',    desc:'Terspesialisasi (SLQ≥1) dan sedang tumbuh lebih cepat dari wilayah acuan (DLQ≥1) — sektor basis dengan momentum yang menguat.', color:'#3e5a2a' },
-  andalan:     { label:'Andalan',     desc:'Belum terspesialisasi (SLQ<1) namun tumbuh lebih cepat dari wilayah acuan (DLQ≥1) — berpotensi menjadi unggulan di masa depan.', color:THEME.c4 },
-  prospektif:  { label:'Prospektif',  desc:'Sudah terspesialisasi (SLQ≥1) tetapi pertumbuhannya melambat dibanding wilayah acuan (DLQ<1) — perlu diwaspadai despesialisasi.', color:THEME.c3 },
-  tertinggal:  { label:'Tertinggal',  desc:'Belum terspesialisasi (SLQ<1) dan pertumbuhannya juga lebih lambat (DLQ<1) — bukan sektor basis maupun berkembang.', color:THEME.accent }
+  andalan:     { label:'Andalan',     desc:'Belum terspesialisasi (SLQ<1) namun tumbuh lebih cepat dari wilayah acuan (DLQ≥1) — berpotensi menjadi unggulan di masa depan.', get color(){ return THEME.c4; } },
+  prospektif:  { label:'Prospektif',  desc:'Sudah terspesialisasi (SLQ≥1) tetapi pertumbuhannya melambat dibanding wilayah acuan (DLQ<1) — perlu diwaspadai despesialisasi.', get color(){ return THEME.c3; } },
+  tertinggal:  { label:'Tertinggal',  desc:'Belum terspesialisasi (SLQ<1) dan pertumbuhannya juga lebih lambat (DLQ<1) — bukan sektor basis maupun berkembang.', get color(){ return THEME.accent; } }
 };
 
 function computeLQ(rows, year){
@@ -10903,6 +10932,1276 @@ function renderAdvTrajectory(){
   document.getElementById('dlAdvTraj').onclick = ()=> triggerJPGDownload(advCharts.traj, 'dynamic_specialization');
   document.getElementById('advTrajExcelBtn').onclick = async ()=>{
     await exportStyledExcel('dynamic_specialization', 'Trajectory', ['Sektor','Klasifikasi','SLQ Awal','SLQ Terakhir','DSS'], summary.map(s=>[s.sektor,s.trajectory,s.slqAwal,s.slqLatest,s.dss]));
+  };
+}
+
+/* =========================================================
+   NAKER — Analisis Ketenagakerjaan (Klungkung vs Bali)
+   Sumber: 1 sheet long-format (Tahun × Lapangan Usaha) berisi PDRB ADHK/ADHB
+   dan jumlah tenaga kerja (TK) Klungkung + Bali. Kolom turunan di sheet
+   (share, LQ, shift-share, elastisitas) TIDAK dipakai karena sebagian berformat
+   persen yang keliru; semua indikator dihitung ulang di sini dari 6 kolom
+   mentah agar konsisten untuk pilihan tahun / tahun pembanding apa pun.
+   ========================================================= */
+
+/* ---------- Helper umum ---------- */
+const nkOk = v => typeof v === 'number' && isFinite(v);
+
+/* Parser angka sheet berformat Indonesia (koma = desimal). Toleran terhadap
+   nilai bertanda persen, spasi, dan titik ribuan. */
+function nkParseNum(v){
+  if(v===undefined || v===null) return NaN;
+  let s = v.toString().trim().replace(/%$/,'').replace(/\s/g,'');
+  if(s==='' || s==='-') return NaN;
+  if(s.indexOf(',')>=0){ s = s.replace(/\./g,'').replace(',','.'); }
+  else if(/^-?\d{1,3}(\.\d{3})+$/.test(s)){ s = s.replace(/\./g,''); }
+  const n = parseFloat(s);
+  return isNaN(n) ? NaN : n;
+}
+function nkF(n, d){
+  if(!nkOk(n)) return '—';
+  d = (d===undefined) ? 0 : d;
+  return n.toLocaleString('id-ID', {minimumFractionDigits:d, maximumFractionDigits:d});
+}
+function nkSg(n, d){ if(!nkOk(n)) return '—'; return (n>0?'+':'') + nkF(n,d); }
+function nkP(x, d){ return nkOk(x) ? nkF(x*100, d===undefined?2:d) + '%' : '—'; }
+function nkPS(x, d){ return nkOk(x) ? nkSg(x*100, d===undefined?2:d) + '%' : '—'; }
+function nkPP(x, d){ return nkOk(x) ? nkSg(x*100, d===undefined?2:d) + ' pp' : '—'; }
+function nkCls(x){ return nkOk(x) ? (x>=0 ? 'pos' : 'neg') : ''; }
+function nkX(v){ return nkOk(v) ? v : ''; }            // nilai untuk ekspor Excel
+function nkPX(v){ return nkOk(v) ? v*100 : ''; }       // fraksi → persen (ekspor)
+function nkBadge(label, color){ return `<span class="ss-badge-quad" style="background:${color}">${escapeHtml(label)}</span>`; }
+function nkSort(rows, key, dir){   // dir: -1 = besar→kecil, 1 = kecil→besar; NaN selalu di akhir
+  const f = typeof key==='function' ? key : (r=>r[key]);
+  return rows.slice().sort((a,b)=>{
+    const x = f(a), y = f(b), ax = nkOk(x), ay = nkOk(y);
+    if(!ax && !ay) return 0;
+    if(!ax) return 1;
+    if(!ay) return -1;
+    return dir*(x-y);
+  });
+}
+function nkKpi(label, value, sub, color){
+  return `<div class="stat-box"><div class="stat-label">${label}</div><div class="stat-value" style="font-size:15px;${color?`color:${color};`:''}">${value}</div>${sub?`<div style="font-size:10.5px;color:var(--brown-soft);margin-top:2px;">${sub}</div>`:''}</div>`;
+}
+function nkNote(what, formulas, caption, reads){
+  return `<div class="ss-method-note">
+    <div><b class="mn-label">📖 Apa itu analisis ini</b>${what}</div>
+    <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
+    <ul class="formula-list">${formulas.map(f=>`<li>${f}</li>`).join('')}</ul>
+    ${caption?`<div class="formula-caption">${caption}</div>`:''}
+    <div class="mn-row"><b class="mn-label">💡 Cara membaca angka</b><ul class="mn-points">${reads.map(t=>`<li>${t}</li>`).join('')}</ul></div>
+  </div>`;
+}
+function nkInsightBox(items){
+  const list = items.filter(Boolean);
+  if(!list.length) return '';
+  return `<div class="ss-method-note" style="margin-top:16px;"><b class="mn-label">🔎 Temuan Utama</b><ul class="mn-points">${list.map(t=>`<li>${t}</li>`).join('')}</ul></div>`;
+}
+function nkFlagNote(){
+  return `<div class="nk-caption">† TK sektor bernilai 0 pada tahun ini atau tahun pembanding. Angka sektor dengan TK kecil (&lt; 1.000 orang) rentan berfluktuasi tajam antartahun, sehingga persentase pertumbuhannya perlu dibaca hati-hati.</div>`;
+}
+function nkNeedBase(){
+  return `<div class="state-msg">Analisis ini membandingkan dua titik waktu. Pilih <b>Tahun</b> setelah ${nkData.years[0]} agar tersedia tahun pembanding.</div>`;
+}
+
+/* ---------- Helper grafik ---------- */
+function nkDestroyCharts(){
+  Object.keys(nkCharts).forEach(k=>{ try{ nkCharts[k].destroy(); }catch(e){} });
+  nkCharts = {};
+}
+function nkChartBox(id, height, dlId){
+  return `<div class="chart-box-wrap">${dlId?`<button class="dl-btn" id="${dlId}" title="Unduh grafik sebagai JPG">⬇ JPG</button>`:''}<div class="chart-box" style="height:${height}px;"><canvas id="${id}"></canvas></div></div>`;
+}
+function nkMakeChart(key, canvasId, config){
+  const ctx = document.getElementById(canvasId);
+  if(!ctx) return null;
+  if(nkCharts[key]){ try{ nkCharts[key].destroy(); }catch(e){} }
+  nkCharts[key] = new Chart(ctx, config);
+  return nkCharts[key];
+}
+function nkBindDl(btnId, key, name){
+  const b = document.getElementById(btnId);
+  if(b) b.onclick = ()=> triggerJPGDownload(nkCharts[key], name);
+}
+function nkTicks(){ return { color:THEME.mid, font:{family:'Inter', size:10.5} }; }
+function nkAxisTitle(t){ return { display:true, text:t, color:THEME.mid, font:{family:'Inter', size:11} }; }
+function nkLegendOpt(){ return { position:'bottom', labels:{ font:{family:'Inter', size:11}, color:THEME.main, boxWidth:14 } }; }
+/* Garis referensi putus-putus. orient 'v' = garis vertikal di nilai sumbu-x, 'h' = horizontal di nilai sumbu-y. */
+function nkRefLinePlugin(orient, value){
+  return {
+    id:'nkRef',
+    beforeDatasetsDraw(chart){
+      const {ctx, chartArea, scales} = chart;
+      if(!chartArea || !scales.x || !scales.y) return;
+      ctx.save();
+      ctx.strokeStyle = THEME.soft; ctx.setLineDash([4,4]); ctx.lineWidth = 1;
+      ctx.beginPath();
+      if(orient==='v'){ const px = scales.x.getPixelForValue(value); ctx.moveTo(px, chartArea.top); ctx.lineTo(px, chartArea.bottom); }
+      else { const py = scales.y.getPixelForValue(value); ctx.moveTo(chartArea.left, py); ctx.lineTo(chartArea.right, py); }
+      ctx.stroke(); ctx.restore();
+    }
+  };
+}
+/* Pita transparan pada tahun terpilih untuk grafik tren (sumbu-x kategori tahun). */
+function nkYearBandPlugin(years, year){
+  return {
+    id:'nkBand',
+    beforeDatasetsDraw(chart){
+      const idx = years.indexOf(year), x = chart.scales.x, a = chart.chartArea;
+      if(idx<0 || !x || !a) return;
+      const px = x.getPixelForValue(idx);
+      const step = years.length>1 ? Math.abs(x.getPixelForValue(1)-x.getPixelForValue(0)) : 40;
+      const ctx = chart.ctx; ctx.save();
+      ctx.fillStyle = hexToRgba(THEME.accent, 0.10);
+      ctx.fillRect(px-step/2, a.top, step, a.bottom-a.top);
+      ctx.restore();
+    }
+  };
+}
+/* Tick sumbu logaritmik: hanya tampilkan 1-2-5 per dekade agar tidak padat. */
+function nkLogTick(v){
+  const m = v / Math.pow(10, Math.floor(Math.log10(v)));
+  const r = Math.round(m*10)/10;
+  return (r===1 || r===2 || r===5) ? nkF(v, v<1 ? 1 : 0) : '';
+}
+/* Definisi kelas per analisis. Warna dibaca saat dipanggil (bukan saat parse) agar ikut ganti palet. */
+function nkKlasDef(group){
+  const green = '#3e5a2a';
+  const defs = {
+    struk: {
+      andalan:    { label:'Penyerap & Produktif',  color:green,        desc:'Pangsa TK di atas rata-rata sektor (1/17) dan produktivitas di atas rata-rata ekonomi (IP ≥ 1) — tulang punggung yang menyerap banyak pekerja sekaligus produktif.' },
+      padatkarya: { label:'Padat Karya · Produktivitas Rendah', color:THEME.accent, desc:'Menyerap banyak pekerja, namun sumbangan PDRB per pekerja di bawah rata-rata (IP < 1) — kandidat utama peningkatan produktivitas.' },
+      niche:      { label:'Produktif · Serapan Kecil', color:THEME.c4,   desc:'Pangsa TK kecil tetapi produktivitas tinggi (IP ≥ 1) — sektor bernilai tambah tinggi dengan basis pekerja sempit.' },
+      marjinal:   { label:'Serapan & Produktivitas Rendah', color:THEME.c3, desc:'Pangsa TK kecil dan produktivitas di bawah rata-rata — peran ekonomi relatif terbatas.' }
+    },
+    lq: {
+      ganda:      { label:'Basis TK & Output',     color:green,        desc:'LQ tenaga kerja ≥ 1 dan LQ PDRB ≥ 1 — Klungkung terspesialisasi pada sektor ini, baik dalam penyerapan pekerja maupun output.' },
+      output:     { label:'Basis Output',          color:THEME.c4,     desc:'LQ PDRB ≥ 1 tetapi LQ TK < 1 — output terkonsentrasi dengan pekerja relatif sedikit (padat modal / produktivitas tinggi dibanding Bali).' },
+      tk:         { label:'Basis Tenaga Kerja',    color:THEME.accent, desc:'LQ TK ≥ 1 tetapi LQ PDRB < 1 — banyak menyerap pekerja namun output relatif kecil dibanding Bali (produktivitas relatif rendah).' },
+      non:        { label:'Non-Basis',             color:THEME.c3,     desc:'LQ TK < 1 dan LQ PDRB < 1 — bukan sektor spesialisasi Klungkung dibanding Bali.' }
+    },
+    elas: {
+      ekspansi:   { label:'Ekspansi Menyerap TK',  color:green,        desc:'PDRB dan TK sama-sama tumbuh — sektor berkembang sambil menambah lapangan kerja.' },
+      jobless:    { label:'Tumbuh tanpa Serapan TK', color:THEME.c4,   desc:'PDRB naik tetapi TK turun/tetap — pertumbuhan ditopang kenaikan produktivitas, bukan penambahan pekerja.' },
+      padat:      { label:'TK Naik, Output Turun', color:THEME.c3,     desc:'TK bertambah saat PDRB menurun — produktivitas per pekerja melemah.' },
+      kontraksi:  { label:'Kontraksi',             color:THEME.accent, desc:'PDRB dan TK sama-sama turun.' }
+    },
+    ss: {
+      progresif:  { label:'Kuadran I · Progresif', color:green,        desc:'IM ≥ 0 dan CS ≥ 0 — sektor tumbuh cepat di Bali dan Klungkung menyerap TK lebih cepat lagi.' },
+      kompetitif: { label:'Kuadran II · Kompetitif Lokal', color:THEME.c4, desc:'IM < 0 tetapi CS ≥ 0 — sektor lambat di Bali, namun Klungkung tetap unggul menyerap TK.' },
+      lamban:     { label:'Kuadran III · Lamban',  color:THEME.accent, desc:'IM < 0 dan CS < 0 — tertinggal di kedua sisi.' },
+      rentan:     { label:'Kuadran IV · Rentan',   color:THEME.c3,     desc:'IM ≥ 0 tetapi CS < 0 — sektor tumbuh cepat di Bali, namun Klungkung kalah bersaing menyerap TK.' }
+    }
+  };
+  return defs[group];
+}
+function nkLegendHtml(def, order, counts){
+  return `<div class="ss-quad-legend">${order.map(k=>`
+    <div class="ss-quad-legend-item"><b style="color:${def[k].color}">${def[k].label} <span class="cnt">(${counts[k]||0})</span></b>${def[k].desc}</div>`).join('')}</div>`;
+}
+
+/* ---------- Loader & pembangun data ---------- */
+function loadNakerData(){
+  nkLoadState = 'loading';
+  Papa.parse(NK_CSV_URL, {
+    download:true, header:true, skipEmptyLines:true,
+    complete:function(res){
+      try{
+        const rows = (res.data||[]).filter(r=> Object.values(r).some(v=> v!==null && v!==undefined && v.toString().trim()!==''));
+        nkData = nkBuild(rows);
+        nkLoadState = 'ready';
+      }catch(err){
+        nkLoadState = 'error'; nkLoadError = err.message;
+      }
+      if(nkMode) renderNakerView();
+    },
+    error:function(err){
+      nkLoadState = 'error'; nkLoadError = err.toString();
+      if(nkMode) renderNakerView();
+    }
+  });
+}
+
+const _nkLevelCache = {};
+function nkBuild(rows){
+  if(!rows.length) throw new Error('Sheet kosong');
+  const hdr = Object.keys(rows[0]);
+  const find = re => hdr.find(h => re.test(h.toString().trim()));
+  const cols = {
+    tahun:  find(/^tahun$/i),
+    sektor: find(/^(lapangan\s*usaha|sektor|kategori)$/i),
+    adhkK:  find(/^adhk\s*klungkung$/i),
+    adhbK:  find(/^adhb\s*klungkung$/i),
+    tkK:    find(/^tk\s*klungkung$/i),
+    adhkB:  find(/^adhk\s*bali$/i),
+    adhbB:  find(/^adhb\s*bali$/i),
+    tkB:    find(/^tk\s*bali$/i)
+  };
+  const missing = Object.keys(cols).filter(k=>!cols[k]);
+  if(missing.length) throw new Error('Kolom tidak ditemukan di sheet: ' + missing.join(', '));
+
+  const byYear = {}, sectors = [];
+  rows.forEach(r=>{
+    const y = parseInt(nkParseNum(r[cols.tahun]));
+    const s = (r[cols.sektor]||'').toString().trim();
+    if(isNaN(y) || !s) return;
+    if(!byYear[y]) byYear[y] = {};
+    const g = k => { const n = nkParseNum(r[cols[k]]); return isNaN(n) ? 0 : n; };
+    byYear[y][s] = { adhkK:g('adhkK'), adhbK:g('adhbK'), tkK:g('tkK'), adhkB:g('adhkB'), adhbB:g('adhbB'), tkB:g('tkB') };
+    if(!sectors.includes(s)) sectors.push(s);
+  });
+  const years = Object.keys(byYear).map(Number).sort((a,b)=>a-b);
+  if(!years.length) throw new Error('Tidak ada baris Tahun yang valid');
+  const tot = {};
+  years.forEach(y=>{
+    const t = {adhkK:0, adhbK:0, tkK:0, adhkB:0, adhbB:0, tkB:0};
+    Object.values(byYear[y]).forEach(v=>{ Object.keys(t).forEach(k=>{ t[k] += v[k]; }); });
+    tot[y] = t;
+  });
+  Object.keys(_nkLevelCache).forEach(k=> delete _nkLevelCache[k]);
+  return { years, sectors, byYear, tot };
+}
+
+/* Indikator level (statis) per sektor untuk satu tahun. */
+function nkLevel(y){
+  if(_nkLevelCache[y]) return _nkLevelCache[y];
+  const D = nkData, T = D.tot[y];
+  const zero = {adhkK:0, adhbK:0, tkK:0, adhkB:0, adhbB:0, tkB:0};
+  const prodTotK = T.tkK>0 ? T.adhkK/T.tkK*1000 : NaN;   // Rp juta per pekerja (PDRB dalam Rp miliar)
+  const prodTotB = T.tkB>0 ? T.adhkB/T.tkB*1000 : NaN;
+  const rows = D.sectors.map(s=>{
+    const v = D.byYear[y][s] || zero;
+    const shTK  = T.tkK>0 ? v.tkK/T.tkK : NaN;
+    const shTKB = T.tkB>0 ? v.tkB/T.tkB : NaN;
+    const shY   = T.adhkK>0 ? v.adhkK/T.adhkK : NaN;
+    const shYB  = T.adhkB>0 ? v.adhkB/T.adhkB : NaN;
+    const prodK = v.tkK>0 ? v.adhkK/v.tkK*1000 : NaN;
+    const prodB = v.tkB>0 ? v.adhkB/v.tkB*1000 : NaN;
+    return Object.assign({ sektor:s }, v, {
+      shTK, shTKB, shY, shYB,
+      selisih: shY - shTK,
+      ip:  prodK / prodTotK,
+      ipB: prodB / prodTotB,
+      prodK, prodB,
+      rasioKB: prodK / prodB,
+      lqTK: shTKB>0 ? shTK/shTKB : NaN,
+      lqY:  shYB>0 ? shY/shYB : NaN
+    });
+  });
+  return (_nkLevelCache[y] = { year:y, T, prodTotK, prodTotB, rows });
+}
+
+/* Perubahan antara tahun pembanding b → tahun y: pertumbuhan, elastisitas, dan shift-share TK. */
+function nkChange(y, b){
+  const L1 = nkLevel(y), L0 = nkLevel(b), T1 = L1.T, T0 = L0.T;
+  const G = T0.tkB>0 ? T1.tkB/T0.tkB - 1 : NaN;      // pertumbuhan TK total Bali (wilayah acuan)
+  const rows = L1.rows.map((r1,i)=>{
+    const r0 = L0.rows[i];
+    const gTK   = r0.tkK>0 ? r1.tkK/r0.tkK - 1 : NaN;
+    const gY    = r0.adhkK>0 ? r1.adhkK/r0.adhkK - 1 : NaN;
+    const gProd = (r0.prodK>0 && r1.prodK>=0) ? r1.prodK/r0.prodK - 1 : NaN;
+    const gTKB  = r0.tkB>0 ? r1.tkB/r0.tkB - 1 : NaN; // pertumbuhan TK sektor yang sama di Bali
+    const Gi    = nkOk(gTKB) ? gTKB : G;
+    return {
+      sektor:r1.sektor, r0, r1, tk0:r0.tkK, tk1:r1.tkK, dTK:r1.tkK - r0.tkK,
+      gTK, gY, gProd, gTKB,
+      dShTK: r1.shTK - r0.shTK,
+      dLqTK: r1.lqTK - r0.lqTK,
+      elast: (nkOk(gTK) && nkOk(gY) && Math.abs(gY)>=0.005) ? gTK/gY : NaN,
+      RS: r0.tkK*G,                    // Regional Share
+      IM: r0.tkK*(Gi - G),             // Industry Mix
+      CS: r1.tkK - r0.tkK*(1+Gi),      // Competitive Shift (sisa, sehingga RS+IM+CS = ΔTK persis)
+      flag: (r0.tkK===0 || r1.tkK===0)
+    };
+  });
+  const gTKt = T0.tkK>0 ? T1.tkK/T0.tkK - 1 : NaN;
+  const gYt  = T0.adhkK>0 ? T1.adhkK/T0.adhkK - 1 : NaN;
+  const tot = {
+    dTK:T1.tkK - T0.tkK, gTK:gTKt, gY:gYt, G,
+    gProd:  L0.prodTotK>0 ? L1.prodTotK/L0.prodTotK - 1 : NaN,
+    gProdB: L0.prodTotB>0 ? L1.prodTotB/L0.prodTotB - 1 : NaN,
+    elast: (nkOk(gTKt) && nkOk(gYt) && Math.abs(gYt)>=0.005) ? gTKt/gYt : NaN,
+    RS: rows.reduce((a,r)=>a+r.RS,0),
+    IM: rows.reduce((a,r)=>a+r.IM,0),
+    CS: rows.reduce((a,r)=>a+r.CS,0)
+  };
+  return { year:y, base:b, L1, L0, rows, tot };
+}
+
+/* Dekomposisi produktivitas total: within + between (statis) + interaksi (dinamis).
+   Dihitung pada himpunan sektor yang TK-nya > 0 di kedua tahun sehingga identitas eksak. */
+function nkDecomp(y, b){
+  const L1 = nkLevel(y), L0 = nkLevel(b);
+  const valid = [], excluded = [];
+  L1.rows.forEach((r1,i)=>{ const r0 = L0.rows[i]; (r0.tkK>0 && r1.tkK>0 ? valid : excluded).push({r0, r1}); });
+  const Lt0 = valid.reduce((a,v)=>a+v.r0.tkK,0), Lt1 = valid.reduce((a,v)=>a+v.r1.tkK,0);
+  const Y0 = valid.reduce((a,v)=>a+v.r0.adhkK,0), Y1 = valid.reduce((a,v)=>a+v.r1.adhkK,0);
+  const P0 = Lt0>0 ? Y0/Lt0*1000 : NaN, P1 = Lt1>0 ? Y1/Lt1*1000 : NaN;
+  const rows = valid.map(v=>{
+    const s0 = v.r0.tkK/Lt0, s1 = v.r1.tkK/Lt1, p0 = v.r0.prodK, p1 = v.r1.prodK;
+    const within = (p1-p0)*s0, between = (s1-s0)*p0, inter = (p1-p0)*(s1-s0);
+    return { sektor:v.r1.sektor, s0, s1, p0, p1, within, between, inter, total: within+between+inter };
+  });
+  const sum = k => rows.reduce((a,r)=>a+r[k],0);
+  const exclY1 = excluded.reduce((a,v)=>a+v.r1.adhkK,0);
+  return {
+    year:y, base:b, rows, P0, P1, dP:P1-P0,
+    within:sum('within'), between:sum('between'), inter:sum('inter'),
+    excluded: excluded.map(v=>v.r1.sektor),
+    exclShare: L1.T.adhkK>0 ? exclY1/L1.T.adhkK : NaN
+  };
+}
+
+/* Indeks struktur TK */
+function nkDissim(L){ return L.rows.reduce((a,r)=> a + (nkOk(r.shTK)&&nkOk(r.shTKB) ? Math.abs(r.shTK-r.shTKB) : 0), 0); }
+function nkMichaely(L1, L0){ return 0.5*L1.rows.reduce((a,r,i)=> a + Math.abs((nkOk(r.shTK)?r.shTK:0)-(nkOk(L0.rows[i].shTK)?L0.rows[i].shTK:0)), 0); }
+function nkHHI(L){ return L.rows.reduce((a,r)=> a + (nkOk(r.shTK) ? r.shTK*r.shTK : 0), 0); }
+function nkEntropyNorm(L){
+  const n = L.rows.length; let h = 0;
+  L.rows.forEach(r=>{ if(nkOk(r.shTK) && r.shTK>0) h -= r.shTK*Math.log(r.shTK); });
+  return n>1 ? h/Math.log(n) : NaN;
+}
+function nkElasText(gTK, gY, e){
+  if(!nkOk(gTK) || !nkOk(gY)) return '';
+  if(gY>0 && gTK>0){
+    if(!nkOk(e)) return 'output nyaris tidak berubah sementara TK bertambah';
+    return e>=1 ? 'TK tumbuh sama cepat atau lebih cepat dari output (pertumbuhan padat karya; produktivitas per pekerja stagnan/turun)'
+                : 'TK tumbuh lebih lambat dari output sehingga produktivitas per pekerja naik';
+  }
+  if(gY>0) return 'output tumbuh sementara TK menyusut (tumbuh tanpa tambahan serapan tenaga kerja)';
+  if(gTK>0) return 'TK bertambah meski output menurun (produktivitas per pekerja turun)';
+  return 'output maupun TK sama-sama menurun (kontraksi)';
+}
+
+/* =========================================================
+   VIEW UTAMA: kerangka, pilihan tahun, dispatcher sub-tab
+   ========================================================= */
+const NK_SUBTABS = [
+  {key:'ringkasan',     label:'Ringkasan'},
+  {key:'struktur',      label:'Struktur & Kontribusi'},
+  {key:'produktivitas', label:'Produktivitas'},
+  {key:'spesialisasi',  label:'Spesialisasi (LQ)'},
+  {key:'elastisitas',   label:'Pertumbuhan & Elastisitas'},
+  {key:'shiftshare',    label:'Shift-Share TK'},
+  {key:'dekomposisi',   label:'Dekomposisi Produktivitas'},
+  {key:'tren',          label:'Tren Sektor'}
+];
+
+function renderNakerView(){
+  const filterPanel = document.getElementById('kelFilterPanel');
+  if(filterPanel) filterPanel.style.display = 'none';
+  const main = document.getElementById('main');
+  nkDestroyCharts();
+
+  const introText = `Analisis ketenagakerjaan Klungkung dibandingkan Bali per lapangan usaha: seberapa besar tiap sektor menyerap pekerja, seberapa produktif, di mana Klungkung terspesialisasi, bagaimana TK bertumbuh terhadap output, apa yang menggerakkan perubahan jumlah TK, dan apakah kenaikan produktivitas datang dari dalam sektor atau dari perpindahan pekerja antarsektor. Pilih <b>Tahun</b> (dan tahun pembanding) untuk menyajikan seluruh analisis secara serempak.`;
+  const introHtml = `<div class="ss-intro"><h2>Ketenagakerjaan (Naker)</h2><p>${introText}</p></div>`;
+
+  if(nkLoadState==='idle'){
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>Memuat data…</div></section>`;
+    loadNakerData();
+    return;
+  }
+  if(nkLoadState==='loading'){
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>Memuat data…</div></section>`;
+    return;
+  }
+  if(nkLoadState==='error'){
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(nkLoadError)}<br><br><a href="${NK_CSV_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div><button class="ss-mapping-apply" id="nkRetryBtn" style="margin-top:10px;">Coba Lagi</button></section>`;
+    const rb = document.getElementById('nkRetryBtn');
+    if(rb) rb.onclick = ()=>{ nkLoadState = 'idle'; renderNakerView(); };
+    return;
+  }
+
+  main.innerHTML = `
+    <section class="ss-wrap">
+      ${introHtml}
+      <div class="ss-method-tabs" id="nkSubTabs">
+        ${NK_SUBTABS.map(t=>`<button class="ss-method-tab" data-k="${t.key}">${escapeHtml(t.label)}</button>`).join('')}
+      </div>
+      <div class="ss-controls">
+        <div class="ctrl-item"><label>Tahun</label><select id="nkTahun"></select></div>
+        <div class="ctrl-item" id="nkBaseWrap"><label>Dibandingkan dengan</label><select id="nkBaseSel"></select></div>
+        <div class="ctrl-item" style="font-size:11.5px;color:var(--brown-soft);" id="nkInfo"></div>
+      </div>
+      <div id="nkBody"></div>
+    </section>`;
+
+  document.querySelectorAll('#nkSubTabs .ss-method-tab').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.k===nkSubTab);
+    btn.onclick = ()=>{ nkSubTab = btn.dataset.k; renderNakerView(); };
+  });
+
+  const years = nkData.years;
+  if(nkYear===null || !years.includes(nkYear)) nkYear = years[years.length-1];
+  const earlier = years.filter(y=>y<nkYear);
+  if(!earlier.length){ nkBase = null; }
+  else if(nkBaseAuto || nkBase===null || !earlier.includes(nkBase)){ nkBase = earlier[earlier.length-1]; nkBaseAuto = true; }
+
+  const tahunSel = document.getElementById('nkTahun');
+  tahunSel.innerHTML = years.map(y=>`<option value="${y}" ${y===nkYear?'selected':''}>${y}</option>`).join('');
+  tahunSel.onchange = ()=>{ nkYear = parseInt(tahunSel.value); renderNakerView(); };
+
+  const baseWrap = document.getElementById('nkBaseWrap');
+  const baseSel = document.getElementById('nkBaseSel');
+  if(!earlier.length || nkSubTab==='tren'){
+    baseWrap.style.display = 'none';
+  }else{
+    baseSel.innerHTML = earlier.map(y=>`<option value="${y}" ${y===nkBase?'selected':''}>${y}</option>`).join('');
+    baseSel.onchange = ()=>{
+      nkBase = parseInt(baseSel.value);
+      nkBaseAuto = (nkBase === earlier[earlier.length-1]);
+      renderNakerView();
+    };
+  }
+
+  const info = document.getElementById('nkInfo');
+  const nSek = nkData.sectors.length;
+  if(nkSubTab==='tren') info.textContent = `Tahun ${nkYear} ditandai pada grafik · ${nSek} lapangan usaha · Klungkung vs Bali`;
+  else if(nkBase!==null) info.textContent = `Tahun ${nkYear} dibandingkan ${nkBase} · ${nSek} lapangan usaha · Klungkung vs Bali`;
+  else info.textContent = `Tahun ${nkYear} (tahun pertama — analisis perubahan belum tersedia) · ${nSek} lapangan usaha`;
+
+  const renderers = {
+    ringkasan: renderNkRingkasan, struktur: renderNkStruktur, produktivitas: renderNkProduktivitas,
+    spesialisasi: renderNkSpesialisasi, elastisitas: renderNkElastisitas, shiftshare: renderNkShiftShare,
+    dekomposisi: renderNkDekomposisi, tren: renderNkTren
+  };
+  try{
+    renderers[nkSubTab]();
+  }catch(err){
+    console.error('Naker render error', err);
+    document.getElementById('nkBody').innerHTML = `<div class="state-msg">⚠ Terjadi kesalahan saat menyajikan analisis: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+/* =========================================================
+   1. RINGKASAN
+   ========================================================= */
+function renderNkRingkasan(){
+  const body = document.getElementById('nkBody');
+  const D = nkData, L = nkLevel(nkYear), T = L.T;
+  const ch = nkBase!==null ? nkChange(nkYear, nkBase) : null;
+  const valid = L.rows.filter(r=>r.tkK>0);
+  const top3 = nkSort(valid, 'tkK', -1).slice(0,3);
+  const top3Share = top3.reduce((a,r)=>a+r.shTK,0);
+  const dis = nkDissim(L);
+  const rasioProd = L.prodTotK / L.prodTotB;
+
+  const kpis = [
+    nkKpi('Tenaga Kerja Klungkung', nkF(T.tkK)+' orang', ch ? `${nkPS(ch.tot.gTK)} vs ${nkBase}` : ''),
+    nkKpi('Pangsa TK terhadap Bali', nkP(T.tkB>0 ? T.tkK/T.tkB : NaN), 'Bali: '+nkF(T.tkB)+' orang'),
+    nkKpi('PDRB ADHK (17 lap. usaha)', 'Rp '+nkF(T.adhkK/1000,2)+' T', ch ? `${nkPS(ch.tot.gY)} vs ${nkBase}` : 'harga konstan'),
+    nkKpi('PDRB ADHB (17 lap. usaha)', 'Rp '+nkF(T.adhbK/1000,2)+' T', 'harga berlaku'),
+    nkKpi('Produktivitas TK (ADHK)', nkF(L.prodTotK,1)+' jt/pekerja', `Bali: ${nkF(L.prodTotB,1)} jt · ${nkF(rasioProd,2)}×`),
+    nkKpi('Elastisitas TK–PDRB', ch ? nkF(ch.tot.elast,2) : '—', ch ? 'ΔTK% ÷ ΔPDRB%' : 'butuh tahun pembanding'),
+    nkKpi('Dissimilaritas Struktur TK vs Bali', nkF(dis,3), '0 = identik · 2 = berbeda total')
+  ];
+
+  const insights = [];
+  insights.push(`Tiga lapangan usaha penyerap TK terbesar pada ${nkYear}: ${top3.map(r=>`<b>${escapeHtml(r.sektor)}</b> (${nkP(r.shTK,1)})`).join(', ')} — bersama-sama menyerap ${nkP(top3Share,1)} tenaga kerja Klungkung.`);
+  if(ch){
+    const t = ch.tot;
+    insights.push(`Dibanding ${nkBase}, jumlah TK <b>${t.dTK>=0?'naik':'turun'} ${nkF(Math.abs(t.dTK))} orang (${nkPS(t.gTK)})</b> sementara PDRB ADHK ${t.gY>=0?'tumbuh':'turun'} ${nkPS(t.gY)}; elastisitas ${nkF(t.elast,2)} — ${nkElasText(t.gTK, t.gY, t.elast)}.`);
+    const gain = nkSort(ch.rows, 'dTK', -1)[0], loss = nkSort(ch.rows, 'dTK', 1)[0];
+    const parts = [];
+    if(gain && gain.dTK>0) parts.push(`penambahan TK terbesar di <b>${escapeHtml(gain.sektor)}</b> (${nkSg(gain.dTK)} orang${gain.flag?' †':''})`);
+    if(loss && loss.dTK<0) parts.push(`penurunan terbesar di <b>${escapeHtml(loss.sektor)}</b> (${nkSg(loss.dTK)} orang${loss.flag?' †':''})`);
+    if(parts.length) insights.push(`Antarsektor: ${parts.join('; ')}.${ch.rows.some(r=>r.flag)?' († = data TK bernilai 0 pada salah satu tahun.)':''}`);
+  }
+  const diff = nkSort(valid, r=>r.shTK - r.shTKB, -1);
+  const over = diff.slice(0,2).filter(r=>r.shTK-r.shTKB>0), under = diff.slice(-1).filter(r=>r.shTK-r.shTKB<0);
+  if(over.length || under.length){
+    const bits = [];
+    if(over.length) bits.push('lebih bertumpu pada '+over.map(r=>`<b>${escapeHtml(r.sektor)}</b> (${nkPP(r.shTK-r.shTKB,1)})`).join(' dan '));
+    if(under.length) bits.push('lebih rendah di '+under.map(r=>`<b>${escapeHtml(r.sektor)}</b> (${nkPP(r.shTK-r.shTKB,1)})`).join(' dan '));
+    insights.push(`Dibanding struktur TK Bali, Klungkung ${bits.join(', tetapi ')}.`);
+  }
+  if(nkOk(rasioProd)) insights.push(`Produktivitas rata-rata TK Klungkung setara <b>${nkP(rasioProd,1)}</b> dari Bali (Rp ${nkF(L.prodTotK,1)} juta vs Rp ${nkF(L.prodTotB,1)} juta per pekerja, ADHK).`);
+
+  body.innerHTML = `
+    <div class="ss-kpi-grid">${kpis.join('')}</div>
+    <div class="ss-section-title">Tren Tenaga Kerja &amp; Produktivitas ${D.years[0]}–${D.years[D.years.length-1]}</div>
+    ${nkChartBox('nkTrendCanvas', 300, 'nkDlTrend')}
+    <div class="ss-section-title">Tenaga Kerja per Lapangan Usaha${ch?` (${nkBase} vs ${nkYear})`:` (${nkYear})`}</div>
+    ${nkChartBox('nkSectorCanvas', Math.max(320, L.rows.length*(ch?40:28)), 'nkDlSector')}
+    ${nkInsightBox(insights)}
+    ${ch && ch.rows.some(r=>r.flag) ? nkFlagNote() : ''}`;
+
+  const yrs = D.years, lbl = yrs.map(String);
+  nkMakeChart('trend', 'nkTrendCanvas', {
+    type:'line',
+    data:{ labels:lbl, datasets:[
+      { label:'Tenaga Kerja Klungkung (orang)', data:yrs.map(y=>D.tot[y].tkK), borderColor:THEME.main, backgroundColor:THEME.main, yAxisID:'yTK', pointRadius:0, pointHoverRadius:5, tension:0.3 },
+      { label:'Produktivitas Klungkung (Rp juta/pekerja)', data:yrs.map(y=>nkLevel(y).prodTotK), borderColor:THEME.accent, backgroundColor:THEME.accent, yAxisID:'yP', pointRadius:0, pointHoverRadius:5, tension:0.3 },
+      { label:'Produktivitas Bali (Rp juta/pekerja)', data:yrs.map(y=>nkLevel(y).prodTotB), borderColor:'#9CA3AF', backgroundColor:'#9CA3AF', yAxisID:'yP', pointRadius:0, pointHoverRadius:5, tension:0.3 }
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{ legend:nkLegendOpt(), tooltip:{ callbacks:{ label:(c)=> `${c.dataset.label}: ${nkF(c.parsed.y, c.dataset.yAxisID==='yTK'?0:1)}` } } },
+      scales:{
+        x:{ grid:{display:false}, ticks:nkTicks() },
+        yTK:{ position:'left', grid:{color:THEME.light}, ticks:Object.assign({callback:v=>nkF(v)}, nkTicks()), title:nkAxisTitle('Tenaga kerja (orang)') },
+        yP:{ position:'right', grid:{display:false}, ticks:nkTicks(), title:nkAxisTitle('Rp juta / pekerja') }
+      }
+    },
+    plugins:[nkYearBandPlugin(yrs, nkYear)]
+  });
+  nkBindDl('nkDlTrend', 'trend', 'naker_tren');
+
+  const rows = nkSort(L.rows, 'tkK', -1);
+  const datasets = [];
+  if(ch){
+    const L0 = ch.L0;
+    datasets.push({ label:`TK ${nkBase}`, data:rows.map(r=>L0.rows.find(x=>x.sektor===r.sektor).tkK), backgroundColor:THEME.soft });
+  }
+  datasets.push({ label:`TK ${nkYear}`, data:rows.map(r=>r.tkK), backgroundColor:THEME.main });
+  nkMakeChart('sector', 'nkSectorCanvas', {
+    type:'bar',
+    data:{ labels:rows.map(r=>r.sektor), datasets },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:nkLegendOpt(), tooltip:{ callbacks:{ label:(c)=> `${c.dataset.label}: ${nkF(c.parsed.x)} orang` } } },
+      scales:{
+        x:{ grid:{color:THEME.light}, ticks:Object.assign({callback:v=>nkF(v)}, nkTicks()) },
+        y:{ grid:{display:false}, ticks:nkTicks() }
+      }
+    }
+  });
+  nkBindDl('nkDlSector', 'sector', `naker_tk_sektor_${nkYear}`);
+}
+
+/* =========================================================
+   2. STRUKTUR & KONTRIBUSI
+   ========================================================= */
+function nkStrukKlas(r){
+  if(!(r.tkK>0) || !nkOk(r.ip)) return null;
+  const big = r.shTK >= 1/nkData.sectors.length, prod = r.ip >= 1;
+  if(big && prod) return 'andalan';
+  if(big) return 'padatkarya';
+  if(prod) return 'niche';
+  return 'marjinal';
+}
+function renderNkStruktur(){
+  const body = document.getElementById('nkBody');
+  const L = nkLevel(nkYear);
+  const ch = nkBase!==null ? nkChange(nkYear, nkBase) : null;
+  const def = nkKlasDef('struk'), order = ['andalan','padatkarya','niche','marjinal'];
+  const rows = nkSort(L.rows, 'shTK', -1);
+  const chRow = s => ch ? ch.rows.find(r=>r.sektor===s) : null;
+  const counts = {}; rows.forEach(r=>{ const k = nkStrukKlas(r); if(k) counts[k] = (counts[k]||0)+1; });
+  const nProd = rows.filter(r=>r.tkK>0 && r.ip>=1).length, nValid = rows.filter(r=>r.tkK>0).length;
+  const michaely = ch ? nkMichaely(ch.L1, ch.L0) : NaN;
+
+  const kpis = [
+    nkKpi('Sektor Produktif (IP ≥ 1)', `${nProd} dari ${nValid}`, 'pangsa PDRB ≥ pangsa TK'),
+    nkKpi('Dissimilaritas vs Bali', nkF(nkDissim(L),3), '0 = identik · 2 = berbeda total'),
+    nkKpi('Perubahan Struktur TK', ch ? nkP(michaely,2) : '—', ch ? `Indeks Michaely ${nkBase}→${nkYear}` : 'butuh tahun pembanding'),
+    nkKpi('Konsentrasi TK (HHI)', nkF(nkHHI(L),3), `Entropi ternormalisasi ${nkF(nkEntropyNorm(L),3)}`)
+  ];
+
+  const note = nkNote(
+    ' Membandingkan seberapa besar sebuah lapangan usaha menyerap tenaga kerja (pangsa TK) dengan seberapa besar ia menyumbang PDRB (pangsa PDRB ADHK). Sektor yang menyerap banyak pekerja belum tentu menyumbang PDRB sebanding — selisihnya menunjukkan padat-karya atau produktifnya sektor tersebut.',
+    ['Selisih = Pangsa PDRB − Pangsa TK', 'IP = Pangsa PDRB ÷ Pangsa TK', 'Dissimilaritas = Σ |Pangsa TK Klungkung − Pangsa TK Bali|', 'Michaely = ½ Σ |Pangsa TK<sub>t</sub> − Pangsa TK<sub>pembanding</sub>|'],
+    'IP (Indeks Produktivitas) sama dengan produktivitas sektor relatif terhadap produktivitas rata-rata seluruh ekonomi Klungkung. Kuadran memakai garis pangsa TK merata (1 ÷ jumlah sektor) dan IP = 1.',
+    ['<b>IP &gt; 1</b>: sektor lebih produktif dari rata-rata ekonomi; <b>IP &lt; 1</b>: padat karya / produktivitas di bawah rata-rata.', '<b>Selisih positif</b> berarti pangsa PDRB melebihi pangsa TK (produktif); <b>negatif</b> berarti pangsa TK melebihi pangsa PDRB.', '<b>Dissimilaritas</b> mengukur perbedaan struktur TK dengan Bali. <b>Michaely</b> = persentase TK yang secara netto “berpindah” sektor antara dua tahun.']
+  );
+
+  body.innerHTML = `
+    ${note}
+    <div class="ss-kpi-grid">${kpis.join('')}</div>
+    <div class="ss-section-title">Pangsa TK vs Pangsa PDRB per Lapangan Usaha (${nkYear})</div>
+    ${nkChartBox('nkStrukBar', Math.max(360, rows.length*46), 'nkDlStrukBar')}
+    <div class="ss-section-title">Tipologi Sektor: Pangsa TK × Produktivitas Relatif</div>
+    <div class="ss-quad-grid">
+      ${nkChartBox('nkStrukQuad', 380, 'nkDlStrukQuad')}
+      <div>${nkLegendHtml(def, order, counts)}</div>
+    </div>
+    <div class="nk-caption">Sumbu vertikal berskala logaritmik. Sektor dengan TK = 0 tidak dapat dipetakan (IP tidak terdefinisi).</div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Struktur &amp; Kontribusi</span><button class="dl-btn" id="nkStrukExcel" style="position:static;">⬇ Excel</button></div>
+    <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="nkStrukTable"></table></div>`;
+
+  document.getElementById('nkStrukTable').innerHTML = `<thead><tr><th>Sektor</th><th>Tipologi</th><th>TK (orang)</th><th>Pangsa TK</th><th>Pangsa PDRB</th><th>Selisih (pp)</th><th>IP</th><th>Pangsa TK Bali</th><th>Δ Pangsa TK${ch?` (${nkBase}→${nkYear})`:''}</th></tr></thead><tbody>${
+    rows.map(r=>{
+      const k = nkStrukKlas(r), c = chRow(r.sektor);
+      return `<tr><td>${escapeHtml(r.sektor)}</td><td>${k?nkBadge(def[k].label, def[k].color):'<span style="color:var(--brown-soft)">TK = 0</span>'}</td>
+        <td>${nkF(r.tkK)}</td><td>${nkP(r.shTK)}</td><td>${nkP(r.shY)}</td>
+        <td class="${nkCls(r.selisih)}">${nkPP(r.selisih)}</td><td class="${nkOk(r.ip)?(r.ip>=1?'pos':'neg'):''}">${nkF(r.ip,2)}</td>
+        <td>${nkP(r.shTKB)}</td><td class="${c?nkCls(c.dShTK):''}">${c?nkPP(c.dShTK):'—'}</td></tr>`;
+    }).join('')}</tbody>`;
+
+  nkMakeChart('strukBar', 'nkStrukBar', {
+    type:'bar',
+    data:{ labels:rows.map(r=>r.sektor), datasets:[
+      { label:'Pangsa TK Klungkung (%)',   data:rows.map(r=>nkOk(r.shTK)?r.shTK*100:null),   backgroundColor:THEME.main },
+      { label:'Pangsa PDRB Klungkung (%)', data:rows.map(r=>nkOk(r.shY)?r.shY*100:null),     backgroundColor:THEME.accent },
+      { label:'Pangsa TK Bali (%)',        data:rows.map(r=>nkOk(r.shTKB)?r.shTKB*100:null), backgroundColor:THEME.soft }
+    ]},
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:nkLegendOpt(), tooltip:{ callbacks:{ label:(c)=> `${c.dataset.label}: ${nkF(c.parsed.x,2)}%` } } },
+      scales:{
+        x:{ grid:{color:THEME.light}, ticks:Object.assign({callback:v=>nkF(v,0)+'%'}, nkTicks()) },
+        y:{ grid:{display:false}, ticks:nkTicks() }
+      }
+    }
+  });
+  nkBindDl('nkDlStrukBar', 'strukBar', `naker_pangsa_${nkYear}`);
+
+  const pts = rows.filter(r=>nkStrukKlas(r)).map(r=>({ x:r.shTK*100, y:r.ip, label:r.sektor, k:nkStrukKlas(r) }));
+  nkMakeChart('strukQuad', 'nkStrukQuad', {
+    type:'scatter',
+    data:{ datasets:[{ label:'Sektor', data:pts, backgroundColor:pts.map(p=>def[p.k].color), pointRadius:7, pointHoverRadius:9 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(c)=> `${c.raw.label}: Pangsa TK ${nkF(c.raw.x,2)}%, IP ${nkF(c.raw.y,2)}` } } },
+      scales:{
+        x:{ min:0, grid:{color:THEME.light}, title:nkAxisTitle('Pangsa TK Klungkung (%)'), ticks:Object.assign({callback:v=>nkF(v,0)+'%'}, nkTicks()) },
+        y:{ type:'logarithmic', grid:{color:THEME.light}, title:nkAxisTitle('Indeks Produktivitas (IP, skala log)'), ticks:Object.assign({callback:nkLogTick}, nkTicks()) }
+      }
+    },
+    plugins:[lqCrosshairPlugin(100/nkData.sectors.length, 1)]
+  });
+  nkBindDl('nkDlStrukQuad', 'strukQuad', `naker_tipologi_${nkYear}`);
+
+  document.getElementById('nkStrukExcel').onclick = ()=> exportStyledExcel(`naker_struktur_${nkYear}.xlsx`, 'Struktur TK', 
+    ['Sektor','Tipologi','TK (orang)','Pangsa TK (%)','Pangsa PDRB (%)','Selisih (pp)','IP','Pangsa TK Bali (%)','Δ Pangsa TK (pp)'],
+    rows.map(r=>{ const k = nkStrukKlas(r), c = chRow(r.sektor); return [r.sektor, k?def[k].label:'TK = 0', r.tkK, nkPX(r.shTK), nkPX(r.shY), nkPX(r.selisih), nkX(r.ip), nkPX(r.shTKB), c?nkPX(c.dShTK):'']; }));
+}
+
+/* =========================================================
+   3. PRODUKTIVITAS
+   ========================================================= */
+function renderNkProduktivitas(){
+  const body = document.getElementById('nkBody');
+  const D = nkData, L = nkLevel(nkYear);
+  const ch = nkBase!==null ? nkChange(nkYear, nkBase) : null;
+  const chRow = s => ch ? ch.rows.find(r=>r.sektor===s) : null;
+  const rasioTot = L.prodTotK / L.prodTotB;
+  const both = L.rows.filter(r=>nkOk(r.rasioKB));
+  const nAbove = both.filter(r=>r.rasioKB>1).length;
+  const big = L.rows.filter(r=>r.tkK>=1000 && nkOk(r.prodK));
+  const best = nkSort(big, 'prodK', -1)[0], worst = nkSort(big, 'prodK', 1)[0];
+
+  const kpis = [
+    nkKpi('Produktivitas Klungkung', nkF(L.prodTotK,1)+' jt', ch ? `${nkPS(ch.tot.gProd)} vs ${nkBase}` : 'Rp juta / pekerja'),
+    nkKpi('Produktivitas Bali', nkF(L.prodTotB,1)+' jt', ch ? `${nkPS(ch.tot.gProdB)} vs ${nkBase}` : 'Rp juta / pekerja'),
+    nkKpi('Rasio Klungkung / Bali', nkF(rasioTot,2)+'×', rasioTot>=1?'Klungkung lebih produktif':'Klungkung di bawah Bali', rasioTot>=1?'#3e5a2a':THEME.accent),
+    nkKpi('Sektor di atas Bali', `${nAbove} dari ${both.length}`, 'rasio sektoral > 1'),
+    nkKpi('Tertinggi (TK ≥ 1.000)', best?escapeHtml(best.sektor):'—', best?nkF(best.prodK,1)+' jt/pekerja':''),
+    nkKpi('Terendah (TK ≥ 1.000)', worst?escapeHtml(worst.sektor):'—', worst?nkF(worst.prodK,1)+' jt/pekerja':'')
+  ];
+
+  const note = nkNote(
+    ' Produktivitas tenaga kerja mengukur nilai tambah (PDRB atas dasar harga konstan) yang dihasilkan rata-rata satu pekerja dalam setahun. Dibandingkan dengan Bali, ia menunjukkan sektor mana yang lebih efisien menggunakan tenaga kerjanya.',
+    ['Produktivitas = PDRB ADHK ÷ Tenaga Kerja', 'Rasio K/B = Produktivitas Klungkung ÷ Produktivitas Bali', 'IP = Produktivitas sektor ÷ Produktivitas rata-rata ekonomi'],
+    'Satuan: Rp juta per pekerja per tahun (PDRB dalam Rp miliar × 1.000 ÷ jumlah pekerja).',
+    ['<b>Rasio K/B &gt; 1</b>: pekerja di sektor itu di Klungkung menghasilkan nilai tambah lebih besar daripada rekannya di Bali; <b>&lt; 1</b> sebaliknya.', 'Sektor dengan TK kecil (mis. Informasi &amp; Komunikasi, Penggalian) dapat menghasilkan produktivitas sangat tinggi karena penyebutnya kecil — bacalah bersama jumlah TK-nya.']
+  );
+
+  const rows = nkSort(L.rows, 'prodK', -1);
+  const rowsR = nkSort(L.rows, 'rasioKB', -1);
+  body.innerHTML = `
+    ${note}
+    <div class="ss-kpi-grid">${kpis.join('')}</div>
+    <div class="ss-section-title">Produktivitas per Lapangan Usaha (${nkYear})</div>
+    <div class="ss-controls" style="margin-bottom:8px;"><div class="ctrl-item"><label>Skala grafik</label><select id="nkProdScaleSel"><option value="log" ${nkProdScale==='log'?'selected':''}>Logaritmik</option><option value="linear" ${nkProdScale==='linear'?'selected':''}>Linear</option></select></div></div>
+    ${nkChartBox('nkProdBar', Math.max(360, rows.length*40), 'nkDlProdBar')}
+    <div class="ss-section-title">Rasio Produktivitas Klungkung ÷ Bali (${nkYear})</div>
+    ${nkChartBox('nkProdRasio', Math.max(320, rowsR.length*26), 'nkDlProdRasio')}
+    <div class="ss-section-title">Tren Produktivitas Total ${D.years[0]}–${D.years[D.years.length-1]}</div>
+    ${nkChartBox('nkProdTrend', 280, 'nkDlProdTrend')}
+    <div class="table-head-row"><span class="table-head-label">Tabel Produktivitas</span><button class="dl-btn" id="nkProdExcel" style="position:static;">⬇ Excel</button></div>
+    <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="nkProdTable"></table></div>
+    ${ch && ch.rows.some(r=>r.flag) ? nkFlagNote() : ''}`;
+
+  document.getElementById('nkProdScaleSel').onchange = (e)=>{ nkProdScale = e.target.value; renderNakerView(); };
+
+  const statusOf = r => !nkOk(r.rasioKB) ? {l:'TK = 0', c:THEME.soft} : (r.rasioKB>=1 ? {l:'Di atas Bali', c:'#3e5a2a'} : {l:'Di bawah Bali', c:THEME.accent});
+  document.getElementById('nkProdTable').innerHTML = `<thead><tr><th>Sektor</th><th>Status</th><th>TK (orang)</th><th>Produktivitas K (jt)</th><th>Produktivitas B (jt)</th><th>Rasio K/B</th><th>IP Klungkung</th><th>IP Bali</th><th>Δ Produktivitas K${ch?` (${nkBase}→${nkYear})`:''}</th></tr></thead><tbody>${
+    rows.map(r=>{ const s = statusOf(r), c = chRow(r.sektor);
+      return `<tr><td>${escapeHtml(r.sektor)}${c&&c.flag?' †':''}</td><td>${nkBadge(s.l, s.c)}</td><td>${nkF(r.tkK)}</td>
+        <td>${nkF(r.prodK,1)}</td><td>${nkF(r.prodB,1)}</td><td class="${nkOk(r.rasioKB)?(r.rasioKB>=1?'pos':'neg'):''}">${nkF(r.rasioKB,2)}</td>
+        <td>${nkF(r.ip,2)}</td><td>${nkF(r.ipB,2)}</td><td class="${c?nkCls(c.gProd):''}">${c?nkPS(c.gProd,1):'—'}</td></tr>`; }).join('')}</tbody>`;
+
+  const isLog = nkProdScale==='log';
+  nkMakeChart('prodBar', 'nkProdBar', {
+    type:'bar',
+    data:{ labels:rows.map(r=>r.sektor), datasets:[
+      { label:'Klungkung', data:rows.map(r=>nkOk(r.prodK)?r.prodK:null), backgroundColor:THEME.main },
+      { label:'Bali',      data:rows.map(r=>nkOk(r.prodB)?r.prodB:null), backgroundColor:THEME.soft }
+    ]},
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:nkLegendOpt(), tooltip:{ callbacks:{ label:(c)=> `${c.dataset.label}: Rp ${nkF(c.parsed.x,1)} juta/pekerja` } } },
+      scales:{
+        x:{ type:isLog?'logarithmic':'linear', grid:{color:THEME.light}, title:nkAxisTitle('Rp juta per pekerja'+(isLog?' (skala log)':'')), ticks:Object.assign({callback:isLog?nkLogTick:(v=>nkF(v))}, nkTicks()) },
+        y:{ grid:{display:false}, ticks:nkTicks() }
+      }
+    }
+  });
+  nkBindDl('nkDlProdBar', 'prodBar', `naker_produktivitas_${nkYear}`);
+
+  nkMakeChart('prodRasio', 'nkProdRasio', {
+    type:'bar',
+    data:{ labels:rowsR.map(r=>r.sektor), datasets:[{ label:'Rasio K/B', data:rowsR.map(r=>nkOk(r.rasioKB)?r.rasioKB:null), backgroundColor:rowsR.map(r=>nkOk(r.rasioKB)&&r.rasioKB>=1?'#3e5a2a':THEME.accent) }] },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(c)=> `Rasio K/B: ${nkF(c.parsed.x,2)}×` } } },
+      scales:{
+        x:{ grid:{color:THEME.light}, title:nkAxisTitle('Rasio (1 = sama dengan Bali)'), ticks:nkTicks() },
+        y:{ grid:{display:false}, ticks:nkTicks() }
+      }
+    },
+    plugins:[nkRefLinePlugin('v', 1)]
+  });
+  nkBindDl('nkDlProdRasio', 'prodRasio', `naker_rasio_produktivitas_${nkYear}`);
+
+  const yrs = D.years;
+  nkMakeChart('prodTrend', 'nkProdTrend', {
+    type:'line',
+    data:{ labels:yrs.map(String), datasets:[
+      { label:'Klungkung', data:yrs.map(y=>nkLevel(y).prodTotK), borderColor:THEME.main, backgroundColor:THEME.main, pointRadius:0, pointHoverRadius:5, tension:0.3 },
+      { label:'Bali',      data:yrs.map(y=>nkLevel(y).prodTotB), borderColor:'#9CA3AF', backgroundColor:'#9CA3AF', pointRadius:0, pointHoverRadius:5, tension:0.3 }
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false, interaction:{ mode:'index', intersect:false },
+      plugins:{ legend:nkLegendOpt(), tooltip:{ callbacks:{ label:(c)=> `${c.dataset.label}: Rp ${nkF(c.parsed.y,1)} juta/pekerja` } } },
+      scales:{ x:{ grid:{display:false}, ticks:nkTicks() }, y:{ grid:{color:THEME.light}, title:nkAxisTitle('Rp juta / pekerja'), ticks:nkTicks() } }
+    },
+    plugins:[nkYearBandPlugin(yrs, nkYear)]
+  });
+  nkBindDl('nkDlProdTrend', 'prodTrend', 'naker_tren_produktivitas');
+
+  document.getElementById('nkProdExcel').onclick = ()=> exportStyledExcel(`naker_produktivitas_${nkYear}.xlsx`, 'Produktivitas',
+    ['Sektor','Status','TK (orang)','Produktivitas Klungkung (Rp juta)','Produktivitas Bali (Rp juta)','Rasio K/B','IP Klungkung','IP Bali','Δ Produktivitas (%)'],
+    rows.map(r=>{ const s = statusOf(r), c = chRow(r.sektor); return [r.sektor, s.l, r.tkK, nkX(r.prodK), nkX(r.prodB), nkX(r.rasioKB), nkX(r.ip), nkX(r.ipB), c?nkPX(c.gProd):'']; }));
+}
+
+/* =========================================================
+   4. SPESIALISASI (LQ Tenaga Kerja & LQ PDRB)
+   ========================================================= */
+function nkLqKlas(r){
+  if(!(r.tkK>0) || !nkOk(r.lqTK) || !nkOk(r.lqY)) return null;
+  const a = r.lqTK>=1, b = r.lqY>=1;
+  if(a && b) return 'ganda';
+  if(b) return 'output';
+  if(a) return 'tk';
+  return 'non';
+}
+/* Warna sel heatmap LQ: hijau untuk basis (>1), merah palet untuk non-basis (<1). */
+function nkHeatColor(v){
+  if(!nkOk(v)) return 'transparent';
+  if(v>=1) return hexToRgba('#3e5a2a', Math.min(0.12 + (v-1)/1.5*0.55, 0.67));
+  return hexToRgba(THEME.accent, Math.min(0.06 + (1-v)*0.45, 0.5));
+}
+function renderNkSpesialisasi(){
+  const body = document.getElementById('nkBody');
+  const D = nkData, L = nkLevel(nkYear);
+  const ch = nkBase!==null ? nkChange(nkYear, nkBase) : null;
+  const chRow = s => ch ? ch.rows.find(r=>r.sektor===s) : null;
+  const def = nkKlasDef('lq'), order = ['ganda','output','tk','non'];
+  const valid = L.rows.filter(r=>r.tkK>0 && nkOk(r.lqTK));
+  const rows = nkSort(L.rows, r=> r.tkK>0 ? r.lqTK : NaN, -1);
+  const counts = {}; rows.forEach(r=>{ const k = nkLqKlas(r); if(k) counts[k] = (counts[k]||0)+1; });
+  const nBasisTK = valid.filter(r=>r.lqTK>=1).length;
+  const nBasisY = L.rows.filter(r=>nkOk(r.lqY) && r.lqY>=1).length;
+  const topLq = nkSort(L.rows.filter(r=>r.tkK>=1000 && nkOk(r.lqTK)), 'lqTK', -1)[0];
+
+  const kpis = [
+    nkKpi('Sektor Basis TK (LQ ≥ 1)', `${nBasisTK} dari ${valid.length}`, 'spesialisasi penyerapan pekerja'),
+    nkKpi('Sektor Basis PDRB (LQ ≥ 1)', `${nBasisY} dari ${L.rows.length}`, 'spesialisasi output'),
+    nkKpi('Basis TK & Output', String(counts.ganda||0), 'keduanya ≥ 1', '#3e5a2a'),
+    nkKpi('LQ TK Tertinggi (TK ≥ 1.000)', topLq ? escapeHtml(topLq.sektor) : '—', topLq ? 'LQ = '+nkF(topLq.lqTK,2) : '')
+  ];
+
+  const note = nkNote(
+    ' Location Quotient (LQ) tenaga kerja menunjukkan apakah Klungkung lebih terkonsentrasi pada suatu lapangan usaha dibanding Bali dalam hal penyerapan pekerja. Dipasangkan dengan LQ PDRB, terlihat apakah spesialisasi itu juga tercermin pada output.',
+    ['LQ TK = (TK<sub>i</sub> Klungkung ÷ TK total Klungkung) ÷ (TK<sub>i</sub> Bali ÷ TK total Bali)', 'LQ PDRB = (PDRB<sub>i</sub> Klungkung ÷ PDRB total Klungkung) ÷ (PDRB<sub>i</sub> Bali ÷ PDRB total Bali)'],
+    'Statis (satu tahun terpilih), berbeda dengan tab LQ yang juga memuat DLQ. Ambang basis: LQ = 1.',
+    ['<b>LQ TK &gt; 1</b>: sektor itu menyerap porsi tenaga kerja Klungkung yang lebih besar dari porsinya di Bali (sektor basis tenaga kerja).', '<b>LQ TK tinggi tetapi LQ PDRB rendah</b> berarti sektor padat karya dengan output relatif kecil — produktivitas di bawah Bali; sebaliknya <b>LQ PDRB tinggi & LQ TK rendah</b> menandakan output terkonsentrasi pada pekerja yang relatif sedikit.']
+  );
+
+  body.innerHTML = `
+    ${note}
+    <div class="ss-kpi-grid">${kpis.join('')}</div>
+    <div class="ss-section-title">LQ Tenaga Kerja per Lapangan Usaha (${nkYear})</div>
+    ${nkChartBox('nkLqBar', Math.max(340, rows.length*28), 'nkDlLqBar')}
+    <div class="ss-section-title">Posisi Kuadran: LQ Tenaga Kerja × LQ PDRB</div>
+    <div class="ss-quad-grid">
+      ${nkChartBox('nkLqQuad', 380, 'nkDlLqQuad')}
+      <div>${nkLegendHtml(def, order, counts)}</div>
+    </div>
+    <div class="ss-section-title">Peta Panas LQ Tenaga Kerja ${D.years[0]}–${D.years[D.years.length-1]}</div>
+    <div class="ss-table-wrap ss-table-scroll" style="max-height:none;"><table class="ss-table nk-heat" id="nkLqHeat"></table></div>
+    <div class="nk-caption">Hijau = LQ ≥ 1 (basis), merah = LQ &lt; 1. Kolom tahun terpilih (${nkYear}) ditebalkan. “—” = TK sektor bernilai 0 pada tahun tersebut.</div>
+    <div class="table-head-row"><span class="table-head-label">Tabel LQ (${nkYear})</span><button class="dl-btn" id="nkLqExcel" style="position:static;">⬇ Excel</button></div>
+    <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="nkLqTable"></table></div>`;
+
+  document.getElementById('nkLqTable').innerHTML = `<thead><tr><th>Sektor</th><th>Klasifikasi</th><th>LQ TK</th><th>LQ PDRB</th><th>Pangsa TK Klungkung</th><th>Pangsa TK Bali</th><th>Δ LQ TK${ch?` (${nkBase}→${nkYear})`:''}</th></tr></thead><tbody>${
+    rows.map(r=>{ const k = nkLqKlas(r), c = chRow(r.sektor);
+      return `<tr><td>${escapeHtml(r.sektor)}</td><td>${k?nkBadge(def[k].label, def[k].color):'<span style="color:var(--brown-soft)">TK = 0</span>'}</td>
+        <td class="${r.tkK>0?(r.lqTK>=1?'pos':'neg'):''}">${r.tkK>0?nkF(r.lqTK,2):'—'}</td><td class="${nkOk(r.lqY)?(r.lqY>=1?'pos':'neg'):''}">${nkF(r.lqY,2)}</td>
+        <td>${nkP(r.shTK)}</td><td>${nkP(r.shTKB)}</td><td class="${c&&r.tkK>0&&c.r0.tkK>0?nkCls(c.dLqTK):''}">${c&&r.tkK>0&&c.r0.tkK>0?nkSg(c.dLqTK,2):'—'}</td></tr>`; }).join('')}</tbody>`;
+
+  const heatRows = nkSort(L.rows, 'tkK', -1);
+  document.getElementById('nkLqHeat').innerHTML = `<thead><tr><th>Sektor</th>${D.years.map(y=>`<th style="text-align:center;${y===nkYear?'text-decoration:underline;':''}">${y}</th>`).join('')}</tr></thead><tbody>${
+    heatRows.map(r=>`<tr><td>${escapeHtml(r.sektor)}</td>${D.years.map(y=>{
+      const rr = nkLevel(y).rows.find(x=>x.sektor===r.sektor);
+      const v = rr && rr.tkK>0 ? rr.lqTK : NaN;
+      return `<td style="background:${nkHeatColor(v)};${y===nkYear?'font-weight:800;color:var(--brown);':''}">${nkF(v,2)}</td>`;
+    }).join('')}</tr>`).join('')}</tbody>`;
+
+  nkMakeChart('lqBar', 'nkLqBar', {
+    type:'bar',
+    data:{ labels:rows.map(r=>r.sektor), datasets:[{ label:'LQ Tenaga Kerja', data:rows.map(r=>r.tkK>0&&nkOk(r.lqTK)?r.lqTK:null), backgroundColor:rows.map(r=>r.tkK>0&&r.lqTK>=1?'#3e5a2a':THEME.accent) }] },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(c)=> `LQ TK: ${nkF(c.parsed.x,2)}` } } },
+      scales:{ x:{ grid:{color:THEME.light}, title:nkAxisTitle('LQ (1 = sama dengan Bali)'), ticks:nkTicks() }, y:{ grid:{display:false}, ticks:nkTicks() } }
+    },
+    plugins:[nkRefLinePlugin('v', 1)]
+  });
+  nkBindDl('nkDlLqBar', 'lqBar', `naker_lq_tk_${nkYear}`);
+
+  const pts = rows.filter(r=>nkLqKlas(r)).map(r=>({ x:r.lqTK, y:r.lqY, label:r.sektor, k:nkLqKlas(r) }));
+  const maxX = Math.max(2, ...pts.map(p=>p.x))*1.1, maxY = Math.max(2, ...pts.map(p=>p.y))*1.1;
+  nkMakeChart('lqQuad', 'nkLqQuad', {
+    type:'scatter',
+    data:{ datasets:[{ label:'Sektor', data:pts, backgroundColor:pts.map(p=>def[p.k].color), pointRadius:7, pointHoverRadius:9 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(c)=> `${c.raw.label}: LQ TK ${nkF(c.raw.x,2)}, LQ PDRB ${nkF(c.raw.y,2)}` } } },
+      scales:{
+        x:{ min:0, max:maxX, grid:{color:THEME.light}, title:nkAxisTitle('LQ Tenaga Kerja'), ticks:nkTicks() },
+        y:{ min:0, max:maxY, grid:{color:THEME.light}, title:nkAxisTitle('LQ PDRB'), ticks:nkTicks() }
+      }
+    },
+    plugins:[lqCrosshairPlugin(1, 1)]
+  });
+  nkBindDl('nkDlLqQuad', 'lqQuad', `naker_lq_kuadran_${nkYear}`);
+
+  document.getElementById('nkLqExcel').onclick = ()=> exportStyledExcel(`naker_lq_${nkYear}.xlsx`, 'LQ Tenaga Kerja',
+    ['Sektor','Klasifikasi','LQ TK','LQ PDRB','Pangsa TK Klungkung (%)','Pangsa TK Bali (%)','Δ LQ TK'],
+    rows.map(r=>{ const k = nkLqKlas(r), c = chRow(r.sektor); return [r.sektor, k?def[k].label:'TK = 0', r.tkK>0?nkX(r.lqTK):'', nkX(r.lqY), nkPX(r.shTK), nkPX(r.shTKB), (c&&r.tkK>0&&c.r0.tkK>0)?nkX(c.dLqTK):'']; }));
+}
+
+/* =========================================================
+   5. PERTUMBUHAN & ELASTISITAS PENYERAPAN TK
+   ========================================================= */
+function nkElasKlas(r){
+  if(!nkOk(r.gTK) || !nkOk(r.gY)) return null;
+  if(r.gY>0 && r.gTK>0) return 'ekspansi';
+  if(r.gY>0) return 'jobless';
+  if(r.gTK>0) return 'padat';
+  return 'kontraksi';
+}
+function renderNkElastisitas(){
+  const body = document.getElementById('nkBody');
+  if(nkBase===null){ body.innerHTML = nkNeedBase(); return; }
+  const ch = nkChange(nkYear, nkBase), t = ch.tot;
+  const def = nkKlasDef('elas'), order = ['ekspansi','jobless','padat','kontraksi'];
+  const rows = nkSort(ch.rows, 'dTK', -1);
+  const counts = {}; rows.forEach(r=>{ const k = nkElasKlas(r); if(k) counts[k] = (counts[k]||0)+1; });
+  const nUp = rows.filter(r=>r.dTK>0).length, nDown = rows.filter(r=>r.dTK<0).length;
+
+  const kpis = [
+    nkKpi('Pertumbuhan TK Klungkung', nkPS(t.gTK), `${nkSg(t.dTK)} orang`, nkOk(t.gTK)&&t.gTK<0?THEME.accent:'#3e5a2a'),
+    nkKpi('Pertumbuhan PDRB ADHK', nkPS(t.gY), `${nkBase}→${nkYear}`, nkOk(t.gY)&&t.gY<0?THEME.accent:'#3e5a2a'),
+    nkKpi('Elastisitas TK–PDRB', nkF(t.elast,2), 'ΔTK% ÷ ΔPDRB%'),
+    nkKpi('Pertumbuhan TK Bali', nkPS(t.G), 'wilayah acuan'),
+    nkKpi('Sektor TK Naik / Turun', `${nUp} / ${nDown}`, 'dari '+rows.length+' lapangan usaha')
+  ];
+
+  const note = nkNote(
+    ' Membandingkan laju pertumbuhan tenaga kerja dengan laju pertumbuhan output tiap lapangan usaha. Elastisitas penyerapan tenaga kerja menjawab: setiap 1% pertumbuhan PDRB menambah (atau mengurangi) berapa persen tenaga kerja?',
+    ['Pertumbuhan TK = TK<sub>t</sub> ÷ TK<sub>pembanding</sub> − 1', 'Pertumbuhan PDRB = PDRB ADHK<sub>t</sub> ÷ PDRB ADHK<sub>pembanding</sub> − 1', 'Elastisitas = Pertumbuhan TK ÷ Pertumbuhan PDRB'],
+    'Pertumbuhan bersifat kumulatif dari tahun pembanding ke tahun terpilih (bukan rata-rata tahunan). Elastisitas ditampilkan “—” bila |pertumbuhan PDRB| < 0,5% karena rasionya menjadi tidak stabil.',
+    ['<b>Elastisitas 0–1</b>: TK bertambah tetapi lebih lambat dari output, sehingga produktivitas per pekerja naik. <b>&gt; 1</b>: TK tumbuh lebih cepat dari output (padat karya). <b>Negatif</b>: TK dan output bergerak berlawanan arah.', 'Sektor kecil dapat menunjukkan pertumbuhan ekstrem (mis. +160%) hanya karena basisnya kecil — grafik sebar membatasi rentang sumbu pada sektor berukuran memadai, sektor di luar rentang dicantumkan di bawah grafik.']
+  );
+
+  body.innerHTML = `
+    ${note}
+    <div class="ss-kpi-grid">${kpis.join('')}</div>
+    <div class="ss-section-title">Perubahan Jumlah TK per Lapangan Usaha (${nkBase}→${nkYear})</div>
+    ${nkChartBox('nkElasBar', Math.max(340, rows.length*28), 'nkDlElasBar')}
+    <div class="ss-section-title">Pertumbuhan PDRB × Pertumbuhan TK</div>
+    <div class="ss-quad-grid">
+      ${nkChartBox('nkElasQuad', 380, 'nkDlElasQuad')}
+      <div>${nkLegendHtml(def, order, counts)}</div>
+    </div>
+    <div class="nk-caption" id="nkElasOutside"></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Pertumbuhan &amp; Elastisitas</span><button class="dl-btn" id="nkElasExcel" style="position:static;">⬇ Excel</button></div>
+    <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="nkElasTable"></table></div>
+    ${rows.some(r=>r.flag)?nkFlagNote():''}`;
+
+  document.getElementById('nkElasTable').innerHTML = `<thead><tr><th>Sektor</th><th>Tipologi</th><th>TK ${nkBase}</th><th>TK ${nkYear}</th><th>Δ TK</th><th>Pertumbuhan TK</th><th>Pertumbuhan PDRB</th><th>Elastisitas</th><th>Pertumbuhan TK Bali (sektor)</th></tr></thead><tbody>${
+    rows.map(r=>{ const k = nkElasKlas(r);
+      return `<tr><td>${escapeHtml(r.sektor)}${r.flag?' †':''}</td><td>${k?nkBadge(def[k].label, def[k].color):'<span style="color:var(--brown-soft)">n.a.</span>'}</td>
+        <td>${nkF(r.tk0)}</td><td>${nkF(r.tk1)}</td><td class="${nkCls(r.dTK)}">${nkSg(r.dTK)}</td>
+        <td class="${nkCls(r.gTK)}">${nkPS(r.gTK,1)}</td><td class="${nkCls(r.gY)}">${nkPS(r.gY,1)}</td>
+        <td>${nkF(r.elast,2)}</td><td class="${nkCls(r.gTKB)}">${nkPS(r.gTKB,1)}</td></tr>`; }).join('')}</tbody>`;
+
+  nkMakeChart('elasBar', 'nkElasBar', {
+    type:'bar',
+    data:{ labels:rows.map(r=>r.sektor), datasets:[{ label:'Δ TK (orang)', data:rows.map(r=>r.dTK), backgroundColor:rows.map(r=>r.dTK>=0?'#3e5a2a':THEME.accent) }] },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(c)=> `Δ TK: ${nkSg(c.parsed.x)} orang` } } },
+      scales:{ x:{ grid:{color:THEME.light}, title:nkAxisTitle('Perubahan jumlah TK (orang)'), ticks:Object.assign({callback:v=>nkF(v)}, nkTicks()) }, y:{ grid:{display:false}, ticks:nkTicks() } }
+    }
+  });
+  nkBindDl('nkDlElasBar', 'elasBar', `naker_delta_tk_${nkBase}_${nkYear}`);
+
+  // Grafik sebar: sumbu dibatasi pada sektor berukuran memadai (TK ≥ 1.000 di kedua tahun); sektor di luar rentang dicatat terpisah.
+  const all = rows.filter(r=>nkElasKlas(r)).map(r=>({ x:r.gY*100, y:r.gTK*100, label:r.sektor, k:nkElasKlas(r), small:(r.tk0<1000 || r.tk1<1000) }));
+  const core = all.filter(p=>!p.small), ref = core.length>=3 ? core : all;
+  const lim = arr => Math.max(10, ...arr.map(Math.abs))*1.25;
+  const limX = lim(ref.map(p=>p.x)), limY = lim(ref.map(p=>p.y));
+  const inside = all.filter(p=>Math.abs(p.x)<=limX && Math.abs(p.y)<=limY);
+  const outside = all.filter(p=>!(Math.abs(p.x)<=limX && Math.abs(p.y)<=limY));
+  const outEl = document.getElementById('nkElasOutside');
+  outEl.innerHTML = outside.length
+    ? `Di luar rentang grafik (lihat tabel): ${outside.map(p=>`<b>${escapeHtml(p.label)}</b> (PDRB ${nkSg(p.x,1)}%, TK ${nkSg(p.y,1)}%)`).join('; ')}.`
+    : 'Seluruh sektor berada dalam rentang grafik.';
+  nkMakeChart('elasQuad', 'nkElasQuad', {
+    type:'scatter',
+    data:{ datasets:[{ label:'Sektor', data:inside, backgroundColor:inside.map(p=>def[p.k].color), pointRadius:7, pointHoverRadius:9 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(c)=> `${c.raw.label}: PDRB ${nkSg(c.raw.x,1)}%, TK ${nkSg(c.raw.y,1)}%` } } },
+      scales:{
+        x:{ min:-limX, max:limX, grid:{color:THEME.light}, title:nkAxisTitle('Pertumbuhan PDRB ADHK (%)'), ticks:Object.assign({callback:v=>nkF(v,0)}, nkTicks()) },
+        y:{ min:-limY, max:limY, grid:{color:THEME.light}, title:nkAxisTitle('Pertumbuhan TK (%)'), ticks:Object.assign({callback:v=>nkF(v,0)}, nkTicks()) }
+      }
+    },
+    plugins:[lqCrosshairPlugin(0, 0)]
+  });
+  nkBindDl('nkDlElasQuad', 'elasQuad', `naker_elastisitas_kuadran_${nkBase}_${nkYear}`);
+
+  document.getElementById('nkElasExcel').onclick = ()=> exportStyledExcel(`naker_elastisitas_${nkBase}_${nkYear}.xlsx`, 'Elastisitas TK',
+    ['Sektor','Tipologi',`TK ${nkBase}`,`TK ${nkYear}`,'Δ TK','Pertumbuhan TK (%)','Pertumbuhan PDRB (%)','Elastisitas','Pertumbuhan TK Bali sektor (%)'],
+    rows.map(r=>{ const k = nkElasKlas(r); return [r.sektor, k?def[k].label:'n.a.', r.tk0, r.tk1, r.dTK, nkPX(r.gTK), nkPX(r.gY), nkX(r.elast), nkPX(r.gTKB)]; }));
+}
+
+/* =========================================================
+   6. SHIFT-SHARE TENAGA KERJA (acuan: Bali)
+   ========================================================= */
+function nkSsKlas(r){
+  if(r.tk0===0 && r.tk1===0) return null;   // sektor tanpa TK di kedua tahun: tidak dapat diklasifikasi
+  if(r.IM>=0 && r.CS>=0) return 'progresif';
+  if(r.IM<0 && r.CS>=0) return 'kompetitif';
+  if(r.IM<0) return 'lamban';
+  return 'rentan';
+}
+function renderNkShiftShare(){
+  const body = document.getElementById('nkBody');
+  if(nkBase===null){ body.innerHTML = nkNeedBase(); return; }
+  const ch = nkChange(nkYear, nkBase), t = ch.tot;
+  const def = nkKlasDef('ss'), order = ['progresif','kompetitif','rentan','lamban'];
+  const rows = nkSort(ch.rows, 'dTK', -1);
+  const counts = {}; rows.forEach(r=>{ const k = nkSsKlas(r); if(k) counts[k] = (counts[k]||0)+1; });
+  const nCS = rows.filter(r=>r.CS>0).length;
+
+  const kpis = [
+    nkKpi('Perubahan TK (ΔTK)', nkSg(t.dTK)+' orang', `${nkBase}→${nkYear}`),
+    nkKpi('Regional Share (RS)', nkSg(t.RS,0), 'ikut pertumbuhan TK Bali'),
+    nkKpi('Industry Mix (IM)', nkSg(t.IM,0), 'bauran sektor'),
+    nkKpi('Competitive Shift (CS)', nkSg(t.CS,0), 'keunggulan kompetitif', t.CS>=0?'#3e5a2a':THEME.accent),
+    nkKpi('Sektor CS Positif', `${nCS} dari ${rows.length}`, 'Klungkung menyerap lebih cepat dari Bali')
+  ];
+
+  const note = nkNote(
+    ' Shift-Share menguraikan perubahan jumlah tenaga kerja Klungkung menjadi tiga komponen dengan Bali sebagai wilayah acuan: seberapa besar perubahan itu sekadar “ikut arus” pertumbuhan TK Bali, seberapa karena sektornya memang tumbuh cepat/lambat di Bali, dan seberapa karena Klungkung lebih unggul/kalah dibanding Bali pada sektor yang sama. Ini padanan berbasis tenaga kerja dari tab Shift-Share (yang berbasis PDRB).',
+    ['RS<sub>i</sub> = e<sub>i,0</sub> × G', 'IM<sub>i</sub> = e<sub>i,0</sub> × (G<sub>i</sub> − G)', 'CS<sub>i</sub> = e<sub>i,t</sub> − e<sub>i,0</sub> × (1 + G<sub>i</sub>)', 'ΔTK<sub>i</sub> = RS<sub>i</sub> + IM<sub>i</sub> + CS<sub>i</sub>'],
+    'e = TK sektor i di Klungkung (0 = tahun pembanding, t = tahun terpilih); G = pertumbuhan TK total Bali; G<sub>i</sub> = pertumbuhan TK sektor i di Bali. Bentuk CS di atas identik dengan e<sub>i,0</sub> × (g<sub>i</sub> − G<sub>i</sub>), sehingga ketiga komponen selalu berjumlah tepat ΔTK.',
+    ['<b>RS</b> positif bila TK Bali secara keseluruhan bertambah — porsi perubahan yang terjadi tanpa ada keunikan sektor maupun wilayah.', '<b>IM</b> positif untuk sektor yang di Bali tumbuh lebih cepat dari rata-rata (sektor “ikut tren”), negatif untuk sektor yang di Bali melambat.', '<b>CS</b> positif berarti Klungkung menambah TK di sektor itu lebih cepat dari Bali — keunggulan kompetitif lokal; CS negatif berarti kalah bersaing.']
+  );
+
+  body.innerHTML = `
+    ${note}
+    <div class="ss-kpi-grid">${kpis.join('')}</div>
+    <div class="ss-section-title">Dekomposisi ΔTK per Lapangan Usaha (orang)</div>
+    ${nkChartBox('nkSsBar', Math.max(360, rows.length*30), 'nkDlSsBar')}
+    <div class="ss-section-title">Posisi Kuadran: Industry Mix × Competitive Shift</div>
+    <div class="ss-quad-grid">
+      ${nkChartBox('nkSsQuad', 380, 'nkDlSsQuad')}
+      <div>${nkLegendHtml(def, order, counts)}</div>
+    </div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Shift-Share Tenaga Kerja</span><button class="dl-btn" id="nkSsExcel" style="position:static;">⬇ Excel</button></div>
+    <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="nkSsTable"></table></div>
+    ${rows.some(r=>r.flag)?nkFlagNote():''}`;
+
+  document.getElementById('nkSsTable').innerHTML = `<thead><tr><th>Sektor</th><th>Kuadran</th><th>TK ${nkBase}</th><th>TK ${nkYear}</th><th>ΔTK</th><th>RS</th><th>IM</th><th>CS</th></tr></thead><tbody>${
+    rows.map(r=>{ const k = nkSsKlas(r);
+      return `<tr><td>${escapeHtml(r.sektor)}${r.flag?' †':''}</td><td>${k?nkBadge(def[k].label, def[k].color):'<span style="color:var(--brown-soft)">n.a.</span>'}</td>
+        <td>${nkF(r.tk0)}</td><td>${nkF(r.tk1)}</td><td class="${nkCls(r.dTK)}">${nkSg(r.dTK)}</td>
+        <td class="${nkCls(r.RS)}">${nkSg(r.RS,0)}</td><td class="${nkCls(r.IM)}">${nkSg(r.IM,0)}</td><td class="${nkCls(r.CS)}">${nkSg(r.CS,0)}</td></tr>`; }).join('')
+  }<tr style="font-weight:800;background:var(--cream-deep);"><td>Total</td><td></td><td>${nkF(ch.L0.T.tkK)}</td><td>${nkF(ch.L1.T.tkK)}</td><td>${nkSg(t.dTK)}</td><td>${nkSg(t.RS,0)}</td><td>${nkSg(t.IM,0)}</td><td>${nkSg(t.CS,0)}</td></tr></tbody>`;
+
+  nkMakeChart('ssBar', 'nkSsBar', {
+    type:'bar',
+    data:{ labels:rows.map(r=>r.sektor), datasets:[
+      { label:'Regional Share (RS)',      data:rows.map(r=>r.RS), backgroundColor:KATEGORI_PALETTE[2] },
+      { label:'Industry Mix (IM)',        data:rows.map(r=>r.IM), backgroundColor:KATEGORI_PALETTE[1] },
+      { label:'Competitive Shift (CS)',   data:rows.map(r=>r.CS), backgroundColor:KATEGORI_PALETTE[0] }
+    ]},
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:nkLegendOpt(), tooltip:{ mode:'index', intersect:false, callbacks:{ label:(c)=> `${c.dataset.label}: ${nkSg(c.parsed.x,0)}`, footer:(items)=>{ const i = items[0].dataIndex; return `ΔTK: ${nkSg(rows[i].dTK)} orang`; } } } },
+      scales:{
+        x:{ stacked:true, grid:{color:THEME.light}, title:nkAxisTitle('Kontribusi terhadap ΔTK (orang)'), ticks:Object.assign({callback:v=>nkF(v)}, nkTicks()) },
+        y:{ stacked:true, grid:{display:false}, ticks:nkTicks() }
+      }
+    }
+  });
+  nkBindDl('nkDlSsBar', 'ssBar', `naker_shiftshare_${nkBase}_${nkYear}`);
+
+  const pts = rows.filter(r=>nkSsKlas(r)).map(r=>({ x:r.IM, y:r.CS, label:r.sektor, k:nkSsKlas(r) }));
+  const mx = Math.max(50, ...pts.map(p=>Math.abs(p.x)))*1.25, my = Math.max(50, ...pts.map(p=>Math.abs(p.y)))*1.25;
+  nkMakeChart('ssQuad', 'nkSsQuad', {
+    type:'scatter',
+    data:{ datasets:[{ label:'Sektor', data:pts, backgroundColor:pts.map(p=>def[p.k].color), pointRadius:7, pointHoverRadius:9 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(c)=> `${c.raw.label}: IM ${nkSg(c.raw.x,0)}, CS ${nkSg(c.raw.y,0)}` } } },
+      scales:{
+        x:{ min:-mx, max:mx, grid:{color:THEME.light}, title:nkAxisTitle('Industry Mix (orang)'), ticks:Object.assign({callback:v=>nkF(v)}, nkTicks()) },
+        y:{ min:-my, max:my, grid:{color:THEME.light}, title:nkAxisTitle('Competitive Shift (orang)'), ticks:Object.assign({callback:v=>nkF(v)}, nkTicks()) }
+      }
+    },
+    plugins:[lqCrosshairPlugin(0, 0)]
+  });
+  nkBindDl('nkDlSsQuad', 'ssQuad', `naker_shiftshare_kuadran_${nkBase}_${nkYear}`);
+
+  document.getElementById('nkSsExcel').onclick = ()=> exportStyledExcel(`naker_shiftshare_${nkBase}_${nkYear}.xlsx`, 'Shift-Share TK',
+    ['Sektor','Kuadran',`TK ${nkBase}`,`TK ${nkYear}`,'ΔTK','RS','IM','CS'],
+    rows.map(r=>[r.sektor, nkSsKlas(r)?def[nkSsKlas(r)].label:'n.a.', r.tk0, r.tk1, r.dTK, r.RS, r.IM, r.CS])
+      .concat([['Total','',ch.L0.T.tkK, ch.L1.T.tkK, t.dTK, t.RS, t.IM, t.CS]]));
+}
+
+/* =========================================================
+   7. DEKOMPOSISI PRODUKTIVITAS (within · between · interaksi)
+   ========================================================= */
+function renderNkDekomposisi(){
+  const body = document.getElementById('nkBody');
+  if(nkBase===null){ body.innerHTML = nkNeedBase(); return; }
+  const d = nkDecomp(nkYear, nkBase);
+  if(!d.rows.length || !nkOk(d.dP)){ body.innerHTML = `<div class="state-msg">Tidak ada sektor dengan TK &gt; 0 pada kedua tahun untuk didekomposisi.</div>`; return; }
+  const struct = d.between + d.inter;
+  const pctOf = v => Math.abs(d.dP)>=0.05 ? `${nkF(v/d.dP*100,0)}% dari ΔP` : '';
+  const rows = nkSort(d.rows, 'total', -1);
+  const driver = r => Math.abs(r.within) >= Math.abs(r.between + r.inter) ? {l:'Dalam sektor', c:THEME.main} : {l:'Realokasi TK', c:THEME.c4};
+
+  const kpis = [
+    nkKpi(`Produktivitas ${nkBase}`, nkF(d.P0,1)+' jt', 'Rp juta / pekerja'),
+    nkKpi(`Produktivitas ${nkYear}`, nkF(d.P1,1)+' jt', 'Rp juta / pekerja'),
+    nkKpi('Δ Produktivitas', nkSg(d.dP,2)+' jt', nkPS(d.P0>0?d.dP/d.P0:NaN,1), d.dP>=0?'#3e5a2a':THEME.accent),
+    nkKpi('Within (dalam sektor)', nkSg(d.within,2)+' jt', pctOf(d.within), d.within>=0?'#3e5a2a':THEME.accent),
+    nkKpi('Between (realokasi statis)', nkSg(d.between,2)+' jt', pctOf(d.between), d.between>=0?'#3e5a2a':THEME.accent),
+    nkKpi('Interaksi (dinamis)', nkSg(d.inter,2)+' jt', pctOf(d.inter), d.inter>=0?'#3e5a2a':THEME.accent)
+  ];
+
+  const note = nkNote(
+    ' Produktivitas rata-rata seluruh ekonomi dapat naik karena dua hal yang berbeda: (1) tiap sektor menjadi lebih produktif (efek <b>within</b>), atau (2) pekerja berpindah dari sektor berproduktivitas rendah ke sektor berproduktivitas tinggi (efek <b>between</b>/realokasi). Dekomposisi ini memisahkan keduanya.',
+    ['ΔP = Σ s<sub>i,0</sub>·Δp<sub>i</sub> &nbsp;+&nbsp; Σ p<sub>i,0</sub>·Δs<sub>i</sub> &nbsp;+&nbsp; Σ Δp<sub>i</sub>·Δs<sub>i</sub>', 'Within = Σ s<sub>i,0</sub>·Δp<sub>i</sub>', 'Between = Σ p<sub>i,0</sub>·Δs<sub>i</sub>', 'Interaksi = Σ Δp<sub>i</sub>·Δs<sub>i</sub>'],
+    's<sub>i</sub> = pangsa TK sektor i; p<sub>i</sub> = produktivitas sektor i (PDRB ADHK ÷ TK, Rp juta/pekerja); 0 = tahun pembanding. Efek struktural (McMillan &amp; Rodrik) = Between + Interaksi. Identitas berlaku eksak pada sektor yang TK-nya &gt; 0 di kedua tahun.',
+    ['<b>Within dominan</b>: kenaikan produktivitas berasal dari efisiensi/nilai tambah di dalam masing-masing sektor.', '<b>Between positif</b>: pekerja bergeser ke sektor yang lebih produktif dari rata-rata; <b>negatif</b>: pekerja bergeser ke sektor yang kurang produktif (beban struktural).', '<b>Interaksi</b> positif bila sektor yang produktivitasnya naik juga menambah pangsa pekerjanya (dan sebaliknya).']
+  );
+
+  const insights = [];
+  insights.push(`Produktivitas rata-rata (pada ${d.rows.length} sektor yang dapat dibandingkan) <b>${d.dP>=0?'naik':'turun'} Rp ${nkF(Math.abs(d.dP),2)} juta per pekerja</b> antara ${nkBase} dan ${nkYear}.`);
+  const sw = d.within>=0, ss = struct>=0;
+  insights.push(
+    sw && ss ? `Kedua sumber sama-sama positif: efek dalam sektor ${nkSg(d.within,2)} juta dan efek struktural (realokasi TK) ${nkSg(struct,2)} juta.` :
+    sw && !ss ? `Kenaikan berasal dari peningkatan produktivitas <b>di dalam sektor</b> (${nkSg(d.within,2)} juta), sedangkan perpindahan TK antarsektor justru menekan (${nkSg(struct,2)} juta) — pekerja cenderung bergeser ke sektor berproduktivitas lebih rendah.` :
+    !sw && ss ? `Produktivitas di dalam sektor melemah (${nkSg(d.within,2)} juta) namun tertolong oleh perpindahan TK ke sektor berproduktivitas lebih tinggi (${nkSg(struct,2)} juta).` :
+    `Baik efek dalam sektor (${nkSg(d.within,2)} juta) maupun efek struktural (${nkSg(struct,2)} juta) sama-sama menekan produktivitas.`
+  );
+  const up = rows[0], down = rows[rows.length-1];
+  const bits = [];
+  if(up && up.total>0) bits.push(`kontributor positif terbesar: <b>${escapeHtml(up.sektor)}</b> (${nkSg(up.total,2)} juta)`);
+  if(down && down.total<0) bits.push(`kontributor negatif terbesar: <b>${escapeHtml(down.sektor)}</b> (${nkSg(down.total,2)} juta)`);
+  if(bits.length) insights.push(`Antarsektor — ${bits.join('; ')}.`);
+  const bigWithin = nkSort(d.rows, r=>Math.abs(r.within), -1)[0];
+  if(bigWithin && bigWithin.s1 < 0.02 && Math.abs(bigWithin.within) >= 0.3*Math.abs(d.within)) insights.push(`Komponen within banyak dipengaruhi <b>${escapeHtml(bigWithin.sektor)}</b> (${nkSg(bigWithin.within,2)} juta) walau pangsa TK-nya hanya ${nkP(bigWithin.s1,1)} — sektor ber-TK kecil dengan produktivitas sangat tinggi mudah bergejolak, jadi bacalah angkanya dengan hati-hati.`);
+  if(d.excluded.length) insights.push(`${d.excluded.length} sektor dikeluarkan karena TK bernilai 0 pada salah satu tahun (${d.excluded.map(escapeHtml).join(', ')}), setara ${nkP(d.exclShare,1)} PDRB ADHK ${nkYear}; karenanya angka di sini dapat sedikit berbeda dari produktivitas total pada tab Produktivitas.`);
+
+  body.innerHTML = `
+    ${note}
+    <div class="ss-kpi-grid">${kpis.join('')}</div>
+    <div class="ss-section-title">Komponen Perubahan Produktivitas (Rp juta / pekerja)</div>
+    ${nkChartBox('nkDecTot', 260, 'nkDlDecTot')}
+    <div class="ss-section-title">Kontribusi per Lapangan Usaha</div>
+    ${nkChartBox('nkDecBar', Math.max(340, rows.length*32), 'nkDlDecBar')}
+    ${nkInsightBox(insights)}
+    <div class="table-head-row"><span class="table-head-label">Tabel Dekomposisi Produktivitas</span><button class="dl-btn" id="nkDecExcel" style="position:static;">⬇ Excel</button></div>
+    <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="nkDecTable"></table></div>`;
+
+  document.getElementById('nkDecTable').innerHTML = `<thead><tr><th>Sektor</th><th>Penggerak</th><th>Pangsa TK ${nkBase}</th><th>Pangsa TK ${nkYear}</th><th>Δ Pangsa (pp)</th><th>Prod. ${nkBase} (jt)</th><th>Prod. ${nkYear} (jt)</th><th>Within</th><th>Between</th><th>Interaksi</th><th>Total</th></tr></thead><tbody>${
+    rows.map(r=>{ const dv = driver(r);
+      return `<tr><td>${escapeHtml(r.sektor)}</td><td>${nkBadge(dv.l, dv.c)}</td><td>${nkP(r.s0)}</td><td>${nkP(r.s1)}</td><td class="${nkCls(r.s1-r.s0)}">${nkPP(r.s1-r.s0)}</td>
+        <td>${nkF(r.p0,1)}</td><td>${nkF(r.p1,1)}</td>
+        <td class="${nkCls(r.within)}">${nkSg(r.within,2)}</td><td class="${nkCls(r.between)}">${nkSg(r.between,2)}</td><td class="${nkCls(r.inter)}">${nkSg(r.inter,2)}</td><td class="${nkCls(r.total)}">${nkSg(r.total,2)}</td></tr>`; }).join('')
+  }<tr style="font-weight:800;background:var(--cream-deep);"><td>Total</td><td></td><td>100%</td><td>100%</td><td></td><td>${nkF(d.P0,1)}</td><td>${nkF(d.P1,1)}</td><td>${nkSg(d.within,2)}</td><td>${nkSg(d.between,2)}</td><td>${nkSg(d.inter,2)}</td><td>${nkSg(d.dP,2)}</td></tr></tbody>`;
+
+  const good = '#3e5a2a';
+  const comp = [ ['Within', d.within], ['Between', d.between], ['Interaksi', d.inter], ['Total ΔP', d.dP] ];
+  nkMakeChart('decTot', 'nkDecTot', {
+    type:'bar',
+    data:{ labels:comp.map(c=>c[0]), datasets:[{ label:'Rp juta / pekerja', data:comp.map(c=>c[1]), backgroundColor:comp.map((c,i)=> i===3 ? THEME.main : (c[1]>=0 ? good : THEME.accent)) }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(c)=> `${c.label}: ${nkSg(c.parsed.y,2)} juta/pekerja` } } },
+      scales:{ x:{ grid:{display:false}, ticks:nkTicks() }, y:{ grid:{color:THEME.light}, title:nkAxisTitle('Rp juta / pekerja'), ticks:nkTicks() } }
+    }
+  });
+  nkBindDl('nkDlDecTot', 'decTot', `naker_dekomposisi_total_${nkBase}_${nkYear}`);
+
+  nkMakeChart('decBar', 'nkDecBar', {
+    type:'bar',
+    data:{ labels:rows.map(r=>r.sektor), datasets:[
+      { label:'Within',    data:rows.map(r=>r.within),  backgroundColor:KATEGORI_PALETTE[0] },
+      { label:'Between',   data:rows.map(r=>r.between), backgroundColor:KATEGORI_PALETTE[1] },
+      { label:'Interaksi', data:rows.map(r=>r.inter),   backgroundColor:KATEGORI_PALETTE[2] }
+    ]},
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:nkLegendOpt(), tooltip:{ mode:'index', intersect:false, callbacks:{ label:(c)=> `${c.dataset.label}: ${nkSg(c.parsed.x,2)}`, footer:(items)=> `Total: ${nkSg(rows[items[0].dataIndex].total,2)} juta/pekerja` } } },
+      scales:{
+        x:{ stacked:true, grid:{color:THEME.light}, title:nkAxisTitle('Kontribusi terhadap ΔP (Rp juta / pekerja)'), ticks:nkTicks() },
+        y:{ stacked:true, grid:{display:false}, ticks:nkTicks() }
+      }
+    }
+  });
+  nkBindDl('nkDlDecBar', 'decBar', `naker_dekomposisi_sektor_${nkBase}_${nkYear}`);
+
+  document.getElementById('nkDecExcel').onclick = ()=> exportStyledExcel(`naker_dekomposisi_${nkBase}_${nkYear}.xlsx`, 'Dekomposisi Produktivitas',
+    ['Sektor','Penggerak',`Pangsa TK ${nkBase} (%)`,`Pangsa TK ${nkYear} (%)`,'Δ Pangsa (pp)',`Produktivitas ${nkBase} (jt)`,`Produktivitas ${nkYear} (jt)`,'Within','Between','Interaksi','Total'],
+    rows.map(r=>[r.sektor, driver(r).l, r.s0*100, r.s1*100, (r.s1-r.s0)*100, r.p0, r.p1, r.within, r.between, r.inter, r.total])
+      .concat([['Total','',100,100,'',d.P0,d.P1,d.within,d.between,d.inter,d.dP]]));
+}
+
+/* =========================================================
+   8. TREN SEKTOR (multi-tahun, pilih metrik & sektor)
+   ========================================================= */
+const NK_TREN_METRICS = {
+  shTK:  { label:'Pangsa TK Klungkung (%)',                       dec:2, val:r=>r.shTK*100, bali:r=>r.shTKB*100 },
+  tk:    { label:'Jumlah Tenaga Kerja (orang)',                   dec:0, val:r=>r.tkK },
+  prodK: { label:'Produktivitas TK (Rp juta / pekerja)',          dec:1, val:r=>r.prodK, bali:r=>r.prodB },
+  lqTK:  { label:'LQ Tenaga Kerja',                               dec:2, val:r=>r.tkK>0 ? r.lqTK : NaN },
+  shY:   { label:'Pangsa PDRB ADHK Klungkung (%)',                dec:2, val:r=>r.shY*100, bali:r=>r.shYB*100 },
+  ip:    { label:'Indeks Produktivitas (rata-rata ekonomi = 1)',  dec:2, val:r=>r.ip }
+};
+const NK_TREN_MAX = 10;
+
+function nkTrenBuild(){
+  const D = nkData, m = NK_TREN_METRICS[nkTrenMetric];
+  const sel = D.sectors.filter(s=>nkTrenSectors.has(s));
+  const pick = (fn, s) => D.years.map(y=>{ const r = nkLevel(y).rows.find(x=>x.sektor===s); const v = r ? fn(r) : NaN; return nkOk(v) ? v : null; });
+  return { m, series: sel.map((s,i)=>({ s, color:KATEGORI_PALETTE[i % KATEGORI_PALETTE.length], vals:pick(m.val, s), bali:m.bali ? pick(m.bali, s) : null })) };
+}
+function nkTrenDraw(){
+  const D = nkData;
+  const { m, series } = nkTrenBuild();
+  const withBali = nkTrenBali && !!m.bali;
+  const datasets = [];
+  const grays = ['#9CA3AF','#6B7280','#C4C9D1','#4B5563','#B0B6BF','#7B8290','#D3D7DD','#5F6673','#A6ACB6','#888F9C'];
+  series.forEach((se,i)=>{
+    datasets.push({ label:se.s, data:se.vals, borderColor:se.color, backgroundColor:se.color, pointRadius:0, pointHoverRadius:5, tension:0.3, spanGaps:false });
+    if(withBali) datasets.push({ label:`${se.s} (Bali)`, data:se.bali, borderColor:grays[i % grays.length], backgroundColor:grays[i % grays.length], borderWidth:1.5, pointRadius:0, pointHoverRadius:4, tension:0.3, spanGaps:false });
+  });
+  nkMakeChart('tren', 'nkTrenCanvas', {
+    type:'line',
+    data:{ labels:D.years.map(String), datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false, interaction:{ mode:'index', intersect:false },
+      plugins:{ legend:nkLegendOpt(), tooltip:{ callbacks:{ label:(c)=> `${c.dataset.label}: ${nkF(c.parsed.y, m.dec)}` } } },
+      scales:{ x:{ grid:{display:false}, ticks:nkTicks() }, y:{ grid:{color:THEME.light}, title:nkAxisTitle(m.label), ticks:nkTicks() } }
+    },
+    plugins:[nkYearBandPlugin(D.years, nkYear)]
+  });
+
+  const head = `<thead><tr><th>Sektor</th>${D.years.map(y=>`<th style="text-align:center;${y===nkYear?'text-decoration:underline;':''}">${y}</th>`).join('')}</tr></thead>`;
+  const line = (name, vals) => `<tr><td>${escapeHtml(name)}</td>${vals.map((v,i)=>`<td style="${D.years[i]===nkYear?'font-weight:800;color:var(--brown);':''}">${nkF(v, m.dec)}</td>`).join('')}</tr>`;
+  document.getElementById('nkTrenTable').innerHTML = head + `<tbody>${
+    series.map(se=> line(se.s, se.vals) + (withBali ? line(se.s+' (Bali)', se.bali) : '')).join('')}</tbody>`;
+}
+function renderNkTren(){
+  const body = document.getElementById('nkBody');
+  const D = nkData;
+  if(!nkTrenSectors){
+    const last = nkLevel(D.years[D.years.length-1]);
+    nkTrenSectors = new Set(nkSort(last.rows, 'tkK', -1).slice(0,5).map(r=>r.sektor));
+  }
+  const m = NK_TREN_METRICS[nkTrenMetric];
+
+  body.innerHTML = `
+    <div class="ss-controls">
+      <div class="ctrl-item"><label>Metrik</label><select id="nkTrenMetricSel">${Object.keys(NK_TREN_METRICS).map(k=>`<option value="${k}" ${k===nkTrenMetric?'selected':''}>${escapeHtml(NK_TREN_METRICS[k].label)}</option>`).join('')}</select></div>
+      <div class="ms-dropdown" id="nkTrenDd">
+        <button type="button" class="ms-dropdown-btn" id="nkTrenDdBtn"></button>
+        <div class="ms-dropdown-panel" id="nkTrenDdPanel" style="max-height:340px;overflow:auto;min-width:230px;">
+          <div style="display:flex;gap:6px;margin-bottom:6px;"><button type="button" class="dl-btn" id="nkTrenTop5" style="position:static;">Top 5 TK</button></div>
+          ${D.sectors.map(s=>`<label class="ms-dropdown-item"><input type="checkbox" data-s="${escapeHtml(s)}" ${nkTrenSectors.has(s)?'checked':''}> ${escapeHtml(s)}</label>`).join('')}
+        </div>
+      </div>
+      <label class="ms-dropdown-item" id="nkTrenBaliWrap" style="padding:0;${m.bali?'':'display:none;'}"><input type="checkbox" id="nkTrenBaliChk" ${nkTrenBali?'checked':''}> Tampilkan pembanding Bali</label>
+    </div>
+    <div class="ss-section-title" id="nkTrenTitle"></div>
+    ${nkChartBox('nkTrenCanvas', 380, 'nkDlTren')}
+    <div class="nk-caption">Pita berwarna menandai tahun terpilih (${nkYear}). Klik nama seri pada legenda untuk mengganti warnanya. Maksimal ${NK_TREN_MAX} sektor ditampilkan sekaligus.</div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Tren</span><button class="dl-btn" id="nkTrenExcel" style="position:static;">⬇ Excel</button></div>
+    <div class="ss-table-wrap ss-table-scroll"><table class="ss-table nk-heat" id="nkTrenTable"></table></div>`;
+
+  const updateHead = ()=>{
+    document.getElementById('nkTrenDdBtn').textContent = `🏷️ Pilih Sektor (${nkTrenSectors.size}) ▾`;
+    document.getElementById('nkTrenTitle').textContent = `${NK_TREN_METRICS[nkTrenMetric].label} · ${D.years[0]}–${D.years[D.years.length-1]}`;
+    document.getElementById('nkTrenBaliWrap').style.display = NK_TREN_METRICS[nkTrenMetric].bali ? '' : 'none';
+  };
+  updateHead();
+  nkTrenDraw();
+
+  document.getElementById('nkTrenMetricSel').onchange = (e)=>{ nkTrenMetric = e.target.value; updateHead(); nkTrenDraw(); };
+  document.getElementById('nkTrenBaliChk').onchange = (e)=>{ nkTrenBali = e.target.checked; nkTrenDraw(); };
+
+  const btn = document.getElementById('nkTrenDdBtn'), panel = document.getElementById('nkTrenDdPanel');
+  btn.onclick = (e)=>{ e.stopPropagation(); panel.classList.toggle('open'); };
+  document.addEventListener('click', function closeNkTrenDd(e){
+    const dd = document.getElementById('nkTrenDd');
+    if(!dd){ document.removeEventListener('click', closeNkTrenDd); return; }
+    if(!dd.contains(e.target)) panel.classList.remove('open');
+  });
+  panel.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.onchange = ()=>{
+      const s = cb.dataset.s;
+      if(cb.checked){
+        if(nkTrenSectors.size>=NK_TREN_MAX){ cb.checked = false; alert(`Maksimal ${NK_TREN_MAX} sektor.`); return; }
+        nkTrenSectors.add(s);
+      }else{
+        if(nkTrenSectors.size<=1){ cb.checked = true; alert('Minimal 1 sektor harus dipilih.'); return; }
+        nkTrenSectors.delete(s);
+      }
+      updateHead(); nkTrenDraw();
+    };
+  });
+  document.getElementById('nkTrenTop5').onclick = ()=>{
+    const last = nkLevel(D.years[D.years.length-1]);
+    nkTrenSectors = new Set(nkSort(last.rows, 'tkK', -1).slice(0,5).map(r=>r.sektor));
+    panel.querySelectorAll('input[type=checkbox]').forEach(cb=>{ cb.checked = nkTrenSectors.has(cb.dataset.s); });
+    updateHead(); nkTrenDraw();
+  };
+  nkBindDl('nkDlTren', 'tren', `naker_tren_${nkTrenMetric}`);
+
+  document.getElementById('nkTrenExcel').onclick = ()=>{
+    const { m, series } = nkTrenBuild();
+    const withBali = nkTrenBali && !!m.bali;
+    const rows = [];
+    series.forEach(se=>{
+      rows.push([se.s, ...se.vals.map(v=>nkX(v))]);
+      if(withBali) rows.push([se.s+' (Bali)', ...se.bali.map(v=>nkX(v))]);
+    });
+    exportStyledExcel(`naker_tren_${nkTrenMetric}.xlsx`, 'Tren Sektor', ['Sektor', ...D.years], rows);
   };
 }
 
