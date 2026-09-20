@@ -327,12 +327,14 @@ table.dataTable tbody button.btn-save:disabled{opacity:.7;cursor:default;}
         <label for="fSls">SLS</label>
         <select id="fSls"><option value="">Semua SLS</option></select>
       </div>
-      <!-- Filter Level dipindah ke dalam grid agar rapi -->
+      <div class="filter-item">
+        <label for="fKodeSubSls">Kode Sub SLS</label>
+        <select id="fKodeSubSls"><option value="">Semua Kode Sub SLS</option></select>
+      </div>
       <div class="filter-item">
         <label for="fLevel">Level</label>
         <select id="fLevel"><option value="">Semua Level</option></select>
       </div>
-      <!-- Tambahan Filter Status dari Kolom M -->
       <div class="filter-item">
         <label for="fStatus">Status</label>
         <select id="fStatus"><option value="">Semua Status</option></select>
@@ -376,10 +378,7 @@ table.dataTable tbody button.btn-save:disabled{opacity:.7;cursor:default;}
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script>
-// URL CSV ANDA
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQIqk8j8_Z6o_BnO0H0ycRNmcCm0jhIztOrayn8gh4kWNKnhNS43Krsbl-s0naqlrWlljSsn2Q1wzZN/pub?gid=0&single=true&output=csv";
-
-// URL WEB APP
 const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwMMQaPA0xdbs2R9U4NklJWv29wuoIxVC_r0jGSVjtdPHyN7ZqyXTvdawFe_srDgmqi/exec"; 
 
 const VERIFIKATOR_LIST = [
@@ -462,7 +461,7 @@ function rowKey(r){
   return parts.filter(Boolean).join('|');
 }
 
-function buildFilterOptions(rows, kabFilter, kecFilter, desaFilter){
+function buildFilterOptions(rows, kabFilter, kecFilter, desaFilter, slsFilter){
   let scopedKec = rows;
   if(kabFilter) scopedKec = scopedKec.filter(r => r.kabupaten === kabFilter);
   const kecOpts = uniqueSorted(scopedKec.map(r=>r.kecamatan));
@@ -475,36 +474,41 @@ function buildFilterOptions(rows, kabFilter, kecFilter, desaFilter){
   if(desaFilter) scopedSls = scopedSls.filter(r => r.desa === desaFilter);
   const slsOpts = uniqueSorted(scopedSls.map(r=>r.sls));
 
-  return { kecOpts, desaOpts, slsOpts };
+  let scopedKodeSub = scopedSls;
+  if(slsFilter) scopedKodeSub = scopedKodeSub.filter(r => r.sls === slsFilter);
+  const kodesubslsOpts = uniqueSorted(scopedKodeSub.map(r=>r.kodesubsls));
+
+  return { kecOpts, desaOpts, slsOpts, kodesubslsOpts };
 }
 
 function refreshCascadingSelects(){
   const kab = $('#fKabupaten').val();
   const kec = $('#fKecamatan').val();
   const desa = $('#fDesa').val();
-  const { kecOpts, desaOpts, slsOpts } = buildFilterOptions(RAW, kab, kec, desa);
+  const sls = $('#fSls').val();
+  
+  const { kecOpts, desaOpts, slsOpts, kodesubslsOpts } = buildFilterOptions(RAW, kab, kec, desa, sls);
+  
   fillSelect('#fKecamatan', kecOpts, 'Semua Kecamatan');
   fillSelect('#fDesa', desaOpts, 'Semua Desa');
   fillSelect('#fSls', slsOpts, 'Semua SLS');
+  fillSelect('#fKodeSubSls', kodesubslsOpts, 'Semua Kode Sub SLS');
 }
 
 function initFilters(){
   fillSelect('#fKabupaten', uniqueSorted(RAW.map(r=>r.kabupaten)), 'Semua Kabupaten');
   fillSelect('#fLevel', uniqueSorted(RAW.map(r=>r.level)), 'Semua Level');
-  // Tambahan inisialisasi dropdown Status
   fillSelect('#fStatus', uniqueSorted(RAW.map(r=>r.status)), 'Semua Status');
   
   refreshCascadingSelects();
 
-  // Tambahkan #fStatus pada event on change
-  $('#fKabupaten, #fKecamatan, #fDesa, #fSls, #fLevel, #fStatus').on('change', function(){
+  $('#fKabupaten, #fKecamatan, #fDesa, #fSls, #fKodeSubSls, #fLevel, #fStatus').on('change', function(){
     refreshCascadingSelects();
     applyFilters();
   });
   
   $('#btnReset').on('click', function(){
-    // Tambahkan #fStatus agar ikut tereset
-    $('#fKabupaten, #fKecamatan, #fDesa, #fSls, #fLevel, #fStatus').val('');
+    $('#fKabupaten, #fKecamatan, #fDesa, #fSls, #fKodeSubSls, #fLevel, #fStatus').val('');
     refreshCascadingSelects();
     applyFilters();
   });
@@ -632,8 +636,9 @@ function applyFilters(){
   const kec = $('#fKecamatan').val();
   const desa = $('#fDesa').val();
   const sls = $('#fSls').val();
+  const kodesubsls = $('#fKodeSubSls').val();
   const lvl = $('#fLevel').val();
-  const stat = $('#fStatus').val(); // Ambil nilai Status
+  const stat = $('#fStatus').val();
 
   const filtered = RAW.filter(r => {
     if(r.ditemukankeluargalain !== '0') return false;
@@ -641,8 +646,9 @@ function applyFilters(){
     if(kec && r.kecamatan !== kec) return false;
     if(desa && r.desa !== desa) return false;
     if(sls && r.sls !== sls) return false;
+    if(kodesubsls && r.kodesubsls !== kodesubsls) return false;
     if(lvl && r.level !== lvl) return false;
-    if(stat && r.status !== stat) return false; // Filter Status diaplikasikan
+    if(stat && r.status !== stat) return false;
     return true;
   });
 
@@ -659,8 +665,9 @@ function applyFilters(){
   if(kec) parts.push(`Kec: ${kec}`);
   if(desa) parts.push(`Desa: ${desa}`);
   if(sls) parts.push(`SLS: ${sls}`);
+  if(kodesubsls) parts.push(`Kode Sub SLS: ${kodesubsls}`);
   if(lvl) parts.push(`Level: ${lvl}`);
-  if(stat) parts.push(`Status: ${stat}`); // Label untuk Note
+  if(stat) parts.push(`Status: ${stat}`);
   $('#activeNote').text(parts.length ? `Filter aktif: ${parts.join(' | ')}` : '');
 }
 
@@ -742,7 +749,7 @@ function loadData(){
         level: idx('LEVEL'),
         wilayah: idx('WILAYAH'),
         nik: idx('NIK'),
-        status: idx('STATUS') // Mapping kolom Status dari CSV
+        status: idx('STATUS')
       };
 
       RAW = [];
@@ -761,7 +768,7 @@ function loadData(){
           nikditemukan: norm(row[k.nikditemukan]),
           ditemukankeluargalain: norm(row[k.ditemukankeluargalain]),
           level: norm(row[k.level]),
-          status: norm(row[k.status]), // Menyimpan data Status
+          status: norm(row[k.status]),
           wilayah: norm(row[k.wilayah]),
           nik: norm(row[k.nik]),
           verifikator: '',
