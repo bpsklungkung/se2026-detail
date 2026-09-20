@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Dashboard indikator ekonomi dan sosial Kabupaten Klungkung: PDRB, ketenagakerjaan, kemiskinan, serta analisis regional (Shift-Share, LQ, konvergensi, diversitas, struktural, Naker).">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%237A2636'/%3E%3Crect x='7' y='17' width='4.5' height='8' rx='1' fill='%23fff'/%3E%3Crect x='14' y='11' width='4.5' height='14' rx='1' fill='%23fff'/%3E%3Crect x='21' y='6' width='4.5' height='19' rx='1' fill='%23fff'/%3E%3C/svg%3E">
 <title>Dashboard Indikator — BPS Klungkung</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';document.head.appendChild(s);"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';document.head.appendChild(s);"></script>
 <style>
   :root{
     --cream:#FFFFFF;
@@ -1383,9 +1384,204 @@
 </div>
 
 <script>
+/* ===== Format angka Indonesia (koma desimal) ===== */
+Object.defineProperty(Number.prototype, 'toFixedID', { value:function(d){ return this.toFixed(d).replace('.', ','); }, writable:true, configurable:true });
+function axTitle(t){ return { display:true, text:t, color:THEME.mid, font:{family:'Inter', size:11} }; }
+function nfmt(v){ const n = Number(v); return isFinite(n) ? n.toLocaleString('id-ID', {maximumFractionDigits:4}) : String(v); }
+/* Cari heading terdekat di atas sebuah elemen grafik (untuk aria-label) */
+function chartHeadingFor(node){
+  let el = node, heading = '';
+  for(let up=0; up<5 && el && !heading; up++){
+    let sib = el.previousElementSibling;
+    for(let k=0; k<3 && sib && !heading; k++){
+      if(/section-title|head-label|card-title|card-label|chart-title|^H[1-4]$/i.test((sib.className && sib.className.baseVal!==undefined ? sib.className.baseVal : sib.className||'')+' '+sib.tagName)) heading = (sib.textContent||'').replace(/\s+/g,' ').trim();
+      sib = sib.previousElementSibling;
+    }
+    if(!heading && el.parentElement){ const cl = el.parentElement.querySelector && el.parentElement.querySelector(':scope > .card-label, :scope > .card-head .card-label'); if(cl) heading = (cl.textContent||'').replace(/\s+/g,' ').trim(); }
+    el = el.parentElement;
+  }
+  return heading;
+}
+/* Grafik SVG buatan sendiri (sparkline, treemap, dst.) → role="img" + aria-label dari heading terdekat */
+function labelSvgCharts(root){
+  (root || document).querySelectorAll('svg:not([role]):not([aria-label]):not([aria-hidden])').forEach(sv=>{
+    const vb = (sv.getAttribute('viewBox')||'').split(/[\s,]+/).map(Number);
+    const w = vb.length===4 ? vb[2] : (parseFloat(sv.getAttribute('width'))||0);
+    if(w < 60) return;   // ikon kecil dilewati
+    const h = chartHeadingFor(sv.parentElement && sv.parentElement.tagName!=='BODY' ? sv : sv);
+    sv.setAttribute('role','img');
+    sv.setAttribute('aria-label', h ? 'Grafik: ' + h.slice(0,90) : 'Grafik');
+  });
+}
+(function(){
+  let t = null;
+  const run = ()=>{ t = null; try{ labelSvgCharts(document.getElementById('main') || document); }catch(e){} };
+  if(typeof MutationObserver !== 'undefined'){
+    new MutationObserver(()=>{ if(t===null) t = setTimeout(run, 150); }).observe(document.body, {childList:true, subtree:true});
+  }
+})();
+
+/* ===== Aksesibilitas grafik: role="img" + aria-label otomatis (jenis grafik, judul bagian, seri, rentang data) ===== */
+function chartA11y(chart, config){
+  const cv = chart && chart.canvas; if(!cv || !cv.setAttribute) return;
+  const type = (config && config.type) || (chart.config && chart.config.type) || '';
+  const horiz = config && config.options && config.options.indexAxis === 'y';
+  const names = { line:'Grafik garis', bar: horiz ? 'Grafik batang horizontal' : 'Grafik batang', scatter:'Grafik sebar', bubble:'Grafik gelembung', doughnut:'Grafik donat', pie:'Grafik pai', polarArea:'Grafik polar', radar:'Grafik radar' };
+  let heading = chartHeadingFor(cv);
+  const pt = config && config.options && config.options.plugins && config.options.plugins.title;
+  if(!heading && pt && pt.text) heading = String(pt.text);
+  const ds = (chart.data && chart.data.datasets) || [];
+  const series = [...new Set(ds.map(d=>d && d.label).filter(Boolean))];
+  const labels = (chart.data && chart.data.labels) || [];
+  let range = '';
+  if(labels.length){
+    const a = String(labels[0]), b = String(labels[labels.length-1]);
+    const timeLike = /(19|20)\d{2}/.test(a) && /(19|20)\d{2}/.test(b);
+    range = !timeLike ? `${labels.length} kategori` : (labels.length>1 && a!==b ? `${labels.length} periode dari ${a} sampai ${b}` : `${labels.length} periode`);
+  }
+  const txt = [ (names[type] || 'Grafik') + (heading ? ': ' + heading.slice(0,90) : ''),
+                series.length ? 'Seri: ' + series.slice(0,5).join(', ') + (series.length>5 ? ` dan ${series.length-5} lainnya` : '') : '',
+                range ].filter(Boolean).join('. ') + '.';
+  cv.setAttribute('role', 'img');
+  cv.setAttribute('aria-label', txt);
+}
+
+/* Penanda periode COVID-19 (2020–2021) pada grafik deret waktu: pita abu-abu tipis di belakang data.
+   Aktif otomatis bila SEMUA label sumbu-x memuat tahun dan ada label 2020/2021; matikan per grafik dengan
+   options.plugins.covidBand = false. */
+const covidBandPlugin = {
+  id: 'covidBand',
+  beforeDatasetsDraw(chart, args, opts){
+    if(opts && opts.enabled === false) return;
+    const cfg = chart.config, type = cfg.type || (cfg._config && cfg._config.type);
+    if(type !== 'line' && type !== 'bar') return;
+    if(chart.options && chart.options.indexAxis === 'y') return;
+    const xs = chart.scales && chart.scales.x;
+    if(!xs || xs.type !== 'category') return;
+    const labels = (chart.data && chart.data.labels) || [];
+    if(labels.length < 4) return;
+    const yr = l => { const m = String(l).match(/(?:^|\D)((?:19|20)\d{2})(?!\d)/); return m ? +m[1] : null; };
+    const ys = labels.map(yr);
+    if(ys.some(v=>v===null)) return;
+    const inC = y => y >= 2020 && y <= 2021;
+    const i0 = ys.findIndex(inC);
+    if(i0 < 0) return;
+    let i1 = i0; ys.forEach((y,i)=>{ if(inC(y)) i1 = i; });
+    if(i0 === 0 && i1 === labels.length-1) return;    // seluruh rentang = COVID → tak ada konteks pembanding
+    const a = chart.chartArea; if(!a) return;
+    const step = Math.abs(xs.getPixelForValue(1) - xs.getPixelForValue(0)) || a.width;
+    const left = Math.max(a.left, xs.getPixelForValue(i0) - step/2);
+    const right = Math.min(a.right, xs.getPixelForValue(i1) + step/2);
+    if(right - left < 6) return;
+    const ctx = chart.ctx;
+    ctx.save();
+    ctx.fillStyle = 'rgba(110,110,110,0.10)';
+    ctx.fillRect(left, a.top, right-left, a.bottom-a.top);
+    if(right - left > 46){
+      ctx.fillStyle = 'rgba(90,90,90,0.75)';
+      ctx.font = '600 9px Inter, sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      ctx.fillText('COVID-19', (left+right)/2, a.bottom - 4);
+    }
+    ctx.restore();
+  }
+};
+
+/* Zoom rentang waktu dengan seret (mouse) pada grafik deret waktu panjang (≥10 titik, semua label memuat tahun).
+   Seret di area grafik → perbesar; tombol "Reset zoom" muncul di pojok kanan atas grafik. Tidak aktif di layar sentuh
+   agar gulir halaman tetap normal. Matikan per grafik dengan options.plugins.dragZoom = false. */
+const dragZoomPlugin = {
+  id: 'dragZoom',
+  _eligible(chart){
+    const o = chart.options || {};
+    if(o.plugins && o.plugins.dragZoom === false) return false;
+    const type = chart.config.type || (chart.config._config && chart.config._config.type);
+    if(type !== 'line' && type !== 'bar') return false;
+    if(o.indexAxis === 'y') return false;
+    const xs = chart.scales && chart.scales.x;
+    if(!xs || xs.type !== 'category') return false;
+    const labels = (chart.data && chart.data.labels) || [];
+    if(labels.length < 10) return false;
+    return labels.every(l => /(?:^|\D)(?:19|20)\d{2}(?!\d)/.test(String(l)));
+  },
+  afterInit(chart){
+    const cv = chart.canvas, st = chart.$dz = { drag:null, hover:false, zoomed:false, box:null };
+    const rel = ev => {
+      const H = (typeof Chart !== 'undefined' && Chart.helpers) || null;
+      if(H && H.getRelativePosition) return H.getRelativePosition(ev, chart);
+      const r = cv.getBoundingClientRect(); return { x: ev.clientX - r.left, y: ev.clientY - r.top };
+    };
+    const inside = pt => { const a = chart.chartArea; return !!a && pt.x >= a.left && pt.x <= a.right && pt.y >= a.top && pt.y <= a.bottom; };
+    const reset = ()=>{
+      const sc = chart.options.scales.x; delete sc.min; delete sc.max;
+      st.zoomed = false; st.box = null; chart.update('none');
+    };
+    st.onDown = ev=>{
+      if(ev.pointerType && ev.pointerType !== 'mouse') return;
+      if(ev.button !== undefined && ev.button !== 0) return;
+      if(!dragZoomPlugin._eligible(chart)) return;
+      const pt = rel(ev);
+      if(st.zoomed && st.box && pt.x>=st.box.l && pt.x<=st.box.r && pt.y>=st.box.t && pt.y<=st.box.b){ reset(); ev.preventDefault(); return; }
+      if(inside(pt)) st.drag = { x0: pt.x, x1: pt.x };
+    };
+    st.onMove = ev=>{
+      if(ev.pointerType && ev.pointerType !== 'mouse') return;
+      const pt = rel(ev), h = inside(pt);
+      if(st.drag){ st.drag.x1 = Math.max(chart.chartArea.left, Math.min(chart.chartArea.right, pt.x)); chart.draw(); return; }
+      if(h !== st.hover){ st.hover = h; if(dragZoomPlugin._eligible(chart)) chart.draw(); }
+    };
+    st.onUp = ()=>{
+      const d = st.drag; st.drag = null;
+      if(!d) return;
+      if(Math.abs(d.x1 - d.x0) < 12){ chart.draw(); return; }
+      const xs = chart.scales.x, n = chart.data.labels.length;
+      let i0 = Math.round(xs.getValueForPixel(Math.min(d.x0, d.x1))), i1 = Math.round(xs.getValueForPixel(Math.max(d.x0, d.x1)));
+      i0 = Math.max(0, Math.min(n-1, i0)); i1 = Math.max(0, Math.min(n-1, i1));
+      if(i1 - i0 < 1){ chart.draw(); return; }
+      chart.options.scales.x.min = i0; chart.options.scales.x.max = i1;
+      st.zoomed = true; chart.update('none');
+    };
+    st.onLeave = ()=>{ st.hover = false; if(st.drag){ st.onUp(); } else if(dragZoomPlugin._eligible(chart)) chart.draw(); };
+    cv.addEventListener('pointerdown', st.onDown);
+    cv.addEventListener('pointermove', st.onMove);
+    window.addEventListener('pointerup', st.onUp);
+    cv.addEventListener('pointerleave', st.onLeave);
+    cv.addEventListener('dblclick', ()=>{ if(st.zoomed) reset(); });
+  },
+  afterDraw(chart){
+    const st = chart.$dz; if(!st || !this._eligible(chart)) return;
+    const a = chart.chartArea, ctx = chart.ctx;
+    ctx.save();
+    if(st.drag){
+      const l = Math.min(st.drag.x0, st.drag.x1), w = Math.abs(st.drag.x1 - st.drag.x0);
+      ctx.fillStyle = 'rgba(80,80,80,0.12)'; ctx.fillRect(l, a.top, w, a.bottom - a.top);
+      ctx.strokeStyle = 'rgba(80,80,80,0.55)'; ctx.lineWidth = 1; ctx.strokeRect(l + .5, a.top + .5, w, a.bottom - a.top - 1);
+    }
+    ctx.font = '600 10px Inter, sans-serif'; ctx.textBaseline = 'middle'; ctx.textAlign = 'right';
+    if(st.zoomed){
+      const txt = '⟲ Reset zoom', tw = ctx.measureText(txt).width, bx = a.right - tw - 16, by = a.top + 4;
+      ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.fillRect(bx, by, tw + 12, 20);
+      ctx.strokeStyle = 'rgba(80,80,80,0.5)'; ctx.strokeRect(bx + .5, by + .5, tw + 11, 19);
+      ctx.fillStyle = THEME.mid; ctx.fillText(txt, a.right - 10, by + 10);
+      st.box = { l:bx, r:bx + tw + 12, t:by, b:by + 20 };
+    }else if(st.hover && !st.drag){
+      ctx.fillStyle = 'rgba(90,90,90,0.65)'; ctx.fillText('Seret untuk zoom · klik 2× reset', a.right - 6, a.top + 10);
+    }
+    ctx.restore();
+  },
+  beforeDestroy(chart){
+    const st = chart.$dz; if(!st) return;
+    chart.canvas.removeEventListener('pointerdown', st.onDown);
+    chart.canvas.removeEventListener('pointermove', st.onMove);
+    window.removeEventListener('pointerup', st.onUp);
+    chart.canvas.removeEventListener('pointerleave', st.onLeave);
+  }
+};
+
 /* Default global Chart.js: semua line chart tanpa titik/dot, garis mulus (smooth).
    Chart individual yang butuh titik tetap bisa override pointRadius sendiri. */
 if(typeof Chart !== 'undefined'){
+  Chart.defaults.locale = 'id-ID';   // tick & tooltip bawaan Chart.js memakai format angka Indonesia
   Chart.defaults.elements.point.radius = 0;
   Chart.defaults.elements.point.hoverRadius = 4;
   Chart.defaults.elements.point.hitRadius = 10;
@@ -1481,14 +1677,36 @@ function rgbaAlpha(rgbaStr){
   return m ? parseFloat(m[1]) : 1;
 }
 
-/* Handler default: klik legenda chart mana pun (Chart.js) langsung buka color picker,
-   menggantikan perilaku bawaan (toggle tampil/sembunyi seri). Berlaku global untuk
-   SEMUA chart di dashboard ini kecuali chart tsb secara eksplisit override onClick-nya. */
+/* Handler default legenda (berlaku ke SEMUA chart kecuali yang meng-override sendiri):
+   - klik kotak/penanda warna di legenda → buka color picker (ganti warna seri)
+   - klik teks legenda → tampilkan/sembunyikan seri (perilaku bawaan Chart.js)
+   Chart non-dataset (donat/pie/polar) selalu tampil/sembunyi per irisan. */
+const LEGEND_HINT = 'Klik nama: tampil/sembunyikan · klik kotak warna: ganti warna';
+function legendClickOnSwatch(e, legendItem, legend){
+  try{
+    const idx = legend.legendItems.indexOf(legendItem);
+    const hb = legend.legendHitBoxes && legend.legendHitBoxes[idx];
+    if(!hb || typeof e.x !== 'number') return false;
+    const lab = legend.options.labels || {};
+    const fs = (lab.font && lab.font.size) || Chart.defaults.font.size || 12;
+    const bw = lab.usePointStyle ? Math.min(lab.boxWidth || 40, fs) : (lab.boxWidth || 40);
+    return (e.x - hb.left) <= bw + 6;
+  }catch(err){ return false; }
+}
 if(typeof Chart !== 'undefined'){
   Chart.defaults.plugins.legend.onClick = function(e, legendItem, legend){
     const chart = legend.chart;
-    const ds = chart.data.datasets[legendItem.datasetIndex];
-    if(!ds) return;
+    const ds = legendItem.datasetIndex !== undefined ? chart.data.datasets[legendItem.datasetIndex] : null;
+    if(!ds){   // donat/pie/polar: tampil/sembunyi irisan
+      if(legendItem.index !== undefined){ chart.toggleDataVisibility(legendItem.index); chart.update(); }
+      return;
+    }
+    if(!legendClickOnSwatch(e, legendItem, legend)){
+      const i = legendItem.datasetIndex;
+      if(chart.isDatasetVisible(i)){ chart.hide(i); legendItem.hidden = true; }
+      else { chart.show(i); legendItem.hidden = false; }
+      return;
+    }
     const label = legendItem.text || ds.label || ('Seri ' + (legendItem.datasetIndex+1));
     const colorKey = 'chart:' + label;
     const current = (typeof ds.borderColor === 'string' && ds.borderColor) ||
@@ -1499,11 +1717,18 @@ if(typeof Chart !== 'undefined'){
       ()=> { rerenderCurrentView(); }
     );
   };
+  Chart.defaults.plugins.legend.onHover = function(e, legendItem, legend){
+    const cv = legend.chart.canvas; cv.style.cursor = 'pointer'; cv.title = LEGEND_HINT;
+  };
+  Chart.defaults.plugins.legend.onLeave = function(e, legendItem, legend){
+    const cv = legend.chart.canvas; cv.style.cursor = ''; cv.title = '';
+  };
 
   /* Terapkan warna custom yang sudah tersimpan ke chart yang BARU dibuat, supaya
      pilihan warna tetap kepakai walau chart-nya di-render ulang (ganti tab, ganti
      palet tema, dsb). Dilakukan dengan membungkus constructor Chart sekali saja. */
   const __OrigChart = Chart;
+  __OrigChart.register(covidBandPlugin, dragZoomPlugin);
   const __ChartWrapper = function(ctx, config){
     try{
       if(config && config.data && Array.isArray(config.data.datasets)){
@@ -1521,7 +1746,9 @@ if(typeof Chart !== 'undefined'){
         });
       }
     }catch(e){}
-    return new __OrigChart(ctx, config);
+    const inst = new __OrigChart(ctx, config);
+    try{ chartA11y(inst, config); }catch(e){}
+    return inst;
   };
   __ChartWrapper.prototype = __OrigChart.prototype;
   Object.assign(__ChartWrapper, __OrigChart);
@@ -1658,6 +1885,7 @@ let hkChartInstance = null;
 let hbChartType = 'bar'; // bar | donut | treemap
 let hkGrowthMode = 'qtq'; // qtq | yoy | kumulatif — hanya relevan untuk periode Triwulanan
 let currentSeriesKey = null;
+let detailSeasonal = false;   // drawer Triwulanan: false = tren biasa, true = pola musiman (garis per tahun)
 let currentCompKey = null;
 let compCurrentChartType = 'stacked-bar';
 
@@ -1754,7 +1982,6 @@ let divHeaders = [];
 let divLoadState = 'idle';   // idle | loading | error | ready
 let divLoadError = '';
 let divMap = { kShare:{}, bShare:{} };  // hasil auto-detect: {tahun, totalK, totalB, kShare:{sektor:kolom}, kEntropy, kHhi, kTress, kRei, kShannon, bShare:{...}, bEntropy, ...}
-let divMappingPanelOpen = false;
 let divYearFrom = null;
 let divYearTo = null;
 let divCompositionYear = null;
@@ -1917,6 +2144,7 @@ function loadData(){
         renderTwSummary();
         renderTabs();
         if(activePeriode) renderContent(activePeriode);
+        if(SHARE_INITIAL_HASH) shareApplyHash(SHARE_INITIAL_HASH);
       }catch(err){
         showError('Gagal memproses data: ' + err.message);
       }
@@ -2125,8 +2353,19 @@ function twSummaryData(){
     const a = sum(tahun), b = sum(tahun-1);
     if(a!==null && b) ctc = (a/b-1)*100;
   }
+  // Deret Y-on-Y 8 triwulan terakhir (nilai tercatat; bila kosong dihitung dari PDRB harga konstan)
+  let spark = [];
+  if(sY && sY.length){
+    spark = sY.filter(e=>sortKey(e) <= latestKey).slice(-8).map(e=>({ label:`TW ${R[triwulanToNum(e.triwulan)]} ${e.tahun}`, v:e.data }));
+  }else if(kon && kon.length){
+    kon.filter(e=>sortKey(e) <= latestKey).forEach(e=>{
+      const prevYr = at(kon, e.tahun-1, triwulanToNum(e.triwulan));
+      if(prevYr) spark.push({ label:`TW ${R[triwulanToNum(e.triwulan)]} ${e.tahun}`, v:(e.data/prevYr-1)*100 });
+    });
+    spark = spark.slice(-8);
+  }
   return {
-    tahun, tw, label:`Triwulan ${R[tw]} ${tahun}`,
+    tahun, tw, label:`Triwulan ${R[tw]} ${tahun}`, spark,
     adhb: at(ber, tahun, tw), adhk: at(kon, tahun, tw),
     qtq, yoy, ctc,
     qtqSub: `TW ${R[tw]} ${tahun} vs TW ${R[prev[1]]} ${prev[0]}`,
@@ -2146,11 +2385,29 @@ function renderTwSummary(){
     `<div class="tw-chip"><div class="tw-chip-lbl" title="${tip}">${lbl}</div><div class="tw-chip-val ${cls(v)}">${arrow(v)}${pct(v)}</div><div class="tw-chip-sub">${sub}</div></div>`;
   const level = (lbl, v, sub)=>
     `<div class="tw-chip"><div class="tw-chip-lbl">${lbl}</div><div class="tw-chip-val">${v===null?'—':fmtNum(v)}</div><div class="tw-chip-sub">${sub}</div></div>`;
+  let sparkChip = '';
+  if(d.spark && d.spark.length >= 3){
+    const W = 120, H = 34, pad = 4, vs = d.spark.map(x=>x.v);
+    const lo = Math.min(0, ...vs), hi = Math.max(0, ...vs), rng = (hi-lo) || 1;
+    const X = i => pad + i*(W-2*pad)/(vs.length-1), Y = v => pad + (hi-v)/rng*(H-2*pad);
+    const pts = vs.map((v,i)=>`${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+    const lastV = vs[vs.length-1], dotCol = lastV>=0 ? 'var(--green)' : 'var(--rust)';
+    const tip = d.spark.map(x=>`${x.label}: ${x.v>0?'+':''}${x.v.toFixedID(2)}%`).join('\n');
+    sparkChip = `<div class="tw-chip"><div class="tw-chip-lbl" title="Pertumbuhan Y-on-Y ${d.spark.length} triwulan terakhir">TREN Y-ON-Y</div>
+      <svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Tren pertumbuhan Y-on-Y ${d.spark.length} triwulan terakhir, dari ${d.spark[0].label} sampai ${d.spark[d.spark.length-1].label}" style="display:block;margin-top:3px;color:var(--brown-mid);">
+        <title>${escapeHtml(tip)}</title>
+        <line x1="${pad}" x2="${W-pad}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}" stroke="currentColor" stroke-opacity=".35" stroke-dasharray="3 3"/>
+        <polyline points="${pts}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+        <circle cx="${X(vs.length-1).toFixed(1)}" cy="${Y(lastV).toFixed(1)}" r="3.4" fill="${dotCol}"/>
+      </svg>
+      <div class="tw-chip-sub">${d.spark.length} triwulan terakhir</div></div>`;
+  }
   el.innerHTML = `
     <div class="tw-sum-head"><div class="tw-sum-eyebrow">PDRB Klungkung · Terbaru</div><div class="tw-sum-title">${d.label}</div></div>
     ${growth('C-TO-C', d.ctc, d.ctcSub, 'Pertumbuhan kumulatif dari awal tahun dibanding periode kumulatif yang sama tahun lalu')}
     ${growth('Y-ON-Y', d.yoy, d.yoySub, 'Pertumbuhan dibanding triwulan yang sama tahun lalu')}
     ${growth('Q-TO-Q', d.qtq, d.qtqSub, 'Pertumbuhan dibanding triwulan sebelumnya (dipengaruhi pola musiman)')}
+    ${sparkChip}
     ${level('PDRB ADHK', d.adhk, 'Rp miliar · harga konstan 2010')}
     ${level('PDRB ADHB', d.adhb, 'Rp miliar · harga berlaku')}`;
   el.classList.add('show');
@@ -2176,6 +2433,60 @@ let nkTrenSectors = null;   // Set nama sektor terpilih
 let nkTrenBali = false;
 let cariSubmitState = 'idle'; // idle | sending | success | error
 const CARI_DATA_WEBAPP_URL = 'https://script.google.com/macros/s/GANTI_DENGAN_URL_DEPLOYMENT_ANDA/exec';
+
+/* ===== Tautan yang bisa dibagikan: tab, sub-tab, dan (untuk Naker) tahun disimpan di URL hash ===== */
+const SHARE_INITIAL_HASH = (typeof location !== 'undefined' ? location.hash : '') || '';
+const SHARE_TAB_LABEL = { cmp:'Bandingkan', inf:'Inferensia', ss:'Shift-Share', lq:'LQ', conv:'Konvergensi', div:'Diversitas', adv:'Struktural', nk:'Naker', cari:'Cari Data' };
+let shareApplying = false;
+function shareStateString(){
+  const q = new URLSearchParams();
+  const key = sideCurrentKey();
+  if(key){
+    q.set('m', key);
+    const cfg = sideSubCfg(key);
+    if(cfg) q.set('s', cfg.get());
+    if(key === 'nk' && nkYear !== null){ q.set('y', nkYear); if(nkBase !== null) q.set('b', nkBase); }
+  }else if(compareMode) q.set('m', 'cmp');
+  else if(infMode) q.set('m', 'inf');
+  else if(divMode) q.set('m', 'div');
+  else if(cariMode) q.set('m', 'cari');
+  else if(activePeriode) q.set('p', activePeriode);
+  return q.toString();
+}
+function shareUpdateHash(){
+  if(shareApplying) return;
+  try{
+    const h = '#' + shareStateString();
+    if(h !== '#' && location.hash !== h) history.replaceState(null, '', h);
+  }catch(e){}
+}
+function shareApplyHash(rawHash){
+  const raw = String(rawHash !== undefined ? rawHash : (location.hash || '')).replace(/^#/, '');
+  if(!raw || typeof STORE === 'undefined' || !STORE.__order) return false;
+  const q = new URLSearchParams(raw);
+  const m = q.get('m'), p = q.get('p');
+  let label = null;
+  if(m && SHARE_TAB_LABEL[m]) label = SHARE_TAB_LABEL[m];
+  else if(p && STORE.__order.includes(p)) label = p;
+  if(!label) return false;
+  shareApplying = true;
+  let ok = false;
+  try{
+    if(m){
+      const cfg = sideSubCfg(m), sub = q.get('s');
+      if(cfg && sub && cfg.tabs.some(t=>t.key === sub)) cfg.set(sub);
+      if(m === 'nk'){
+        const y = parseInt(q.get('y')), b = parseInt(q.get('b'));
+        if(!isNaN(y)) nkYear = y;
+        if(!isNaN(b)){ nkBase = b; nkBaseAuto = false; }
+      }
+    }
+    const btn = [...document.querySelectorAll('#tabs .tab')].find(b=>b.textContent === label);
+    if(btn){ btn.click(); ok = true; }
+  }finally{ shareApplying = false; shareUpdateHash(); }
+  return ok;
+}
+window.addEventListener('hashchange', ()=>{ if(!shareApplying) shareApplyHash(); });
 
 /* ===== Nav kanan: sub-tab mengembang di bawah tab aktif (Shift-Share s.d. Naker) ===== */
 const sideCollapsed = {};   // key mode → true bila sub-tab dilipat manual
@@ -2234,6 +2545,7 @@ function syncSideSubTabs(){
   if(!cfg) return;
   const cur = cfg.get();
   document.querySelectorAll('#tabsVertical .tab-sub').forEach(b=> b.classList.toggle('active', b.dataset.k===cur));
+  shareUpdateHash();
 }
 // Sub-tab yang diklik dari dalam konten juga menyorot sub-tab di nav kanan
 document.addEventListener('click', e=>{
@@ -2322,6 +2634,7 @@ function renderTabs(){
     cariBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = true; nkMode = false; renderTabs(); renderCariDataView(); };
     tabsEl.appendChild(cariBtn);
   });
+  shareUpdateHash();
 }
 
 /* ===== Cari Data: form permintaan data, dikirim ke Google Sheet via Apps Script Web App ===== */
@@ -3178,6 +3491,7 @@ function openDetail(periode,kategori,kelompok,sub){
   currentCompKey = null;
   currentDetailColor = getGroupColor(kategori, kelompok);
   currentDetailChartType = getGroupChartType(kategori, kelompok, sub);
+  detailSeasonal = false;
   const entries = STORE[periode][kategori][kelompok][sub];
   const years = [...new Set(entries.map(e=>e.tahun))].sort((a,b)=>a-b);
 
@@ -3204,6 +3518,15 @@ function openDetail(periode,kategori,kelompok,sub){
         <button data-range="3">3 Terakhir</button>
       </div>
     </div>
+
+    ${periode==='Triwulanan' ? `
+    <div class="filter-row" style="margin-top:0;">
+      <label>Tampilan</label>
+      <div class="quickbtns" id="detailViewBtns" style="margin-left:0;">
+        <button data-view="trend" class="active">Tren</button>
+        <button data-view="seasonal" title="Tiap tahun jadi satu garis di sumbu TW I–IV, untuk melihat pola musiman">Pola Musiman</button>
+      </div>
+    </div>` : ''}
 
     <div class="chart-box-wrap">
       <button class="dl-btn" id="dlChart" title="Unduh grafik sebagai JPG">⬇ JPG</button>
@@ -3256,6 +3579,15 @@ function openDetail(periode,kategori,kelompok,sub){
     };
   });
   drawer.querySelector('[data-range="all"]').classList.add('active');
+
+  drawer.querySelectorAll('#detailViewBtns button').forEach(btn=>{
+    btn.onclick = ()=>{
+      drawer.querySelectorAll('#detailViewBtns button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      detailSeasonal = btn.dataset.view === 'seasonal';
+      refreshDetail(entries, parseInt(fromSel.value), parseInt(toSel.value));
+    };
+  });
 
   document.getElementById('closeDrawer').onclick = closeDetail;
   document.getElementById('overlay').classList.add('show');
@@ -3376,9 +3708,32 @@ function downloadCompareChartJPG(){
   triggerJPGDownload(compareChart, 'perbandingan_indikator');
 }
 
+/* ExcelJS dimuat saat dibutuhkan (klik ekspor pertama), bukan di setiap kunjungan */
+let __excelJsPromise = null;
+function ensureExcelJS(){
+  if(typeof ExcelJS !== 'undefined') return Promise.resolve(true);
+  if(__excelJsPromise) return __excelJsPromise;
+  const urls = ['https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js', 'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js'];
+  __excelJsPromise = new Promise(resolve=>{
+    let i = 0;
+    const next = ()=>{
+      if(i >= urls.length){ __excelJsPromise = null; resolve(false); return; }
+      const sc = document.createElement('script');
+      sc.src = urls[i++];
+      sc.onload = ()=> resolve(typeof ExcelJS !== 'undefined');
+      sc.onerror = ()=>{ sc.remove(); next(); };
+      document.head.appendChild(sc);
+    };
+    next();
+  });
+  return __excelJsPromise;
+}
+// Mulai unduh library begitu kursor menyentuh tombol unduh, supaya klik terasa instan
+document.addEventListener('pointerover', e=>{ if(e.target.closest && e.target.closest('.dl-btn')) ensureExcelJS(); });
+
 async function exportStyledExcel(filename, sheetName, header, rows){
   if(!/\.xlsx$/i.test(filename)) filename += '.xlsx';   // pastikan file terunduh berekstensi .xlsx
-  if(typeof ExcelJS === 'undefined'){ alert('Gagal memuat library Excel. Coba refresh halaman.'); return; }
+  if(!(await ensureExcelJS())){ alert('Gagal memuat library Excel. Periksa koneksi internet lalu coba lagi.'); return; }
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet(sheetName);
   ws.addRow(header);
@@ -3668,13 +4023,13 @@ function buildHargaBerlakuInsight(rows, total, pInfo){
   const topPct = (top.value/total*100);
   const top3Pct = rows.slice(0,3).reduce((s,r)=>s+r.value,0)/total*100;
   const bottom = rows[rows.length-1];
-  let html = `Pada periode <b>${escapeHtml(pInfo.label)}</b>, sektor <b>${escapeHtml(top.short)}</b> memberi kontribusi terbesar dengan <b>${fmtNum(top.value)} ${escapeHtml(top.satuan)}</b> atau setara <b>${topPct.toFixed(1)}%</b> dari total.`;
-  html += ` Tiga sektor teratas bersama-sama menyumbang <b>${top3Pct.toFixed(1)}%</b> dari keseluruhan nilai, `;
+  let html = `Pada periode <b>${escapeHtml(pInfo.label)}</b>, sektor <b>${escapeHtml(top.short)}</b> memberi kontribusi terbesar dengan <b>${fmtNum(top.value)} ${escapeHtml(top.satuan)}</b> atau setara <b>${topPct.toFixedID(1)}%</b> dari total.`;
+  html += ` Tiga sektor teratas bersama-sama menyumbang <b>${top3Pct.toFixedID(1)}%</b> dari keseluruhan nilai, `;
   html += top3Pct >= 70
     ? `menunjukkan struktur ekonomi yang <b>cukup terkonsentrasi</b> pada beberapa sektor unggulan.`
     : `menunjukkan struktur ekonomi yang <b>relatif terdiversifikasi</b> antar sektor.`;
   if(bottom !== top){
-    html += ` Sementara itu, sektor dengan kontribusi terkecil adalah <b>${escapeHtml(bottom.short)}</b> (${(bottom.value/total*100).toFixed(2)}%).`;
+    html += ` Sementara itu, sektor dengan kontribusi terkecil adalah <b>${escapeHtml(bottom.short)}</b> (${(bottom.value/total*100).toFixedID(2)}%).`;
   }
   return html;
 }
@@ -3702,7 +4057,7 @@ function refreshHargaBerlaku(subObj, segs, label, periodKey, periods){
     let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" id="hbTreemapSvg" style="width:100%;height:320px;display:block;background:#fff;">`;
     rects.forEach(r=>{
       const rw = Math.max(0, r.w-3), rh = Math.max(0, r.h-3);
-      const pct = (r.value/total*100).toFixed(1);
+      const pct = (r.value/total*100).toFixedID(1);
       svg += `<rect x="${r.x.toFixed(1)}" y="${r.y.toFixed(1)}" width="${rw.toFixed(1)}" height="${rh.toFixed(1)}" fill="${r.color}" rx="5"><title>${escapeHtml(r.name)}: ${fmtNum(r.value)} (${pct}%)</title></rect>`;
       if(r.w > 70 && r.h > 34){
         const shortName = r.name.length > 24 ? r.name.slice(0,22)+'…' : r.name;
@@ -3730,7 +4085,7 @@ function refreshHargaBerlaku(subObj, segs, label, periodKey, periods){
         }]},
         options:{ responsive:true, maintainAspectRatio:false,
           plugins:{ legend:{ position:'right', labels:{font:{family:'Inter',size:10.5},color:THEME.main, boxWidth:12} },
-            tooltip:{ callbacks:{ label:(it)=> `${it.label}: ${fmtNum(it.parsed)} (${(it.parsed/total*100).toFixed(1)}%)` } } }
+            tooltip:{ callbacks:{ label:(it)=> `${it.label}: ${fmtNum(it.parsed)} (${(it.parsed/total*100).toFixedID(1)}%)` } } }
         }
       });
     }else{
@@ -3743,9 +4098,9 @@ function refreshHargaBerlaku(subObj, segs, label, periodKey, periods){
         }]},
         options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
           plugins:{ legend:{ display:false }, tooltip:{ callbacks:{
-            label:(it)=> `${it.parsed.x.toFixed(2)}% (${fmtNum(rows[it.dataIndex].value)} ${rows[it.dataIndex].satuan})`
+            label:(it)=> `${it.parsed.x.toFixedID(2)}% (${fmtNum(rows[it.dataIndex].value)} ${rows[it.dataIndex].satuan})`
           } } },
-          scales:{ x:{ ticks:{ callback:(v)=>v+'%', color:THEME.mid, font:{family:'Inter',size:10} }, grid:{color:THEME.light} }, y:{ ticks:{color:THEME.mid,font:{family:'Inter',size:9.5}}, grid:{display:false} } }
+          scales:{ x:{title:axTitle('Proporsi terhadap total (%)'),  ticks:{ callback:(v)=>nfmt(v)+'%', color:THEME.mid, font:{family:'Inter',size:10} }, grid:{color:THEME.light} }, y:{ ticks:{color:THEME.mid,font:{family:'Inter',size:9.5}}, grid:{display:false} } }
         }
       });
     }
@@ -3856,11 +4211,11 @@ function buildKonstanSektoralInsight(rows, pInfo, compareLabel){
   const fastest = sorted[0], slowest = sorted[sorted.length-1];
   const positiveCount = growable.filter(r=>r.growth>=0).length;
   const vs = compareLabel ? ` dibandingkan ${escapeHtml(compareLabel)}` : '';
-  let html = `Pada periode <b>${escapeHtml(pInfo.label)}</b>${vs}, sektor <b>${escapeHtml(fastest.short)}</b> tumbuh paling cepat sebesar <b>${fastest.growth>=0?'+':''}${fastest.growth.toFixed(2)}%</b>.`;
+  let html = `Pada periode <b>${escapeHtml(pInfo.label)}</b>${vs}, sektor <b>${escapeHtml(fastest.short)}</b> tumbuh paling cepat sebesar <b>${fastest.growth>=0?'+':''}${fastest.growth.toFixedID(2)}%</b>.`;
   if(slowest !== fastest){
     html += slowest.growth < 0
-      ? ` Sebaliknya, sektor <b>${escapeHtml(slowest.short)}</b> mengalami kontraksi terdalam sebesar <b>${slowest.growth.toFixed(2)}%</b>.`
-      : ` Sektor dengan pertumbuhan paling lambat adalah <b>${escapeHtml(slowest.short)}</b> (${slowest.growth>=0?'+':''}${slowest.growth.toFixed(2)}%).`;
+      ? ` Sebaliknya, sektor <b>${escapeHtml(slowest.short)}</b> mengalami kontraksi terdalam sebesar <b>${slowest.growth.toFixedID(2)}%</b>.`
+      : ` Sektor dengan pertumbuhan paling lambat adalah <b>${escapeHtml(slowest.short)}</b> (${slowest.growth>=0?'+':''}${slowest.growth.toFixedID(2)}%).`;
   }
   html += ` Secara keseluruhan, <b>${positiveCount} dari ${growable.length}</b> sektor mencatat pertumbuhan positif pada periode ini.`;
   return html;
@@ -3913,11 +4268,11 @@ function refreshKonstanSektoral(subObj, segs, label, periodKey, periods){
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main} },
-        tooltip:{ callbacks:{ label:(it)=> it.dataset.label==='Pertumbuhan (%)' ? `Pertumbuhan: ${it.parsed.y===null?'n/a':it.parsed.y.toFixed(2)+'%'}` : `Nilai: ${fmtNum(it.parsed.y)}` } } },
+        tooltip:{ callbacks:{ label:(it)=> it.dataset.label==='Pertumbuhan (%)' ? `Pertumbuhan: ${it.parsed.y===null?'n/a':it.parsed.y.toFixedID(2)+'%'}` : `Nilai: ${fmtNum(it.parsed.y)}` } } },
       scales:{
         x:{ ticks:{ font:{family:'Inter',size:9.5}, color:THEME.mid, maxRotation:60, minRotation:40 }, grid:{display:false} },
         y:{ position:'left', ticks:{color:THEME.mid}, grid:{color:THEME.light}, title:{display:true,text:'Nilai'} },
-        y1:{ position:'right', ticks:{color:THEME.mid, callback:(v)=>v+'%'}, grid:{display:false}, title:{display:true,text:'Pertumbuhan (%)'} }
+        y1:{ position:'right', ticks:{color:THEME.mid, callback:(v)=>nfmt(v)+'%'}, grid:{display:false}, title:{display:true,text:'Pertumbuhan (%)'} }
       }
     }
   });
@@ -3970,7 +4325,7 @@ function buildCompositionInsight(label, segs, bySegSK, sortedSK, skMap){
     html += ` Nilai gabungan ini <span class="${trendClass}">${trendWord}</span> periode <b>${escapeHtml(firstLabel)}</b> yang tercatat <b>${fmtNum(firstTotal)}${satuan}</b>.`;
   }
 
-  html += ` Komponen dengan porsi terbesar saat ini adalah <b>${escapeHtml(domSeg)}</b> (${fmtNum(domVal)}${satuan}, sekitar ${domShare.toFixed(1)}% dari total gabungan).`;
+  html += ` Komponen dengan porsi terbesar saat ini adalah <b>${escapeHtml(domSeg)}</b> (${fmtNum(domVal)}${satuan}, sekitar ${domShare.toFixedID(1)}% dari total gabungan).`;
 
   if(bestSeg && worstSeg && bestSeg !== worstSeg){
     html += ` Sepanjang rentang ini, <b>${escapeHtml(bestSeg)}</b> mencatat kenaikan paling besar (${bestChange>0?'+':''}${fmtNum(bestChange)}${satuan}), sementara <b>${escapeHtml(worstSeg)}</b> mencatat perubahan paling rendah/menurun (${worstChange>0?'+':''}${fmtNum(worstChange)}${satuan}).`;
@@ -3982,7 +4337,7 @@ function buildCompositionInsight(label, segs, bySegSK, sortedSK, skMap){
       const domShareFirst = domValFirst/firstTotal*100;
       const shareDiff = domShare - domShareFirst;
       if(Math.abs(shareDiff) >= 1){
-        html += ` Porsi <b>${escapeHtml(domSeg)}</b> terhadap total gabungan ${shareDiff>0?'membesar':'mengecil'} dari sekitar ${domShareFirst.toFixed(1)}% menjadi ${domShare.toFixed(1)}%, menandakan komposisi ${shareDiff>0?'makin terkonsentrasi pada komponen ini':'makin merata antar komponen'}.`;
+        html += ` Porsi <b>${escapeHtml(domSeg)}</b> terhadap total gabungan ${shareDiff>0?'membesar':'mengecil'} dari sekitar ${domShareFirst.toFixedID(1)}% menjadi ${domShare.toFixedID(1)}%, menandakan komposisi ${shareDiff>0?'makin terkonsentrasi pada komponen ini':'makin merata antar komponen'}.`;
       }
     }
   }
@@ -4066,7 +4421,7 @@ function buildTreemapSVG(segs, bySegSK, lastSK){
   rects.forEach(r=>{
     const rw = Math.max(0, r.w - 3);
     const rh = Math.max(0, r.h - 3);
-    const pct = (r.value/total*100).toFixed(1);
+    const pct = (r.value/total*100).toFixedID(1);
     svg += `<rect x="${r.x.toFixed(1)}" y="${r.y.toFixed(1)}" width="${rw.toFixed(1)}" height="${rh.toFixed(1)}" fill="${r.color}" rx="5"><title>${escapeHtml(r.name)}: ${fmtNum(r.value)} (${pct}%)</title></rect>`;
     if(r.w > 70 && r.h > 34){
       const shortName = r.name.length > 24 ? r.name.slice(0,22)+'…' : r.name;
@@ -4356,8 +4711,8 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
             plugins:{ legend:{ display:false } },
             scales:{
               x:{ grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } },
-              y:{ type:'linear', position:'left', grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
-              y1:{ type:'linear', position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11}, callback:(v)=>v+'%' } }
+              y:{title:axTitle('Nilai (satuan komponen)'),  type:'linear', position:'left', grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
+              y1:{title:axTitle('Kumulatif (%)'),  type:'linear', position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11}, callback:(v)=>nfmt(v)+'%' } }
             }
           }
         });
@@ -4434,7 +4789,7 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
             },
             scales:{
               x:{ stacked:true, grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
-              y:{ stacked:true, grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } }
+              y:{title:axTitle('Nilai (satuan komponen)'),  stacked:true, grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } }
             }
           }
         });
@@ -4455,7 +4810,7 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
             },
             scales:{
               x:{ stacked:true, grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
-              y:{ stacked:true, grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } }
+              y:{title:axTitle('Nilai (satuan komponen)'),  stacked:true, grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } }
             }
           }
         });
@@ -5102,17 +5457,17 @@ function renderInfResult(){
   const xLabels = xKeys.map((k,i)=> (xTransforms[i]==='ln'?'ln(':'') + infIndex[k].sub + (xTransforms[i]==='ln'?')':''));
   const sig = p=> p<0.001?'***':p<0.01?'**':p<0.05?'*':p<0.1?'.':'';
 
-  let eq = `Ŷ = ${res.beta[0].toFixed(4)}`;
-  xLabels.forEach((lbl,i)=>{ const b=res.beta[i+1]; eq += ` ${b>=0?'+':'−'} ${Math.abs(b).toFixed(4)}·X${i+1}`; });
+  let eq = `Ŷ = ${res.beta[0].toFixedID(4)}`;
+  xLabels.forEach((lbl,i)=>{ const b=res.beta[i+1]; eq += ` ${b>=0?'+':'−'} ${Math.abs(b).toFixedID(4)}·X${i+1}`; });
 
-  let coefRows = `<tr><td>Konstanta (Intercept)</td><td>${res.beta[0].toFixed(4)}</td><td>${res.seCoef[0].toFixed(4)}</td><td>${res.tStat[0].toFixed(3)}</td><td>${res.pVal[0]<0.0001?'<0.0001':res.pVal[0].toFixed(4)} ${sig(res.pVal[0])}</td><td>–</td></tr>`;
+  let coefRows = `<tr><td>Konstanta (Intercept)</td><td>${res.beta[0].toFixedID(4)}</td><td>${res.seCoef[0].toFixedID(4)}</td><td>${res.tStat[0].toFixedID(3)}</td><td>${res.pVal[0]<0.0001?'<0.0001':res.pVal[0].toFixedID(4)} ${sig(res.pVal[0])}</td><td>–</td></tr>`;
   xLabels.forEach((lbl,i)=>{
     const vifVal = res.vif[i];
-    const vifTxt = vifVal===null ? '–' : (vifVal===Infinity ? '∞' : vifVal.toFixed(2));
-    coefRows += `<tr><td>X${i+1} — ${escapeHtml(lbl)}</td><td>${res.beta[i+1].toFixed(4)}</td><td>${res.seCoef[i+1].toFixed(4)}</td><td>${res.tStat[i+1].toFixed(3)}</td><td>${res.pVal[i+1]<0.0001?'<0.0001':res.pVal[i+1].toFixed(4)} ${sig(res.pVal[i+1])}</td><td>${vifTxt}</td></tr>`;
+    const vifTxt = vifVal===null ? '–' : (vifVal===Infinity ? '∞' : vifVal.toFixedID(2));
+    coefRows += `<tr><td>X${i+1} — ${escapeHtml(lbl)}</td><td>${res.beta[i+1].toFixedID(4)}</td><td>${res.seCoef[i+1].toFixedID(4)}</td><td>${res.tStat[i+1].toFixedID(3)}</td><td>${res.pVal[i+1]<0.0001?'<0.0001':res.pVal[i+1].toFixedID(4)} ${sig(res.pVal[i+1])}</td><td>${vifTxt}</td></tr>`;
   });
 
-  const corrRows = xLabels.map((lbl,i)=> `<tr><td>${escapeHtml(lbl)} — ${escapeHtml(yLabel)}</td><td>${res.pearson[i].toFixed(3)}</td></tr>`).join('');
+  const corrRows = xLabels.map((lbl,i)=> `<tr><td>${escapeHtml(lbl)} — ${escapeHtml(yLabel)}</td><td>${res.pearson[i].toFixedID(3)}</td></tr>`).join('');
 
   const methodLabel = xKeys.length===1 ? 'Regresi Linear Sederhana' : 'Regresi Linear Berganda';
 
@@ -5135,10 +5490,10 @@ function renderInfResult(){
       ? `<b>Regresi Linear Sederhana</b> menguji apakah satu variabel independen (X) secara statistik memengaruhi/berasosiasi dengan variabel dependen (Y), dan seberapa besar pengaruhnya per satu satuan kenaikan X.`
       : `<b>Regresi Linear Berganda</b> menguji pengaruh gabungan beberapa variabel independen (X) terhadap satu variabel dependen (Y) secara bersamaan — koefisien tiap X menunjukkan pengaruhnya sambil mengontrol variabel X lain dalam model.`}</div>
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">R²</div><div class="stat-value" style="font-size:15px;">${(res.r2*100).toFixed(1)}%</div></div>
-      <div class="stat-box"><div class="stat-label">Adjusted R²</div><div class="stat-value" style="font-size:15px;">${(res.adjR2*100).toFixed(1)}%</div></div>
+      <div class="stat-box"><div class="stat-label">R²</div><div class="stat-value" style="font-size:15px;">${(res.r2*100).toFixedID(1)}%</div></div>
+      <div class="stat-box"><div class="stat-label">Adjusted R²</div><div class="stat-value" style="font-size:15px;">${(res.adjR2*100).toFixedID(1)}%</div></div>
       <div class="stat-box"><div class="stat-label">N (tahun beririsan)</div><div class="stat-value" style="font-size:15px;">${res.n}</div></div>
-      <div class="stat-box"><div class="stat-label">F-statistik</div><div class="stat-value" style="font-size:15px;">${res.fStat.toFixed(2)} <span style="font-size:11px;font-weight:500;">(p=${res.fP<0.0001?'<0.0001':res.fP.toFixed(4)})</span></div></div>
+      <div class="stat-box"><div class="stat-label">F-statistik</div><div class="stat-value" style="font-size:15px;">${res.fStat.toFixedID(2)} <span style="font-size:11px;font-weight:500;">(p=${res.fP<0.0001?'<0.0001':res.fP.toFixedID(4)})</span></div></div>
     </div>
     <div class="ss-section-title">Persamaan Regresi</div>
     <div class="inf-formula">${escapeHtml(eq)}</div>
@@ -5151,8 +5506,8 @@ function renderInfResult(){
 
     <div class="ss-section-title">Uji Asumsi Klasik</div>
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">Breusch-Pagan (Heteroskedastisitas)</div><div class="stat-value" style="font-size:13.5px;color:${bpColor};">${bpLabel}</div><div class="inf-diag-note" style="margin-top:4px;">LM=${res.bpLM.toFixed(2)}, p=${res.bpP<0.0001?'<0.0001':res.bpP.toFixed(4)}</div></div>
-      <div class="stat-box"><div class="stat-label">Durbin-Watson (Autokorelasi)</div><div class="stat-value" style="font-size:13.5px;color:${dwColor};">${res.dw!=null?res.dw.toFixed(3):'N/A'} · ${dwLabel}</div><div class="inf-diag-note" style="margin-top:4px;">Aturan umum: ~2 = tidak ada autokorelasi</div></div>
+      <div class="stat-box"><div class="stat-label">Breusch-Pagan (Heteroskedastisitas)</div><div class="stat-value" style="font-size:13.5px;color:${bpColor};">${bpLabel}</div><div class="inf-diag-note" style="margin-top:4px;">LM=${res.bpLM.toFixedID(2)}, p=${res.bpP<0.0001?'<0.0001':res.bpP.toFixedID(4)}</div></div>
+      <div class="stat-box"><div class="stat-label">Durbin-Watson (Autokorelasi)</div><div class="stat-value" style="font-size:13.5px;color:${dwColor};">${res.dw!=null?res.dw.toFixedID(3):'N/A'} · ${dwLabel}</div><div class="inf-diag-note" style="margin-top:4px;">Aturan umum: ~2 = tidak ada autokorelasi</div></div>
     </div>
 
     <div class="ss-section-title">Korelasi Pearson (X vs Y)</div>
@@ -5322,14 +5677,14 @@ function renderArimaResult(){
 
   const sig = pv=> pv<0.001?'***':pv<0.01?'**':pv<0.05?'*':pv<0.1?'.':'';
   const coefLabels = ['Konstanta', ...Array.from({length:p},(_,i)=>`AR(${i+1}) — φ${i+1}`), ...Array.from({length:q},(_,i)=>`MA(${i+1}) — θ${i+1}`)];
-  const coefRows = fit.beta.map((b,i)=> `<tr><td>${coefLabels[i]}</td><td>${b.toFixed(4)}</td><td>${fit.seCoef[i].toFixed(4)}</td><td>${fit.tStat[i].toFixed(3)}</td><td>${fit.pVal[i]<0.0001?'<0.0001':fit.pVal[i].toFixed(4)} ${sig(fit.pVal[i])}</td></tr>`).join('');
+  const coefRows = fit.beta.map((b,i)=> `<tr><td>${coefLabels[i]}</td><td>${b.toFixedID(4)}</td><td>${fit.seCoef[i].toFixedID(4)}</td><td>${fit.tStat[i].toFixedID(3)}</td><td>${fit.pVal[i]<0.0001?'<0.0001':fit.pVal[i].toFixedID(4)} ${sig(fit.pVal[i])}</td></tr>`).join('');
 
   const subDigit = n=>{ const map={'0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉'}; return String(n).split('').map(d=>map[d]).join(''); };
   const seriesSym = arimaD>0 ? 'Wₜ' : 'Yₜ';
   const seriesLag = arimaD>0 ? 'W' : 'Y';
-  let eqTerms = [`${seriesSym} = ${fit.beta[0].toFixed(4)}`];
-  for(let i=1;i<=p;i++){ const b=fit.beta[i]; eqTerms.push(`${b>=0?'+':'−'} ${Math.abs(b).toFixed(4)}·${seriesLag}ₜ₋${subDigit(i)}`); }
-  for(let j=1;j<=q;j++){ const b=fit.beta[p+j]; eqTerms.push(`${b>=0?'+':'−'} ${Math.abs(b).toFixed(4)}·eₜ₋${subDigit(j)}`); }
+  let eqTerms = [`${seriesSym} = ${fit.beta[0].toFixedID(4)}`];
+  for(let i=1;i<=p;i++){ const b=fit.beta[i]; eqTerms.push(`${b>=0?'+':'−'} ${Math.abs(b).toFixedID(4)}·${seriesLag}ₜ₋${subDigit(i)}`); }
+  for(let j=1;j<=q;j++){ const b=fit.beta[p+j]; eqTerms.push(`${b>=0?'+':'−'} ${Math.abs(b).toFixedID(4)}·eₜ₋${subDigit(j)}`); }
   const arimaEq = eqTerms.join(' ') + (arimaD>0 ? `  (Wₜ = Yₜ didiferensiasi ${arimaD}×)` : '');
 
   const modelDesc = arimaD===0 && q===0
@@ -5355,15 +5710,15 @@ function renderArimaResult(){
   const sigmaStep = fit.rmse;
   const forecastRows = forecastVals.map((v,i)=>{
     const se = sigmaStep*Math.sqrt(i+1);
-    return `<tr><td>${forecastLabels[i]}</td><td>${v.toFixed(2)}</td><td>${(v-1.96*se).toFixed(2)}</td><td>${(v+1.96*se).toFixed(2)}</td></tr>`;
+    return `<tr><td>${forecastLabels[i]}</td><td>${v.toFixedID(2)}</td><td>${(v-1.96*se).toFixedID(2)}</td><td>${(v+1.96*se).toFixedID(2)}</td></tr>`;
   }).join('');
 
   area.innerHTML = `
     <div class="ss-section-title" style="margin-top:0;">Model Terpilih: ${modelName}</div>
     <div class="inf-model-desc">${modelDesc}</div>
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">AIC</div><div class="stat-value" style="font-size:15px;">${fit.aic.toFixed(2)}</div></div>
-      <div class="stat-box"><div class="stat-label">RMSE (in-sample)</div><div class="stat-value" style="font-size:15px;">${fit.rmse.toFixed(3)}</div></div>
+      <div class="stat-box"><div class="stat-label">AIC</div><div class="stat-value" style="font-size:15px;">${fit.aic.toFixedID(2)}</div></div>
+      <div class="stat-box"><div class="stat-label">RMSE (in-sample)</div><div class="stat-value" style="font-size:15px;">${fit.rmse.toFixedID(3)}</div></div>
       <div class="stat-box"><div class="stat-label">N efektif</div><div class="stat-value" style="font-size:15px;">${fit.n_eff}</div></div>
       <div class="stat-box"><div class="stat-label">Differencing</div><div class="stat-value" style="font-size:15px;">d = ${arimaD}</div></div>
     </div>
@@ -5407,7 +5762,7 @@ function renderArimaChart(periodLabels, forecastLabels, orig, forecastVals, labe
       plugins:{legend:{display:true, labels:{color:THEME.mid, font:{family:'Inter',size:11}}}},
       scales:{
         x:{ticks:{color:THEME.mid,font:{size:10}}, grid:{color:THEME.light}},
-        y:{ticks:{color:THEME.mid,font:{size:10}}, grid:{color:THEME.light}}
+        y:{title:axTitle(labelText), ticks:{color:THEME.mid,font:{size:10}}, grid:{color:THEME.light}}
       }
     }
   });
@@ -5517,13 +5872,13 @@ function renderArimaxResult(){
   const xLabels = xKeys.map((k,i)=> (xTransforms[i]==='ln'?'ln(':'') + infIndex[k].sub + (xTransforms[i]==='ln'?')':''));
   const sig = pv=> pv<0.001?'***':pv<0.01?'**':pv<0.05?'*':pv<0.1?'.':'';
 
-  let eq = `Ŷ = ${base.beta[0].toFixed(4)}`;
-  xLabels.forEach((lbl,i)=>{ const b=base.beta[i+1]; eq += ` ${b>=0?'+':'−'} ${Math.abs(b).toFixed(4)}·X${i+1}`; });
+  let eq = `Ŷ = ${base.beta[0].toFixedID(4)}`;
+  xLabels.forEach((lbl,i)=>{ const b=base.beta[i+1]; eq += ` ${b>=0?'+':'−'} ${Math.abs(b).toFixedID(4)}·X${i+1}`; });
   eq += ' + ηₜ';
 
-  let coefRows = `<tr><td>Konstanta</td><td>${base.beta[0].toFixed(4)}</td><td>${base.seCoef[0].toFixed(4)}</td><td>${base.tStat[0].toFixed(3)}</td><td>${base.pVal[0]<0.0001?'<0.0001':base.pVal[0].toFixed(4)} ${sig(base.pVal[0])}</td></tr>`;
+  let coefRows = `<tr><td>Konstanta</td><td>${base.beta[0].toFixedID(4)}</td><td>${base.seCoef[0].toFixedID(4)}</td><td>${base.tStat[0].toFixedID(3)}</td><td>${base.pVal[0]<0.0001?'<0.0001':base.pVal[0].toFixedID(4)} ${sig(base.pVal[0])}</td></tr>`;
   xLabels.forEach((lbl,i)=>{
-    coefRows += `<tr><td>X${i+1} — ${escapeHtml(lbl)}</td><td>${base.beta[i+1].toFixed(4)}</td><td>${base.seCoef[i+1].toFixed(4)}</td><td>${base.tStat[i+1].toFixed(3)}</td><td>${base.pVal[i+1]<0.0001?'<0.0001':base.pVal[i+1].toFixed(4)} ${sig(base.pVal[i+1])}</td></tr>`;
+    coefRows += `<tr><td>X${i+1} — ${escapeHtml(lbl)}</td><td>${base.beta[i+1].toFixedID(4)}</td><td>${base.seCoef[i+1].toFixedID(4)}</td><td>${base.tStat[i+1].toFixedID(3)}</td><td>${base.pVal[i+1]<0.0001?'<0.0001':base.pVal[i+1].toFixedID(4)} ${sig(base.pVal[i+1])}</td></tr>`;
   });
 
   const dwLabel = base.dw==null ? 'N/A'
@@ -5536,12 +5891,12 @@ function renderArimaxResult(){
   if(armaFit){
     const subDigit = n=>{ const map={'0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉'}; return String(n).split('').map(d=>map[d]).join(''); };
     const seriesSym = result.d>0 ? 'ηₜ (diferensiasi)' : 'ηₜ';
-    let etaTerms = [`${seriesSym} = ${armaFit.beta[0].toFixed(4)}`];
-    for(let i=1;i<=result.p;i++){ const b=armaFit.beta[i]; etaTerms.push(`${b>=0?'+':'−'} ${Math.abs(b).toFixed(4)}·ηₜ₋${subDigit(i)}`); }
-    for(let j=1;j<=result.q;j++){ const b=armaFit.beta[result.p+j]; etaTerms.push(`${b>=0?'+':'−'} ${Math.abs(b).toFixed(4)}·eₜ₋${subDigit(j)}`); }
+    let etaTerms = [`${seriesSym} = ${armaFit.beta[0].toFixedID(4)}`];
+    for(let i=1;i<=result.p;i++){ const b=armaFit.beta[i]; etaTerms.push(`${b>=0?'+':'−'} ${Math.abs(b).toFixedID(4)}·ηₜ₋${subDigit(i)}`); }
+    for(let j=1;j<=result.q;j++){ const b=armaFit.beta[result.p+j]; etaTerms.push(`${b>=0?'+':'−'} ${Math.abs(b).toFixedID(4)}·eₜ₋${subDigit(j)}`); }
     const etaEq = etaTerms.join(' ');
     const residCoefLabels = ['Konstanta', ...Array.from({length:result.p},(_,i)=>`AR(${i+1}) — φ${i+1}`), ...Array.from({length:result.q},(_,i)=>`MA(${i+1}) — θ${i+1}`)];
-    const residCoefRows = armaFit.beta.map((b,i)=> `<tr><td>${residCoefLabels[i]}</td><td>${b.toFixed(4)}</td><td>${armaFit.seCoef[i].toFixed(4)}</td><td>${armaFit.tStat[i].toFixed(3)}</td><td>${armaFit.pVal[i]<0.0001?'<0.0001':armaFit.pVal[i].toFixed(4)} ${sig(armaFit.pVal[i])}</td></tr>`).join('');
+    const residCoefRows = armaFit.beta.map((b,i)=> `<tr><td>${residCoefLabels[i]}</td><td>${b.toFixedID(4)}</td><td>${armaFit.seCoef[i].toFixedID(4)}</td><td>${armaFit.tStat[i].toFixedID(3)}</td><td>${armaFit.pVal[i]<0.0001?'<0.0001':armaFit.pVal[i].toFixedID(4)} ${sig(armaFit.pVal[i])}</td></tr>`).join('');
     const rmseBefore = Math.sqrt(base.residuals.reduce((s,r)=>s+r*r,0)/base.n);
 
     residBlock = `
@@ -5553,9 +5908,9 @@ function renderArimaxResult(){
         <tbody>${residCoefRows}</tbody>
       </table></div>
       <div class="ss-kpi-grid">
-        <div class="stat-box"><div class="stat-label">AIC Model Residual</div><div class="stat-value" style="font-size:15px;">${armaFit.aic.toFixed(2)}</div></div>
-        <div class="stat-box"><div class="stat-label">RMSE Residual — Sebelum</div><div class="stat-value" style="font-size:15px;">${rmseBefore.toFixed(3)}</div></div>
-        <div class="stat-box"><div class="stat-label">RMSE Residual — Setelah Dikoreksi</div><div class="stat-value" style="font-size:15px;">${armaFit.rmse.toFixed(3)}</div></div>
+        <div class="stat-box"><div class="stat-label">AIC Model Residual</div><div class="stat-value" style="font-size:15px;">${armaFit.aic.toFixedID(2)}</div></div>
+        <div class="stat-box"><div class="stat-label">RMSE Residual — Sebelum</div><div class="stat-value" style="font-size:15px;">${rmseBefore.toFixedID(3)}</div></div>
+        <div class="stat-box"><div class="stat-label">RMSE Residual — Setelah Dikoreksi</div><div class="stat-value" style="font-size:15px;">${armaFit.rmse.toFixedID(3)}</div></div>
       </div>
       <div class="inf-formula-caption">"Sebelum" dihitung dari seluruh residual OLS (N=${base.n}); "Setelah" dihitung dari residual model AR/MA di atas ambang lag burn-in (N=${armaFit.n_eff}) — kedua N sedikit berbeda karena kebutuhan lag, tapi penurunan RMSE tetap menunjukkan seberapa banyak pola residual yang berhasil dijelaskan.</div>
     `;
@@ -5578,7 +5933,7 @@ function renderArimaxResult(){
       let yForecast = constPart + rv;
       if(infYTransform==='ln') yForecast = Math.exp(yForecast);
       const nextKey = advancePeriodKey(lastYearKey, i+1);
-      return `<tr><td>${periodLabelFromKey(nextKey)}</td><td>${yForecast.toFixed(2)}</td></tr>`;
+      return `<tr><td>${periodLabelFromKey(nextKey)}</td><td>${yForecast.toFixedID(2)}</td></tr>`;
     }).join('');
     forecastBlock = `
       <div class="ss-section-title">Ramalan ${arimaHorizon} Periode ke Depan</div>
@@ -5594,9 +5949,9 @@ function renderArimaxResult(){
     <div class="ss-section-title" style="margin-top:0;">ARIMAX (Regresi dengan Galat ARIMA)</div>
     <div class="inf-model-desc"><b>ARIMAX</b> = regresi Y terhadap X (seperti Regresi Linear biasa), tapi galat/residualnya boleh punya struktur waktu (AR/MA/ARIMA), bukan diasumsikan acak murni. Cocok kalau X memang berpengaruh ke Y, tapi ada pola sisa dari waktu ke waktu yang belum tertangkap X saja (misal karena inersia/kelambanan sosial-ekonomi).</div>
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">R² (regresi X)</div><div class="stat-value" style="font-size:15px;">${(base.r2*100).toFixed(1)}%</div></div>
+      <div class="stat-box"><div class="stat-label">R² (regresi X)</div><div class="stat-value" style="font-size:15px;">${(base.r2*100).toFixedID(1)}%</div></div>
       <div class="stat-box"><div class="stat-label">N (tahun beririsan)</div><div class="stat-value" style="font-size:15px;">${base.n}</div></div>
-      <div class="stat-box"><div class="stat-label">Durbin-Watson (sebelum koreksi)</div><div class="stat-value" style="font-size:13.5px;color:${dwColor};">${base.dw!=null?base.dw.toFixed(3):'N/A'} · ${dwLabel}</div></div>
+      <div class="stat-box"><div class="stat-label">Durbin-Watson (sebelum koreksi)</div><div class="stat-value" style="font-size:13.5px;color:${dwColor};">${base.dw!=null?base.dw.toFixedID(3):'N/A'} · ${dwLabel}</div></div>
     </div>
     <div class="ss-section-title">Persamaan Regresi (bagian X)</div>
     <div class="inf-formula">${escapeHtml(eq)}</div>
@@ -5880,7 +6235,7 @@ function renderCompareWaterfallChart(keys, seriesAnalysisData){
       },
       scales:{
         x:{ grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } },
-        y:{ grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } }
+        y:{title:axTitle('Nilai (satuan sesuai indikator)'),  grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } }
       }
     }
   });
@@ -5906,7 +6261,7 @@ function renderCompareFunnelChart(keys, seriesAnalysisData){
         tooltip:{ callbacks:{ label:(c)=>`${fmtNum(c.parsed.x)}` } }
       },
       scales:{
-        x:{ grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
+        x:{title:axTitle('Nilai (satuan sesuai indikator)'),  grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
         y:{ grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } }
       }
     }
@@ -6010,10 +6365,10 @@ function renderCompareDivergingBar(keys, seriesAnalysisData){
       responsive:true, maintainAspectRatio:false,
       plugins:{
         legend:{ display:false },
-        tooltip:{ callbacks:{ label:(c)=>`${c.parsed.x>0?'+':''}${c.parsed.x.toFixed(1)}% (kumulatif)` } }
+        tooltip:{ callbacks:{ label:(c)=>`${c.parsed.x>0?'+':''}${c.parsed.x.toFixedID(1)}% (kumulatif)` } }
       },
       scales:{
-        x:{ grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11}, callback:(v)=>v+'%' } },
+        x:{title:axTitle('Perubahan kumulatif (%)'),  grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11}, callback:(v)=>nfmt(v)+'%' } },
         y:{ grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } }
       }
     }
@@ -6044,8 +6399,8 @@ function renderComparePareto(keys, seriesAnalysisData){
       plugins:{ legend:{ display:false } },
       scales:{
         x:{ grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } },
-        y:{ type:'linear', position:'left', grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
-        y1:{ type:'linear', position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11}, callback:(v)=>v+'%' } }
+        y:{title:axTitle('Nilai (satuan sesuai indikator)'),  type:'linear', position:'left', grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
+        y1:{title:axTitle('Kumulatif (%)'),  type:'linear', position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11}, callback:(v)=>nfmt(v)+'%' } }
       }
     }
   });
@@ -6108,7 +6463,7 @@ function renderCompareBump(keys){
       },
       scales:{
         x:{ grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
-        y:{
+        y:{title:axTitle('Peringkat (1 = tertinggi)'), 
           reverse:true,
           min:1,
           max: keys.length,
@@ -6407,7 +6762,7 @@ function renderCompareDotPlot(keys, seriesAnalysisData){
         tooltip:{ callbacks:{ label:(c)=> `${c.raw.y} · ${c.raw._period}: ${fmtNum(c.raw.x)}` } }
       },
       scales:{
-        x:{ grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
+        x:{title:axTitle('Nilai (satuan sesuai indikator)'),  grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
         y:{ type:'category', labels: keyLabels, offset:true, grid:{ display:true, color:THEME.light }, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } }
       }
     }
@@ -6470,7 +6825,7 @@ function renderCompareRangePlot(keys, seriesAnalysisData){
         }
       },
       scales:{
-        x:{ grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
+        x:{title:axTitle('Nilai (satuan sesuai indikator)'),  grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
         y:{ grid:{display:false}, ticks:{ color:THEME.main, font:{family:'Inter', size:11} } }
       }
     }
@@ -6973,14 +7328,14 @@ function renderCompareChart(){
         tooltip:{
           callbacks:{
             label: (c)=> compareChartType === 'stacked-bar-100'
-              ? `${c.dataset.label}: ${c.parsed.y===null? '-' : c.parsed.y.toFixed(1)}%`
-              : `${c.dataset.label} (${c.dataset.yAxisID === 'y1' ? 'Kanan' : 'Kiri'}): ${normalizeCompare ? c.parsed.y.toFixed(1) : fmtNum(c.parsed.y)}${normalizeCompare?' idx':''}`
+              ? `${c.dataset.label}: ${c.parsed.y===null? '-' : c.parsed.y.toFixedID(1)}%`
+              : `${c.dataset.label} (${c.dataset.yAxisID === 'y1' ? 'Kanan' : 'Kiri'}): ${normalizeCompare ? c.parsed.y.toFixedID(1) : fmtNum(c.parsed.y)}${normalizeCompare?' idx':''}`
           }
         }
       },
       scales:{
         x:{ stacked: isStackedType, grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
-        y:{
+        y:{title:axTitle(compareChartType==='stacked-bar-100' ? 'Proporsi (%)' : (normalizeCompare ? 'Indeks (periode awal = 100)' : 'Nilai (satuan sesuai indikator)')), 
           type: 'linear',
           display: true,
           position: 'left',
@@ -6989,10 +7344,10 @@ function renderCompareChart(){
           grid:{color:THEME.light},
           ticks:{
             color:THEME.mid, font:{family:'Inter', size:11},
-            callback: compareChartType==='stacked-bar-100' ? (v)=> v+'%' : undefined
+            callback: compareChartType==='stacked-bar-100' ? (v)=> nfmt(v)+'%' : undefined
           }
         },
-        y1:{
+        y1:{title:axTitle('Nilai (sumbu kanan)'), 
           type: 'linear',
           display: hasY1,
           position: 'right',
@@ -7072,7 +7427,7 @@ function generateAdvancedAIInsight(dataList){
     const arah = item.pct > 0 ? 'menunjukkan tren kenaikan' : (item.pct < 0 ? 'menunjukkan tren penurunan' : 'cenderung stagnan');
     const warnaArah = item.pct > 0 ? 'color:var(--rust);' : (item.pct < 0 ? 'color:var(--green);' : '');
 
-    html += `<li><b>${escapeHtml(item.name)}</b>: <span style="${warnaArah}font-weight:700;">${arah}</span> sebesar <b>${item.pct > 0 ? '+' : ''}${item.pct.toFixed(1)}%</b> secara kumulatif (Laju rata-rata tahunan/CAGR: <b>${item.cagr > 0 ? '+' : ''}${item.cagr.toFixed(2)}%/tahun</b>). Nilai tertinggi tercatat pada <b>${item.maxLabel}</b> (${fmtNum(item.max)} ${item.unit}), sementara titik terendahnya berada di <b>${item.minLabel}</b> (${fmtNum(item.min)} ${item.unit}).</li>`;
+    html += `<li><b>${escapeHtml(item.name)}</b>: <span style="${warnaArah}font-weight:700;">${arah}</span> sebesar <b>${item.pct > 0 ? '+' : ''}${item.pct.toFixedID(1)}%</b> secara kumulatif (Laju rata-rata tahunan/CAGR: <b>${item.cagr > 0 ? '+' : ''}${item.cagr.toFixedID(2)}%/tahun</b>). Nilai tertinggi tercatat pada <b>${item.maxLabel}</b> (${fmtNum(item.max)} ${item.unit}), sementara titik terendahnya berada di <b>${item.minLabel}</b> (${fmtNum(item.min)} ${item.unit}).</li>`;
   });
   html += `</ul>`;
 
@@ -7092,7 +7447,7 @@ function generateAdvancedAIInsight(dataList){
         let w = 'stabil';
         if(v.cv >= 25) w = 'cukup fluktuatif';
         else if(v.cv >= 10) w = 'sedikit berfluktuasi';
-        return `<li><b>${escapeHtml(v.name)}</b>: ${w} (CV ≈ ${v.cv.toFixed(1)}%)</li>`;
+        return `<li><b>${escapeHtml(v.name)}</b>: ${w} (CV ≈ ${v.cv.toFixedID(1)}%)</li>`;
       }).join('') + `</ul>`;
     }
   }
@@ -7116,7 +7471,7 @@ function generateAdvancedAIInsight(dataList){
         else if(p.r >= 0.3){ word = 'cenderung bergerak searah'; cls='trend-up'; }
         else if(p.r <= -0.7){ word = 'bergerak berlawanan arah dengan kuat (trade-off)'; cls='trend-down'; }
         else if(p.r <= -0.3){ word = 'cenderung bergerak berlawanan arah'; cls='trend-down'; }
-        html += `<li><b>${escapeHtml(p.a)}</b> vs <b>${escapeHtml(p.b)}</b>: <span class="${cls}" style="font-weight:700;">${word}</span> (r = ${p.r.toFixed(2)})</li>`;
+        html += `<li><b>${escapeHtml(p.a)}</b> vs <b>${escapeHtml(p.b)}</b>: <span class="${cls}" style="font-weight:700;">${word}</span> (r = ${p.r.toFixedID(2)})</li>`;
       });
       html += `</ul>`;
     }
@@ -7232,7 +7587,7 @@ function buildSeriesInsight(filtered, indikator){
     const pct = first.data !== 0 ? (diff/first.data*100) : 0;
     const spanYears = (last.tahun - first.tahun) || 1;
     const cagr = first.data > 0 ? (Math.pow(last.data/first.data, 1/spanYears) - 1) * 100 : 0;
-    html += ` Nilai ini <span class="${trendClass}">${trendWord}</span> periode <b>${periodLabel(first)}</b> (${fmtNum(first.data)}${satuan}), setara perubahan kumulatif <b>${pct>0?'+':''}${pct.toFixed(1)}%</b> (laju rata-rata tahunan/CAGR: <b>${cagr>0?'+':''}${cagr.toFixed(2)}%/tahun</b>).`;
+    html += ` Nilai ini <span class="${trendClass}">${trendWord}</span> periode <b>${periodLabel(first)}</b> (${fmtNum(first.data)}${satuan}), setara perubahan kumulatif <b>${pct>0?'+':''}${pct.toFixedID(1)}%</b> (laju rata-rata tahunan/CAGR: <b>${cagr>0?'+':''}${cagr.toFixedID(2)}%/tahun</b>).`;
   }
 
   html += ` Sepanjang rentang ini, nilai tertinggi tercatat pada <b>${periodLabel(maxObj)}</b> (${fmtNum(maxObj.data)}${satuan}) dan terendah pada <b>${periodLabel(minObj)}</b> (${fmtNum(minObj.data)}${satuan}), dengan rata-rata sekitar <b>${fmtNum(avg)}${satuan}</b>.`;
@@ -7241,7 +7596,7 @@ function buildSeriesInsight(filtered, indikator){
     let volWord = 'cenderung stabil dari tahun ke tahun';
     if(cv >= 25) volWord = 'cukup fluktuatif dari tahun ke tahun';
     else if(cv >= 10) volWord = 'sedikit berfluktuasi dari tahun ke tahun';
-    html += ` Secara sebaran, nilai indikator ini ${volWord} (koefisien variasi sekitar ${cv.toFixed(1)}%, simpangan baku ±${fmtNum(stdev)}${satuan}).`;
+    html += ` Secara sebaran, nilai indikator ini ${volWord} (koefisien variasi sekitar ${cv.toFixedID(1)}%, simpangan baku ±${fmtNum(stdev)}${satuan}).`;
   }
 
   if(filtered.length >= 3){
@@ -7267,11 +7622,50 @@ function buildSeriesInsight(filtered, indikator){
     if(filtered.length >= 2){
       const lastYoY = filtered[filtered.length-1].data - filtered[filtered.length-2].data;
       const lastYoYPct = filtered[filtered.length-2].data !== 0 ? (lastYoY/filtered[filtered.length-2].data*100) : 0;
-      html += ` Perubahan periode terakhir (<b>${periodLabel(filtered[filtered.length-2])}</b> → <b>${periodLabel(filtered[filtered.length-1])}</b>) sebesar <b>${lastYoY>0?'+':''}${fmtNum(lastYoY)}${satuan}</b> (${lastYoYPct>0?'+':''}${lastYoYPct.toFixed(1)}%).`;
+      html += ` Perubahan periode terakhir (<b>${periodLabel(filtered[filtered.length-2])}</b> → <b>${periodLabel(filtered[filtered.length-1])}</b>) sebesar <b>${lastYoY>0?'+':''}${fmtNum(lastYoY)}${satuan}</b> (${lastYoYPct>0?'+':''}${lastYoYPct.toFixedID(1)}%).`;
     }
   }
 
   return html;
+}
+
+/* Pola musiman (Triwulanan): tiap tahun = satu garis di sumbu TW I–IV; garis putus-putus = rata-rata semua tahun */
+function renderSeasonalDetail(ctx, filtered, accent, satuan){
+  const labels = ['TW I', 'TW II', 'TW III', 'TW IV'];
+  const yrs = [...new Set(filtered.map(e=>e.tahun))].sort((a,b)=>a-b);
+  const byYear = {};
+  filtered.forEach(e=>{
+    const q = triwulanToNum(e.triwulan);
+    if(q>=1 && q<=4) (byYear[e.tahun] = byYear[e.tahun] || [null,null,null,null])[q-1] = e.data;
+  });
+  const n = yrs.length;
+  const datasets = yrs.map((y,i)=>{
+    const latest = i === n-1;
+    const alpha = latest ? 1 : (n <= 2 ? 0.6 : 0.25 + 0.5*(i/(n-1)));
+    const col = hexToRgba(accent, alpha);
+    return { label:String(y), data:byYear[y], borderColor:col, backgroundColor:col, borderWidth: latest ? 3 : 1.6,
+             pointRadius: latest ? 4 : 2.5, pointHoverRadius:6, tension:0.25, spanGaps:false };
+  });
+  if(n >= 2){
+    const mean = labels.map((_,q)=>{ const v = yrs.map(y=>byYear[y][q]).filter(v=>v!==null && v!==undefined); return v.length ? v.reduce((a,b)=>a+b,0)/v.length : null; });
+    datasets.push({ label:'Rata-rata', data:mean, borderColor:THEME.main, backgroundColor:THEME.main, borderDash:[6,4], borderWidth:2, pointRadius:0, pointHoverRadius:4, tension:0.25, fill:false });
+  }
+  chartInstance = new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{
+        legend:{ position:'bottom', labels:{ font:{family:'Inter', size:10.5}, color:THEME.main, boxWidth:14 } },
+        tooltip:{ callbacks:{ label:(c)=> `${c.dataset.label}: ${c.parsed.y===null ? '—' : fmtNum(c.parsed.y)}` } }
+      },
+      scales:{
+        x:{ offset:true, grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
+        y:{ title:axTitle(satuan || 'Nilai'), grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } }
+      }
+    }
+  });
 }
 
 function refreshDetail(entries, fromYear, toYear){
@@ -7284,7 +7678,7 @@ function refreshDetail(entries, fromYear, toYear){
   let changeStr = '—';
   if(latest && prev && prev.data !== 0){
     const pct = ((latest.data-prev.data)/prev.data)*100;
-    changeStr = (pct>0?'▲ +':'▼ ') + pct.toFixed(1) + '%';
+    changeStr = (pct>0?'▲ +':'▼ ') + pct.toFixedID(1) + '%';
   }
   const max = filtered.length ? Math.max(...values) : NaN;
   const min = filtered.length ? Math.min(...values) : NaN;
@@ -7315,7 +7709,13 @@ function refreshDetail(entries, fromYear, toYear){
   const ctx = canvasEl.getContext('2d');
   if(chartInstance) chartInstance.destroy();
 
+  if(detailSeasonal && currentSeriesKey && currentSeriesKey.periode === 'Triwulanan'){
+    renderSeasonalDetail(ctx, filtered, currentDetailColor || THEME.accent, SATUAN[currentSeriesKey.sub] || '');
+    return;
+  }
+
   const accent = currentDetailColor || THEME.accent;
+  const unitT = (currentSeriesKey && SATUAN[currentSeriesKey.sub]) ? axTitle(SATUAN[currentSeriesKey.sub]) : {display:false};
   const isBar = currentDetailChartType === 'bar' || currentDetailChartType === 'rounded-bar';
   const isLollipop = currentDetailChartType === 'lollipop';
   const isSpline = currentDetailChartType === 'spline';
@@ -7571,8 +7971,8 @@ function refreshDetail(entries, fromYear, toYear){
       plugins:{ legend:{display:false} },
       scales:{
         x:{ grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } },
-        y:{ type:'linear', position:'left', grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
-        y1:{ type:'linear', position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11}, callback:(v)=>v+'%' } }
+        y:{ title:unitT, type:'linear', position:'left', grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } },
+        y1:{ title:axTitle('Kumulatif (%)'), type:'linear', position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11}, callback:(v)=>nfmt(v)+'%' } }
       }
     } : {
       responsive:true,
@@ -7581,10 +7981,11 @@ function refreshDetail(entries, fromYear, toYear){
       plugins:{ legend:{display:false} },
       scales:{
         x:{ 
+          title: isFunnel ? unitT : {display:false},
           grid:{display: isFunnel ? true : false, color:THEME.light}, 
           ticks:{ color:THEME.mid, font:{family:'Inter', size:11} } 
         },
-        y:{ grid:{color: isFunnel ? '#fff' : THEME.light, display: (!isFunnel || true) && !isStream}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11}, display: !isStream } }
+        y:{ title: (isFunnel || isStream) ? {display:false} : unitT, grid:{color: isFunnel ? '#fff' : THEME.light, display: (!isFunnel || true) && !isStream}, ticks:{ color:THEME.mid, font:{family:'Inter', size:11}, display: !isStream } }
       }
     }
   });
@@ -8127,7 +8528,7 @@ function renderSSComponentChart(perKategori, isTraditional){
       responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:11}, color:THEME.main } } },
       scales:{
-        x:{ stacked:true, grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } },
+        x:{title:axTitle('Komponen perubahan PDRB (satuan PDRB)'),  stacked:true, grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } },
         y:{ stacked:true, grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } }
       }
     }
@@ -8494,10 +8895,10 @@ function renderLQTable(perKategori){
   const rows = perKategori.map(r=>`<tr>
     <td>${escapeHtml(r.kategori)}</td>
     <td><span class="ss-badge-quad" style="background:${LQ_KLAS[r.klas].color}">${LQ_KLAS[r.klas].label}</span></td>
-    <td class="${r.SLQ>=1?'pos':'neg'}">${r.SLQ.toFixed(2)}</td>
-    <td class="${r.DLQ>=1?'pos':'neg'}">${r.DLQ.toFixed(2)}</td>
-    <td class="${r.SSLQ>=0?'pos':'neg'}">${r.SSLQ.toFixed(2)}</td>
-    <td class="${r.DSLQ>=0?'pos':'neg'}">${r.DSLQ.toFixed(2)}</td>
+    <td class="${r.SLQ>=1?'pos':'neg'}">${r.SLQ.toFixedID(2)}</td>
+    <td class="${r.DLQ>=1?'pos':'neg'}">${r.DLQ.toFixedID(2)}</td>
+    <td class="${r.SSLQ>=0?'pos':'neg'}">${r.SSLQ.toFixedID(2)}</td>
+    <td class="${r.DSLQ>=0?'pos':'neg'}">${r.DSLQ.toFixedID(2)}</td>
   </tr>`).join('');
   table.innerHTML = `<thead>${head}</thead><tbody>${rows}</tbody>`;
 }
@@ -8521,7 +8922,7 @@ function renderLQBarChart(perKategori, isRaw){
       responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:11}, color:THEME.main } } },
       scales:{
-        x:{ grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } },
+        x:{title:axTitle(isRaw ? 'Nilai LQ (1 = setara Bali)' : 'Nilai LQ simetris (0 = setara Bali)'),  grid:{color:THEME.light}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } },
         y:{ grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } }
       }
     }
@@ -8576,7 +8977,7 @@ function renderLQQuadrantChart(perKategori, isRaw){
         legend:{ display:false },
         tooltip:{
           callbacks:{
-            label:(item)=> `${item.raw.label}: ${isRaw?'SLQ':'SSLQ'}=${item.raw.x.toFixed(2)}, ${isRaw?'DLQ':'DSLQ'}=${item.raw.y.toFixed(2)}`
+            label:(item)=> `${item.raw.label}: ${isRaw?'SLQ':'SSLQ'}=${item.raw.x.toFixedID(2)}, ${isRaw?'DLQ':'DSLQ'}=${item.raw.y.toFixedID(2)}`
           }
         }
       },
@@ -8781,8 +9182,8 @@ function renderConvBali(){
 
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Tahun Terbaru</div><div class="stat-value" style="font-size:15px;">${last.tahun}</div></div>
-      <div class="stat-box"><div class="stat-label">Relative Level</div><div class="stat-value" style="font-size:15px;">${(last.relLevel*100).toFixed(2)}%</div></div>
-      <div class="stat-box"><div class="stat-label">Growth Differential</div><div class="stat-value" style="font-size:15px;color:${last.growthDiff>=0?'var(--green)':'var(--rust)'};">${last.growthDiff>=0?'+':''}${last.growthDiff.toFixed(2)} pp</div></div>
+      <div class="stat-box"><div class="stat-label">Relative Level</div><div class="stat-value" style="font-size:15px;">${(last.relLevel*100).toFixedID(2)}%</div></div>
+      <div class="stat-box"><div class="stat-label">Growth Differential</div><div class="stat-value" style="font-size:15px;color:${last.growthDiff>=0?'var(--green)':'var(--rust)'};">${last.growthDiff>=0?'+':''}${last.growthDiff.toFixedID(2)} pp</div></div>
       <div class="stat-box"><div class="stat-label">Status Terbaru</div><div class="stat-value" style="font-size:14px;color:${getConvStatusColor()[last.status]||'var(--brown)'};">${escapeHtml(last.status)}</div></div>
       <div class="stat-box"><div class="stat-label">Tahun Converging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().CONVERGING};">${cCounts.CONVERGING}</div></div>
       <div class="stat-box"><div class="stat-label">Tahun Diverging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().DIVERGING};">${cCounts.DIVERGING}</div></div>
@@ -8825,8 +9226,8 @@ function renderConvBali(){
       { label:'Growth Bali', data:rows.map(r=> isNaN(r.growthB)?null:r.growthB*100), borderColor:THEME.c4, backgroundColor:THEME.c4, tension:0.35, pointRadius:0 }
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main} }, tooltip:{ callbacks:{ label:(it)=> `${it.dataset.label}: ${it.parsed.y.toFixed(2)}%` } } },
-      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}, callback:(v)=>v+'%'}} }
+      plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main} }, tooltip:{ callbacks:{ label:(it)=> `${it.dataset.label}: ${it.parsed.y.toFixedID(2)}%` } } },
+      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle('Pertumbuhan (%)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}, callback:(v)=>nfmt(v)+'%'}} }
     }
   });
 
@@ -8838,7 +9239,7 @@ function renderConvBali(){
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ display:false } },
-      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} }
+      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle('Selisih pertumbuhan (pp)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} }
     }
   });
 
@@ -8850,7 +9251,7 @@ function renderConvBali(){
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ display:false } },
-      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} }
+      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle('Selisih log absolut'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} }
     }
   });
 
@@ -8858,11 +9259,11 @@ function renderConvBali(){
   const bodyRows = rows.map(r=>`<tr>
     <td>${r.tahun}</td>
     <td>${convStatusBadge(r.status)}</td>
-    <td>${(r.relLevel*100).toFixed(2)}%</td>
-    <td>${isNaN(r.absLogGap)?'-':r.absLogGap.toFixed(4)}</td>
-    <td class="${r.growthK>=0?'pos':'neg'}">${isNaN(r.growthK)?'-':(r.growthK*100).toFixed(2)+'%'}</td>
-    <td class="${r.growthB>=0?'pos':'neg'}">${isNaN(r.growthB)?'-':(r.growthB*100).toFixed(2)+'%'}</td>
-    <td class="${r.growthDiff>=0?'pos':'neg'}">${isNaN(r.growthDiff)?'-':(r.growthDiff>=0?'+':'')+r.growthDiff.toFixed(2)}</td>
+    <td>${(r.relLevel*100).toFixedID(2)}%</td>
+    <td>${isNaN(r.absLogGap)?'-':r.absLogGap.toFixedID(4)}</td>
+    <td class="${r.growthK>=0?'pos':'neg'}">${isNaN(r.growthK)?'-':(r.growthK*100).toFixedID(2)+'%'}</td>
+    <td class="${r.growthB>=0?'pos':'neg'}">${isNaN(r.growthB)?'-':(r.growthB*100).toFixedID(2)+'%'}</td>
+    <td class="${r.growthDiff>=0?'pos':'neg'}">${isNaN(r.growthDiff)?'-':(r.growthDiff>=0?'+':'')+r.growthDiff.toFixedID(2)}</td>
   </tr>`).join('');
   document.getElementById('convBaliTable').innerHTML = `<thead>${head}</thead><tbody>${bodyRows}</tbody>`;
 
@@ -9064,10 +9465,10 @@ function renderConvSektorDetail(){
   el.innerHTML = `
     <div class="ss-controls">${convYearSelectHtml('convSektorDetailYear', years, convSektorYear)}</div>
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">Rata-rata Gap</div><div class="stat-value" style="font-size:15px;">${avgGap.toFixed(2)} pp</div></div>
+      <div class="stat-box"><div class="stat-label">Rata-rata Gap</div><div class="stat-value" style="font-size:15px;">${avgGap.toFixedID(2)} pp</div></div>
       <div class="stat-box"><div class="stat-label">Sektor Converging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().CONVERGING};">${cConv}</div></div>
       <div class="stat-box"><div class="stat-label">Sektor Diverging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().DIVERGING};">${cDiv}</div></div>
-      <div class="stat-box"><div class="stat-label">Gap Terbesar</div><div class="stat-value" style="font-size:11px;line-height:1.4;">${rows[0]?escapeHtml(rows[0].sektor)+' ('+rows[0].absGap.toFixed(2)+' pp)':'-'}</div></div>
+      <div class="stat-box"><div class="stat-label">Gap Terbesar</div><div class="stat-value" style="font-size:11px;line-height:1.4;">${rows[0]?escapeHtml(rows[0].sektor)+' ('+rows[0].absGap.toFixedID(2)+' pp)':'-'}</div></div>
     </div>
     <div class="ss-section-title">Absolute Growth Gap per Sektor — ${convSektorYear}</div>
     <div class="chart-box-wrap"><button class="dl-btn" id="dlConvSektorDetailChart">⬇ JPG</button><div class="chart-box" style="height:340px;"><canvas id="convSektorDetailChart"></canvas></div></div>
@@ -9083,7 +9484,7 @@ function renderConvSektorDetail(){
     data:{ labels: rows.map(r=>r.sektor), datasets:[{ label:'Absolute Growth Gap (pp)', data: rows.map(r=>r.absGap), backgroundColor: rows.map(r=> getConvStatusColor()[r.status] || THEME.mid) }] },
     options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
       plugins:{ legend:{ display:false } },
-      scales:{ x:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10}}}, y:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:9.5}}} }
+      scales:{ x:{title:axTitle('Selisih pertumbuhan absolut (pp)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10}}}, y:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:9.5}}} }
     }
   });
 
@@ -9091,10 +9492,10 @@ function renderConvSektorDetail(){
   const bodyRows = rows.map(r=>`<tr>
     <td style="text-align:left;">${escapeHtml(r.sektor)}</td>
     <td>${convStatusBadge(r.status)}</td>
-    <td class="${r.growthK>=0?'pos':'neg'}">${isNaN(r.growthK)?'-':(r.growthK*100).toFixed(2)+'%'}</td>
-    <td class="${r.growthB>=0?'pos':'neg'}">${isNaN(r.growthB)?'-':(r.growthB*100).toFixed(2)+'%'}</td>
-    <td class="${r.growthDiff>=0?'pos':'neg'}">${isNaN(r.growthDiff)?'-':(r.growthDiff>=0?'+':'')+r.growthDiff.toFixed(2)}</td>
-    <td>${r.absGap.toFixed(2)}</td>
+    <td class="${r.growthK>=0?'pos':'neg'}">${isNaN(r.growthK)?'-':(r.growthK*100).toFixedID(2)+'%'}</td>
+    <td class="${r.growthB>=0?'pos':'neg'}">${isNaN(r.growthB)?'-':(r.growthB*100).toFixedID(2)+'%'}</td>
+    <td class="${r.growthDiff>=0?'pos':'neg'}">${isNaN(r.growthDiff)?'-':(r.growthDiff>=0?'+':'')+r.growthDiff.toFixedID(2)}</td>
+    <td>${r.absGap.toFixedID(2)}</td>
   </tr>`).join('');
   document.getElementById('convSektorDetailTable').innerHTML = `<thead>${head}</thead><tbody>${bodyRows}</tbody>`;
 
@@ -9141,7 +9542,7 @@ function renderConvSektorTrajectory(){
     ]},
     options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
       plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main} } },
-      scales:{ x:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10}}}, y:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:9.5}}} }
+      scales:{ x:{title:axTitle('Gap pertumbuhan (pp)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10}}}, y:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:9.5}}} }
     }
   });
 
@@ -9149,11 +9550,11 @@ function renderConvSektorTrajectory(){
   const bodyRows = rows.map(r=>`<tr>
     <td style="text-align:left;">${escapeHtml(r.sektor)}</td>
     <td>${convStatusBadge(r.trajectory)}</td>
-    <td>${r.avgGap.toFixed(2)}</td>
-    <td>${r.gapAwal.toFixed(2)}</td>
-    <td>${r.gapAkhir.toFixed(2)}</td>
-    <td class="${r.gapChange<=0?'pos':'neg'}">${r.gapChange>=0?'+':''}${r.gapChange.toFixed(2)}</td>
-    <td class="${r.convRate>=0?'pos':'neg'}">${(r.convRate*100).toFixed(2)}%</td>
+    <td>${r.avgGap.toFixedID(2)}</td>
+    <td>${r.gapAwal.toFixedID(2)}</td>
+    <td>${r.gapAkhir.toFixedID(2)}</td>
+    <td class="${r.gapChange<=0?'pos':'neg'}">${r.gapChange>=0?'+':''}${r.gapChange.toFixedID(2)}</td>
+    <td class="${r.convRate>=0?'pos':'neg'}">${(r.convRate*100).toFixedID(2)}%</td>
     <td>${isNaN(r.yearsConv)?'-':r.yearsConv}</td>
     <td>${isNaN(r.yearsDiv)?'-':r.yearsDiv}</td>
   </tr>`).join('');
@@ -9191,7 +9592,7 @@ function renderConvSektorHeatmap(){
     const cells = years.map(y=>{
       const v = matrix[s][y];
       const bg = convMatrixColor(v, maxAbs);
-      return `<td style="background:${bg};text-align:center;color:var(--brown-deep);font-weight:600;">${isNaN(v)?'-':v.toFixed(2)}</td>`;
+      return `<td style="background:${bg};text-align:center;color:var(--brown-deep);font-weight:600;">${isNaN(v)?'-':v.toFixedID(2)}</td>`;
     }).join('');
     return `<tr><td style="text-align:left;">${escapeHtml(s)}</td>${cells}</tr>`;
   }).join('');
@@ -9238,10 +9639,10 @@ function renderConvSektorSnapshot(){
   const head = `<tr><th>Sektor</th><th>Growth K.</th><th>Growth Bali</th><th>Growth Diff. (pp)</th><th>Abs. Gap (pp)</th><th>Status</th></tr>`;
   const bodyRows = rows.map(r=>`<tr>
     <td style="text-align:left;">${escapeHtml(r.sektor)}</td>
-    <td class="${r.growthK>=0?'pos':'neg'}">${isNaN(r.growthK)?'-':(r.growthK*100).toFixed(2)+'%'}</td>
-    <td class="${r.growthB>=0?'pos':'neg'}">${isNaN(r.growthB)?'-':(r.growthB*100).toFixed(2)+'%'}</td>
-    <td class="${r.growthDiff>=0?'pos':'neg'}">${isNaN(r.growthDiff)?'-':(r.growthDiff>=0?'+':'')+r.growthDiff.toFixed(2)}</td>
-    <td>${r.absGap.toFixed(2)}</td>
+    <td class="${r.growthK>=0?'pos':'neg'}">${isNaN(r.growthK)?'-':(r.growthK*100).toFixedID(2)+'%'}</td>
+    <td class="${r.growthB>=0?'pos':'neg'}">${isNaN(r.growthB)?'-':(r.growthB*100).toFixedID(2)+'%'}</td>
+    <td class="${r.growthDiff>=0?'pos':'neg'}">${isNaN(r.growthDiff)?'-':(r.growthDiff>=0?'+':'')+r.growthDiff.toFixedID(2)}</td>
+    <td>${r.absGap.toFixedID(2)}</td>
     <td>${convStatusBadge(r.snap)}</td>
   </tr>`).join('');
   document.getElementById('convSektorSnapTable').innerHTML = `<thead>${head}</thead><tbody>${bodyRows}</tbody>`;
@@ -9291,7 +9692,7 @@ function renderConvSektorSync(){
     data:{ labels: rows.map(r=>r.sektor), datasets:[{ label:'Synchronization Index', data: rows.map(r=>r.syncIndex), backgroundColor: rows.map(r=> getConvStatusColor()[r.status] || THEME.mid) }] },
     options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
       plugins:{ legend:{ display:false } },
-      scales:{ x:{min:0, max:1, grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10}}}, y:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:9.5}}} }
+      scales:{ x:{title:axTitle('Indeks sinkronisasi (0–1)'), min:0, max:1, grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10}}}, y:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:9.5}}} }
     }
   });
 
@@ -9299,9 +9700,9 @@ function renderConvSektorSync(){
   const bodyRows = rows.map(r=>`<tr>
     <td style="text-align:left;">${escapeHtml(r.sektor)}</td>
     <td>${convStatusBadge(r.status)}</td>
-    <td>${isNaN(r.absGap)?'-':r.absGap.toFixed(2)}</td>
-    <td>${isNaN(r.maxGap)?'-':r.maxGap.toFixed(2)}</td>
-    <td>${isNaN(r.syncIndex)?'-':r.syncIndex.toFixed(3)}</td>
+    <td>${isNaN(r.absGap)?'-':r.absGap.toFixedID(2)}</td>
+    <td>${isNaN(r.maxGap)?'-':r.maxGap.toFixedID(2)}</td>
+    <td>${isNaN(r.syncIndex)?'-':r.syncIndex.toFixedID(3)}</td>
   </tr>`).join('');
   document.getElementById('convSektorSyncTable').innerHTML = `<thead>${head}</thead><tbody>${bodyRows}</tbody>`;
 
@@ -9328,7 +9729,7 @@ function renderConvSektorYearly(){
     <div class="ss-method-note"><div><b class="mn-label">💡 Cara membaca</b> Ringkasan seluruh 17 sektor tiap tahun: rata-rata/median gap, serta berapa sektor yang sedang converging vs diverging tahun itu.</div></div>
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Tahun Terbaru</div><div class="stat-value" style="font-size:15px;">${last.tahun}</div></div>
-      <div class="stat-box"><div class="stat-label">Mean Gap Terbaru</div><div class="stat-value" style="font-size:15px;">${last.meanGap.toFixed(2)} pp</div></div>
+      <div class="stat-box"><div class="stat-label">Mean Gap Terbaru</div><div class="stat-value" style="font-size:15px;">${last.meanGap.toFixedID(2)} pp</div></div>
       <div class="stat-box"><div class="stat-label">Sektor Converging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().CONVERGING};">${isNaN(last.sectorsConv)?'-':last.sectorsConv}</div></div>
       <div class="stat-box"><div class="stat-label">Sektor Diverging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().DIVERGING};">${isNaN(last.sectorsDiv)?'-':last.sectorsDiv}</div></div>
     </div>
@@ -9348,7 +9749,7 @@ function renderConvSektorYearly(){
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main} } },
-      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} }
+      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle('Gap pertumbuhan (pp)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} }
     }
   });
 
@@ -9356,10 +9757,10 @@ function renderConvSektorYearly(){
   const bodyRows = rows.map(r=>`<tr>
     <td>${r.tahun}</td>
     <td>${convStatusBadge(r.status)}</td>
-    <td>${r.meanGap.toFixed(2)}</td>
-    <td>${r.medianGap.toFixed(2)}</td>
-    <td>${isNaN(r.maxGap)?'-':r.maxGap.toFixed(2)}</td>
-    <td>${isNaN(r.minGap)?'-':r.minGap.toFixed(2)}</td>
+    <td>${r.meanGap.toFixedID(2)}</td>
+    <td>${r.medianGap.toFixedID(2)}</td>
+    <td>${isNaN(r.maxGap)?'-':r.maxGap.toFixedID(2)}</td>
+    <td>${isNaN(r.minGap)?'-':r.minGap.toFixedID(2)}</td>
     <td class="pos">${isNaN(r.sectorsConv)?'-':r.sectorsConv}</td>
     <td class="neg">${isNaN(r.sectorsDiv)?'-':r.sectorsDiv}</td>
   </tr>`).join('');
@@ -9427,9 +9828,9 @@ function renderConvMatrix(){
 
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Tahun Matriks</div><div class="stat-value" style="font-size:15px;">${convMatrixYear}</div></div>
-      <div class="stat-box"><div class="stat-label">Rata-rata Gap</div><div class="stat-value" style="font-size:15px;">${avg.toFixed(2)} pp</div></div>
-      <div class="stat-box"><div class="stat-label">Pasangan Paling Mirip</div><div class="stat-value" style="font-size:11.5px;line-height:1.4;">${minPair?escapeHtml(minPair.a)+' & '+escapeHtml(minPair.b)+' ('+minPair.v.toFixed(2)+' pp)':'-'}</div></div>
-      <div class="stat-box"><div class="stat-label">Pasangan Paling Beda</div><div class="stat-value" style="font-size:11.5px;line-height:1.4;">${maxPair?escapeHtml(maxPair.a)+' & '+escapeHtml(maxPair.b)+' ('+maxPair.v.toFixed(2)+' pp)':'-'}</div></div>
+      <div class="stat-box"><div class="stat-label">Rata-rata Gap</div><div class="stat-value" style="font-size:15px;">${avg.toFixedID(2)} pp</div></div>
+      <div class="stat-box"><div class="stat-label">Pasangan Paling Mirip</div><div class="stat-value" style="font-size:11.5px;line-height:1.4;">${minPair?escapeHtml(minPair.a)+' & '+escapeHtml(minPair.b)+' ('+minPair.v.toFixedID(2)+' pp)':'-'}</div></div>
+      <div class="stat-box"><div class="stat-label">Pasangan Paling Beda</div><div class="stat-value" style="font-size:11.5px;line-height:1.4;">${maxPair?escapeHtml(maxPair.a)+' & '+escapeHtml(maxPair.b)+' ('+maxPair.v.toFixedID(2)+' pp)':'-'}</div></div>
     </div>
 
     <div class="table-head-row">
@@ -9454,7 +9855,7 @@ function renderConvMatrix(){
       if(rowS===colS) return `<td style="background:#F3F4F6;color:#BBB;text-align:center;">—</td>`;
       const v = matrix[rowS][colS];
       const bg = convMatrixColor(v, maxAbs);
-      return `<td style="background:${bg};text-align:center;color:var(--brown-deep);font-weight:600;">${v===undefined||v===null||isNaN(v)?'-':v.toFixed(2)}</td>`;
+      return `<td style="background:${bg};text-align:center;color:var(--brown-deep);font-weight:600;">${v===undefined||v===null||isNaN(v)?'-':v.toFixedID(2)}</td>`;
     }).join('');
     return `<tr><td style="text-align:left;">${escapeHtml(rowS)}</td>${cells}</tr>`;
   }).join('');
@@ -9538,10 +9939,10 @@ function renderConvMr(){
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ display:false }, tooltip:{ callbacks:{
-        label:(it)=> `Growth Gap: ${it.parsed.y.toFixed(2)} pp`,
+        label:(it)=> `Growth Gap: ${it.parsed.y.toFixedID(2)} pp`,
         afterLabel:(it)=> `Status: ${rows[it.dataIndex].status}`
       } } },
-      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}, callback:(v)=>v+' pp'}} }
+      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle('Selisih pertumbuhan (pp)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}, callback:(v)=>nfmt(v)+' pp'}} }
     }
   });
 
@@ -9549,10 +9950,10 @@ function renderConvMr(){
   const bodyRows = rows.map(r=>`<tr>
     <td>${r.tahun}</td>
     <td>${convStatusBadge(r.status)}</td>
-    <td class="${r.growth>=0?'pos':'neg'}">${isNaN(r.growth)?'-':(r.growth*100).toFixed(2)+'%'}</td>
-    <td>${isNaN(r.avgGrowth)?'-':(r.avgGrowth*100).toFixed(2)+'%'}</td>
-    <td class="${r.growthGap>=0?'pos':'neg'}">${isNaN(r.growthGap)?'-':(r.growthGap*100>=0?'+':'')+(r.growthGap*100).toFixed(2)+' pp'}</td>
-    <td>${isNaN(r.mrRatio)?'-':r.mrRatio.toFixed(2)}</td>
+    <td class="${r.growth>=0?'pos':'neg'}">${isNaN(r.growth)?'-':(r.growth*100).toFixedID(2)+'%'}</td>
+    <td>${isNaN(r.avgGrowth)?'-':(r.avgGrowth*100).toFixedID(2)+'%'}</td>
+    <td class="${r.growthGap>=0?'pos':'neg'}">${isNaN(r.growthGap)?'-':(r.growthGap*100>=0?'+':'')+(r.growthGap*100).toFixedID(2)+' pp'}</td>
+    <td>${isNaN(r.mrRatio)?'-':r.mrRatio.toFixedID(2)}</td>
     <td style="text-align:left;white-space:normal;color:var(--brown-mid);">${escapeHtml(r.interp)}</td>
   </tr>`).join('');
   document.getElementById('convMrTable').innerHTML = `<thead>${head}</thead><tbody>${bodyRows}</tbody>`;
@@ -9756,22 +10157,12 @@ function renderDiversityView(){
         <div class="ctrl-item"><label>Tahun Akhir</label><select id="divTo"></select></div>
         ${divHasBaliData() ? `<div class="ctrl-item"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="divCompareBali"${divCompareBali?' checked':''}> Bandingkan dengan Bali</label></div>` : ''}
         <div class="ctrl-item" style="font-size:11.5px;color:var(--brown-soft);" id="divIntervalInfo"></div>
-        <button class="ss-mapping-toggle" id="divMapToggle">${mappingOk ? '⚙ Info Pemetaan Kolom' : '⚠ Kolom belum lengkap terdeteksi'}</button>
-        <button class="ss-mapping-toggle" id="divUrlChangeBtn">🔗 Ganti Sumber Data</button>
       </div>
-
-      <div class="ss-mapping-panel${divMappingPanelOpen ? ' open' : ''}" id="divMapPanel"></div>
 
       <div id="divBody"></div>
     </section>`;
 
   updateDivMethodNote();
-  renderDivMappingInfo();
-  document.getElementById('divMapToggle').onclick = ()=>{
-    divMappingPanelOpen = !divMappingPanelOpen;
-    document.getElementById('divMapPanel').classList.toggle('open', divMappingPanelOpen);
-  };
-  document.getElementById('divUrlChangeBtn').onclick = ()=>{ DIV_CSV_URL=''; divLoadState='idle'; renderDiversityView(); };
   if(divHasBaliData()){
     document.getElementById('divCompareBali').onchange = (e)=>{ divCompareBali = e.target.checked; renderDiversityView(); };
   }
@@ -9829,34 +10220,7 @@ function updateDivMethodNote(){
       <li>Tress = [(Σ(shareᵢ × rankᵢ) − (n+1)/2) / (n − (n+1)/2)] × 100</li>
     </ul>
     <div class="formula-caption">rank 1 = share terkecil, rank n = share terbesar, n = ${DIV_N_SEKTOR}.</div>
-    <div class="mn-row"><b class="mn-label">💡 Cara membaca angka</b><ul class="mn-points"><li><b>Entropy</b> makin tinggi (mendekati ln(${DIV_N_SEKTOR})≈${Math.log(DIV_N_SEKTOR).toFixed(2)}) = ekonomi makin merata/terdiversifikasi antar sektor; mendekati 0 = sangat bertumpu pada segelintir sektor.</li><li><b>HHI</b> arahnya kebalikan: mendekati 1/${DIV_N_SEKTOR}≈${(1/DIV_N_SEKTOR).toFixed(2)} = merata; mendekati 1 = sangat terkonsentrasi (ambang umum: &lt;0,15 terdiversifikasi baik, 0,15–0,25 konsentrasi sedang, &gt;0,25 sangat terkonsentrasi).</li><li><b>REI</b> mendekati 0 = struktur ekonomi stabil dari tahun sebelumnya; makin tinggi = terjadi pergeseran porsi sektor yang signifikan dalam setahun.</li><li><b>Tress</b> 0 = seluruh sektor porsinya sama besar; mendekati 100 = ekonomi sangat bertumpu pada satu sektor dominan.</li></ul></div>`;
-}
-
-function renderDivMappingInfo(){
-  const panel = document.getElementById('divMapPanel');
-  if(!panel) return;
-  const kSektor = Object.keys(divMap.kShare||{});
-  const rows = [
-    ['Tahun', divMap.tahun],
-    ['Total Klungkung', divMap.totalK],
-    ['K Entropy', divMap.kEntropy],
-    ['K Shannon-Weaver', divMap.kShannon],
-    ['K HHI', divMap.kHhi],
-    ['K REI', divMap.kRei],
-    ['K Tress Index', divMap.kTress],
-    ['K Share (jumlah sektor terdeteksi)', kSektor.length + ' sektor: ' + kSektor.join(', ')]
-  ];
-  if(divHasBaliData()){
-    rows.push(['Total Bali', divMap.totalB]);
-    rows.push(['B Entropy / HHI / Tress / REI', [divMap.bEntropy,divMap.bHhi,divMap.bTress,divMap.bRei].filter(Boolean).join(' · ')]);
-  }
-  panel.innerHTML = `
-    <div style="font-size:12px;color:var(--brown-mid);line-height:1.7;">
-      Kolom terdeteksi otomatis dari header sheet:
-      <table style="width:100%;margin-top:6px;font-size:11.5px;">
-        ${rows.map(([label,val])=>`<tr><td style="padding:2px 8px 2px 0;font-weight:600;color:var(--brown);white-space:nowrap;">${escapeHtml(label)}</td><td style="padding:2px 0;color:var(--brown-mid);">${escapeHtml((val||'— tidak ditemukan').toString())}</td></tr>`).join('')}
-      </table>
-    </div>`;
+    <div class="mn-row"><b class="mn-label">💡 Cara membaca angka</b><ul class="mn-points"><li><b>Entropy</b> makin tinggi (mendekati ln(${DIV_N_SEKTOR})≈${Math.log(DIV_N_SEKTOR).toFixedID(2)}) = ekonomi makin merata/terdiversifikasi antar sektor; mendekati 0 = sangat bertumpu pada segelintir sektor.</li><li><b>HHI</b> arahnya kebalikan: mendekati 1/${DIV_N_SEKTOR}≈${(1/DIV_N_SEKTOR).toFixedID(2)} = merata; mendekati 1 = sangat terkonsentrasi (ambang umum: &lt;0,15 terdiversifikasi baik, 0,15–0,25 konsentrasi sedang, &gt;0,25 sangat terkonsentrasi).</li><li><b>REI</b> mendekati 0 = struktur ekonomi stabil dari tahun sebelumnya; makin tinggi = terjadi pergeseran porsi sektor yang signifikan dalam setahun.</li><li><b>Tress</b> 0 = seluruh sektor porsinya sama besar; mendekati 100 = ekonomi sangat bertumpu pada satu sektor dominan.</li></ul></div>`;
 }
 
 function renderDivBody(series){
@@ -9869,10 +10233,10 @@ function renderDivBody(series){
   body.innerHTML = `
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
-      <div class="stat-box"><div class="stat-label">Entropy</div><div class="stat-value" style="font-size:15px;">${latest.kEntropy.toFixed(3)}${showBali && latest.bEntropy!==undefined?` <span style="font-size:11px;color:var(--brown-soft);">(Bali ${latest.bEntropy.toFixed(3)})</span>`:''}</div></div>
-      <div class="stat-box"><div class="stat-label">HHI</div><div class="stat-value" style="font-size:15px;color:${hhiBadge.color};">${latest.kHhi.toFixed(3)} · ${hhiBadge.label}</div></div>
-      <div class="stat-box"><div class="stat-label">Tress Index</div><div class="stat-value" style="font-size:15px;">${latest.kTress.toFixed(1)}${showBali && latest.bTress!==undefined?` <span style="font-size:11px;color:var(--brown-soft);">(Bali ${latest.bTress.toFixed(1)})</span>`:''}</div></div>
-      <div class="stat-box"><div class="stat-label">REI Terbaru</div><div class="stat-value" style="font-size:15px;">${latestREI?latestREI.kRei.toFixed(3)+' ('+latestREI.tahun+')':'—'}</div></div>
+      <div class="stat-box"><div class="stat-label">Entropy</div><div class="stat-value" style="font-size:15px;">${latest.kEntropy.toFixedID(3)}${showBali && latest.bEntropy!==undefined?` <span style="font-size:11px;color:var(--brown-soft);">(Bali ${latest.bEntropy.toFixedID(3)})</span>`:''}</div></div>
+      <div class="stat-box"><div class="stat-label">HHI</div><div class="stat-value" style="font-size:15px;color:${hhiBadge.color};">${latest.kHhi.toFixedID(3)} · ${hhiBadge.label}</div></div>
+      <div class="stat-box"><div class="stat-label">Tress Index</div><div class="stat-value" style="font-size:15px;">${latest.kTress.toFixedID(1)}${showBali && latest.bTress!==undefined?` <span style="font-size:11px;color:var(--brown-soft);">(Bali ${latest.bTress.toFixedID(1)})</span>`:''}</div></div>
+      <div class="stat-box"><div class="stat-label">REI Terbaru</div><div class="stat-value" style="font-size:15px;">${latestREI?latestREI.kRei.toFixedID(3)+' ('+latestREI.tahun+')':'—'}</div></div>
     </div>
 
     <div class="ss-section-title">Tren Indeks Antar Tahun${showBali?' — Klungkung vs Bali':''}</div>
@@ -9961,17 +10325,17 @@ function renderDivTable(series, showBali){
   const rows = series.map(s=>{
     const b = divHHIBadge(s.kHhi);
     const base = `<td>${s.tahun}</td>
-      <td>${s.kEntropy.toFixed(3)}</td>
-      <td>${s.kHhi.toFixed(3)}</td>
+      <td>${s.kEntropy.toFixedID(3)}</td>
+      <td>${s.kHhi.toFixedID(3)}</td>
       <td><span class="ss-badge-quad" style="background:${b.color}">${b.label}</span></td>
-      <td>${s.kTress.toFixed(1)}</td>
-      <td>${s.kRei!==null&&s.kRei!==undefined?s.kRei.toFixed(3):'—'}</td>`;
+      <td>${s.kTress.toFixedID(1)}</td>
+      <td>${s.kRei!==null&&s.kRei!==undefined?s.kRei.toFixedID(3):'—'}</td>`;
     if(showBali && s.bEntropy!==undefined){
       return `<tr>${base}
-        <td>${s.bEntropy.toFixed(3)}</td>
-        <td>${s.bHhi.toFixed(3)}</td>
-        <td>${s.bTress.toFixed(1)}</td>
-        <td>${s.bRei!==null&&s.bRei!==undefined?s.bRei.toFixed(3):'—'}</td>
+        <td>${s.bEntropy.toFixedID(3)}</td>
+        <td>${s.bHhi.toFixedID(3)}</td>
+        <td>${s.bTress.toFixedID(1)}</td>
+        <td>${s.bRei!==null&&s.bRei!==undefined?s.bRei.toFixedID(3):'—'}</td>
       </tr>`;
     }
     return `<tr>${base}</tr>`;
@@ -10031,7 +10395,7 @@ function renderDivCompositionChart(s){
       responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ display: datasets.length>1, position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main} } },
       scales:{
-        x:{ grid:{color:THEME.light}, title:{display:true, text:'% terhadap Total PDRB', color:THEME.mid, font:{size:10.5}}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5}, callback:v=>v+'%' } },
+        x:{ grid:{color:THEME.light}, title:{display:true, text:'% terhadap Total PDRB', color:THEME.mid, font:{size:10.5}}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5}, callback:v=>nfmt(v)+'%' } },
         y:{ grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } }
       }
     }
@@ -10245,7 +10609,7 @@ function renderAdvGrowthDiff(){
     </div>
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
-      <div class="stat-box"><div class="stat-label">Growth Diff (pp)</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${latest.diffPp>=0?'+':''}${latest.diffPp.toFixed(3)} pp</div></div>
+      <div class="stat-box"><div class="stat-label">Growth Diff (pp)</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${latest.diffPp>=0?'+':''}${latest.diffPp.toFixedID(3)} pp</div></div>
       <div class="stat-box"><div class="stat-label">Status</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${escapeHtml(badge.label)}</div></div>
     </div>
     <div class="ss-section-title">Tren Pertumbuhan: Klungkung vs Bali</div>
@@ -10257,7 +10621,7 @@ function renderAdvGrowthDiff(){
   `;
 
   document.getElementById('advGrowthTable').innerHTML = `<thead><tr><th>Tahun</th><th>Growth K</th><th>Growth Bali</th><th>Diff (pp)</th><th>Cum. Relative Gap</th><th>Status</th></tr></thead><tbody>${
-    series.map(s=>{ const b=growthDiffBadge(s.status); return `<tr><td>${s.tahun}</td><td>${isNaN(s.growthK)?'-':(s.growthK*100).toFixed(2)+'%'}</td><td>${isNaN(s.growthB)?'-':(s.growthB*100).toFixed(2)+'%'}</td><td>${isNaN(s.diffPp)?'-':s.diffPp.toFixed(3)}</td><td>${isNaN(s.cumGap)?'-':(s.cumGap*100).toFixed(2)+'%'}</td><td><span class="ss-badge-quad" style="background:${b.color}">${escapeHtml(b.label)}</span></td></tr>`; }).join('')
+    series.map(s=>{ const b=growthDiffBadge(s.status); return `<tr><td>${s.tahun}</td><td>${isNaN(s.growthK)?'-':(s.growthK*100).toFixedID(2)+'%'}</td><td>${isNaN(s.growthB)?'-':(s.growthB*100).toFixedID(2)+'%'}</td><td>${isNaN(s.diffPp)?'-':s.diffPp.toFixedID(3)}</td><td>${isNaN(s.cumGap)?'-':(s.cumGap*100).toFixedID(2)+'%'}</td><td><span class="ss-badge-quad" style="background:${b.color}">${escapeHtml(b.label)}</span></td></tr>`; }).join('')
   }</tbody>`;
 
   const tsCtx = document.getElementById('advGrowthTsCanvas');
@@ -10270,7 +10634,7 @@ function renderAdvGrowthDiff(){
     ]},
     options:{ responsive:true, maintainAspectRatio:false, interaction:{intersect:false, mode:'index'},
       plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main}}},
-      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>v+'%'}} } }
+      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle('Pertumbuhan (%)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>nfmt(v)+'%'}} } }
   });
 
   const diffCtx = document.getElementById('advGrowthDiffCanvas');
@@ -10285,7 +10649,7 @@ function renderAdvGrowthDiff(){
       scales:{
         x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}},
         y:{position:'left', grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}, title:{display:true,text:'pp',color:THEME.mid,font:{family:'Inter',size:10.5}}},
-        y1:{position:'right', grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>v+'%'}}
+        y1:{position:'right', grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>nfmt(v)+'%'}}
       } }
   });
 
@@ -10373,7 +10737,7 @@ function renderAdvStructChange(){
     ]},
     options:{ responsive:true, maintainAspectRatio:false, interaction:{intersect:false, mode:'index'},
       plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main}}},
-      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>v+'%'}} } }
+      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle('Structural Change Index (%)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>nfmt(v)+'%'}} } }
   });
   document.getElementById('dlAdvSciTs').onclick = ()=> triggerJPGDownload(advCharts.sciTs, `sci_tren`);
 
@@ -10399,11 +10763,11 @@ function renderAdvSciForYear(rows){
     ] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
       plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main}}},
-      scales:{ x:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>v+' pp'}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
+      scales:{ x:{title:axTitle('Perubahan pangsa (pp)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>nfmt(v)+' pp'}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
   });
   document.getElementById('dlAdvSciSektor').onclick = ()=> triggerJPGDownload(advCharts.sciSektor, `sci_sektor_${advCompYear.structural_change}`);
   document.getElementById('advSciTable').innerHTML = `<thead><tr><th>Sektor</th><th>Share K</th><th>Share Bali</th><th>Δ Share K</th><th>Δ Share Bali</th><th>Gap Sektoral</th></tr></thead><tbody>${
-    yr.map(r=>`<tr><td>${escapeHtml(r.sektor)}</td><td>${isNaN(r.shareK)?'-':(r.shareK*100).toFixed(2)+'%'}</td><td>${isNaN(r.shareB)?'-':(r.shareB*100).toFixed(2)+'%'}</td><td>${isNaN(r.deltaK)?'-':(r.deltaK*100).toFixed(2)+' pp'}</td><td>${isNaN(r.deltaB)?'-':(r.deltaB*100).toFixed(2)+' pp'}</td><td>${isNaN(r.gap)?'-':(r.gap*100).toFixed(3)+' pp'}</td></tr>`).join('')
+    yr.map(r=>`<tr><td>${escapeHtml(r.sektor)}</td><td>${isNaN(r.shareK)?'-':(r.shareK*100).toFixedID(2)+'%'}</td><td>${isNaN(r.shareB)?'-':(r.shareB*100).toFixedID(2)+'%'}</td><td>${isNaN(r.deltaK)?'-':(r.deltaK*100).toFixedID(2)+' pp'}</td><td>${isNaN(r.deltaB)?'-':(r.deltaB*100).toFixedID(2)+' pp'}</td><td>${isNaN(r.gap)?'-':(r.gap*100).toFixedID(3)+' pp'}</td></tr>`).join('')
   }</tbody>`;
 }
 
@@ -10460,7 +10824,7 @@ function renderAdvKrugman(){
     </div>
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
-      <div class="stat-box"><div class="stat-label">Krugman Index (Half)</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${latest.half.toFixed(3)}</div></div>
+      <div class="stat-box"><div class="stat-label">Krugman Index (Half)</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${latest.half.toFixedID(3)}</div></div>
       <div class="stat-box"><div class="stat-label">Status</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${escapeHtml(badge.label)}</div></div>
     </div>
     <div class="ss-section-title">Tren Indeks Krugman Antar Tahun</div>
@@ -10470,7 +10834,7 @@ function renderAdvKrugman(){
   `;
 
   document.getElementById('advKrugmanTable').innerHTML = `<thead><tr><th>Tahun</th><th>Sum Absolute Share Gap</th><th>Krugman Index (Half)</th><th>Status</th></tr></thead><tbody>${
-    series.map(s=>{ const b=krugmanBadge(s.status); return `<tr><td>${s.tahun}</td><td>${s.sumGap.toFixed(4)}</td><td>${s.half.toFixed(4)}</td><td><span class="ss-badge-quad" style="background:${b.color}">${escapeHtml(b.label)}</span></td></tr>`; }).join('')
+    series.map(s=>{ const b=krugmanBadge(s.status); return `<tr><td>${s.tahun}</td><td>${s.sumGap.toFixedID(4)}</td><td>${s.half.toFixedID(4)}</td><td><span class="ss-badge-quad" style="background:${b.color}">${escapeHtml(b.label)}</span></td></tr>`; }).join('')
   }</tbody>`;
 
   const ctx = document.getElementById('advKrugmanCanvas');
@@ -10482,7 +10846,7 @@ function renderAdvKrugman(){
     ]},
     options:{ responsive:true, maintainAspectRatio:false, interaction:{intersect:false, mode:'index'},
       plugins:{legend:{display:false}},
-      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
+      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle('Indeks Krugman (versi setengah)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
   });
 
   document.getElementById('dlAdvKrugman').onclick = ()=> triggerJPGDownload(advCharts.krugman, `krugman_index_tren`);
@@ -10550,8 +10914,8 @@ function renderAdvSimilarity(){
     </div>
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
-      <div class="stat-box"><div class="stat-label">SSI</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${latest.ssiPct.toFixed(1)}% · ${badge.label}</div></div>
-      <div class="stat-box"><div class="stat-label">Total Absolute Gap</div><div class="stat-value" style="font-size:15px;">${latest.totalGap.toFixed(3)}</div></div>
+      <div class="stat-box"><div class="stat-label">SSI</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${latest.ssiPct.toFixedID(1)}% · ${badge.label}</div></div>
+      <div class="stat-box"><div class="stat-label">Total Absolute Gap</div><div class="stat-value" style="font-size:15px;">${latest.totalGap.toFixedID(3)}</div></div>
     </div>
     <div class="ss-section-title">Tren Kemiripan Struktur Antar Tahun</div>
     <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvSimTs">⬇ JPG</button><div class="chart-box" style="height:280px;"><canvas id="advSimTsCanvas"></canvas></div></div>
@@ -10567,7 +10931,7 @@ function renderAdvSimilarity(){
   yearSel.onchange = ()=>{ advCompYear.similarity = parseInt(yearSel.value); renderAdvSimCompChart(series.find(s=>s.tahun===advCompYear.similarity)); };
 
   document.getElementById('advSimTable').innerHTML = `<thead><tr><th>Tahun</th><th>Total Absolute Gap</th><th>SSI</th><th>SSI (%)</th><th>Klasifikasi</th></tr></thead><tbody>${
-    series.map(s=>{ const b=ssiBadge(s.ssiPct); return `<tr><td>${s.tahun}</td><td>${s.totalGap.toFixed(3)}</td><td>${s.ssi.toFixed(3)}</td><td>${s.ssiPct.toFixed(1)}%</td><td><span class="ss-badge-quad" style="background:${b.color}">${b.label}</span></td></tr>`; }).join('')
+    series.map(s=>{ const b=ssiBadge(s.ssiPct); return `<tr><td>${s.tahun}</td><td>${s.totalGap.toFixedID(3)}</td><td>${s.ssi.toFixedID(3)}</td><td>${s.ssiPct.toFixedID(1)}%</td><td><span class="ss-badge-quad" style="background:${b.color}">${b.label}</span></td></tr>`; }).join('')
   }</tbody>`;
 
   const ctx = document.getElementById('advSimTsCanvas');
@@ -10575,7 +10939,7 @@ function renderAdvSimilarity(){
   advCharts.simTs = new Chart(ctx, {
     type:'line',
     data:{ labels: series.map(s=>s.tahun), datasets:[{ label:'SSI (%)', data: series.map(s=>s.ssiPct), borderColor:THEME.main, backgroundColor:'rgba(74,22,32,0.14)', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{min:0,max:100,grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{size:10},callback:v=>v+'%'}} } }
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle('Structural Similarity Index (%)'), min:0,max:100,grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{size:10},callback:v=>nfmt(v)+'%'}} } }
   });
 
   renderAdvSimCompChart(series.find(s=>s.tahun===advCompYear.similarity));
@@ -10599,7 +10963,7 @@ function renderAdvSimCompChart(s){
     ]},
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
       plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main}}},
-      scales:{ x:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>v+'%'}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
+      scales:{ x:{title:axTitle('Pangsa sektor (%)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>nfmt(v)+'%'}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
   });
 }
 
@@ -10673,10 +11037,10 @@ function renderAdvGapForYear(rows){
     type:'bar',
     data:{ labels: yr.map(r=>r.sektor), datasets:[{ label:'Gap Contribution (%)', data: yr.map(r=>r.contrib*100), backgroundColor: yr.map((r,i)=> i===0?THEME.accent:THEME.accent) }] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
-      scales:{ x:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>v+'%'}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
+      scales:{ x:{title:axTitle('Kontribusi terhadap gap (%)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>nfmt(v)+'%'}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
   });
   document.getElementById('advGapTable').innerHTML = `<thead><tr><th>Rank</th><th>Sektor</th><th>K Share</th><th>B Share</th><th>Absolute Gap</th><th>Kontribusi</th></tr></thead><tbody>${
-    yr.map(r=>`<tr><td>${r.rank}</td><td>${escapeHtml(r.sektor)}</td><td>${(r.kShare*100).toFixed(2)}%</td><td>${(r.bShare*100).toFixed(2)}%</td><td>${r.gap.toFixed(4)}</td><td>${(r.contrib*100).toFixed(1)}%</td></tr>`).join('')
+    yr.map(r=>`<tr><td>${r.rank}</td><td>${escapeHtml(r.sektor)}</td><td>${(r.kShare*100).toFixedID(2)}%</td><td>${(r.bShare*100).toFixedID(2)}%</td><td>${r.gap.toFixedID(4)}</td><td>${(r.contrib*100).toFixedID(1)}%</td></tr>`).join('')
   }</tbody>`;
 }
 
@@ -10734,7 +11098,7 @@ function renderAdvMarkov(){
     </div>
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Total Transisi Diamati</div><div class="stat-value" style="font-size:15px;">${withPrev.length}</div></div>
-      <div class="stat-box"><div class="stat-label">Mobility Rate</div><div class="stat-value" style="font-size:15px;">${mobilityRate.toFixed(1)}%</div></div>
+      <div class="stat-box"><div class="stat-label">Mobility Rate</div><div class="stat-value" style="font-size:15px;">${mobilityRate.toFixedID(1)}%</div></div>
       <div class="stat-box"><div class="stat-label">Sektor Berubah Kelas (${latestYear})</div><div class="stat-value" style="font-size:15px;">${latestMovers.length}</div></div>
     </div>
     <div class="ss-section-title">Matriks Probabilitas Transisi</div>
@@ -10759,7 +11123,7 @@ function renderAdvMarkov(){
 
   if(latestMovers.length){
     document.getElementById('advMarkovMoversTable').innerHTML = `<thead><tr><th>Sektor</th><th>Kelas Sebelumnya</th><th>Kelas Sekarang</th><th>SLQ</th><th>Transisi</th></tr></thead><tbody>${
-      latestMovers.map(r=>`<tr><td>${escapeHtml(r.sektor)}</td><td>${r.kelasSebelum}</td><td>${r.kelas}</td><td>${r.slq.toFixed(2)}</td><td>${escapeHtml(r.transisi)}</td></tr>`).join('')
+      latestMovers.map(r=>`<tr><td>${escapeHtml(r.sektor)}</td><td>${r.kelasSebelum}</td><td>${r.kelas}</td><td>${r.slq.toFixedID(2)}</td><td>${escapeHtml(r.transisi)}</td></tr>`).join('')
     }</tbody>`;
   }
 
@@ -10826,9 +11190,9 @@ function renderAdvComplexity(){
     </div>
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
-      <div class="stat-box"><div class="stat-label">ECP Normalized</div><div class="stat-value" style="font-size:15px;">${latest.ecpNorm.toFixed(1)}</div></div>
+      <div class="stat-box"><div class="stat-label">ECP Normalized</div><div class="stat-value" style="font-size:15px;">${latest.ecpNorm.toFixedID(1)}</div></div>
       <div class="stat-box"><div class="stat-label">Sektor Unggulan (RCA≥1)</div><div class="stat-value" style="font-size:15px;">${latest.dt} dari 17</div></div>
-      <div class="stat-box"><div class="stat-label">Rata-rata RCA Unggulan</div><div class="stat-value" style="font-size:15px;">${latest.avgRca.toFixed(2)}</div></div>
+      <div class="stat-box"><div class="stat-label">Rata-rata RCA Unggulan</div><div class="stat-value" style="font-size:15px;">${latest.avgRca.toFixedID(2)}</div></div>
     </div>
     <div class="ss-section-title">Tren ECP Antar Tahun</div>
     <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvEcpTs">⬇ JPG</button><div class="chart-box" style="height:280px;"><canvas id="advEcpTsCanvas"></canvas></div></div>
@@ -10844,7 +11208,7 @@ function renderAdvComplexity(){
   yrSel.onchange = ()=>{ advCompYear.complexity = parseInt(yrSel.value); renderAdvEcpRcaChart(byYear[advCompYear.complexity]); };
 
   document.getElementById('advEcpTable').innerHTML = `<thead><tr><th>Tahun</th><th>Sektor Unggulan</th><th>Diversifikasi</th><th>Avg RCA Unggulan</th><th>Raw ECP</th><th>ECP Normalized</th></tr></thead><tbody>${
-    yearSeries.map(y=>`<tr><td>${y.tahun}</td><td>${y.dt}</td><td>${(y.divers*100).toFixed(1)}%</td><td>${y.avgRca.toFixed(2)}</td><td>${y.rawEcp.toFixed(3)}</td><td>${y.ecpNorm.toFixed(1)}</td></tr>`).join('')
+    yearSeries.map(y=>`<tr><td>${y.tahun}</td><td>${y.dt}</td><td>${(y.divers*100).toFixedID(1)}%</td><td>${y.avgRca.toFixedID(2)}</td><td>${y.rawEcp.toFixedID(3)}</td><td>${y.ecpNorm.toFixedID(1)}</td></tr>`).join('')
   }</tbody>`;
 
   const ctx = document.getElementById('advEcpTsCanvas');
@@ -10852,7 +11216,7 @@ function renderAdvComplexity(){
   advCharts.ecpTs = new Chart(ctx, {
     type:'line',
     data:{ labels: years, datasets:[{ label:'ECP Normalized', data: yearSeries.map(y=>y.ecpNorm), borderColor:THEME.c5, backgroundColor:hexToRgba(THEME.c5,0.18), fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{min:0,max:100,grid:{color:THEME.light},ticks:{color:THEME.mid,font:{size:10}}} } }
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle('ECP ternormalisasi'), min:0,max:100,grid:{color:THEME.light},ticks:{color:THEME.mid,font:{size:10}}} } }
   });
 
   renderAdvEcpRcaChart(byYear[advCompYear.complexity]);
@@ -10872,7 +11236,7 @@ function renderAdvEcpRcaChart(yearData){
     type:'bar',
     data:{ labels: sorted.map(s=>s.sektor), datasets:[{ label:'RCA', data: sorted.map(s=>s.rca), backgroundColor: sorted.map(s=> s.rca>=1?'#3e5a2a':THEME.accent) }] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
-      scales:{ x:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
+      scales:{ x:{title:axTitle('RCA'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
   });
 }
 
@@ -10933,10 +11297,10 @@ function renderAdvResilience(){
     </div>
     <div class="ss-kpi-grid">
       <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
-      <div class="stat-box"><div class="stat-label">RERI</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${latest.reri.toFixed(1)} · ${badge.label}</div></div>
-      <div class="stat-box"><div class="stat-label">Diversifikasi (DE)</div><div class="stat-value" style="font-size:15px;">${(latest.de*100).toFixed(1)}%</div></div>
-      <div class="stat-box"><div class="stat-label">Stabilitas Struktur</div><div class="stat-value" style="font-size:15px;">${(latest.stability*100).toFixed(1)}%</div></div>
-      <div class="stat-box"><div class="stat-label">Recovery Capacity</div><div class="stat-value" style="font-size:15px;">${latest.rc!==null? (latest.rc*100).toFixed(1)+'%' : 'N/A'}</div></div>
+      <div class="stat-box"><div class="stat-label">RERI</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${latest.reri.toFixedID(1)} · ${badge.label}</div></div>
+      <div class="stat-box"><div class="stat-label">Diversifikasi (DE)</div><div class="stat-value" style="font-size:15px;">${(latest.de*100).toFixedID(1)}%</div></div>
+      <div class="stat-box"><div class="stat-label">Stabilitas Struktur</div><div class="stat-value" style="font-size:15px;">${(latest.stability*100).toFixedID(1)}%</div></div>
+      <div class="stat-box"><div class="stat-label">Recovery Capacity</div><div class="stat-value" style="font-size:15px;">${latest.rc!==null? (latest.rc*100).toFixedID(1)+'%' : 'N/A'}</div></div>
     </div>
     <div class="ss-section-title">Tren RERI &amp; Komponennya</div>
     <div class="ss-controls" style="margin-bottom:8px;">
@@ -10956,7 +11320,7 @@ function renderAdvResilience(){
   `;
 
   document.getElementById('advReriTable').innerHTML = `<thead><tr><th>Tahun</th><th>DE</th><th>Stability</th><th>HHI Div.</th><th>Recovery Cap.</th><th>RERI</th></tr></thead><tbody>${
-    rows.map(r=>`<tr><td>${r.tahun}</td><td>${(r.de*100).toFixed(1)}%</td><td>${(r.stability*100).toFixed(1)}%</td><td>${(r.hhiDiv*100).toFixed(1)}%</td><td>${r.rc!==null?(r.rc*100).toFixed(1)+'%':'N/A'}</td><td>${r.reri.toFixed(1)}</td></tr>`).join('')
+    rows.map(r=>`<tr><td>${r.tahun}</td><td>${(r.de*100).toFixedID(1)}%</td><td>${(r.stability*100).toFixedID(1)}%</td><td>${(r.hhiDiv*100).toFixedID(1)}%</td><td>${r.rc!==null?(r.rc*100).toFixedID(1)+'%':'N/A'}</td><td>${r.reri.toFixedID(1)}</td></tr>`).join('')
   }</tbody>`;
 
   const metricBtn = document.getElementById('advReriMetricBtn');
@@ -11006,7 +11370,7 @@ function renderAdvReriChart(rows){
     type:'line',
     data:{ labels: rows.map(r=>r.tahun), datasets },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:10.5},color:THEME.main,boxWidth:14}}},
-      scales:{ x:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y100:{min:0,max:100,grid:{color:THEME.light},ticks:{color:THEME.mid,font:{size:10}}} } }
+      scales:{ x:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y100:{title:axTitle('Skor (0–100)'), min:0,max:100,grid:{color:THEME.light},ticks:{color:THEME.mid,font:{size:10}}} } }
   });
 }
 
@@ -11092,7 +11456,7 @@ function renderAdvTrajectory(){
   `;
 
   document.getElementById('advTrajTable').innerHTML = `<thead><tr><th>Sektor</th><th>Klasifikasi</th><th>SLQ Awal</th><th>SLQ ${latestYear}</th><th>DSS</th></tr></thead><tbody>${
-    summary.map(s=>`<tr><td>${escapeHtml(s.sektor)}</td><td><span class="ss-badge-quad" style="background:${(TRAJ_INFO[s.trajectory]||{color:'#999'}).color}">${escapeHtml(s.trajectory)}</span></td><td>${s.slqAwal.toFixed(2)}</td><td>${s.slqLatest.toFixed(2)}</td><td class="${s.dss>=0?'pos':'neg'}">${s.dss.toFixed(3)}</td></tr>`).join('')
+    summary.map(s=>`<tr><td>${escapeHtml(s.sektor)}</td><td><span class="ss-badge-quad" style="background:${(TRAJ_INFO[s.trajectory]||{color:'#999'}).color}">${escapeHtml(s.trajectory)}</span></td><td>${s.slqAwal.toFixedID(2)}</td><td>${s.slqLatest.toFixedID(2)}</td><td class="${s.dss>=0?'pos':'neg'}">${s.dss.toFixedID(3)}</td></tr>`).join('')
   }</tbody>`;
 
   const ctx = document.getElementById('advTrajCanvas');
@@ -11105,7 +11469,7 @@ function renderAdvTrajectory(){
     ]},
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
       plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main}}},
-      scales:{ x:{grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
+      scales:{ x:{title:axTitle('Nilai SLQ'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
   });
 
   document.getElementById('dlAdvTraj').onclick = ()=> triggerJPGDownload(advCharts.traj, 'dynamic_specialization');
@@ -11526,7 +11890,7 @@ function renderNakerView(){
 
   const tahunSel = document.getElementById('nkTahun');
   tahunSel.innerHTML = years.map(y=>`<option value="${y}" ${y===nkYear?'selected':''}>${y}</option>`).join('');
-  tahunSel.onchange = ()=>{ nkYear = parseInt(tahunSel.value); renderNakerView(); };
+  tahunSel.onchange = ()=>{ nkYear = parseInt(tahunSel.value); renderNakerView(); shareUpdateHash(); };
 
   const baseWrap = document.getElementById('nkBaseWrap');
   const baseSel = document.getElementById('nkBaseSel');
@@ -11538,6 +11902,7 @@ function renderNakerView(){
       nkBase = parseInt(baseSel.value);
       nkBaseAuto = (nkBase === earlier[earlier.length-1]);
       renderNakerView();
+      shareUpdateHash();
     };
   }
 
@@ -11649,7 +12014,7 @@ function renderNkRingkasan(){
       indexAxis:'y', responsive:true, maintainAspectRatio:false,
       plugins:{ legend:nkLegendOpt(), tooltip:{ callbacks:{ label:(c)=> `${c.dataset.label}: ${nkF(c.parsed.x)} orang` } } },
       scales:{
-        x:{ grid:{color:THEME.light}, ticks:Object.assign({callback:v=>nkF(v)}, nkTicks()) },
+        x:{title:axTitle('Jumlah tenaga kerja (orang)'),  grid:{color:THEME.light}, ticks:Object.assign({callback:v=>nkF(v)}, nkTicks()) },
         y:{ grid:{display:false}, ticks:nkTicks() }
       }
     }
@@ -11727,7 +12092,7 @@ function renderNkStruktur(){
       indexAxis:'y', responsive:true, maintainAspectRatio:false,
       plugins:{ legend:nkLegendOpt(), tooltip:{ callbacks:{ label:(c)=> `${c.dataset.label}: ${nkF(c.parsed.x,2)}%` } } },
       scales:{
-        x:{ grid:{color:THEME.light}, ticks:Object.assign({callback:v=>nkF(v,0)+'%'}, nkTicks()) },
+        x:{title:axTitle('Pangsa (%)'),  grid:{color:THEME.light}, ticks:Object.assign({callback:v=>nkF(v,0)+'%'}, nkTicks()) },
         y:{ grid:{display:false}, ticks:nkTicks() }
       }
     }
@@ -12078,6 +12443,8 @@ function renderNkElastisitas(){
    (total satu tahun) ikut tersedia. Bila pembanding = tahun sebelumnya, angka per
    sektor identik dengan kolom sheet.
    ========================================================= */
+let nkIlorTrenSektor = 'Seluruh Sektor';   // pilihan sektor pada grafik tren ILOR
+let nkIlorTrenSkala = 'auto';              // 'auto' | 'penuh' | 'fokus' | 'log'
 function nkIlorCalc(x1, x0){
   const dTKk = x1.tkK - x0.tkK, dYk = x1.adhkK - x0.adhkK;
   const dTKb = x1.tkB - x0.tkB, dYb = x1.adhkB - x0.adhkB;
@@ -12232,6 +12599,15 @@ function renderNkIlor(){
     <div class="table-head-row"><span class="table-head-label">Tabel ILOR per Lapangan Usaha (${nkBase}→${nkYear})</span><button class="dl-btn" id="nkIlorExcel" style="position:static;">⬇ Excel</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="nkIlorTable"></table></div>
     ${nkIlorFootnotes(rows.concat([t]))}
+    <div class="ss-section-title">Tren ILOR per Tahun (dibanding tahun sebelumnya)</div>
+    <div class="ss-controls" style="margin-bottom:6px;"><div class="ctrl-item"><label>Lapangan usaha</label><select id="nkIlorTrenSel"></select></div>
+      <div class="ctrl-item"><label>Skala sumbu</label><div class="quickbtns" id="nkIlorSkalaBtns" style="margin-left:0;">
+        <button data-k="penuh" title="Seluruh nilai tampil apa adanya (skala linear)">Penuh</button>
+        <button data-k="fokus" title="Skala linear dipusatkan pada nilai wajar; nilai ekstrem terpotong">Fokus</button>
+        <button data-k="log" title="Skala simetris-log: nilai ekstrem dipadatkan, tanda positif/negatif tetap benar">Log simetris</button>
+      </div></div></div>
+    ${nkChartBox('nkIlorTren', 300, 'nkDlIlorTren')}
+    <div class="nk-caption" id="nkIlorTrenNote"></div>
     <div class="table-head-row"><span class="table-head-label">ILOR Seluruh Sektor per Tahun (dibanding tahun sebelumnya)</span><button class="dl-btn" id="nkIlorYrExcel" style="position:static;">⬇ Excel</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="nkIlorYrTable"></table></div>
     ${nkBase!==prevYear ? `<div class="nk-caption">Baris tahun ${nkYear} disorot. Angkanya membandingkan ${nkYear} dengan tahun sebelumnya, sehingga dapat berbeda dari ringkasan di atas yang memakai tahun pembanding ${nkBase}.</div>` : `<div class="nk-caption">Baris tahun ${nkYear} disorot.</div>`}
@@ -12300,6 +12676,91 @@ function renderNkIlor(){
     plugins:[lqCrosshairPlugin(0, 0)]
   });
   nkBindDl('nkDlIlorQuad', 'ilorQuad', `naker_ilor_kuadran_${nkBase}_${nkYear}`);
+
+  // ---- Tren ILOR tahunan (YoY) untuk sektor terpilih ----
+  const trend = [];
+  for(let i=1;i<yrs.length;i++){ const c = nkIlor(yrs[i], yrs[i-1]); trend.push({ y:yrs[i], rows:c.rows, tot:c.tot }); }
+  const sektorList = ['Seluruh Sektor'].concat(ilr.rows.map(r=>r.sektor).sort((a,b)=>a.localeCompare(b,'id')));
+  if(!sektorList.includes(nkIlorTrenSektor)) nkIlorTrenSektor = 'Seluruh Sektor';
+  const trenSel = document.getElementById('nkIlorTrenSel');
+  trenSel.innerHTML = sektorList.map(n=>`<option value="${escapeHtml(n)}"${n===nkIlorTrenSektor?' selected':''}>${escapeHtml(n)}</option>`).join('');
+  // Transformasi simetris-log: linear di sekitar 0, log untuk nilai besar; tanda dipertahankan
+  const slog = v => v===null ? null : Math.sign(v) * Math.log10(1 + Math.abs(v));
+  const slogInv = t => Math.sign(t) * (Math.pow(10, Math.abs(t)) - 1);
+  const drawTren = ()=>{
+    const name = nkIlorTrenSektor;
+    const pts = trend.map(t=>({ y:t.y, r: name==='Seluruh Sektor' ? t.tot : t.rows.find(x=>x.sektor===name) }));
+    const kv = pts.map(p=> p.r && nkOk(p.r.ilK) ? p.r.ilK : null);
+    const bv = pts.map(p=> p.r && nkOk(p.r.ilB) ? p.r.ilB : null);
+    const absAll = kv.concat(bv).filter(v=>v!==null).map(Math.abs);
+    const maxAbs = absAll.length ? Math.max(...absAll) : 10;
+    const medAbs = absAll.length ? absAll.slice().sort((a,b)=>a-b)[Math.floor((absAll.length-1)/2)] : 1;
+    // 'auto': skala log hanya bila ada nilai jauh lebih besar dari nilai tipikal; selain itu tampil penuh
+    const mode = nkIlorTrenSkala==='auto' ? ((absAll.length>=4 && maxAbs/Math.max(medAbs,1) > 8) ? 'log' : 'penuh') : nkIlorTrenSkala;
+    document.querySelectorAll('#nkIlorSkalaBtns button').forEach(b=> b.classList.toggle('active', b.dataset.k===mode));
+
+    // rentang untuk mode 'fokus'
+    let vals = pts.filter(p=>p.r && !p.r.unstable).flatMap(p=>[p.r.ilK, p.r.ilB]).filter(nkOk).map(Math.abs);
+    if(vals.length < 4) vals = absAll;
+    const capT = vals.length ? Math.max(10, vals.length>=4 ? pct(vals,0.9)*1.4 : Math.max(...vals)*1.15) : 10;
+    const outT = mode==='fokus' ? pts.filter(p=>p.r && ((nkOk(p.r.ilK)&&Math.abs(p.r.ilK)>capT) || (nkOk(p.r.ilB)&&Math.abs(p.r.ilB)>capT))) : [];
+
+    const tf = mode==='log' ? slog : (v=>v);
+    const scaleNote = {
+      penuh: 'Skala sumbu: penuh (linear, seluruh nilai tampil).',
+      fokus: 'Skala sumbu: fokus (linear) — nilai yang jauh di luar rentang terpotong di tepi grafik.',
+      log:   'Skala sumbu: simetris-log — jarak antar-tick tidak linear; nilai ekstrem dipadatkan supaya pola tetap terbaca, tanda positif/negatif tetap benar. Baca angka pastinya pada tooltip.'
+    }[mode] + (nkIlorTrenSkala==='auto' ? ' (dipilih otomatis; ubah lewat tombol Skala sumbu)' : '');
+    document.getElementById('nkIlorTrenNote').innerHTML =
+      scaleNote + ' '
+      + (outT.length ? `Di luar rentang: ${outT.map(p=>`<b>${p.y}</b> (Klungkung ${nkF(p.r.ilK,1)}, Bali ${nkF(p.r.ilB,1)})`).join('; ')}. ` : '')
+      + 'ILOR tahunan sangat berfluktuasi karena pembaginya (Δ PDRB) kecil; jangan dibaca sebagai tren jangka panjang, dan ILOR negatif tidak berarti lebih baik — lihat Δ TK dan Δ PDRB pada tooltip.';
+
+    // sumbu-y
+    const yScale = { grid:{ color:(c)=> (c.tick && c.tick.value===0) ? 'rgba(60,60,60,.45)' : THEME.light, lineWidth:(c)=> (c.tick && c.tick.value===0) ? 1.6 : 1 },
+                     title:nkAxisTitle(mode==='log' ? 'ILOR (skala simetris-log)' : 'ILOR (orang per Rp miliar PDRB ADHK)'),
+                     ticks:Object.assign({ callback:v=> nkF(mode==='log' ? slogInv(v) : v) }, nkTicks()) };
+    if(mode==='fokus'){ yScale.min = -capT; yScale.max = capT; }
+    else if(mode==='penuh'){ yScale.grace = '8%'; }
+    else{
+      const top = slog(maxAbs) * 1.12;
+      yScale.min = -top; yScale.max = top;
+      yScale.afterBuildTicks = (sc)=>{
+        const cand = [0]; for(let e=1;e<=6;e++){ const v = Math.pow(10,e); cand.push(v, -v); }
+        sc.ticks = cand.filter(v=> Math.abs(slog(v)) <= top).sort((a,b)=>a-b).map(v=>({ value: slog(v) }));
+      };
+    }
+
+    nkMakeChart('ilorTren', 'nkIlorTren', {
+      type:'line',
+      data:{ labels:pts.map(p=>String(p.y)), datasets:[
+        { label:'ILOR Klungkung', data:kv.map(tf), borderColor:THEME.main, backgroundColor:THEME.main, borderWidth:2.4, pointRadius:0, pointHoverRadius:5, tension:0, spanGaps:false },
+        { label:'ILOR Bali',      data:bv.map(tf), borderColor:THEME.soft, backgroundColor:THEME.soft, borderWidth:2.4, pointRadius:0, pointHoverRadius:5, tension:0, spanGaps:false }
+      ]},
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        interaction:{ mode:'index', intersect:false },
+        plugins:{
+          legend:nkLegendOpt(),
+          tooltip:{ callbacks:{
+            label:(c)=>{ const v = (c.datasetIndex===0 ? kv : bv)[c.dataIndex]; return `${c.dataset.label}: ${v===null ? '—' : nkF(v,2)} orang per Rp miliar`; },
+            afterBody:(items)=>{
+              const p = pts[items[0].dataIndex]; if(!p || !p.r) return '';
+              const k = nkIlorKlas(p.r);
+              return [ `Δ TK Klungkung ${nkSg(p.r.dTKk)} orang · Δ PDRB ${nkSg(p.r.dYk,1)} miliar`,
+                       k ? `Tipologi: ${def[k].label}` : '',
+                       p.r.unstable ? '‡ Δ PDRB sangat kecil — ILOR tidak stabil' : '' ].filter(Boolean);
+            }
+          } }
+        },
+        scales:{ x:{ grid:{display:false}, ticks:nkTicks() }, y:yScale }
+      }
+    });
+    nkBindDl('nkDlIlorTren', 'ilorTren', `naker_ilor_tren_${name.replace(/\W+/g,'_')}`);
+  };
+  document.querySelectorAll('#nkIlorSkalaBtns button').forEach(b=>{ b.onclick = ()=>{ nkIlorTrenSkala = b.dataset.k; drawTren(); }; });
+  trenSel.onchange = ()=>{ nkIlorTrenSektor = trenSel.value; drawTren(); };
+  drawTren();
 
   // ---- Ekspor Excel ----
   document.getElementById('nkIlorExcel').onclick = ()=> exportStyledExcel(`naker_ilor_${nkBase}_${nkYear}.xlsx`, 'ILOR',
