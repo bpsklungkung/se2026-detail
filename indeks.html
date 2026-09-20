@@ -170,8 +170,15 @@
     background:var(--white); border:1px solid var(--border); border-radius:12px;
     box-shadow:var(--shadow); padding:0 10px 0 12px; height:38px;
   }
-  .palette-picker .pp-icon{ display:flex; align-items:center; color:var(--brown-mid); pointer-events:none; }
-  .palette-picker .pp-icon svg{ width:15px; height:15px; }
+  .palette-picker input[type=color]{ width:22px; height:22px; padding:0; border:none; background:none; cursor:pointer; border-radius:6px; flex-shrink:0; }
+  .pp-sep{ width:1px; height:16px; background:var(--peach-soft); flex-shrink:0; }
+  /* Ikon palet = pratinjau langsung warna aktif (separuh warna utama, separuh aksen); ikut berubah saat palet diganti */
+  .palette-picker .pp-swatch{
+    width:16px; height:16px; border-radius:50%; flex-shrink:0; pointer-events:none;
+    background:linear-gradient(135deg, var(--brown) 50%, var(--orange) 50%);
+    box-shadow:0 0 0 2px var(--white), 0 0 0 3px rgba(0,0,0,.14);
+    margin-right:2px;
+  }
   .palette-picker select{
     font-family:'Inter',sans-serif; font-size:12px; font-weight:600; color:var(--brown);
     background:transparent; border:none; outline:none; cursor:pointer;
@@ -1276,7 +1283,7 @@
     <div class="tabbar" id="tabs"></div>
     <div class="tabbar-stats">
       <div class="palette-picker" id="palettePickerWrap" title="Pilih palet warna dashboard">
-        <span class="pp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13.5" cy="6.5" r=".6" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".6" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".6" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".6" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg></span>
+        <span class="pp-swatch" aria-hidden="true" title="Pratinjau palet aktif"></span>
         <select id="paletteSelect">
           <option value="maroon">Maroon</option>
           <option value="cherry">Cherry</option>
@@ -1288,7 +1295,22 @@
           <option value="abu">Abu Batu</option>
           <option value="kuning">Kuning Mustard</option>
           <option value="oranye">Oranye</option>
+          <option value="indigo">Indigo Malam</option>
+          <option value="magenta">Magenta</option>
+          <option value="sakura">Sakura</option>
+          <option value="kopi">Cokelat Kopi</option>
+          <option value="zaitun">Zaitun</option>
+          <option value="zamrud">Zamrud</option>
+          <option value="lavender">Lavender</option>
+          <option value="safir">Safir</option>
           <option value="abuabu">Abu-Abu Netral</option>
+          <option value="kustom">Warna Sendiri</option>
+        </select>
+        <input type="color" id="paletteCustomColor" title="Pilih warna aksen sendiri; seluruh palet diturunkan dari warna ini" style="display:none;">
+        <span class="pp-sep"></span>
+        <select id="cardColorModeSelect" title="Warna kartu & grafik: Senada = turunan warna palet, Beragam = warna klasik yang berbeda-beda">
+          <option value="senada">Kartu senada</option>
+          <option value="beragam">Kartu beragam</option>
         </select>
       </div>
       <div class="global-search" id="globalSearchBox">
@@ -1763,6 +1785,19 @@ if(typeof Chart !== 'undefined'){
 
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS0IHQMxQuwLfTdSgKoXUqA8guCT788uBZ4cwlE72X6co3LMRcGU6tk1PSMbi7nVeEB2g-kTVXYBPyv/pub?output=csv";
 
+/* Membangun satu palet lengkap dari SATU warna aksen (hue & kepekatan diturunkan ke varian gelap, sedang, terang) */
+function makePreset(label, accentHex){
+  const [h, s0] = ccRgbToHsl(...ccHexToRgb(accentHex));
+  const S = Math.min(0.70, Math.max(0.30, s0));
+  const H = (l, sat) => ccHslToHex(h, Math.min(1, sat), l);
+  const main = H(.21, S*.72), mid = H(.33, S*.70), deep = H(.12, S*.65), soft = H(.62, S*.28);
+  const light = H(.92, Math.min(.55, S*.7));
+  return { label, main, mid, deep, soft, accent:accentHex, light,
+    compareColors:[main, accentHex, mid, H(.42, S*.65), H(.27, S*.68), H(.64, S*.75), deep, H(.44, S*.40)],
+    kategoriPalette:[main,'#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93',accentHex,'#008080','#4C5C7D',accentHex] };
+}
+function loadCustomPaletteColor(){ try{ return localStorage.getItem('klk_custom_palette_color') || '#2E86AB'; }catch(e){ return '#2E86AB'; } }
+
 /* ===== Palet Warna Dashboard ===== */
 const THEME_PRESETS = {
   maroon:{
@@ -1819,8 +1854,68 @@ const THEME_PRESETS = {
     label:'Abu-Abu Netral', main:'#3F3F3F', mid:'#5C5C5C', deep:'#1E1E1E', soft:'#A3A3A3', accent:'#707070', light:'#EFEFEF',
     compareColors:['#3F3F3F','#707070','#5C5C5C','#8C8C8C','#4A4A4A','#B0B0B0','#1E1E1E','#666666'],
     kategoriPalette:['#3F3F3F','#3E8E41','#2E86AB','#B8336A','#D4A017','#6A4C93','#707070','#008080','#4C5C7D','#707070']
-  }
+  },
+  // Palet tambahan (diturunkan otomatis dari satu warna aksen)
+  indigo:   makePreset('Indigo Malam',  '#5B5FC7'),
+  magenta:  makePreset('Magenta',       '#C2378C'),
+  sakura:   makePreset('Sakura',        '#DB6B94'),
+  kopi:     makePreset('Cokelat Kopi',  '#A0704A'),
+  zaitun:   makePreset('Zaitun',        '#748C2A'),
+  zamrud:   makePreset('Zamrud',        '#17A67E'),
+  lavender: makePreset('Lavender',      '#8B78C9'),
+  safir:    makePreset('Safir',         '#2F6FDB'),
+  kustom:   makePreset('Warna Sendiri', loadCustomPaletteColor())
 };
+/* ===== Warna kartu "Senada": turunan warna palet (analogus), tetap terbaca dengan teks putih di header kartu ===== */
+function ccHexToRgb(h){ h = String(h).replace('#',''); if(h.length===3) h = h.split('').map(c=>c+c).join(''); const n = parseInt(h,16); return [(n>>16)&255, (n>>8)&255, n&255]; }
+function ccRgbToHsl(r,g,b){
+  r/=255; g/=255; b/=255;
+  const mx = Math.max(r,g,b), mn = Math.min(r,g,b); let h = 0, s = 0; const l = (mx+mn)/2;
+  if(mx !== mn){
+    const d = mx - mn; s = l > 0.5 ? d/(2-mx-mn) : d/(mx+mn);
+    if(mx===r) h = (g-b)/d + (g<b ? 6 : 0); else if(mx===g) h = (b-r)/d + 2; else h = (r-g)/d + 4;
+    h *= 60;
+  }
+  return [h, s, l];
+}
+function ccHslToHex(h,s,l){
+  h = ((h%360)+360)%360;
+  const c = (1-Math.abs(2*l-1))*s, x = c*(1-Math.abs((h/60)%2-1)), m = l - c/2;
+  let r=0, g=0, b=0;
+  if(h<60){ r=c; g=x; } else if(h<120){ r=x; g=c; } else if(h<180){ g=c; b=x; } else if(h<240){ g=x; b=c; } else if(h<300){ r=x; b=c; } else { r=c; b=x; }
+  const to = v => Math.round((v+m)*255).toString(16).padStart(2,'0');
+  return '#' + to(r) + to(g) + to(b);
+}
+function ccContrastWhite(hex){
+  const [r,g,b] = ccHexToRgb(hex).map(v=>{ v/=255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4); });
+  return 1.05 / (0.2126*r + 0.7152*g + 0.0722*b + 0.05);
+}
+function ccEnsureContrast(h, s, l, min){
+  let hex = ccHslToHex(h,s,l), k = 0;
+  while(ccContrastWhite(hex) < min && l > 0.16 && k < 50){ l -= 0.015; hex = ccHslToHex(h,s,l); k++; }
+  return hex;
+}
+/* 10 warna senada: [main, accent, lalu 8 turunan accent]. Hue hanya digeser tipis (±8…32°) sehingga tetap satu keluarga warna;
+   pembeda antar-kartu utamanya terang-gelap dan kepekatan (saturasi), bergantian agar kartu bersebelahan tidak kembar.
+   Palet abu (saturasi rendah): hue tetap, hanya terang-gelap yang bervariasi. */
+function harmonizedPalette(preset){
+  const [h0, s0] = ccRgbToHsl(...ccHexToRgb(preset.accent));
+  const neutral = s0 < 0.22;
+  const S0 = neutral ? s0 : Math.min(0.78, Math.max(0.45, s0));
+  //            geser hue, faktor saturasi, terang
+  const spec = [[ 18, 1.00, .37], [-16, .80, .45], [ 32, .85, .30], [-30, .70, .41],
+                [  8, .55, .34], [ -8, 1.00, .26], [ 24, .60, .47], [-22, .90, .33]];
+  const neutralL = [.28,.40,.34,.46,.24,.38,.32,.44];
+  const out = [preset.main, preset.accent];
+  spec.forEach(([dh, fs, L], i)=>{
+    out.push(neutral ? ccEnsureContrast(h0, S0, neutralL[i], 3.4)
+                     : ccEnsureContrast(h0 + dh, Math.min(0.85, S0*fs), L, 3.4));
+  });
+  return out;
+}
+let cardColorMode = 'senada';    // 'senada' = turunan palet · 'beragam' = warna klasik beda-beda
+try{ const m = localStorage.getItem('klk_card_color_mode'); if(m==='senada' || m==='beragam') cardColorMode = m; }catch(e){}
+
 let GROUP_COLOR_MAP = {};
 let currentPaletteName = 'maroon';
 let THEME = {};
@@ -1835,7 +1930,7 @@ function applyPalette(name, opts){
   THEME = { main:preset.main, mid:preset.mid, deep:preset.deep, soft:preset.soft, accent:preset.accent, light:preset.light,
     c3:preset.compareColors[3], c4:preset.compareColors[4], c5:preset.compareColors[5], c7:preset.compareColors[7] };
   COMPARE_COLORS = preset.compareColors.slice();
-  KATEGORI_PALETTE = preset.kategoriPalette.slice();
+  KATEGORI_PALETTE = (cardColorMode === 'senada') ? harmonizedPalette(preset) : preset.kategoriPalette.slice();
   if(typeof GROUP_COLOR_MAP !== 'undefined') GROUP_COLOR_MAP = {};
 
   const root = document.documentElement.style;
@@ -13169,9 +13264,33 @@ document.getElementById('globalSearchClear').addEventListener('click', ()=>{
 });
 
 const paletteSelectEl = document.getElementById('paletteSelect');
+const cardModeSelEl = document.getElementById('cardColorModeSelect');
+if(cardModeSelEl){
+  cardModeSelEl.value = cardColorMode;
+  cardModeSelEl.addEventListener('change', (e)=>{
+    cardColorMode = e.target.value;
+    try{ localStorage.setItem('klk_card_color_mode', cardColorMode); }catch(err){}
+    applyPalette(currentPaletteName);
+  });
+}
+const customColorEl = document.getElementById('paletteCustomColor');
+const syncCustomColorVisible = ()=>{ if(customColorEl) customColorEl.style.display = (currentPaletteName === 'kustom') ? '' : 'none'; };
+if(customColorEl){
+  customColorEl.value = loadCustomPaletteColor();
+  let customTimer = null;
+  customColorEl.addEventListener('input', ()=>{
+    clearTimeout(customTimer);
+    customTimer = setTimeout(()=>{
+      THEME_PRESETS.kustom = makePreset('Warna Sendiri', customColorEl.value);
+      try{ localStorage.setItem('klk_custom_palette_color', customColorEl.value); }catch(err){}
+      applyPalette('kustom');
+    }, 160);
+  });
+}
 if(paletteSelectEl){
   paletteSelectEl.value = currentPaletteName;
-  paletteSelectEl.addEventListener('change', (e)=> applyPalette(e.target.value));
+  syncCustomColorVisible();
+  paletteSelectEl.addEventListener('change', (e)=>{ applyPalette(e.target.value); syncCustomColorVisible(); });
 }
 
 loadData();
