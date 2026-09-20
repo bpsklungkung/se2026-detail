@@ -205,24 +205,25 @@
   thead th.sortable:hover{background:#2E0D14;}
   thead th.sortable .sort-arrow{display:inline-block;margin-left:4px;opacity:.5;font-size:10px;}
   thead th.sortable.sort-active .sort-arrow{opacity:1;}
-  #dataTable thead th:nth-child(1){width:9%;}
+  #dataTable thead th:nth-child(1){width:8%;}
   #dataTable thead th:nth-child(2){width:8%;}
   #dataTable thead th:nth-child(3){width:8%;}
-  #dataTable thead th:nth-child(4){width:17%;}
-  #dataTable thead th:nth-child(5){width:17%;}
-  #dataTable thead th:nth-child(6){width:9%;}
-  #dataTable thead th:nth-child(7){width:7%;}
-  #dataTable thead th:nth-child(8){width:9%;}
-  #dataTable thead th:nth-child(9){width:16%;}
+  #dataTable thead th:nth-child(4){width:6%;}
+  #dataTable thead th:nth-child(5){width:16%;}
+  #dataTable thead th:nth-child(6){width:15%;}
+  #dataTable thead th:nth-child(7){width:9%;}
+  #dataTable thead th:nth-child(8){width:6%;}
+  #dataTable thead th:nth-child(9){width:9%;}
+  #dataTable thead th:nth-child(10){width:15%;}
   tbody td{
     padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--brown);
     line-height:1.35;
     white-space:normal;word-break:normal;overflow-wrap:break-word;
   }
-  tbody td:nth-child(6), tbody td:nth-child(7), tbody td:nth-child(8), tbody td:nth-child(9){
+  tbody td:nth-child(7), tbody td:nth-child(8), tbody td:nth-child(9), tbody td:nth-child(10){
     overflow:visible;text-overflow:clip;
   }
-  tbody td:nth-child(7){text-align:center;}
+  tbody td:nth-child(8){text-align:center;}
   tbody tr:nth-child(even){background:#F3F4F6;}
   tbody tr:hover{background:#F3F4F6;}
   tbody tr[data-rowid]{cursor:pointer;}
@@ -543,6 +544,10 @@
         <select id="fSls"><option value="">Semua SLS</option></select>
       </div>
       <div class="field">
+        <label for="fSubsls">Kode SubSLS</label>
+        <select id="fSubsls"><option value="">Semua Kode SubSLS</option></select>
+      </div>
+      <div class="field">
         <label for="fPpl">PPL</label>
         <select id="fPpl"><option value="">Semua PPL</option></select>
       </div>
@@ -624,6 +629,7 @@
             <th class="sortable" onclick="handleSort('kecamatan')">Kecamatan<span class="sort-arrow" id="sort-kecamatan">↕</span></th>
             <th class="sortable" onclick="handleSort('desa')">Desa<span class="sort-arrow" id="sort-desa">↕</span></th>
             <th class="sortable" onclick="handleSort('sls')">SLS<span class="sort-arrow" id="sort-sls">↕</span></th>
+            <th class="sortable" onclick="handleSort('subsls')">SubSLS<span class="sort-arrow" id="sort-subsls">↕</span></th>
             <th class="sortable" onclick="handleSort('nama_usaha')">Nama Usaha<span class="sort-arrow" id="sort-nama_usaha">↕</span></th>
             <th class="sortable" onclick="handleSort('alamat')">Alamat<span class="sort-arrow" id="sort-alamat">↕</span></th>
             <th class="sortable" onclick="handleSort('statusLabel')">Status<span class="sort-arrow" id="sort-statusLabel">↕</span></th>
@@ -633,7 +639,7 @@
           </tr>
         </thead>
         <tbody id="tbody">
-          <tr><td colspan="9">
+          <tr><td colspan="10">
             <div class="loading-state"><div class="spinner"></div>Memuat data usaha…</div>
           </td></tr>
         </tbody>
@@ -742,7 +748,7 @@ let currentSimilarMatches = [];
 let currentSimilarSearch = '';
 let currentSimilarSort = 'score'; // 'score' (kecocokan tertinggi, default) atau 'distance' (jarak terdekat)
 let pendingSelectedIdentity = null; // { rowId, text } — hasil klik "Pilih" pada card Cek Serupa
-let state = { kecamatan:"", desa:"", sls:"", ppl:"", pml:"", verif:"", status:"", search:"" };
+let state = { kecamatan:"", desa:"", sls:"", subslsKode:"", ppl:"", pml:"", verif:"", status:"", search:"" };
 
 let currentSortColumn = null;
 let currentSortDirection = 0; 
@@ -778,7 +784,7 @@ function handleSort(columnKey){
     currentSortColumn = columnKey;
     currentSortDirection = 1;
   }
-  ['kecamatan', 'desa', 'sls', 'nama_usaha', 'alamat', 'statusLabel', 'lokasi', 'verifikasi'].forEach(col => {
+  ['kecamatan', 'desa', 'sls', 'subsls', 'nama_usaha', 'alamat', 'statusLabel', 'lokasi', 'verifikasi'].forEach(col => {
     const th = document.getElementById(`sort-${col}`).parentElement;
     const arrow = document.getElementById(`sort-${col}`);
     th.classList.remove('sort-active');
@@ -901,6 +907,7 @@ const els = {
   kecamatan: document.getElementById('fKecamatan'),
   desa: document.getElementById('fDesa'),
   sls: document.getElementById('fSls'),
+  subslsKode: document.getElementById('fSubsls'),
   ppl: document.getElementById('fPpl'),
   pml: document.getElementById('fPml'),
   status: document.getElementById('fStatus'),
@@ -1233,6 +1240,7 @@ function filteredExcept(except){
     if(except!=='kecamatan' && state.kecamatan && r.kecamatan !== state.kecamatan) return false;
     if(except!=='desa' && state.desa && r.desa !== state.desa) return false;
     if(except!=='sls' && state.sls && r.sls !== state.sls) return false;
+    if(except!=='subslsKode' && state.subslsKode && r.subsls_kode !== state.subslsKode) return false;
     if(except!=='ppl' && state.ppl && r.ppl !== state.ppl) return false;
     if(except!=='pml' && state.pml && r.pml !== state.pml) return false;
     if(!verifMatches(r)) return false;
@@ -1265,6 +1273,7 @@ function renderFilters(){
   fillSelect(els.kecamatan, uniqueSorted(filteredExcept('kecamatan').map(r=>r.kecamatan)), state.kecamatan, 'Semua Kecamatan');
   fillSelect(els.desa, uniqueSorted(filteredExcept('desa').map(r=>r.desa)), state.desa, 'Semua Desa');
   fillSelect(els.sls, uniqueSorted(filteredExcept('sls').map(r=>r.sls)), state.sls, 'Semua SLS');
+  fillSelect(els.subslsKode, uniqueSorted(filteredExcept('subslsKode').map(r=>r.subsls_kode)), state.subslsKode, 'Semua Kode SubSLS');
   fillSelect(els.ppl, uniqueSorted(filteredExcept('ppl').map(r=>r.ppl)), state.ppl, 'Semua PPL');
   fillSelect(els.pml, uniqueSorted(filteredExcept('pml').map(r=>r.pml)), state.pml, 'Semua PML');
 }
@@ -1287,9 +1296,16 @@ function getAreaBoundsPoints(){
     if(level>=1 && state.kecamatan && r.kecamatan !== state.kecamatan) return false;
     if(level>=2 && state.desa && r.desa !== state.desa) return false;
     if(level>=3 && state.sls && r.sls !== state.sls) return false;
+    if(level>=4 && state.subslsKode && r.subsls_kode !== state.subslsKode) return false;
     return true;
   }).filter(hasValidCoords);
 
+  if(state.subslsKode){
+    let pts = matchLevel(4); if(pts.length) return pts;
+    pts = matchLevel(3); if(pts.length) return pts;
+    pts = matchLevel(2); if(pts.length) return pts;
+    return matchLevel(1);
+  }
   if(state.sls){
     let pts = matchLevel(3); if(pts.length) return pts;
     pts = matchLevel(2); if(pts.length) return pts;
@@ -1591,7 +1607,7 @@ function renderSummaryTables(rows){
 function renderTableBody(){
   const rows = lastSortedRows;
   if(rows.length === 0){
-    els.tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state">Tidak ada usaha yang cocok dengan filter saat ini.</div></td></tr>`;
+    els.tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state">Tidak ada usaha yang cocok dengan filter saat ini.</div></td></tr>`;
     renderPaginationBar(0, 0);
     return;
   }
@@ -1618,6 +1634,7 @@ function renderTableBody(){
       <td title="${escapeAttr(r.kecamatan)}">${escapeHtml(r.kecamatan)}</td>
       <td title="${escapeAttr(r.desa)}">${escapeHtml(r.desa)}</td>
       <td title="${escapeAttr(r.sls)}">${escapeHtml(r.sls)}</td>
+      <td title="${escapeAttr(r.subsls)}">${escapeHtml(r.subsls)}</td>
       <td class="usaha" title="${escapeAttr(r.nama_usaha)}">${escapeHtml(r.nama_usaha)}</td>
       <td class="alamat" title="${escapeAttr(r.alamat)}">${escapeHtml(r.alamat)}</td>
       <td>${statusCell}</td>
@@ -1658,16 +1675,17 @@ function renderAll(){
 }
 
 function wireEvents(){
-  els.kecamatan.addEventListener('change', e=>{ state.kecamatan = e.target.value; state.desa=""; state.sls=""; currentPage=1; renderAll(); });
-  els.desa.addEventListener('change', e=>{ state.desa = e.target.value; state.sls=""; currentPage=1; renderAll(); });
-  els.sls.addEventListener('change', e=>{ state.sls = e.target.value; currentPage=1; renderAll(); });
+  els.kecamatan.addEventListener('change', e=>{ state.kecamatan = e.target.value; state.desa=""; state.sls=""; state.subslsKode=""; currentPage=1; renderAll(); });
+  els.desa.addEventListener('change', e=>{ state.desa = e.target.value; state.sls=""; state.subslsKode=""; currentPage=1; renderAll(); });
+  els.sls.addEventListener('change', e=>{ state.sls = e.target.value; state.subslsKode=""; currentPage=1; renderAll(); });
+  els.subslsKode.addEventListener('change', e=>{ state.subslsKode = e.target.value; currentPage=1; renderAll(); });
   els.ppl.addEventListener('change', e=>{ state.ppl = e.target.value; currentPage=1; renderAll(); });
   els.pml.addEventListener('change', e=>{ state.pml = e.target.value; currentPage=1; renderAll(); });
   els.status.addEventListener('change', e=>{ state.status = e.target.value; currentPage=1; renderAll(); });
   els.verif.addEventListener('change', e=>{ state.verif = e.target.value; currentPage=1; renderAll(); });
   els.search.addEventListener('input', e=>{ state.search = e.target.value; currentPage=1; renderTable(); });
   els.resetBtn.addEventListener('click', ()=>{
-    state = { kecamatan:"", desa:"", sls:"", ppl:"", pml:"", verif:"", status:"", search:"" };
+    state = { kecamatan:"", desa:"", sls:"", subslsKode:"", ppl:"", pml:"", verif:"", status:"", search:"" };
     els.search.value = "";
     els.verif.value = "";
     els.status.value = "";
@@ -1682,7 +1700,7 @@ function loadData(){
   if(isLoadingData) return;
   isLoadingData = true;
   els.lastUpdated.textContent = "Memuat data…";
-  els.tbody.innerHTML = `<tr><td colspan="9"><div class="loading-state"><div class="spinner"></div>Memuat data usaha…</div></td></tr>`;
+  els.tbody.innerHTML = `<tr><td colspan="10"><div class="loading-state"><div class="spinner"></div>Memuat data usaha…</div></td></tr>`;
 
   const statusPromise = loadStatusCache();
   const csvPromise = new Promise((resolve, reject)=>{
@@ -1735,7 +1753,7 @@ function loadData(){
 function showError(msg){
   els.lastUpdated.textContent = "Gagal memuat data";
   els.statsRow.innerHTML = '';
-  els.tbody.innerHTML = `<tr><td colspan="9"><div class="error-state">
+  els.tbody.innerHTML = `<tr><td colspan="10"><div class="error-state">
     ⚠️ ${escapeHtml(msg)}<br><br>
     Coba klik "Muat ulang data", atau pastikan link Google Sheets masih dipublikasikan (File → Share → Publish to web).
   </div></td></tr>`;
