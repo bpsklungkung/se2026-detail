@@ -131,6 +131,27 @@
   }
   .stat-pill-mini .num{ color:var(--brown-deep); font-family:'Sora',sans-serif; font-size:17px; font-weight:600; line-height:1; }
   .stat-pill-mini .lbl{ color:var(--brown-mid); font-size:8.5px; margin-top:2px; letter-spacing:.05em; }
+
+  /* ===== Ringkasan PDRB triwulanan terbaru (di bawah tab) ===== */
+  .tw-summary{
+    display:none; align-items:stretch; gap:0; flex-wrap:wrap;
+    margin:2px 0 14px; padding:10px 6px 10px 18px;
+    background:var(--peach-soft); border-radius:14px;
+  }
+  .tw-summary.show{ display:flex; }
+  .tw-sum-head{ display:flex; flex-direction:column; justify-content:center; padding:2px 20px 2px 0; min-width:150px; }
+  .tw-sum-eyebrow{ font-size:9px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--brown-mid); }
+  .tw-sum-title{ font-family:'Sora',sans-serif; font-size:15px; font-weight:600; color:var(--brown-deep); margin-top:3px; }
+  .tw-chip{ flex:1 1 118px; padding:2px 16px; border-left:1px solid rgba(0,0,0,.09); }
+  .tw-chip-lbl{ font-size:10px; font-weight:700; letter-spacing:.05em; color:var(--brown-mid); cursor:help; }
+  .tw-chip-val{ font-family:'Sora',sans-serif; font-size:19px; font-weight:600; line-height:1.2; margin-top:2px; color:var(--brown-deep); white-space:nowrap; }
+  .tw-chip-val.pos{ color:var(--green); }
+  .tw-chip-val.neg{ color:var(--rust); }
+  .tw-chip-sub{ font-size:10px; color:var(--brown-soft); margin-top:2px; line-height:1.3; }
+  @media (max-width:640px){
+    .tw-sum-head{ flex-basis:100%; padding-bottom:6px; }
+    .tw-chip:first-of-type{ border-left:none; padding-left:0; }
+  }
   @media (max-width: 860px){
     .tabbar-sticky-wrap{ flex-wrap:wrap; }
     .tabbar-stats{ order:2; width:100%; flex-wrap:wrap; }
@@ -222,6 +243,18 @@
     align-self:auto;
     margin:5px 0;
   }
+  /* Sub-tab yang mengembang di bawah tab aktif (hanya nav kanan) */
+  .tabbar-vertical .tab.has-sub{ display:flex; justify-content:space-between; align-items:center; gap:6px; }
+  .tabbar-vertical .tab.has-sub::after{ content:'▸'; font-size:10px; opacity:.55; flex-shrink:0; }
+  .tabbar-vertical .tab.has-sub.open::after{ content:'▾'; }
+  .tab-subgroup{ display:flex; flex-direction:column; gap:1px; margin:1px 0 6px 12px; padding-left:8px; border-left:2px solid var(--peach-soft); }
+  .tab-sub{
+    font-family:'Inter',sans-serif; font-weight:500; font-size:11.5px; line-height:1.3;
+    text-align:left; padding:6px 9px; background:none; border:none; border-radius:8px;
+    cursor:pointer; color:var(--brown-mid); transition:background .15s, color .15s;
+  }
+  .tab-sub:hover:not(.active){ background:var(--peach-soft); }
+  .tab-sub.active{ background:var(--peach-soft); color:var(--orange-deep); font-weight:700; }
   @media (max-width:900px){
     .tabbar-vertical{ display:none; }
   }
@@ -1262,6 +1295,8 @@
     </div>
   </div>
 
+  <div class="tw-summary" id="twSummary"></div>
+
   <div class="content-row">
     <div class="left-col">
       <aside class="kel-filter-panel" id="kelFilterPanel"></aside>
@@ -1879,6 +1914,7 @@ function loadData(){
       try{
         buildStore(res.data);
         computeHeroStats();
+        renderTwSummary();
         renderTabs();
         if(activePeriode) renderContent(activePeriode);
       }catch(err){
@@ -2050,6 +2086,76 @@ function computeHeroStats(){
   if(elTerbaru) elTerbaru.textContent = isFinite(maxTahun) ? maxTahun : '–';
 }
 
+/* ===== Ringkasan PDRB triwulanan terbaru (strip di bawah tab): c-to-c, y-on-y, q-to-q ===== */
+const TW_ROMAN = {1:'I', 2:'II', 3:'III', 4:'IV'};
+// Cari subkelompok di periode Triwulanan berdasar nama (kategori/kelompok apa pun); pilih yang datanya terpanjang
+function twFindSeries(re){
+  const P = (typeof STORE!=='undefined' && STORE) ? STORE['Triwulanan'] : null;
+  if(!P) return null;
+  let best = null;
+  Object.keys(P).forEach(kat=>Object.keys(P[kat]).forEach(kel=>Object.keys(P[kat][kel]).forEach(sub=>{
+    if(re.test(sub.trim())){ const arr = P[kat][kel][sub]; if(arr && arr.length && (!best || arr.length>best.length)) best = arr; }
+  })));
+  return best;
+}
+function twSummaryData(){
+  const sC = twFindSeries(/^laju\s+pertumbuhan\s*\(\s*c[\s-]*to[\s-]*c\s*\)\s*pdrb$/i);
+  const sY = twFindSeries(/^laju\s+pertumbuhan\s*\(\s*y[\s-]*on[\s-]*y\s*\)\s*pdrb$/i);
+  const sQ = twFindSeries(/^laju\s+pertumbuhan\s*\(\s*q[\s-]*to[\s-]*q\s*\)\s*pdrb(?:\s+triwulanan)?$/i);
+  const kon = twFindSeries(/^pdrb\s+menurut\s+harga\s+konstan(?:\s+\d{4})?$/i);
+  const ber = twFindSeries(/^pdrb\s+menurut\s+harga\s+berlaku$/i);
+  const core = [sC, sY, sQ, kon].filter(a=>a && a.length);
+  if(!core.length) return null;
+
+  // Triwulan terbaru = yang terakhir tersedia di deret pertumbuhan / PDRB harga konstan
+  const latestKey = Math.max(...core.map(a=>sortKey(a[a.length-1])));
+  const tahun = Math.floor(latestKey/10), tw = latestKey%10;
+  const at = (arr, t, q)=>{ const e = arr ? arr.find(x=>x.tahun===t && triwulanToNum(x.triwulan)===q) : null; return e ? e.data : null; };
+  const prev = tw>1 ? [tahun, tw-1] : [tahun-1, 4];
+  const R = TW_ROMAN;
+
+  // Pakai nilai yang tercatat di data; bila tidak ada, hitung dari PDRB harga konstan
+  let qtq = at(sQ, tahun, tw);
+  if(qtq===null){ const a = at(kon,tahun,tw), b = at(kon,prev[0],prev[1]); if(a!==null && b) qtq = (a/b-1)*100; }
+  let yoy = at(sY, tahun, tw);
+  if(yoy===null){ const a = at(kon,tahun,tw), b = at(kon,tahun-1,tw); if(a!==null && b) yoy = (a/b-1)*100; }
+  let ctc = at(sC, tahun, tw);
+  if(ctc===null){
+    const sum = (t)=>{ let x = 0; for(let q=1;q<=tw;q++){ const v = at(kon,t,q); if(v===null) return null; x += v; } return x; };
+    const a = sum(tahun), b = sum(tahun-1);
+    if(a!==null && b) ctc = (a/b-1)*100;
+  }
+  return {
+    tahun, tw, label:`Triwulan ${R[tw]} ${tahun}`,
+    adhb: at(ber, tahun, tw), adhk: at(kon, tahun, tw),
+    qtq, yoy, ctc,
+    qtqSub: `TW ${R[tw]} ${tahun} vs TW ${R[prev[1]]} ${prev[0]}`,
+    yoySub: `TW ${R[tw]} ${tahun} vs TW ${R[tw]} ${tahun-1}`,
+    ctcSub: tw===1 ? `TW I ${tahun} vs TW I ${tahun-1}` : `TW I–${R[tw]} ${tahun} vs TW I–${R[tw]} ${tahun-1}`
+  };
+}
+function renderTwSummary(){
+  const el = document.getElementById('twSummary');
+  if(!el) return;
+  const d = twSummaryData();
+  if(!d){ el.classList.remove('show'); el.innerHTML = ''; return; }
+  const pct = v => v===null ? '—' : `${v>0?'+':''}${v.toFixed(2).replace('.',',')}%`;
+  const cls = v => v===null ? '' : (v>0 ? 'pos' : (v<0 ? 'neg' : ''));
+  const arrow = v => v===null ? '' : (v>0 ? '▲ ' : (v<0 ? '▼ ' : ''));
+  const growth = (lbl, v, sub, tip)=>
+    `<div class="tw-chip"><div class="tw-chip-lbl" title="${tip}">${lbl}</div><div class="tw-chip-val ${cls(v)}">${arrow(v)}${pct(v)}</div><div class="tw-chip-sub">${sub}</div></div>`;
+  const level = (lbl, v, sub)=>
+    `<div class="tw-chip"><div class="tw-chip-lbl">${lbl}</div><div class="tw-chip-val">${v===null?'—':fmtNum(v)}</div><div class="tw-chip-sub">${sub}</div></div>`;
+  el.innerHTML = `
+    <div class="tw-sum-head"><div class="tw-sum-eyebrow">PDRB Klungkung · Terbaru</div><div class="tw-sum-title">${d.label}</div></div>
+    ${growth('C-TO-C', d.ctc, d.ctcSub, 'Pertumbuhan kumulatif dari awal tahun dibanding periode kumulatif yang sama tahun lalu')}
+    ${growth('Y-ON-Y', d.yoy, d.yoySub, 'Pertumbuhan dibanding triwulan yang sama tahun lalu')}
+    ${growth('Q-TO-Q', d.qtq, d.qtqSub, 'Pertumbuhan dibanding triwulan sebelumnya (dipengaruhi pola musiman)')}
+    ${level('PDRB ADHK', d.adhk, 'Rp miliar · harga konstan 2010')}
+    ${level('PDRB ADHB', d.adhb, 'Rp miliar · harga berlaku')}`;
+  el.classList.add('show');
+}
+
 /* ===== Cari Data (form permintaan data ke pengunjung) ===== */
 let cariMode = false;
 
@@ -2071,9 +2177,75 @@ let nkTrenBali = false;
 let cariSubmitState = 'idle'; // idle | sending | success | error
 const CARI_DATA_WEBAPP_URL = 'https://script.google.com/macros/s/GANTI_DENGAN_URL_DEPLOYMENT_ANDA/exec';
 
+/* ===== Nav kanan: sub-tab mengembang di bawah tab aktif (Shift-Share s.d. Naker) ===== */
+const sideCollapsed = {};   // key mode → true bila sub-tab dilipat manual
+let sideLastKey = null;
+function sideCurrentKey(){
+  return ssMode ? 'ss' : lqMode ? 'lq' : convMode ? 'conv' : advMode ? 'adv' : nkMode ? 'nk' : null;
+}
+function sideSubCfg(key){
+  if(key==='ss') return { tabs:[
+      {key:'tradisional', label:'Dynamic Traditional'},
+      {key:'em',          label:'Dynamic Esteban-Marquilas'},
+      {key:'arcelus',     label:'Dynamic Arcelus'} ],
+    get:()=>ssMethod, set:v=>{ ssMethod = v; }, render:()=>renderShiftShareView() };
+  if(key==='lq') return { tabs:[
+      {key:'raw',       label:'LQ Asli (SLQ · DLQ)'},
+      {key:'symmetric', label:'LQ Simetris (SSLQ · DSLQ)'} ],
+    get:()=>lqMethod, set:v=>{ lqMethod = v; }, render:()=>renderLQView() };
+  if(key==='conv') return { tabs:CONV_SUBTABS, get:()=>convSubTab, set:v=>{ convSubTab = v; }, render:()=>renderKonvergensiView() };
+  if(key==='adv')  return { tabs:ADV_SUBTABS,  get:()=>advSubTab,  set:v=>{ advSubTab = v; },  render:()=>renderAdvancedView() };
+  if(key==='nk')   return { tabs:NK_SUBTABS,   get:()=>nkSubTab,   set:v=>{ nkSubTab = v; },   render:()=>renderNakerView() };
+  return null;
+}
+// Klik tab di nav kanan: tab non-aktif → aktifkan (sub-tab otomatis terbuka); tab aktif → buka/lipat sub-tab.
+function sideClick(isV, key, isActive, orig){
+  if(!isV) return orig;
+  return ()=>{
+    if(isActive){ sideCollapsed[key] = !sideCollapsed[key]; renderTabs(); }
+    else orig();
+  };
+}
+function sideDecorate(tabsEl, btn, isV, key, isActive){
+  if(!isV) return;
+  const cfg = sideSubCfg(key);
+  if(!cfg) return;
+  const open = isActive && !sideCollapsed[key];
+  btn.classList.add('has-sub');
+  btn.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if(!open) return;
+  const grp = document.createElement('div');
+  grp.className = 'tab-subgroup';
+  const cur = cfg.get();
+  cfg.tabs.forEach(t=>{
+    const b = document.createElement('button');
+    b.className = 'tab-sub' + (t.key===cur ? ' active' : '');
+    b.dataset.k = t.key;
+    b.textContent = t.label;
+    b.onclick = ()=>{ cfg.set(t.key); cfg.render(); syncSideSubTabs(); };
+    grp.appendChild(b);
+  });
+  tabsEl.appendChild(grp);
+}
+function syncSideSubTabs(){
+  const key = sideCurrentKey();
+  const cfg = key ? sideSubCfg(key) : null;
+  if(!cfg) return;
+  const cur = cfg.get();
+  document.querySelectorAll('#tabsVertical .tab-sub').forEach(b=> b.classList.toggle('active', b.dataset.k===cur));
+}
+// Sub-tab yang diklik dari dalam konten juga menyorot sub-tab di nav kanan
+document.addEventListener('click', e=>{
+  if(e.target.closest && e.target.closest('#main .ss-method-tab')) setTimeout(syncSideSubTabs, 0);
+});
+
 function renderTabs(){
   const containers = [document.getElementById('tabs'), document.getElementById('tabsVertical')].filter(Boolean);
+  const curKey = sideCurrentKey();
+  if(curKey!==sideLastKey){ if(curKey) delete sideCollapsed[curKey]; sideLastKey = curKey; }   // pindah mode → sub-tab terbuka lagi
   containers.forEach(tabsEl=>{
+    const isV = tabsEl.id==='tabsVertical';
     tabsEl.innerHTML = '';
     STORE.__order.forEach(p=>{
       const btn = document.createElement('button');
@@ -2102,20 +2274,23 @@ function renderTabs(){
     const ssBtn = document.createElement('button');
     ssBtn.className = 'tab' + (ssMode ? ' active' : '');
     ssBtn.textContent = 'Shift-Share';
-    ssBtn.onclick = ()=>{ compareMode = false; ssMode = true; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; nkMode = false; renderTabs(); renderShiftShareView(); };
+    ssBtn.onclick = sideClick(isV, 'ss', ssMode, ()=>{ compareMode = false; ssMode = true; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; nkMode = false; renderTabs(); renderShiftShareView(); });
     tabsEl.appendChild(ssBtn);
+    sideDecorate(tabsEl, ssBtn, isV, 'ss', ssMode);
 
     const lqBtn = document.createElement('button');
     lqBtn.className = 'tab' + (lqMode ? ' active' : '');
     lqBtn.textContent = 'LQ';
-    lqBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = true; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; nkMode = false; renderTabs(); renderLQView(); };
+    lqBtn.onclick = sideClick(isV, 'lq', lqMode, ()=>{ compareMode = false; ssMode = false; lqMode = true; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; nkMode = false; renderTabs(); renderLQView(); });
     tabsEl.appendChild(lqBtn);
+    sideDecorate(tabsEl, lqBtn, isV, 'lq', lqMode);
 
     const convBtn = document.createElement('button');
     convBtn.className = 'tab' + (convMode ? ' active' : '');
     convBtn.textContent = 'Konvergensi';
-    convBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = true; divMode = false; advMode = false; infMode = false; cariMode = false; nkMode = false; renderTabs(); renderKonvergensiView(); };
+    convBtn.onclick = sideClick(isV, 'conv', convMode, ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = true; divMode = false; advMode = false; infMode = false; cariMode = false; nkMode = false; renderTabs(); renderKonvergensiView(); });
     tabsEl.appendChild(convBtn);
+    sideDecorate(tabsEl, convBtn, isV, 'conv', convMode);
 
     const divBtn = document.createElement('button');
     divBtn.className = 'tab' + (divMode ? ' active' : '');
@@ -2126,14 +2301,16 @@ function renderTabs(){
     const advBtn = document.createElement('button');
     advBtn.className = 'tab' + (advMode ? ' active' : '');
     advBtn.textContent = 'Struktural';
-    advBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = true; infMode = false; cariMode = false; nkMode = false; renderTabs(); renderAdvancedView(); };
+    advBtn.onclick = sideClick(isV, 'adv', advMode, ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = true; infMode = false; cariMode = false; nkMode = false; renderTabs(); renderAdvancedView(); });
     tabsEl.appendChild(advBtn);
+    sideDecorate(tabsEl, advBtn, isV, 'adv', advMode);
 
     const nkBtn = document.createElement('button');
     nkBtn.className = 'tab' + (nkMode ? ' active' : '');
-    nkBtn.textContent = 'Tenaga Kerja';
-    nkBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; nkMode = true; renderTabs(); renderNakerView(); };
+    nkBtn.textContent = 'Naker';
+    nkBtn.onclick = sideClick(isV, 'nk', nkMode, ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; nkMode = true; renderTabs(); renderNakerView(); });
     tabsEl.appendChild(nkBtn);
+    sideDecorate(tabsEl, nkBtn, isV, 'nk', nkMode);
 
     const sep2 = document.createElement('span');
     sep2.className = 'tab-sep';
@@ -8532,17 +8709,18 @@ function buildConvMatrixForYear(year){
   return matrix;
 }
 
+const CONV_SUBTABS = [
+  {key:'bali',   label:'Klungkung vs Bali'},
+  {key:'baliSektoral', label:'Klungkung vs Bali (Sektoral)'},
+  {key:'matrix', label:'Matriks Sektor'},
+  {key:'mr',     label:'Mean Reversion'}
+];
 function renderKonvergensiView(){
   const filterPanel = document.getElementById('kelFilterPanel');
   if(filterPanel) filterPanel.style.display = 'none';
   const main = document.getElementById('main');
 
-  const subTabs = [
-    {key:'bali',   label:'Klungkung vs Bali'},
-    {key:'baliSektoral', label:'Klungkung vs Bali (Sektoral)'},
-    {key:'matrix', label:'Matriks Sektor'},
-    {key:'mr',     label:'Mean Reversion'}
-  ];
+  const subTabs = CONV_SUBTABS;
 
   main.innerHTML = `
     <section class="ss-wrap">
@@ -9908,22 +10086,23 @@ function loadDivData(){
    dari modul Diversitas (format & konvensi sumber data sama).
    ========================================================= */
 
+const ADV_SUBTABS = [
+  {key:'growth_diff', label:'Diferensial Pertumbuhan'},
+  {key:'structural_change', label:'Perubahan Struktur'},
+  {key:'krugman', label:'Indeks Krugman'},
+  {key:'similarity', label:'Kemiripan Struktur'},
+  {key:'gap', label:'Kesenjangan Struktur'},
+  {key:'markov', label:'Transisi Markov'},
+  {key:'complexity', label:'Kompleksitas Ekonomi'},
+  {key:'resilience', label:'Ketahanan Ekonomi'},
+  {key:'trajectory', label:'Spesialisasi Dinamis'}
+];
 function renderAdvancedView(){
   const filterPanel = document.getElementById('kelFilterPanel');
   if(filterPanel) filterPanel.style.display = 'none';
   const main = document.getElementById('main');
 
-  const subTabs = [
-    {key:'growth_diff', label:'Diferensial Pertumbuhan'},
-    {key:'structural_change', label:'Perubahan Struktur'},
-    {key:'krugman', label:'Indeks Krugman'},
-    {key:'similarity', label:'Kemiripan Struktur'},
-    {key:'gap', label:'Kesenjangan Struktur'},
-    {key:'markov', label:'Transisi Markov'},
-    {key:'complexity', label:'Kompleksitas Ekonomi'},
-    {key:'resilience', label:'Ketahanan Ekonomi'},
-    {key:'trajectory', label:'Spesialisasi Dinamis'}
-  ];
+  const subTabs = ADV_SUBTABS;
 
   main.innerHTML = `
     <section class="ss-wrap">
