@@ -269,6 +269,33 @@
   }
   .tab-sub:hover:not(.active){ background:var(--peach-soft); }
   .tab-sub.active{ background:var(--peach-soft); color:var(--orange-deep); font-weight:700; }
+
+  /* ===== Isi tambahan di bawah nav kanan: terakhir dibuka, data terbaru, salin tautan, tips ===== */
+  .side-extra{ margin-top:8px; padding-top:12px; border-top:1px solid var(--peach-soft); display:flex; flex-direction:column; gap:14px; }
+  .side-title{ font-size:9px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--brown-soft); margin:0 4px 5px; }
+  .side-recent-item{
+    display:block; width:100%; text-align:left; background:none; border:none; cursor:pointer;
+    padding:5px 8px; border-radius:8px; font-family:'Inter',sans-serif; font-size:11.5px; font-weight:500;
+    color:var(--brown-mid); line-height:1.3; transition:background .15s;
+  }
+  .side-recent-item:hover{ background:var(--peach-soft); }
+  .side-recent-item span{ display:block; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+  .side-recent-item small{ display:block; font-size:9.5px; color:var(--brown-soft); margin-top:1px; }
+  .side-recent-empty{ font-size:10.5px; color:var(--brown-soft); padding:0 8px; line-height:1.4; }
+  .side-data{ background:var(--peach-soft); border-radius:10px; padding:9px 11px; font-size:10.5px; color:var(--brown-mid); line-height:1.5; }
+  .side-data div{ display:flex; justify-content:space-between; gap:6px; }
+  .side-data b{ color:var(--brown-deep); font-family:'Sora',sans-serif; font-weight:600; white-space:nowrap; }
+  .side-btn{
+    width:100%; font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; color:var(--brown-mid);
+    background:none; border:1px solid var(--peach-soft); border-radius:10px; padding:8px 10px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:6px; transition:background .15s, color .15s;
+  }
+  .side-btn:hover{ background:var(--peach-soft); color:var(--brown-deep); }
+  .side-tip{ font-size:10.5px; color:var(--brown-mid); line-height:1.5; padding:0 4px; }
+  .side-tip b{ display:block; font-size:9px; letter-spacing:.09em; text-transform:uppercase; color:var(--brown-soft); margin-bottom:3px; }
+  .side-tip button{ background:none; border:none; padding:0; margin-top:5px; font-size:10px; font-weight:600; color:var(--orange-deep); cursor:pointer; text-decoration:underline; font-family:'Inter',sans-serif; }
+  @media (max-height:760px){ .side-tip{ display:none; } }
+  @media (max-height:600px){ .side-data{ display:none; } }
   @media (max-width:900px){
     .tabbar-vertical{ display:none; }
   }
@@ -1304,7 +1331,7 @@
           <option value="lavender">Lavender</option>
           <option value="safir">Safir</option>
           <option value="abuabu">Abu-Abu Netral</option>
-          <option value="kustom">Warna Sendiri</option>
+          <option value="kustom">🎨 Warna sendiri…</option>
         </select>
         <input type="color" id="paletteCustomColor" title="Pilih warna aksen sendiri; seluruh palet diturunkan dari warna ini" style="display:none;">
         <span class="pp-sep"></span>
@@ -2628,6 +2655,92 @@ function shareApplyHash(rawHash){
 }
 window.addEventListener('hashchange', ()=>{ if(!shareApplying) shareApplyHash(); });
 
+/* ===== Isi tambahan nav kanan ===== */
+const RECENT_KEY = 'klk_recent_views';
+let RECENT_VIEWS = [];
+try{ RECENT_VIEWS = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]') || []; }catch(e){ RECENT_VIEWS = []; }
+function recentPush(item){
+  const id = JSON.stringify([item.k, item.periode, item.kategori, item.kelompok, item.sub || item.label]);
+  RECENT_VIEWS = [Object.assign({ id }, item)].concat(RECENT_VIEWS.filter(x=>x.id !== id)).slice(0, 5);
+  try{ localStorage.setItem(RECENT_KEY, JSON.stringify(RECENT_VIEWS)); }catch(e){}
+  renderSideRecent();
+}
+function recentOpen(it){
+  try{
+    const kel = STORE[it.periode] && STORE[it.periode][it.kategori] && STORE[it.periode][it.kategori][it.kelompok];
+    if(!kel) return;
+    if(it.k === 'series'){ if(kel[it.sub]) openDetail(it.periode, it.kategori, it.kelompok, it.sub); }
+    else if(it.k === 'comp') openCompositionDetail(it.periode, it.kategori, it.kelompok, it.label, it.segs);
+    else if(it.k === 'berlaku') openHargaBerlakuDetail(it.periode, it.kategori, it.kelompok, it.label, it.segs);
+    else if(it.k === 'konstan') openKonstanSektoralDetail(it.periode, it.kategori, it.kelompok, it.label, it.segs);
+  }catch(e){}
+}
+function renderSideRecent(){
+  const box = document.getElementById('sideRecent');
+  if(!box) return;
+  const valid = RECENT_VIEWS.filter(it=> STORE && STORE[it.periode] && STORE[it.periode][it.kategori] && STORE[it.periode][it.kategori][it.kelompok]);
+  if(!valid.length){ box.innerHTML = '<div class="side-recent-empty">Belum ada. Indikator yang kamu buka akan muncul di sini.</div>'; return; }
+  box.innerHTML = '';
+  valid.forEach(it=>{
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'side-recent-item';
+    const name = it.k === 'series' ? it.sub : it.label;
+    b.innerHTML = `<span>${escapeHtml(name)}</span><small>${escapeHtml(it.periode)} · ${escapeHtml(it.kelompok)}</small>`;
+    b.title = name;
+    b.onclick = ()=> recentOpen(it);
+    box.appendChild(b);
+  });
+}
+function sideLatestHtml(){
+  const rows = [];
+  ((STORE && STORE.__order) || []).forEach(per=>{
+    let best = null;
+    Object.values(STORE[per] || {}).forEach(kat=> Object.values(kat).forEach(kel=> Object.values(kel).forEach(arr=>{
+      if(arr && arr.length){ const e = arr[arr.length-1]; if(!best || sortKey(e) > sortKey(best)) best = e; }
+    })));
+    if(best) rows.push(`<div><span>${escapeHtml(per)}</span><b>${escapeHtml(periodLabel(best))}</b></div>`);
+  });
+  return rows.join('') || '<div><span>Data</span><b>—</b></div>';
+}
+const SIDE_TIPS = [
+  'Klik nama seri di legenda grafik untuk menyembunyikan atau menampilkannya. Klik kotak warnanya untuk mengganti warna.',
+  'Pada grafik deret waktu yang panjang, seret di area grafik untuk memperbesar rentang. Klik dua kali untuk mengembalikan.',
+  'Alamat di browser menyimpan tab dan tahun yang sedang dibuka. Salin tautannya untuk membagikan tampilan yang sama.',
+  'Ganti palet dan gaya warna kartu (senada atau beragam) lewat pilihan di bagian atas halaman.',
+  'Buka indikator Triwulanan lalu pilih Pola Musiman untuk melihat pola tiap triwulan dari tahun ke tahun.',
+  'Di tab Naker, sub-tab ILOR punya tren per sektor dengan pilihan skala sumbu (Penuh, Fokus, Log simetris).',
+  'Klik titik warna di kartu untuk mengganti warna kelompok; warnanya tersimpan di browser ini.'
+];
+let sideTipIdx = Math.floor(Math.random() * SIDE_TIPS.length);
+function buildSideExtra(){
+  const wrap = document.createElement('div');
+  wrap.className = 'side-extra'; wrap.id = 'sideExtra';
+  wrap.innerHTML = `
+    <div><div class="side-title">Terakhir dibuka</div><div id="sideRecent"></div></div>
+    <div><div class="side-title">Data terbaru</div><div class="side-data">${sideLatestHtml()}</div></div>
+    <button type="button" class="side-btn" id="sideCopyLink" title="Salin tautan ke tampilan yang sedang dibuka">🔗 Salin tautan</button>
+    <div class="side-tip"><b>Tips</b><span id="sideTipText">${escapeHtml(SIDE_TIPS[sideTipIdx])}</span><br><button type="button" id="sideTipNext">Tips lain ↻</button></div>`;
+  wrap.querySelector('#sideTipNext').onclick = ()=>{
+    sideTipIdx = (sideTipIdx + 1) % SIDE_TIPS.length;
+    wrap.querySelector('#sideTipText').textContent = SIDE_TIPS[sideTipIdx];
+  };
+  wrap.querySelector('#sideCopyLink').onclick = async (ev)=>{
+    const btn = ev.currentTarget;
+    shareUpdateHash();
+    const url = location.href;
+    let ok = false;
+    try{ await navigator.clipboard.writeText(url); ok = true; }
+    catch(e){
+      try{ const ta = document.createElement('textarea'); ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); ok = document.execCommand('copy'); ta.remove(); }catch(e2){}
+    }
+    const old = '🔗 Salin tautan';
+    btn.textContent = ok ? '✓ Tautan disalin' : 'Salin dari alamat browser';
+    setTimeout(()=>{ btn.textContent = old; }, 1800);
+  };
+  setTimeout(renderSideRecent, 0);
+  return wrap;
+}
+
 /* ===== Nav kanan: sub-tab mengembang di bawah tab aktif (Shift-Share s.d. Naker) ===== */
 const sideCollapsed = {};   // key mode → true bila sub-tab dilipat manual
 let sideLastKey = null;
@@ -2773,6 +2886,7 @@ function renderTabs(){
     cariBtn.textContent = 'Cari Data';
     cariBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = true; nkMode = false; renderTabs(); renderCariDataView(); };
     tabsEl.appendChild(cariBtn);
+    if(isV) tabsEl.appendChild(buildSideExtra());
   });
   shareUpdateHash();
 }
@@ -3493,6 +3607,36 @@ function getKelompokShades(baseColor, n){
   return shades;
 }
 
+/* Warna default komponen kartu komposit = turunan warna KARTU (kelompok), bukan warna tema umum.
+   ≤ 6 komponen: gradasi gelap→terang dari warna kartu; lebih banyak: hue digeser tipis + terang-gelap bergantian
+   supaya tetap bisa dibedakan. */
+function getKelompokSpread(baseColor, n){
+  if(n <= 6) return getKelompokShades(baseColor, n);
+  const [h, s0] = ccRgbToHsl(...ccHexToRgb(baseColor));
+  const S = Math.min(0.75, Math.max(0.35, s0));
+  const lv = [.30, .44, .58];
+  const out = [];
+  for(let i=0;i<n;i++) out.push(ccHslToHex(h + (i/(n-1) - 0.5)*64, S, lv[i%3]));
+  return out;
+}
+/* Peta warna komponen pada panel detail komposit. Kunci kustom SAMA dengan kartu ('comp:kelompok:sub'),
+   jadi warna yang diganti di kartu ikut terbawa ke panel detail dan sebaliknya. */
+let compDetailMap = {}, compDetailDefaults = {};
+function compSegColorMap(segs){
+  compDetailMap = {}; compDetailDefaults = {};
+  const ck = currentCompKey;
+  if(!ck) return compDetailMap;
+  const cols = getKelompokSpread(getGroupColor(ck.kategori, ck.kelompok), segs.length);
+  segs.forEach((sg,i)=>{
+    compDetailDefaults[sg] = cols[i];
+    compDetailMap[sg] = seriesColor('comp:' + ck.kelompok + ':' + sg, cols[i]);
+  });
+  return compDetailMap;
+}
+function compDetailColor(sub, i){
+  return compDetailMap[sub] || COMPARE_COLORS[i % COMPARE_COLORS.length];
+}
+
 /* Pola prefix PDRB yang dikenal — dipakai untuk deteksi grup DAN untuk memotong
    label di grafik/legend (hanya sisakan nama sektor/komponen pengeluaran).
    "Bruto" opsional supaya menangani variasi penamaan ("Nilai Tambah Bruto Harga
@@ -3569,7 +3713,7 @@ function renderCompositionCardHtml(periode,kategori,kelompok,subObj,group,katCol
   });
   const total = latestEntries.reduce((sum,x)=>sum + (x.entry?x.entry.data:0), 0) || 1;
   const latestLabel = latestEntries[0].entry ? periodLabel(latestEntries[0].entry) : '';
-  const kelShades = getKelompokShades(katColor, latestEntries.length);
+  const kelShades = getKelompokSpread(katColor, latestEntries.length);
   const segColors = latestEntries.map((x,i)=> seriesColor('comp:'+kelompok+':'+x.sub, kelShades[i]));
 
   const barSegs = latestEntries.map((x,i)=>{
@@ -3627,6 +3771,7 @@ function escapeHtml(s){
 }
 
 function openDetail(periode,kategori,kelompok,sub){
+  recentPush({ k:'series', periode, kategori, kelompok, sub });
   currentSeriesKey = {periode,kategori,kelompok,sub};
   currentCompKey = null;
   currentDetailColor = getGroupColor(kategori, kelompok);
@@ -3949,6 +4094,7 @@ function downloadTableExcel(){
 }
 
 function openCompositionDetail(periode,kategori,kelompok,label,segs){
+  if(segs && segs.length >= 2) recentPush({ k:'comp', periode, kategori, kelompok, label, segs });
   const subObj = STORE[periode][kategori][kelompok];
   if(!segs || segs.length < 2) return;
   currentCompKey = {periode,kategori,kelompok,label};
@@ -4090,6 +4236,7 @@ function getSubPeriods(subObj, segs){
 
 /* ---- Kartu "Harga Berlaku": pilih periode -> nilai & proporsi (komposit) ---- */
 function openHargaBerlakuDetail(periode,kategori,kelompok,label,segs){
+  if(segs && segs.length >= 2) recentPush({ k:'berlaku', periode, kategori, kelompok, label, segs });
   const subObj = STORE[periode][kategori][kelompok];
   if(!segs || segs.length < 2) return;
   currentCompKey = {periode,kategori,kelompok,label};
@@ -4175,6 +4322,7 @@ function buildHargaBerlakuInsight(rows, total, pInfo){
 }
 
 function refreshHargaBerlaku(subObj, segs, label, periodKey, periods){
+  compSegColorMap(segs);
   const pInfo = periods.find(p=>p.key===periodKey) || periods[periods.length-1];
   const rows = segs.map(s=>{
     const arr = subObj[s];
@@ -4191,7 +4339,7 @@ function refreshHargaBerlaku(subObj, segs, label, periodKey, periods){
   if(hbChartType==='treemap'){
     if(hbChartInstance){ hbChartInstance.destroy(); hbChartInstance = null; }
     chartBox.style.height = 'auto';
-    const items = rows.map((r,i)=>({ name:r.short, value:r.value, color: COMPARE_COLORS[i % COMPARE_COLORS.length] }));
+    const items = rows.map((r,i)=>({ name:r.short, value:r.value, color: compDetailColor(r.sub, i) }));
     const W = 600, H = 320;
     const rects = buildTreemapLayout(items, 0, 0, W, H);
     let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" id="hbTreemapSvg" style="width:100%;height:320px;display:block;background:#fff;">`;
@@ -4220,7 +4368,7 @@ function refreshHargaBerlaku(subObj, segs, label, periodKey, periods){
         type:'doughnut',
         data:{ labels: rows.map(r=>r.short), datasets:[{
           data: rows.map(r=>r.value),
-          backgroundColor: rows.map((_,i)=> COMPARE_COLORS[i % COMPARE_COLORS.length]),
+          backgroundColor: rows.map((r,i)=> compDetailColor(r.sub, i)),
           borderWidth:1, borderColor:'#fff'
         }]},
         options:{ responsive:true, maintainAspectRatio:false,
@@ -4234,7 +4382,7 @@ function refreshHargaBerlaku(subObj, segs, label, periodKey, periods){
         data:{ labels: rows.map(r=>r.short), datasets:[{
           label:'Proporsi (%)',
           data: rows.map(r=> r.value/total*100),
-          backgroundColor: rows.map((_,i)=> COMPARE_COLORS[i % COMPARE_COLORS.length])
+          backgroundColor: rows.map((r,i)=> compDetailColor(r.sub, i))
         }]},
         options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
           plugins:{ legend:{ display:false }, tooltip:{ callbacks:{
@@ -4274,6 +4422,7 @@ function cumulativeSum(arr, tahun, maxTriwulanNum){
 
 /* ---- Kartu "Harga Konstan": pilih periode -> nilai & pertumbuhan tiap sektor ---- */
 function openKonstanSektoralDetail(periode,kategori,kelompok,label,segs){
+  if(segs && segs.length >= 2) recentPush({ k:'konstan', periode, kategori, kelompok, label, segs });
   const subObj = STORE[periode][kategori][kelompok];
   if(!segs || segs.length < 2) return;
   currentCompKey = {periode,kategori,kelompok,label};
@@ -4362,6 +4511,8 @@ function buildKonstanSektoralInsight(rows, pInfo, compareLabel){
 }
 
 function refreshKonstanSektoral(subObj, segs, label, periodKey, periods){
+  const konColor = currentCompKey ? getGroupColor(currentCompKey.kategori, currentCompKey.kelompok) : THEME.c4;   // warna kartu, bukan warna tema umum
+  const konColor2 = shadeHex(konColor, -0.38);
   const idx = periods.findIndex(p=>p.key===periodKey);
   const cur = periods[idx] || periods[periods.length-1];
   const prevPeriod = idx > 0 ? periods[idx-1] : null;
@@ -4403,8 +4554,8 @@ function refreshKonstanSektoral(subObj, segs, label, periodKey, periods){
   if(hkChartInstance) hkChartInstance.destroy();
   hkChartInstance = new Chart(document.getElementById('hkChartCanvas'), {
     data:{ labels: rows.map(r=>r.short), datasets:[
-      { type:'line', label:'Nilai', data: rows.map(r=>r.value), borderColor:THEME.c4, backgroundColor:hexToRgba(THEME.c4,0.28), fill:true, tension:0.35, pointRadius:0, yAxisID:'y' },
-      { type:'line', label:'Pertumbuhan (%)', data: rows.map(r=>r.growth), borderColor:THEME.accent, backgroundColor:'rgba(31,111,107,0.28)', fill:true, tension:0.35, pointRadius:0, yAxisID:'y1', spanGaps:false }
+      { type:'line', label:'Nilai', data: rows.map(r=>r.value), borderColor:konColor, backgroundColor:hexToRgba(konColor,0.28), fill:true, tension:0.35, pointRadius:0, yAxisID:'y' },
+      { type:'line', label:'Pertumbuhan (%)', data: rows.map(r=>r.growth), borderColor:konColor2, backgroundColor:hexToRgba(konColor2,0.28), fill:true, tension:0.35, pointRadius:0, yAxisID:'y1', spanGaps:false }
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main} },
@@ -4545,7 +4696,7 @@ function buildTreemapSVG(segs, bySegSK, lastSK){
   const items = segs.map((s,i)=>({
     name: s,
     value: bySegSK[s][lastSK] || 0,
-    color: COMPARE_COLORS[i % COMPARE_COLORS.length]
+    color: compDetailColor(s, i)
   })).filter(it=>it.value > 0);
 
   if(items.length === 0){
@@ -4579,7 +4730,7 @@ function buildWaffleSVG(segs, bySegSK, lastSK){
   const items = segs.map((s,i)=>({
     name: s,
     value: bySegSK[s][lastSK] || 0,
-    color: COMPARE_COLORS[i % COMPARE_COLORS.length]
+    color: compDetailColor(s, i)
   })).filter(it=>it.value > 0);
 
   if(items.length === 0){
@@ -4632,7 +4783,7 @@ function buildDumbbellSVG(segs, bySegSK, sortedSK, skMap){
 
   sortedSK.forEach((sk, rowIdx)=>{
     const y = padTop + rowIdx*rowH + rowH/2;
-    const pts = segs.map((s,i)=>({ v: bySegSK[s][sk], color: COMPARE_COLORS[i % COMPARE_COLORS.length], name:s }))
+    const pts = segs.map((s,i)=>({ v: bySegSK[s][sk], color: compDetailColor(s, i), name:s }))
       .filter(p=>p.v !== undefined);
     if(pts.length === 0) return;
     const minP = pts.reduce((a,b)=> a.v<b.v?a:b);
@@ -4676,7 +4827,7 @@ function buildStreamSVG(segs, bySegSK, sortedSK, skMap){
 
   let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" id="compStreamSvg" style="width:100%;height:320px;display:block;">`;
   segs.forEach((seg,i)=>{
-    const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+    const color = compDetailColor(seg, i);
     const topPts = [], botPts = [];
     sortedSK.forEach((sk,ti)=>{
       const v = bySegSK[seg][sk] || 0;
@@ -4720,7 +4871,7 @@ function buildMarimekkoSVG(segs, bySegSK, sortedSK, skMap){
     segs.forEach((seg,i)=>{
       const v = bySegSK[seg][sk] || 0;
       const shareH = total > 0 ? (v/total) * plotH : 0;
-      const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+      const color = compDetailColor(seg, i);
       svg += `<rect x="${xCursor.toFixed(1)}" y="${yCursor.toFixed(1)}" width="${Math.max(0,colW-1.5).toFixed(1)}" height="${Math.max(0,shareH-1).toFixed(1)}" fill="${color}"><title>${escapeHtml(seg)} (${escapeHtml(skMap.get(sk)||'')}): ${fmtNum(v)}</title></rect>`;
       yCursor += shareH;
     });
@@ -4734,6 +4885,7 @@ function buildMarimekkoSVG(segs, bySegSK, sortedSK, skMap){
 }
 
 function refreshCompositionDetail(subObj, segs, fromYear, toYear){
+  compSegColorMap(segs);
   const skMap = new Map();
   segs.forEach(s=>{
     subObj[s].forEach(e=>{
@@ -4751,17 +4903,26 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
 
   const datasets = segs.map((s,i)=>{
     const data = sortedSK.map(sk=> bySegSK[s].hasOwnProperty(sk) ? bySegSK[s][sk] : null);
-    const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+    const color = compDetailColor(s, i);
     return { label:s, data, backgroundColor:color, borderRadius:0, stack:'comp' };
   });
 
   const lastSK = sortedSK[sortedSK.length-1];
   const legendHtml = segs.map((s,i)=>{
     const val = bySegSK[s][lastSK];
-    const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
-    return `<div class="comp-legend-item"><span class="dot" style="background:${color}"></span>${escapeHtml(s)} <b>${val!==undefined?fmtNum(val):'—'}</b></div>`;
+    const color = compDetailColor(s, i);
+    const ckey = currentCompKey ? 'comp:' + currentCompKey.kelompok + ':' + s : '';
+    return `<div class="comp-legend-item"><span class="dot" ${ckey ? `data-colorkey="${escapeHtml(ckey)}" data-fallbackcolor="${compDetailDefaults[s] || color}" title="Klik untuk ganti warna"` : ''} style="background:${color}"></span>${escapeHtml(s)} <b>${val!==undefined?fmtNum(val):'—'}</b></div>`;
   }).join('');
   document.getElementById('compLegendFull').innerHTML = legendHtml;
+  document.querySelectorAll('#compLegendFull .dot[data-colorkey]').forEach(dot=>{
+    dot.addEventListener('click', e=>{
+      e.stopPropagation();
+      const key = dot.dataset.colorkey;
+      const redraw = ()=>{ refreshCompositionDetail(subObj, segs, fromYear, toYear); if(typeof renderContent==='function' && activePeriode) renderContent(activePeriode); };
+      openColorPicker(key, seriesColor(key, dot.dataset.fallbackcolor), e.clientX, e.clientY, redraw, redraw);
+    });
+  });
 
   const narrEl = document.getElementById('compDrawerNarrative');
   if(narrEl){
@@ -4817,7 +4978,7 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
             labels: segs,
             datasets:[{
               data: segs.map(s=> bySegSK[s][lastSK] || 0),
-              backgroundColor: segs.map((_,i)=>hexToRgba(COMPARE_COLORS[i % COMPARE_COLORS.length], 0.65)),
+              backgroundColor: segs.map((s,i)=>hexToRgba(compDetailColor(s, i), 0.65)),
               borderColor:'#fff', borderWidth:1.5
             }]
           },
@@ -4842,7 +5003,7 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
           data:{
             labels: items.map(it=>it.name),
             datasets:[
-              { type:'bar', data: items.map(it=>it.value), backgroundColor: items.map((_,i)=>COMPARE_COLORS[i % COMPARE_COLORS.length]), borderWidth:0, borderRadius:4, maxBarThickness:44, yAxisID:'y', order:2 },
+              { type:'bar', data: items.map(it=>it.value), backgroundColor: items.map((it,i)=>compDetailColor(it.name, i)), borderWidth:0, borderRadius:4, maxBarThickness:44, yAxisID:'y', order:2 },
               { type:'line', data: cumPct, borderColor:THEME.main, backgroundColor:THEME.main, borderWidth:2.2, pointRadius:0, pointHoverRadius:4, tension:0.35, fill:false, yAxisID:'y1', order:1 }
             ]
           },
@@ -4864,7 +5025,7 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
             labels: segs,
             datasets:[{
               data: segs.map(s=> bySegSK[s][lastSK] || 0),
-              backgroundColor: segs.map((_,i)=>COMPARE_COLORS[i % COMPARE_COLORS.length]),
+              backgroundColor: segs.map((s,i)=>compDetailColor(s, i)),
               borderColor:'#fff', borderWidth:2
             }]
           },
@@ -4886,7 +5047,7 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
             datasets:[
               {
                 data: segs.map(s=> bySegSK[s][lastSK] || 0),
-                backgroundColor: segs.map((_,i)=>COMPARE_COLORS[i % COMPARE_COLORS.length]),
+                backgroundColor: segs.map((s,i)=>compDetailColor(s, i)),
                 borderColor:'#fff', borderWidth:2, weight:1
               },
               {
@@ -4914,7 +5075,7 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
         noteEl.innerHTML = '';
         const areaDatasets = segs.map((s,i)=>{
           const data = sortedSK.map(sk=> bySegSK[s].hasOwnProperty(sk) ? bySegSK[s][sk] : null);
-          const color = COMPARE_COLORS[i % COMPARE_COLORS.length];
+          const color = compDetailColor(s, i);
           return { label:s, data, borderColor:color, backgroundColor: hexToRgba(color,0.55), fill:true, tension:0, pointRadius:0, stack:'comp' };
         });
         chartInstance = new Chart(ctx, {
