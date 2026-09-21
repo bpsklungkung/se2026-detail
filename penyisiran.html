@@ -457,7 +457,9 @@ function fillSelect(id, values, placeholder){
 }
 
 function rowKey(r){
-  const parts = [normNumeric(r.kodesubsls), norm(r.namakk).toUpperCase(), norm(r.namaak).toUpperCase(), norm(r.alamat).toUpperCase(), normNumeric(r.nik)];
+  const nik = normNumeric(r.nik);
+  if (nik) return "NIK_" + nik;
+  const parts = [normNumeric(r.kodesubsls), norm(r.namakk).toUpperCase(), norm(r.namaak).toUpperCase(), norm(r.alamat).toUpperCase()];
   return parts.filter(Boolean).join('|');
 }
 
@@ -753,9 +755,22 @@ function loadData(){
       };
 
       RAW = [];
+      const seenNik = new Set();
+      
       for(let i = 1; i < rows.length; i++){
         const row = rows[i];
         if(row.length < 2) continue;
+        
+        const nikVal = norm(row[k.nik]);
+        const nikNum = normNumeric(nikVal);
+
+        if (nikNum && seenNik.has(nikNum)) {
+          continue; 
+        }
+        if (nikNum) {
+          seenNik.add(nikNum);
+        }
+        
         RAW.push({
           namakk: norm(row[k.namakk]),
           namaak: norm(row[k.namaak]),
@@ -770,7 +785,7 @@ function loadData(){
           level: norm(row[k.level]),
           status: norm(row[k.status]),
           wilayah: norm(row[k.wilayah]),
-          nik: norm(row[k.nik]),
+          nik: nikVal,
           verifikator: '',
           alasan: ''
         });
