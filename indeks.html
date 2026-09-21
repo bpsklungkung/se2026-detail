@@ -294,6 +294,67 @@
   .side-tip{ font-size:10.5px; color:var(--brown-mid); line-height:1.5; padding:0 4px; }
   .side-tip b{ display:block; font-size:9px; letter-spacing:.09em; text-transform:uppercase; color:var(--brown-soft); margin-bottom:3px; }
   .side-tip button{ background:none; border:none; padding:0; margin-top:5px; font-size:10px; font-weight:600; color:var(--orange-deep); cursor:pointer; text-decoration:underline; font-family:'Inter',sans-serif; }
+
+  /* ===== Favorit, lencana, dan filter kartu ===== */
+  .fav-btn{
+    position:absolute; top:-40px; right:8px; width:30px; height:30px; padding:0;
+    display:flex; align-items:center; justify-content:center; background:none; border:none; cursor:pointer;
+    font-size:18px; line-height:1; color:#fff; opacity:.8; z-index:4; transition:transform .12s, opacity .12s;
+  }
+  .fav-btn:hover{ transform:scale(1.18); opacity:1; }
+  .fav-btn.on{ opacity:1; }
+  .comp-card .fav-btn{ top:10px; color:var(--kat-accent, var(--orange)); }
+  .comp-card .card-label{ padding-right:26px; }
+  .card:not(.comp-card)::after{ right:46px; }
+  .card-badge{
+    display:inline-block; margin-left:6px; padding:1px 7px; border-radius:999px; vertical-align:1px;
+    font-size:9px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; white-space:nowrap;
+  }
+  .card-badge.new{ background:var(--kat-accent, var(--orange)); color:#fff; }
+  .card-badge.stale{ background:#FFF3CD; color:#8A6D00; border:1px solid #F0D78A; }
+  .card-filter-bar{ display:flex; gap:6px; flex-wrap:wrap; margin:0 0 2px; }
+  .card-filter-bar:empty{ display:none; }
+  .cf-chip{
+    font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; padding:5px 12px; border-radius:999px;
+    border:1px solid var(--peach-soft); background:none; color:var(--brown-mid); cursor:pointer; transition:background .15s, color .15s;
+  }
+  .cf-chip b{ font-weight:700; margin-left:3px; opacity:.75; }
+  .cf-chip:hover:not(:disabled):not(.active){ background:var(--peach-soft); }
+  .cf-chip.active{ background:var(--orange-deep); color:#fff; border-color:var(--orange-deep); }
+  .cf-chip:disabled{ opacity:.4; cursor:default; }
+
+  /* Kartu mini favorit di nav kanan */
+  #sideFav{ display:flex; flex-direction:column; gap:8px; }
+  .mini-fav{
+    --c:var(--orange); position:relative; background:var(--card-bg, #fff); border:1px solid var(--line, var(--peach-soft));
+    border-left:4px solid var(--c); border-radius:12px; padding:9px 10px 8px 10px; cursor:pointer; box-shadow:var(--shadow);
+    transition:transform .15s, box-shadow .15s; outline:none;
+  }
+  .mini-fav:hover, .mini-fav:focus-visible{ transform:translateY(-1px); border-color:var(--c); }
+  .mini-fav.pop{ animation:miniPop .55s cubic-bezier(.2,.9,.3,1.3); }
+  @keyframes miniPop{ 0%{ transform:scale(.8) translateX(14px); opacity:0; } 60%{ transform:scale(1.04); opacity:1; } 100%{ transform:scale(1); } }
+  .mini-x{ position:absolute; top:4px; right:4px; width:20px; height:20px; padding:0; border:none; background:none; border-radius:6px; cursor:pointer;
+    font-size:9px; color:var(--brown-soft); opacity:0; transition:opacity .12s; }
+  .mini-fav:hover .mini-x, .mini-x:focus{ opacity:1; }
+  .mini-x:hover{ background:var(--peach-soft); color:var(--orange-deep); }
+  .mini-label{ font-size:10.5px; font-weight:600; color:var(--brown-mid); line-height:1.3; padding-right:14px;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .mini-row{ display:flex; align-items:baseline; gap:4px; margin-top:4px; flex-wrap:wrap; }
+  .mini-val{ font-weight:800; font-size:17px; color:var(--brown-deep); letter-spacing:-.02em; line-height:1.1; }
+  .mini-unit{ font-size:9.5px; font-weight:500; color:var(--brown-soft); }
+  .mini-delta{ margin-top:4px; }
+  .mini-fav .badge{ font-size:9.5px; padding:1px 7px; }
+  .mini-spark{ position:relative; height:24px; margin-top:6px; color:var(--c); }
+  .mini-spark svg{ position:absolute; left:0; top:0; width:calc(100% - 5px); height:100%; overflow:visible; display:block; }
+  .mini-dot{ position:absolute; right:1px; width:6px; height:6px; border-radius:50%; background:var(--c); transform:translateY(-50%); box-shadow:0 0 0 2px var(--card-bg, #fff); }
+  .mini-bar{ display:flex; height:9px; border-radius:5px; overflow:hidden; margin-top:8px; gap:1px; }
+  .mini-bar i{ display:block; min-width:2px; }
+  .mini-meta{ font-size:9px; color:var(--brown-soft); margin-top:5px; }
+  .side-fav-row{ display:flex; align-items:flex-start; gap:2px; }
+  .side-fav-row .side-recent-item{ flex:1; min-width:0; }
+  .side-x{ background:none; border:none; cursor:pointer; color:var(--brown-soft); font-size:10px; padding:6px 4px; border-radius:6px; opacity:0; transition:opacity .12s; }
+  .side-fav-row:hover .side-x, .side-x:focus{ opacity:1; }
+  .side-x:hover{ color:var(--orange-deep); background:var(--peach-soft); }
   @media (max-height:760px){ .side-tip{ display:none; } }
   @media (max-height:600px){ .side-data{ display:none; } }
   @media (max-width:900px){
@@ -2268,6 +2329,7 @@ function loadData(){
     complete: function(res){
       try{
         buildStore(res.data);
+        initSeenBaseline();
         computeHeroStats();
         renderTwSummary();
         renderTabs();
@@ -2655,6 +2717,229 @@ function shareApplyHash(rawHash){
 }
 window.addEventListener('hashchange', ()=>{ if(!shareApplying) shareApplyHash(); });
 
+/* ===== Favorit (★), lencana "Baru" & "Belum diperbarui", dan filter kartu ===== */
+const FAV_KEY = 'klk_favorites', SEEN_KEY = 'klk_seen_latest_v1';
+let FAVORITES = [];
+try{ FAVORITES = JSON.parse(localStorage.getItem(FAV_KEY) || '[]') || []; }catch(e){ FAVORITES = []; }
+let SEEN_BASE = {};          // periode terbaru tiap indikator yang sudah "dilihat" (kunjungan sebelumnya)
+let CURRENT_LATEST = {};     // periode terbaru tiap indikator pada data saat ini
+let LATEST_GLOBAL = {};      // periode terbaru per jenis periode (Tahunan / Triwulanan)
+let cardFilterMode = 'all';  // 'all' | 'fav' | 'new' | 'stale'
+let favJustAdded = null;     // id favorit yang baru ditambahkan → kartu mini di nav kanan muncul dengan animasi
+
+function itemId(it){ return JSON.stringify([it.k, it.periode, it.kategori, it.kelompok, it.sub || it.label]); }
+function favHas(id){ return FAVORITES.some(f=>f.id === id); }
+function favSave(){ try{ localStorage.setItem(FAV_KEY, JSON.stringify(FAVORITES)); }catch(e){} }
+function favToggle(it){
+  const id = itemId(it);
+  if(favHas(id)) FAVORITES = FAVORITES.filter(f=>f.id !== id);
+  else { FAVORITES.push(Object.assign({ id }, it)); favJustAdded = id; }
+  favSave();
+}
+function skLabel(sk){
+  const y = Math.floor(sk/10), q = sk % 10;
+  return q ? `${y} TW ${TW_ROMAN[q]}` : `${y}`;
+}
+/* Periode terbaru tiap indikator & tiap jenis periode; dasar untuk lencana Baru / Belum diperbarui */
+function computeLatestMap(){
+  const m = {}; LATEST_GLOBAL = {};
+  ((STORE && STORE.__order) || []).forEach(per=>{
+    Object.entries(STORE[per] || {}).forEach(([kat, kelObj])=> Object.entries(kelObj).forEach(([kel, subObj])=>{
+      Object.entries(subObj).forEach(([sub, arr])=>{
+        if(!arr || !arr.length) return;
+        const sk = sortKey(arr[arr.length-1]);
+        m[JSON.stringify(['series', per, kat, kel, sub])] = sk;
+        LATEST_GLOBAL[per] = Math.max(LATEST_GLOBAL[per] || 0, sk);
+      });
+      getCompositionGroups(subObj, kel).forEach(g=>{
+        const k = g.kind === 'berlaku' ? 'berlaku' : (g.kind === 'konstan' ? 'konstan' : 'comp');
+        let mx = -Infinity;
+        g.segs.forEach(sg=> (subObj[sg] || []).forEach(e=>{ mx = Math.max(mx, sortKey(e)); }));
+        if(isFinite(mx)) m[JSON.stringify([k, per, kat, kel, g.label])] = mx;
+      });
+    }));
+  });
+  return m;
+}
+/* Dipanggil sekali setelah data dimuat. Kunjungan pertama: tidak ada lencana. Kunjungan berikutnya: "Baru" =
+   periode terbaru lebih baru daripada saat kunjungan sebelumnya. Baseline disimpan untuk kunjungan berikutnya. */
+function initSeenBaseline(){
+  CURRENT_LATEST = computeLatestMap();
+  let stored = null;
+  try{ stored = JSON.parse(localStorage.getItem(SEEN_KEY) || 'null'); }catch(e){ stored = null; }
+  SEEN_BASE = stored && typeof stored === 'object' ? stored : Object.assign({}, CURRENT_LATEST);
+  try{ localStorage.setItem(SEEN_KEY, JSON.stringify(CURRENT_LATEST)); }catch(e){}
+}
+function cardItemFromEl(card){
+  try{
+    if(card.dataset.key){
+      const [periode, kategori, kelompok, sub] = JSON.parse(decodeURIComponent(card.dataset.key));
+      return { k:'series', periode, kategori, kelompok, sub };
+    }
+    if(card.dataset.compkey){
+      const [periode, kategori, kelompok, label, segs, kind] = JSON.parse(decodeURIComponent(card.dataset.compkey));
+      return { k: kind==='berlaku' ? 'berlaku' : (kind==='konstan' ? 'konstan' : 'comp'), periode, kategori, kelompok, label, segs };
+    }
+  }catch(e){}
+  return null;
+}
+function cardFlagsFor(it){
+  const id = itemId(it), latest = CURRENT_LATEST[id], flags = [];
+  if(favHas(id)) flags.push('fav');
+  if(latest !== undefined && SEEN_BASE[id] !== undefined && latest > SEEN_BASE[id]) flags.push('new');
+  const g = LATEST_GLOBAL[it.periode];
+  let gap = 0, staleTip = '';
+  if(latest !== undefined && g !== undefined){
+    const toQ = sk => Math.floor(sk/10)*4 + (sk%10);
+    gap = it.periode === 'Triwulanan' ? toQ(g) - toQ(latest) : Math.floor(g/10) - Math.floor(latest/10);
+    if(gap >= (it.periode === 'Triwulanan' ? 4 : 2)){
+      flags.push('stale');
+      staleTip = `Data terakhir ${skLabel(latest)}, sementara periode terbaru di dashboard ${skLabel(g)}.`;
+    }
+  }
+  return { id, flags, staleTip };
+}
+/* Tambahkan bintang & lencana ke setiap kartu (aman dipanggil berulang) */
+function decorateCards(){
+  document.querySelectorAll('#main .card:not(.insight-card)').forEach(card=>{
+    card.querySelectorAll('.fav-btn, .card-badge').forEach(n=>n.remove());
+    const it = cardItemFromEl(card); if(!it) return;
+    const f = cardFlagsFor(it);
+    card.dataset.flags = f.flags.join(' ');
+    const per = card.querySelector('.card-period');
+    if(per){
+      if(f.flags.includes('new')) per.insertAdjacentHTML('beforeend', '<span class="card-badge new" title="Ada periode data yang lebih baru sejak kunjunganmu sebelumnya">Baru</span>');
+      if(f.flags.includes('stale')) per.insertAdjacentHTML('beforeend', `<span class="card-badge stale" title="${escapeHtml(f.staleTip)}">Belum diperbarui</span>`);
+    }
+    const on = f.flags.includes('fav');
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'fav-btn' + (on ? ' on' : '');
+    btn.textContent = on ? '★' : '☆';
+    btn.title = on ? 'Hapus dari favorit' : 'Tambahkan ke favorit';
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.setAttribute('aria-label', (on ? 'Hapus dari favorit: ' : 'Tambahkan ke favorit: ') + (it.sub || it.label));
+    btn.addEventListener('mousedown', e=>e.stopPropagation());
+    btn.addEventListener('click', e=>{
+      e.stopPropagation();
+      favToggle(it);
+      decorateCards();
+      renderSideFav();
+    });
+    card.appendChild(btn);
+  });
+  renderCardFilterBar();
+  const gs = document.getElementById('globalSearchInput');
+  applyGlobalSearch(gs ? gs.value : '');
+}
+function renderCardFilterBar(){
+  const bar = document.getElementById('cardFilterBar');
+  if(!bar) return;
+  const cards = [...document.querySelectorAll('#main .card:not(.insight-card)')];
+  const count = fl => cards.filter(c=> (c.dataset.flags || '').split(' ').includes(fl)).length;
+  const n = { fav:count('fav'), new:count('new'), stale:count('stale') };
+  if(cardFilterMode !== 'all' && !n[cardFilterMode]) cardFilterMode = 'all';
+  const chips = [
+    ['all',  `Semua <b>${cards.length}</b>`, cards.length],
+    ['fav',  `★ Favorit <b>${n.fav}</b>`, n.fav],
+    ['new',  `Baru <b>${n.new}</b>`, n.new],
+    ['stale',`Belum diperbarui <b>${n.stale}</b>`, n.stale]
+  ];
+  bar.innerHTML = chips.map(([k, html, c])=>`<button type="button" class="cf-chip${cardFilterMode===k?' active':''}" data-mode="${k}" ${k!=='all' && !c ? 'disabled' : ''}>${html}</button>`).join('');
+  bar.querySelectorAll('.cf-chip').forEach(b=>{
+    b.onclick = ()=>{
+      cardFilterMode = b.dataset.mode;
+      renderCardFilterBar();
+      const gs = document.getElementById('globalSearchInput');
+      applyGlobalSearch(gs ? gs.value : '');
+    };
+  });
+}
+/* Sparkline mini untuk kartu favorit: kurva mulus, skala mengikuti data, garis tetap tipis */
+function favSparkHtml(vals){
+  if(!vals || vals.length < 2) return '';
+  const W = 100, H = 24, pad = 3;
+  let lo = Math.min(...vals), hi = Math.max(...vals);
+  const padR = ((hi - lo) || Math.abs(hi) || 1) * 0.15; lo -= padR; hi += padR;
+  const rng = (hi - lo) || 1;
+  const X = i => i * W / (vals.length - 1), Y = v => pad + (hi - v) / rng * (H - 2*pad);
+  const pts = vals.map((v,i)=>({ x:X(i), y:Y(v) }));
+  const line = twSmoothPath(pts);
+  return `<div class="mini-spark"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+      <path d="${line} L${W},${H} L0,${H} Z" fill="currentColor" fill-opacity=".12" stroke="none"/>
+      <path d="${line}" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+    </svg><span class="mini-dot" style="top:${(Y(vals[vals.length-1])/H*100).toFixed(2)}%"></span></div>`;
+}
+/* Data ringkas satu favorit untuk kartu mini di nav kanan */
+function favMiniData(it){
+  const subObj = STORE[it.periode][it.kategori][it.kelompok];
+  const color = getGroupColor(it.kategori, it.kelompok);
+  if(it.k === 'series'){
+    const entries = subObj[it.sub]; if(!entries || !entries.length) return null;
+    const latest = entries[entries.length-1], prev = entries.length > 1 ? entries[entries.length-2] : null;
+    let delta = '<span class="badge na">Data awal</span>';
+    if(prev){
+      const diff = latest.data - prev.data;
+      delta = Math.abs(diff) < 0.0005 ? '<span class="badge flat">▬</span>'
+        : `<span class="badge ${diff>0?'up':'down'}">${diff>0?'▲':'▼'} ${diff>0?'+':''}${fmtNum(diff)}</span>`;
+    }
+    return { name:it.sub, color, value:fmtNum(latest.data), unit:SATUAN[it.sub] || '', delta,
+             spark:favSparkHtml(entries.slice(-12).map(e=>e.data)), meta:`Diperbarui ${periodLabel(latest)}` };
+  }
+  // kartu komposit: batang proporsi komponen pada periode terbaru
+  const segs = (it.segs || []).filter(sg=> subObj[sg] && subObj[sg].length);
+  if(segs.length < 2) return null;
+  let maxSK = -Infinity; segs.forEach(sg=> subObj[sg].forEach(e=>{ maxSK = Math.max(maxSK, sortKey(e)); }));
+  const latest = segs.map(sg=>{ const arr = subObj[sg]; const e = arr.find(x=>sortKey(x)===maxSK) || arr[arr.length-1]; return { sub:sg, v:e ? e.data : 0, e }; });
+  const total = latest.reduce((a,b)=>a+b.v, 0) || 1;
+  const cols = getKelompokSpread(color, segs.length);
+  const bar = `<div class="mini-bar">${latest.map((x,i)=>`<i style="flex:${Math.max(x.v/total*100, 0.5)};background:${seriesColor('comp:'+it.kelompok+':'+x.sub, cols[i])}" title="${escapeHtml(x.sub)}"></i>`).join('')}</div>`;
+  let value, unit, name = it.label;
+  if(it.k === 'comp'){
+    const dom = latest.slice().sort((a,b)=>b.v-a.v)[0];
+    value = fmtNum(dom.v); unit = '% ' + shortSegName(dom.sub, it.label);
+  }else{
+    value = fmtNum(total); unit = SATUAN[segs[0]] || '';
+  }
+  const pl = latest[0].e ? periodLabel(latest[0].e) : '';
+  return { name, color, value, unit, delta:`<span class="badge flat">${segs.length} komponen</span>`, spark:bar, meta:`Diperbarui ${pl}` };
+}
+function renderSideFav(){
+  const box = document.getElementById('sideFav');
+  if(!box) return;
+  const valid = FAVORITES.filter(it=> STORE && STORE[it.periode] && STORE[it.periode][it.kategori] && STORE[it.periode][it.kategori][it.kelompok]);
+  if(!valid.length){ box.innerHTML = '<div class="side-recent-empty">Belum ada. Tekan ☆ pada kartu untuk menyimpan indikator favorit; kartu mininya muncul di sini.</div>'; return; }
+  box.innerHTML = '';
+  const MAX = 5;
+  valid.slice().reverse().slice(0, MAX).forEach(it=>{      // favorit terbaru di atas
+    let d = null;
+    try{ d = favMiniData(it); }catch(e){ d = null; }
+    if(!d) return;
+    const card = document.createElement('div');
+    card.className = 'mini-fav' + (it.id === favJustAdded ? ' pop' : '');
+    card.style.setProperty('--c', d.color);
+    card.tabIndex = 0; card.setAttribute('role', 'button');
+    card.title = d.name + ' — klik untuk membuka';
+    card.innerHTML = `<button type="button" class="mini-x" title="Hapus dari favorit" aria-label="Hapus dari favorit">✕</button>
+      <div class="mini-label">${escapeHtml(d.name)}</div>
+      <div class="mini-row"><span class="mini-val">${d.value}</span><span class="mini-unit">${escapeHtml(d.unit)}</span></div>
+      <div class="mini-delta">${d.delta}</div>
+      ${d.spark}
+      <div class="mini-meta">${escapeHtml(d.meta)}</div>`;
+    card.addEventListener('click', ()=> recentOpen(it));
+    card.addEventListener('keydown', e=>{ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); recentOpen(it); } });
+    card.querySelector('.mini-x').addEventListener('click', e=>{
+      e.stopPropagation(); favToggle(it); renderSideFav(); if(document.querySelector('#main .card')) decorateCards();
+    });
+    box.appendChild(card);
+  });
+  if(valid.length > MAX){
+    const more = document.createElement('div'); more.className = 'side-recent-empty';
+    more.textContent = `+${valid.length - MAX} favorit lainnya — lihat lewat filter ★ Favorit di halaman utama`;
+    box.appendChild(more);
+  }
+  favJustAdded = null;
+}
+
 /* ===== Isi tambahan nav kanan ===== */
 const RECENT_KEY = 'klk_recent_views';
 let RECENT_VIEWS = [];
@@ -2662,6 +2947,7 @@ try{ RECENT_VIEWS = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]') || []; 
 function recentPush(item){
   const id = JSON.stringify([item.k, item.periode, item.kategori, item.kelompok, item.sub || item.label]);
   RECENT_VIEWS = [Object.assign({ id }, item)].concat(RECENT_VIEWS.filter(x=>x.id !== id)).slice(0, 5);
+  if(CURRENT_LATEST[id] !== undefined && SEEN_BASE[id] !== CURRENT_LATEST[id]){ SEEN_BASE[id] = CURRENT_LATEST[id]; if(document.querySelector('#main .card')) decorateCards(); }
   try{ localStorage.setItem(RECENT_KEY, JSON.stringify(RECENT_VIEWS)); }catch(e){}
   renderSideRecent();
 }
@@ -2703,6 +2989,13 @@ function sideLatestHtml(){
   return rows.join('') || '<div><span>Data</span><b>—</b></div>';
 }
 const SIDE_TIPS = [
+  'Tekan ☆ di pojok kartu untuk menyimpan favorit. Kartu mininya muncul di nav kanan lengkap dengan nilai dan tren terbaru.',
+  'Klik kartu mini di Favorit untuk membuka detailnya. Arahkan kursor ke kartu mini lalu tekan ✕ untuk menghapusnya.',
+  'Lencana Baru berarti ada periode data yang lebih baru sejak kunjunganmu sebelumnya. Lencananya hilang setelah kartunya dibuka.',
+  'Lencana Belum diperbarui muncul bila data terakhir tertinggal 2 tahun (4 triwulan untuk Triwulanan). Arahkan kursor untuk detailnya.',
+  'Chip di atas kartu (★ Favorit, Baru, Belum diperbarui) menyaring kartu, dan bisa digabung dengan kolom cari indikator.',
+  'Favorit dan riwayat "Terakhir dibuka" tersimpan di browser ini saja, tidak ikut ke perangkat lain.',
+  'Di strip PDRB, arahkan kursor ke grafik mini untuk melihat nilai 8 triwulan terakhir.',
   'Klik nama seri di legenda grafik untuk menyembunyikan atau menampilkannya. Klik kotak warnanya untuk mengganti warna.',
   'Pada grafik deret waktu yang panjang, seret di area grafik untuk memperbesar rentang. Klik dua kali untuk mengembalikan.',
   'Alamat di browser menyimpan tab dan tahun yang sedang dibuka. Salin tautannya untuk membagikan tampilan yang sama.',
@@ -2711,11 +3004,12 @@ const SIDE_TIPS = [
   'Di tab Naker, sub-tab ILOR punya tren per sektor dengan pilihan skala sumbu (Penuh, Fokus, Log simetris).',
   'Klik titik warna di kartu untuk mengganti warna kelompok; warnanya tersimpan di browser ini.'
 ];
-let sideTipIdx = Math.floor(Math.random() * SIDE_TIPS.length);
+let sideTipIdx = 0;   // mulai dari tips terbaru (fitur baru), lalu "Tips lain" menggilir semuanya
 function buildSideExtra(){
   const wrap = document.createElement('div');
   wrap.className = 'side-extra'; wrap.id = 'sideExtra';
   wrap.innerHTML = `
+    <div><div class="side-title">Favorit ★</div><div id="sideFav"></div></div>
     <div><div class="side-title">Terakhir dibuka</div><div id="sideRecent"></div></div>
     <div><div class="side-title">Data terbaru</div><div class="side-data">${sideLatestHtml()}</div></div>
     <button type="button" class="side-btn" id="sideCopyLink" title="Salin tautan ke tampilan yang sedang dibuka">🔗 Salin tautan</button>
@@ -2737,7 +3031,7 @@ function buildSideExtra(){
     btn.textContent = ok ? '✓ Tautan disalin' : 'Salin dari alamat browser';
     setTimeout(()=>{ btn.textContent = old; }, 1800);
   };
-  setTimeout(renderSideRecent, 0);
+  setTimeout(()=>{ renderSideFav(); renderSideRecent(); }, 0);
   return wrap;
 }
 
@@ -3458,7 +3752,7 @@ function renderContent(periode){
     html = `<div class="state-msg">Tidak ada kelompok yang ditampilkan. Pilih minimal satu kelompok di panel sebelah kiri.</div>`;
   }
 
-  main.innerHTML = html;
+  main.innerHTML = (anyVisible ? '<div class="card-filter-bar" id="cardFilterBar"></div>' : '') + html;
 
   const gsInputEl = document.getElementById('globalSearchInput');
   if(gsInputEl && gsInputEl.value) applyGlobalSearch(gsInputEl.value);
@@ -3514,6 +3808,8 @@ function renderContent(periode){
       else openCompositionDetail(periode,kategori,kelompok,label,segs);
     });
   });
+
+  decorateCards();
 }
 
 function splitCompositionSegments(subObj){
@@ -13399,6 +13695,7 @@ function applyGlobalSearch(query){
   const q = (query||'').trim().toLowerCase();
   const box = document.getElementById('globalSearchBox');
   if(box) box.classList.toggle('has-query', q.length>0);
+  const filtered = q.length > 0 || cardFilterMode !== 'all';
   const kelompokBlocks = document.querySelectorAll('.kelompok-block');
   if(!kelompokBlocks.length) return;
   kelompokBlocks.forEach(block=>{
@@ -13407,13 +13704,19 @@ function applyGlobalSearch(query){
     cards.forEach(card=>{
       const labelEl = card.querySelector('.card-label');
       const text = (labelEl ? labelEl.textContent : card.textContent).toLowerCase();
-      const match = !q || text.includes(q);
+      const matchText = !q || text.includes(q);
+      const matchFilter = cardFilterMode === 'all' || (card.dataset.flags || '').split(' ').includes(cardFilterMode);
+      const match = matchText && matchFilter;
       card.style.display = match ? '' : 'none';
       if(match) anyVisible = true;
     });
     const insightCard = block.querySelector('.insight-card');
-    if(insightCard) insightCard.style.display = q ? 'none' : '';
-    block.style.display = (anyVisible || !q) ? '' : 'none';
+    if(insightCard) insightCard.style.display = filtered ? 'none' : '';
+    block.style.display = (anyVisible || !filtered) ? '' : 'none';
+  });
+  document.querySelectorAll('.kategori-block').forEach(kb=>{
+    const anyBlock = [...kb.querySelectorAll('.kelompok-block')].some(b=> b.style.display !== 'none');
+    kb.style.display = (anyBlock || !filtered) ? '' : 'none';
   });
 }
 document.getElementById('globalSearchInput').addEventListener('input', (e)=> applyGlobalSearch(e.target.value));
