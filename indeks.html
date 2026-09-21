@@ -143,6 +143,13 @@
   .tw-sum-head{ display:flex; flex-direction:column; justify-content:center; padding:2px 20px 2px 0; min-width:150px; }
   .tw-sum-eyebrow{ font-size:9px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--brown-mid); }
   .tw-sum-title{ font-family:'Sora',sans-serif; font-size:15px; font-weight:600; color:var(--brown-deep); margin-top:3px; }
+  .tw-copy{ align-self:flex-start; margin-top:6px; background:none; border:1px solid rgba(0,0,0,.14); border-radius:999px; padding:3px 10px;
+    font-family:'Inter',sans-serif; font-size:10.5px; font-weight:600; color:var(--brown-mid); cursor:pointer; transition:background .15s; }
+  .tw-copy:hover{ background:rgba(255,255,255,.55); }
+  .copy-narr{ margin-left:auto; background:none; border:1px solid var(--peach-soft); border-radius:999px; padding:2px 10px; cursor:pointer;
+    font-family:'Inter',sans-serif; font-size:10.5px; font-weight:600; color:var(--brown-mid); }
+  .copy-narr:hover{ background:var(--peach-soft); }
+  .ai-insight-title{ display:flex; align-items:center; gap:8px; }
   .tw-chip{ flex:1 1 130px; padding:2px 16px; border-left:1px solid rgba(0,0,0,.09); }
   .tw-chip-g{ flex:1.6 1 210px; }
   .tw-chip-row{ display:flex; align-items:center; gap:12px; margin-top:2px; }
@@ -171,6 +178,8 @@
     box-shadow:var(--shadow); padding:0 10px 0 12px; height:38px;
   }
   .palette-picker input[type=color]{ width:22px; height:22px; padding:0; border:none; background:none; cursor:pointer; border-radius:6px; flex-shrink:0; }
+  .dark-toggle{ background:none; border:none; cursor:pointer; font-size:14px; line-height:1; padding:2px 3px; border-radius:8px; flex-shrink:0; }
+  .dark-toggle:hover{ background:var(--peach-soft); }
   .pp-sep{ width:1px; height:16px; background:var(--peach-soft); flex-shrink:0; }
   /* Ikon palet = pratinjau langsung warna aktif (separuh warna utama, separuh aksen); ikut berubah saat palet diganti */
   .palette-picker .pp-swatch{
@@ -282,15 +291,18 @@
   .side-recent-item span{ display:block; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
   .side-recent-item small{ display:block; font-size:9.5px; color:var(--brown-soft); margin-top:1px; }
   .side-recent-empty{ font-size:10.5px; color:var(--brown-soft); padding:0 8px; line-height:1.4; }
-  .side-data{ background:var(--peach-soft); border-radius:10px; padding:9px 11px; font-size:10.5px; color:var(--brown-mid); line-height:1.5; }
-  .side-data div{ display:flex; justify-content:space-between; gap:6px; }
-  .side-data b{ color:var(--brown-deep); font-family:'Sora',sans-serif; font-weight:600; white-space:nowrap; }
+  .side-data{ background:var(--peach-soft); border-radius:10px; padding:9px 11px; display:flex; flex-direction:column; gap:7px; }
+  .side-data div{ display:block; min-width:0; }
+  .side-data span{ display:block; font-size:9.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--brown-soft); }
+  .side-data b{ display:block; margin-top:1px; font-size:13px; color:var(--brown-deep); font-family:'Sora',sans-serif; font-weight:600; white-space:normal; overflow-wrap:anywhere; line-height:1.25; }
   .side-btn{
     width:100%; font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; color:var(--brown-mid);
     background:none; border:1px solid var(--peach-soft); border-radius:10px; padding:8px 10px; cursor:pointer;
     display:flex; align-items:center; justify-content:center; gap:6px; transition:background .15s, color .15s;
   }
   .side-btn:hover{ background:var(--peach-soft); color:var(--brown-deep); }
+  .side-btn-row{ display:flex; gap:6px; }
+  .side-btn-row .side-btn{ padding:8px 4px; font-size:11px; }
   .side-tip{ font-size:10.5px; color:var(--brown-mid); line-height:1.5; padding:0 4px; }
   .side-tip b{ display:block; font-size:9px; letter-spacing:.09em; text-transform:uppercase; color:var(--brown-soft); margin-bottom:3px; }
   .side-tip button{ background:none; border:none; padding:0; margin-top:5px; font-size:10px; font-weight:600; color:var(--orange-deep); cursor:pointer; text-decoration:underline; font-family:'Inter',sans-serif; }
@@ -323,6 +335,45 @@
   .cf-chip.active{ background:var(--orange-deep); color:#fff; border-color:var(--orange-deep); }
   .cf-chip:disabled{ opacity:.4; cursor:default; }
 
+
+  /* Sorotan otomatis */
+  .highlight-bar{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:8px 0 4px; }
+  .highlight-bar:empty{ display:none; }
+  .hl-col{ background:var(--peach-soft); border-radius:12px; padding:10px 12px; min-width:0; }
+  .hl-title{ font-size:9.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--brown-soft); margin-bottom:6px; }
+  .hl-item{ display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; background:none; border:none; cursor:pointer;
+    padding:5px 6px; border-radius:8px; font-family:'Inter',sans-serif; font-size:12px; font-weight:500; color:var(--brown); text-align:left; }
+  .hl-item:hover{ background:rgba(255,255,255,.55); }
+  .hl-name{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .hl-item .badge{ flex-shrink:0; font-size:10.5px; }
+  @media (max-width:760px){ .highlight-bar{ grid-template-columns:1fr; } }
+
+  /* ===== Cetak / simpan PDF ===== */
+  @media print{
+    @page{ margin:12mm; }
+    *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    body{ background:#fff !important; padding:0 !important; }
+    .tabbar-sticky-wrap, .tabbar-vertical, .side-extra, .fav-btn, .card-filter-bar, .highlight-bar, .dl-btn, .overlay, .drawer,
+    .left-col, .global-search, .palette-picker, .tw-copy, .copy-narr, .kbd-help, .cf-chip, .mini-fav{ display:none !important; }
+    .hero{ width:100% !important; max-width:none !important; border-radius:8px; margin:0 0 8px !important; }
+    .tw-summary{ break-inside:avoid; }
+    .card, .comp-card, .kelompok-block, .ss-kpi-grid, .table-scroll, canvas{ break-inside:avoid; }
+    .card{ box-shadow:none !important; transform:none !important; }
+  }
+
+  /* Bantuan pintasan keyboard */
+  .kbd-help{ position:fixed; right:18px; bottom:18px; z-index:200; width:min(300px, calc(100vw - 36px)); background:var(--card-bg, #fff);
+    border:1px solid var(--peach-soft); border-radius:14px; padding:14px 16px 12px; box-shadow:0 10px 30px rgba(0,0,0,.18); display:none; }
+  .kbd-help.show{ display:block; }
+  .kbd-help h4{ font-family:'Sora',sans-serif; font-size:12px; margin:0 0 8px; color:var(--brown-deep); }
+  .kbd-help div{ display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:11.5px; color:var(--brown-mid); padding:3px 0; }
+  .kbd-help kbd{ font-family:'Inter',sans-serif; font-size:10.5px; font-weight:700; background:var(--peach-soft); color:var(--brown-deep); border-radius:6px; padding:2px 7px; min-width:22px; text-align:center; }
+  .kbd-help .kbd-note{ display:block; margin-top:6px; font-size:10px; color:var(--brown-soft); }
+
+  /* Penyesuaian mode gelap */
+  html.dark .tab-sub.active, html.dark .mini-x:hover, html.dark .side-x:hover, html.dark .news-item-tag.tag-ekonomi{ color:var(--brown-deep); }
+  html.dark .hl-item:hover, html.dark .tw-copy:hover{ background:rgba(255,255,255,.08); }
+  html.dark .card-badge.stale{ background:#3a3212; color:#f0d78a; border-color:#5b4d1a; }
   /* Kartu mini favorit di nav kanan */
   #sideFav{ display:flex; flex-direction:column; gap:8px; }
   .mini-fav{
@@ -1223,7 +1274,7 @@
     border-radius:11px;
   }
   .drawer-desc{
-    background:#F3F4F6;
+    background:var(--cream-deep);
     border:1px solid var(--border);
     border-radius:12px;
     padding:11px 14px;
@@ -1395,6 +1446,8 @@
           <option value="kustom">🎨 Warna sendiri…</option>
         </select>
         <input type="color" id="paletteCustomColor" title="Pilih warna aksen sendiri; seluruh palet diturunkan dari warna ini" style="display:none;">
+        <span class="pp-sep"></span>
+        <button type="button" class="dark-toggle" id="darkToggle" title="Mode gelap (D)" aria-pressed="false">🌙</button>
         <span class="pp-sep"></span>
         <select id="cardColorModeSelect" title="Warna kartu & grafik: Senada = turunan warna palet, Beragam = warna klasik yang berbeda-beda">
           <option value="senada">Kartu senada</option>
@@ -1591,10 +1644,11 @@ const covidBandPlugin = {
     if(right - left < 6) return;
     const ctx = chart.ctx;
     ctx.save();
-    ctx.fillStyle = 'rgba(110,110,110,0.10)';
+    const dk = (typeof darkMode !== 'undefined') && darkMode;
+    ctx.fillStyle = dk ? 'rgba(200,200,200,0.09)' : 'rgba(110,110,110,0.10)';
     ctx.fillRect(left, a.top, right-left, a.bottom-a.top);
     if(right - left > 46){
-      ctx.fillStyle = 'rgba(90,90,90,0.75)';
+      ctx.fillStyle = dk ? 'rgba(215,215,215,0.7)' : 'rgba(90,90,90,0.75)';
       ctx.font = '600 9px Inter, sans-serif';
       ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
       ctx.fillText('COVID-19', (left+right)/2, a.bottom - 4);
@@ -1670,18 +1724,18 @@ const dragZoomPlugin = {
     ctx.save();
     if(st.drag){
       const l = Math.min(st.drag.x0, st.drag.x1), w = Math.abs(st.drag.x1 - st.drag.x0);
-      ctx.fillStyle = 'rgba(80,80,80,0.12)'; ctx.fillRect(l, a.top, w, a.bottom - a.top);
-      ctx.strokeStyle = 'rgba(80,80,80,0.55)'; ctx.lineWidth = 1; ctx.strokeRect(l + .5, a.top + .5, w, a.bottom - a.top - 1);
+      ctx.fillStyle = darkMode ? 'rgba(220,220,220,0.14)' : 'rgba(80,80,80,0.12)'; ctx.fillRect(l, a.top, w, a.bottom - a.top);
+      ctx.strokeStyle = darkMode ? 'rgba(220,220,220,0.55)' : 'rgba(80,80,80,0.55)'; ctx.lineWidth = 1; ctx.strokeRect(l + .5, a.top + .5, w, a.bottom - a.top - 1);
     }
     ctx.font = '600 10px Inter, sans-serif'; ctx.textBaseline = 'middle'; ctx.textAlign = 'right';
     if(st.zoomed){
       const txt = '⟲ Reset zoom', tw = ctx.measureText(txt).width, bx = a.right - tw - 16, by = a.top + 4;
-      ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.fillRect(bx, by, tw + 12, 20);
-      ctx.strokeStyle = 'rgba(80,80,80,0.5)'; ctx.strokeRect(bx + .5, by + .5, tw + 11, 19);
+      ctx.fillStyle = cssVarColor('--card-bg', '#ffffff'); ctx.fillRect(bx, by, tw + 12, 20);
+      ctx.strokeStyle = 'rgba(140,140,140,0.6)'; ctx.strokeRect(bx + .5, by + .5, tw + 11, 19);
       ctx.fillStyle = THEME.mid; ctx.fillText(txt, a.right - 10, by + 10);
       st.box = { l:bx, r:bx + tw + 12, t:by, b:by + 20 };
     }else if(st.hover && !st.drag){
-      ctx.fillStyle = 'rgba(90,90,90,0.65)'; ctx.fillText('Seret untuk zoom · klik 2× reset', a.right - 6, a.top + 10);
+      ctx.fillStyle = darkMode ? 'rgba(215,215,215,0.7)' : 'rgba(90,90,90,0.65)'; ctx.fillText('Seret untuk zoom · klik 2× reset', a.right - 6, a.top + 10);
     }
     ctx.restore();
   },
@@ -2004,6 +2058,41 @@ function harmonizedPalette(preset){
 let cardColorMode = 'senada';    // 'senada' = turunan palet · 'beragam' = warna klasik beda-beda
 try{ const m = localStorage.getItem('klk_card_color_mode'); if(m==='senada' || m==='beragam') cardColorMode = m; }catch(e){}
 
+/* ===== Mode gelap: permukaan gelap bernuansa palet, teks terang, warna grafik diangkat agar terbaca ===== */
+let darkMode = false;
+try{ darkMode = localStorage.getItem('klk_dark') === '1'; }catch(e){}
+function ccDarkAdjust(hex, minL, maxL){
+  const [h, s, l] = ccRgbToHsl(...ccHexToRgb(hex));
+  return ccHslToHex(h, s, Math.min(maxL, Math.max(minL, l)));
+}
+function darkPreset(base){
+  const [h, s0] = ccRgbToHsl(...ccHexToRgb(base.accent));
+  const S = Math.min(0.70, Math.max(0.25, s0));
+  const H = (l, sat) => ccHslToHex(h, Math.min(1, sat), l);
+  const compare = base.compareColors.map(c=>ccDarkAdjust(c, 0.52, 0.74));
+  return {
+    label: base.label,
+    main: H(.72, S*.75), mid: H(.80, S*.35), deep: H(.94, S*.20), soft: H(.52, S*.45), light: H(.24, S*.35),
+    accent: ccDarkAdjust(base.accent, 0.50, 0.66),
+    compareColors: compare, kategoriPalette: base.kategoriPalette.map(c=>ccDarkAdjust(c, 0.40, 0.62)),
+    vars: {
+      '--brown': H(.90, S*.22), '--brown-deep': H(.97, S*.12), '--brown-mid': H(.80, S*.30), '--brown-soft': H(.64, S*.20),
+      '--orange-deep': H(.50, S*.75), '--rust': H(.70, S), '--rust-bg': H(.20, S*.40),
+      '--peach': H(.20, S*.35), '--peach-soft': H(.20, S*.35),
+      '--page-bg': H(.085, S*.30), '--cream': H(.085, S*.30), '--cream-deep': H(.125, S*.30),
+      '--card-bg': H(.135, S*.30), '--white': H(.135, S*.30),
+      '--green': '#8fcf8a', '--green-bg': '#1f3320', '--line': 'rgba(255,255,255,.07)', '--border': 'rgba(255,255,255,.08)'
+    }
+  };
+}
+const DARK_ONLY_VARS = ['--page-bg','--cream','--cream-deep','--card-bg','--white','--green','--green-bg','--line','--border'];
+function setDarkMode(on){
+  darkMode = !!on;
+  try{ localStorage.setItem('klk_dark', darkMode ? '1' : '0'); }catch(e){}
+  applyPalette(currentPaletteName);
+}
+function toggleDarkMode(){ setDarkMode(!darkMode); }
+
 let GROUP_COLOR_MAP = {};
 let currentPaletteName = 'maroon';
 let THEME = {};
@@ -2012,13 +2101,15 @@ let KATEGORI_PALETTE = [];
 
 function applyPalette(name, opts){
   opts = opts || {};
-  const preset = THEME_PRESETS[name];
-  if(!preset) return;
+  const basePreset = THEME_PRESETS[name];
+  if(!basePreset) return;
+  const preset = darkMode ? darkPreset(basePreset) : basePreset;
   currentPaletteName = name;
   THEME = { main:preset.main, mid:preset.mid, deep:preset.deep, soft:preset.soft, accent:preset.accent, light:preset.light,
     c3:preset.compareColors[3], c4:preset.compareColors[4], c5:preset.compareColors[5], c7:preset.compareColors[7] };
   COMPARE_COLORS = preset.compareColors.slice();
-  KATEGORI_PALETTE = (cardColorMode === 'senada') ? harmonizedPalette(preset) : preset.kategoriPalette.slice();
+  KATEGORI_PALETTE = (cardColorMode === 'senada') ? harmonizedPalette(basePreset) : basePreset.kategoriPalette.slice();
+  if(darkMode) KATEGORI_PALETTE = KATEGORI_PALETTE.map(c=>ccDarkAdjust(c, 0.40, 0.62));
   if(typeof GROUP_COLOR_MAP !== 'undefined') GROUP_COLOR_MAP = {};
 
   const root = document.documentElement.style;
@@ -2032,6 +2123,13 @@ function applyPalette(name, opts){
   root.setProperty('--rust-bg', THEME.light);
   root.setProperty('--peach', THEME.light);
   root.setProperty('--peach-soft', THEME.light);
+  if(darkMode){ Object.entries(preset.vars).forEach(([k,v])=> root.setProperty(k, v)); }
+  else{ DARK_ONLY_VARS.forEach(k=> root.removeProperty(k)); }
+  document.documentElement.classList.toggle('dark', darkMode);
+  root.colorScheme = darkMode ? 'dark' : 'light';
+  if(typeof Chart !== 'undefined'){ Chart.defaults.color = darkMode ? THEME.mid : '#666'; Chart.defaults.borderColor = darkMode ? 'rgba(255,255,255,.10)' : 'rgba(0,0,0,0.1)'; }
+  const dt = document.getElementById('darkToggle');
+  if(dt){ dt.textContent = darkMode ? '☀️' : '🌙'; dt.setAttribute('aria-pressed', darkMode ? 'true' : 'false'); dt.title = darkMode ? 'Kembali ke mode terang (D)' : 'Mode gelap (D)'; }
 
   try{ localStorage.setItem('klk_indeks_palette', name); }catch(e){}
   const sel = document.getElementById('paletteSelect');
@@ -2633,13 +2731,16 @@ function renderTwSummary(){
   const level = (lbl, v, sub)=>
     `<div class="tw-chip"><div class="tw-chip-lbl">${lbl}</div><div class="tw-chip-val">${v===null?'—':fmtNum(v)}</div><div class="tw-chip-sub">${sub}</div></div>`;
   el.innerHTML = `
-    <div class="tw-sum-head"><div class="tw-sum-eyebrow">PDRB Klungkung · Terbaru</div><div class="tw-sum-title">${d.label}</div></div>
+    <div class="tw-sum-head"><div class="tw-sum-eyebrow">PDRB Klungkung · Terbaru</div><div class="tw-sum-title">${d.label}</div>
+      <button type="button" class="tw-copy" id="twCopyNarr" title="Salin kalimat ringkasan pertumbuhan siap tempel">📋 Salin narasi</button></div>
     ${growth('C-TO-C', d.ctc, d.ctcSub, 'Pertumbuhan kumulatif dari awal tahun dibanding periode kumulatif yang sama tahun lalu', d.sparkC, 'pertumbuhan C-to-C')}
     ${growth('Y-ON-Y', d.yoy, d.yoySub, 'Pertumbuhan dibanding triwulan yang sama tahun lalu', d.sparkY, 'pertumbuhan Y-on-Y')}
     ${growth('Q-TO-Q', d.qtq, d.qtqSub, 'Pertumbuhan dibanding triwulan sebelumnya (dipengaruhi pola musiman)', d.sparkQ, 'pertumbuhan Q-to-Q')}
     ${level('PDRB ADHK', d.adhk, 'Rp miliar · harga konstan 2010')}
     ${level('PDRB ADHB', d.adhb, 'Rp miliar · harga berlaku')}`;
   el.classList.add('show');
+  const cb = document.getElementById('twCopyNarr');
+  if(cb) cb.onclick = async ()=>{ const ok = await copyText(twNarrative(d)); flashButton(cb, '✓ Tersalin', 'Gagal menyalin', ok); };
 }
 
 /* ===== Cari Data (form permintaan data ke pengunjung) ===== */
@@ -2716,6 +2817,98 @@ function shareApplyHash(rawHash){
   return ok;
 }
 window.addEventListener('hashchange', ()=>{ if(!shareApplying) shareApplyHash(); });
+
+/* ===== Salin ke clipboard + narasi otomatis ===== */
+async function copyText(text){
+  try{ await navigator.clipboard.writeText(text); return true; }
+  catch(e){
+    try{ const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); ta.remove(); return ok; }
+    catch(e2){ return false; }
+  }
+}
+function flashButton(btn, okText, failText, ok){
+  const old = btn.dataset.label || (btn.dataset.label = btn.textContent);
+  btn.textContent = ok ? okText : failText;
+  setTimeout(()=>{ btn.textContent = old; }, 1800);
+}
+const TW_BULAN = ['Maret','Juni','September','Desember'];
+/* Kalimat siap tempel untuk ringkasan PDRB triwulanan (gaya rilis BPS) */
+function twNarrative(d){
+  const R = TW_ROMAN, n2 = v => Math.abs(v).toFixedID(2);
+  const tumbuh = v => v>=0 ? `tumbuh ${n2(v)} persen` : `terkontraksi ${n2(v)} persen`;
+  const parts = [];
+  if(d.yoy !== null) parts.push(`${tumbuh(d.yoy)} dibanding triwulan ${R[d.tw]} ${d.tahun-1} (y-on-y)`);
+  if(d.qtq !== null) parts.push(`${d.qtq>=0 ? 'tumbuh' : 'terkontraksi'} ${n2(d.qtq)} persen dibanding triwulan sebelumnya (q-to-q)`);
+  if(d.ctc !== null) parts.push(`${d.ctc>=0 ? 'tumbuh' : 'terkontraksi'} ${n2(d.ctc)} persen secara kumulatif Januari–${TW_BULAN[d.tw-1]} ${d.tahun} (c-to-c)`);
+  let txt = `Ekonomi Kabupaten Klungkung pada triwulan ${R[d.tw]} ${d.tahun} ` + (parts.length ? parts.join(', ') + '.' : 'belum memiliki data pertumbuhan.');
+  const lv = [];
+  if(d.adhb !== null) lv.push(`atas dasar harga berlaku sebesar Rp${d.adhb.toLocaleString('id-ID', {minimumFractionDigits:2, maximumFractionDigits:2})} miliar`);
+  if(d.adhk !== null) lv.push(`atas dasar harga konstan 2010 sebesar Rp${d.adhk.toLocaleString('id-ID', {minimumFractionDigits:2, maximumFractionDigits:2})} miliar`);
+  if(lv.length) txt += ` PDRB ${lv.join(' dan ')}.`;
+  return txt + ' Sumber: BPS Kabupaten Klungkung.';
+}
+/* Tambahkan tombol "Salin narasi" pada kotak Data Insight di panel detail (juga saat isinya berganti) */
+function attachInsightCopy(root){
+  (root || document).querySelectorAll('.ai-insight-box').forEach(box=>{
+    if(box.querySelector('.copy-narr')) return;
+    const title = box.querySelector('.ai-insight-title'); if(!title) return;
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'copy-narr'; btn.textContent = '📋 Salin narasi';
+    btn.title = 'Salin teks insight ini beserta sumbernya';
+    btn.onclick = async ()=>{
+      const c = box.querySelector('.ai-insight-content');
+      const text = ((c ? c.textContent : '') || '').replace(/\s+/g, ' ').trim();
+      if(!text){ flashButton(btn, '', 'Belum ada teks', false); return; }
+      const ok = await copyText(text + ' Sumber: BPS Kabupaten Klungkung.');
+      flashButton(btn, '✓ Tersalin', 'Gagal menyalin', ok);
+    };
+    title.appendChild(btn);
+  });
+}
+(function(){
+  const dr = document.getElementById('drawer');
+  if(dr && typeof MutationObserver !== 'undefined') new MutationObserver(()=>attachInsightCopy(dr)).observe(dr, {childList:true, subtree:true});
+})();
+
+/* ===== Sorotan otomatis: indikator yang berubah paling besar pada periode terbaru ===== */
+function computeHighlights(periode){
+  const gk = LATEST_GLOBAL[periode];
+  const out = { up:[], down:[], label: gk!==undefined ? skLabel(gk) : '' };
+  if(gk === undefined || !STORE[periode]) return out;
+  const rows = [];
+  Object.entries(STORE[periode]).forEach(([kat, kelObj])=> Object.entries(kelObj).forEach(([kel, subObj])=>{
+    const inComposite = new Set();
+    try{ getCompositionGroups(subObj, kel).forEach(g=> g.segs.forEach(sg=> inComposite.add(sg))); }catch(e){}
+    Object.entries(subObj).forEach(([sub, arr])=>{
+      if(!arr || arr.length < 2 || inComposite.has(sub)) return;
+      if(/laju\s+pertumbuhan|\((?:q-to-q|y-on-y|c-to-c)\)/i.test(sub)) return;     // laju: perubahan relatif tidak bermakna
+      const last = arr[arr.length-1], prev = arr[arr.length-2];
+      if(sortKey(last) !== gk) return;
+      if(!isFinite(last.data) || !isFinite(prev.data) || Math.abs(prev.data) < 1e-9) return;
+      const pct = (last.data - prev.data) / Math.abs(prev.data) * 100;
+      if(Math.abs(pct) < 0.05) return;
+      rows.push({ periode, kategori:kat, kelompok:kel, sub, pct, last, prev });
+    });
+  }));
+  out.up = rows.filter(r=>r.pct > 0).sort((a,b)=>b.pct - a.pct).slice(0, 3);
+  out.down = rows.filter(r=>r.pct < 0).sort((a,b)=>a.pct - b.pct).slice(0, 3);
+  return out;
+}
+function renderHighlights(){
+  const box = document.getElementById('highlightBar');
+  if(!box) return;
+  const h = computeHighlights(activePeriode);
+  if(h.up.length + h.down.length < 2){ box.innerHTML = ''; return; }
+  const col = (title, cls, arrow, list)=> !list.length ? '' : `<div class="hl-col"><div class="hl-title">${title}</div>${
+    list.map((r,i)=>`<button type="button" class="hl-item" data-i="${cls}${i}" title="${escapeHtml(r.sub)}: ${fmtNum(r.prev.data)} → ${fmtNum(r.last.data)}">
+       <span class="hl-name">${escapeHtml(r.sub)}</span><span class="badge ${cls}">${arrow} ${r.pct>0?'+':''}${r.pct.toFixedID(1)}%</span></button>`).join('')}</div>`;
+  box.innerHTML = col(`▲ Naik terbesar · ${h.label}`, 'up', '▲', h.up) + col(`▼ Turun terbesar · ${h.label}`, 'down', '▼', h.down);
+  box.querySelectorAll('.hl-item').forEach(b=>{
+    const cls = b.dataset.i.startsWith('up') ? 'up' : 'down', idx = parseInt(b.dataset.i.replace(/\D/g,''));
+    const r = h[cls][idx];
+    b.onclick = ()=> openDetail(r.periode, r.kategori, r.kelompok, r.sub);
+  });
+}
 
 /* ===== Favorit (★), lencana "Baru" & "Belum diperbarui", dan filter kartu ===== */
 const FAV_KEY = 'klk_favorites', SEEN_KEY = 'klk_seen_latest_v1';
@@ -2828,6 +3021,7 @@ function decorateCards(){
     card.appendChild(btn);
   });
   renderCardFilterBar();
+  renderHighlights();
   const gs = document.getElementById('globalSearchInput');
   applyGlobalSearch(gs ? gs.value : '');
 }
@@ -2940,6 +3134,47 @@ function renderSideFav(){
   favJustAdded = null;
 }
 
+/* Cetak: bila mode gelap aktif, sementara dikembalikan ke terang agar hasil cetak terbaca (lalu dipulihkan) */
+function printView(){
+  const wasDark = (typeof darkMode !== 'undefined') && darkMode;
+  const restore = ()=>{ window.removeEventListener('afterprint', restore); if(wasDark && typeof setDarkMode === 'function') setDarkMode(true); };
+  if(wasDark){
+    window.addEventListener('afterprint', restore);
+    setDarkMode(false);
+    setTimeout(()=> window.print(), 500);
+  }else window.print();
+}
+/* ===== Pintasan keyboard + bantuan ===== */
+const KBD_SHORTCUTS = [
+  ['/', 'Cari indikator'], ['← →', 'Pindah tab'], ['D', 'Mode gelap / terang'], ['Esc', 'Tutup panel detail'], ['?', 'Tampilkan bantuan ini']
+];
+function toggleKbdHelp(force){
+  let el = document.getElementById('kbdHelp');
+  if(!el){
+    el = document.createElement('div'); el.className = 'kbd-help'; el.id = 'kbdHelp'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Pintasan keyboard');
+    el.innerHTML = '<h4>⌨ Pintasan keyboard</h4>' + KBD_SHORTCUTS.map(([k,d])=>`<div><span>${d}</span><kbd>${k}</kbd></div>`).join('') + '<span class="kbd-note">Pintasan tidak aktif saat mengetik di kolom isian.</span>';
+    document.body.appendChild(el);
+  }
+  el.classList.toggle('show', force === undefined ? !el.classList.contains('show') : force);
+}
+document.addEventListener('keydown', e=>{
+  if(e.ctrlKey || e.metaKey || e.altKey) return;
+  const t = e.target || {};
+  const typing = t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable;
+  if(e.key === 'Escape'){ toggleKbdHelp(false); return; }
+  if(typing) return;
+  const drawerOpen = (document.getElementById('overlay') || {classList:{contains:()=>false}}).classList.contains('show');
+  if(e.key === '/'){ e.preventDefault(); const g = document.getElementById('globalSearchInput'); if(g){ g.focus(); g.select(); } }
+  else if(e.key === '?'){ toggleKbdHelp(); }
+  else if((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && !drawerOpen){
+    const tabs = [...document.querySelectorAll('#tabs .tab')];
+    const idx = tabs.findIndex(b=>b.classList.contains('active'));
+    const nxt = tabs[idx + (e.key === 'ArrowRight' ? 1 : -1)];
+    if(idx >= 0 && nxt){ e.preventDefault(); nxt.click(); }
+  }
+  else if(e.key === 'd' || e.key === 'D'){ if(typeof toggleDarkMode === 'function') toggleDarkMode(); }
+});
+
 /* ===== Isi tambahan nav kanan ===== */
 const RECENT_KEY = 'klk_recent_views';
 let RECENT_VIEWS = [];
@@ -2984,11 +3219,17 @@ function sideLatestHtml(){
     Object.values(STORE[per] || {}).forEach(kat=> Object.values(kat).forEach(kel=> Object.values(kel).forEach(arr=>{
       if(arr && arr.length){ const e = arr[arr.length-1]; if(!best || sortKey(e) > sortKey(best)) best = e; }
     })));
-    if(best) rows.push(`<div><span>${escapeHtml(per)}</span><b>${escapeHtml(periodLabel(best))}</b></div>`);
+    if(best) rows.push(`<div><span>${escapeHtml(per)}</span><b>${escapeHtml(best.triwulan ? `TW ${best.triwulan} ${best.tahun}` : String(best.tahun))}</b></div>`);
   });
   return rows.join('') || '<div><span>Data</span><b>—</b></div>';
 }
 const SIDE_TIPS = [
+  'Tekan D atau tombol 🌙 di header untuk mengganti mode gelap dan terang. Pilihanmu tersimpan.',
+  'Tekan / untuk mencari indikator, ← → untuk pindah tab, dan ? untuk melihat semua pintasan keyboard.',
+  'Blok Sorotan di atas kartu menampilkan indikator yang naik dan turun paling besar pada periode terbaru. Klik untuk membuka detailnya.',
+  'Tombol 📋 Salin narasi di strip PDRB dan di kotak Data Insight menyalin kalimat siap tempel beserta sumbernya.',
+  'Unduhan JPG kini memuat judul, sumber, dan tanggal unduh, sehingga siap dipakai di slide atau laporan.',
+  'Tombol 🖨 Cetak di nav kanan membuka dialog cetak untuk menyimpan tampilan ini sebagai PDF.',
   'Tekan ☆ di pojok kartu untuk menyimpan favorit. Kartu mininya muncul di nav kanan lengkap dengan nilai dan tren terbaru.',
   'Klik kartu mini di Favorit untuk membuka detailnya. Arahkan kursor ke kartu mini lalu tekan ✕ untuk menghapusnya.',
   'Lencana Baru berarti ada periode data yang lebih baru sejak kunjunganmu sebelumnya. Lencananya hilang setelah kartunya dibuka.',
@@ -3013,6 +3254,8 @@ function buildSideExtra(){
     <div><div class="side-title">Terakhir dibuka</div><div id="sideRecent"></div></div>
     <div><div class="side-title">Data terbaru</div><div class="side-data">${sideLatestHtml()}</div></div>
     <button type="button" class="side-btn" id="sideCopyLink" title="Salin tautan ke tampilan yang sedang dibuka">🔗 Salin tautan</button>
+    <div class="side-btn-row"><button type="button" class="side-btn" id="sidePrint" title="Cetak atau simpan tampilan ini sebagai PDF">🖨 Cetak</button>
+      <button type="button" class="side-btn" id="sideKbd" title="Pintasan keyboard (tekan ?)">⌨ Pintasan</button></div>
     <div class="side-tip"><b>Tips</b><span id="sideTipText">${escapeHtml(SIDE_TIPS[sideTipIdx])}</span><br><button type="button" id="sideTipNext">Tips lain ↻</button></div>`;
   wrap.querySelector('#sideTipNext').onclick = ()=>{
     sideTipIdx = (sideTipIdx + 1) % SIDE_TIPS.length;
@@ -3031,6 +3274,8 @@ function buildSideExtra(){
     btn.textContent = ok ? '✓ Tautan disalin' : 'Salin dari alamat browser';
     setTimeout(()=>{ btn.textContent = old; }, 1800);
   };
+  wrap.querySelector('#sidePrint').onclick = ()=> printView();
+  wrap.querySelector('#sideKbd').onclick = ()=> toggleKbdHelp();
   setTimeout(()=>{ renderSideFav(); renderSideRecent(); }, 0);
   return wrap;
 }
@@ -3474,7 +3719,7 @@ function makeSparkline(entries, color, type){
       const a1 = a0 + slice;
       const x0 = cx + Math.cos(a0) * rad, y0 = cy + Math.sin(a0) * rad;
       const x1 = cx + Math.cos(a1) * rad, y1 = cy + Math.sin(a1) * rad;
-      return `<path d="M${cx},${cy} L${x0.toFixed(1)},${y0.toFixed(1)} A${rad.toFixed(1)},${rad.toFixed(1)} 0 0 1 ${x1.toFixed(1)},${y1.toFixed(1)} Z" fill="${color}" fill-opacity="${(0.3+0.5*norm).toFixed(2)}" stroke="#fff" stroke-width="0.5"></path>`;
+      return `<path d="M${cx},${cy} L${x0.toFixed(1)},${y0.toFixed(1)} A${rad.toFixed(1)},${rad.toFixed(1)} 0 0 1 ${x1.toFixed(1)},${y1.toFixed(1)} Z" fill="${color}" fill-opacity="${(0.3+0.5*norm).toFixed(2)}" stroke="${cssVarColor('--card-bg','#fff')}" stroke-width="0.5"></path>`;
     }).join('');
   } else if (type === 'diverging-bar') {
     const avg = vals.reduce((s,v)=>s+v,0)/vals.length;
@@ -3752,7 +3997,7 @@ function renderContent(periode){
     html = `<div class="state-msg">Tidak ada kelompok yang ditampilkan. Pilih minimal satu kelompok di panel sebelah kiri.</div>`;
   }
 
-  main.innerHTML = (anyVisible ? '<div class="card-filter-bar" id="cardFilterBar"></div>' : '') + html;
+  main.innerHTML = (anyVisible ? '<div class="card-filter-bar" id="cardFilterBar"></div><div class="highlight-bar" id="highlightBar"></div>' : '') + html;
 
   const gsInputEl = document.getElementById('globalSearchInput');
   if(gsInputEl && gsInputEl.value) applyGlobalSearch(gsInputEl.value);
@@ -4180,16 +4425,66 @@ function closeDetail(){
   document.getElementById('overlay').classList.remove('show');
 }
 
+/* Judul untuk gambar hasil unduhan: heading di atas grafik, atau judul panel detail, atau nama berkas */
+function exportTitleFor(canvas, name){
+  let title = '', sub = '';
+  try{ title = chartHeadingFor(canvas); }catch(e){}
+  const dr = canvas.closest && canvas.closest('#drawer');
+  if(dr){
+    const h = dr.querySelector('h3'); if(!title && h) title = h.textContent.trim();
+    const eb = dr.querySelector('.drawer-eyebrow'); if(eb) sub = eb.textContent.trim();
+  }
+  if(!title) title = String(name || 'Grafik').replace(/_+/g,' ').replace(/\b\w/g, c=>c.toUpperCase());
+  return { title, sub };
+}
+function cssVarColor(v, fallback){
+  try{ const x = getComputedStyle(document.documentElement).getPropertyValue(v).trim(); return x || fallback; }catch(e){ return fallback; }
+}
+function wrapCanvasText(ctx, text, maxW){
+  const words = String(text).split(/\s+/), lines = []; let cur = '';
+  words.forEach(w=>{ const t = cur ? cur + ' ' + w : w; if(ctx.measureText(t).width > maxW && cur){ lines.push(cur); cur = w; } else cur = t; });
+  if(cur) lines.push(cur);
+  return lines.slice(0, 3);
+}
+/* Gambar grafik + judul + baris sumber & tanggal (siap masuk slide/laporan) */
+function composeChartExport(inst, name){
+  const src = inst.canvas;
+  const ratio = (src.clientWidth && src.width) ? src.width / src.clientWidth : 1;
+  const k = ratio > 0 ? ratio : 1;
+  const pad = Math.round(20*k), fTitle = Math.round(16*k), fSub = Math.round(11*k), fFoot = Math.round(10*k);
+  const { title, sub } = exportTitleFor(src, name);
+  const bg = cssVarColor('--card-bg', '#ffffff');
+  const cText = cssVarColor('--brown-deep', '#222222'), cSoft = cssVarColor('--brown-soft', '#777777');
+  const meas = document.createElement('canvas').getContext('2d');
+  meas.font = `700 ${fTitle}px Sora, Inter, sans-serif`;
+  const tLines = wrapCanvasText(meas, title, src.width - pad*2);
+  const titleH = tLines.length * Math.round(fTitle*1.3);
+  const subH = sub ? Math.round(fSub*1.7) : 0;
+  const footH = Math.round(fFoot*2.4);
+  const W = src.width, H = pad + titleH + subH + Math.round(8*k) + src.height + Math.round(10*k) + footH + Math.round(pad*0.6);
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+  let y = pad;
+  ctx.fillStyle = cText; ctx.font = `700 ${fTitle}px Sora, Inter, sans-serif`;
+  tLines.forEach(ln=>{ ctx.fillText(ln, pad, y); y += Math.round(fTitle*1.3); });
+  if(sub){ ctx.fillStyle = cSoft; ctx.font = `500 ${fSub}px Inter, sans-serif`; ctx.fillText(sub, pad, y + Math.round(2*k)); y += subH; }
+  y += Math.round(8*k);
+  ctx.drawImage(src, 0, y);
+  y += src.height + Math.round(10*k);
+  ctx.strokeStyle = cSoft; ctx.globalAlpha = 0.35; ctx.lineWidth = Math.max(1, k*0.8);
+  ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(W - pad, y); ctx.stroke(); ctx.globalAlpha = 1;
+  y += Math.round(fFoot*0.9);
+  ctx.fillStyle = cSoft; ctx.font = `500 ${fFoot}px Inter, sans-serif`;
+  ctx.fillText('Sumber: BPS Kabupaten Klungkung · Dashboard DINAMO', pad, y);
+  const tgl = new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+  ctx.textAlign = 'right'; ctx.fillText(`Diunduh ${tgl}`, W - pad, y);
+  return cv;
+}
 function triggerJPGDownload(inst, name){
   if(!inst){ alert('Grafik belum siap.'); return; }
-  const srcCanvas = inst.canvas;
-  const tmpCanvas = document.createElement('canvas');
-  tmpCanvas.width = srcCanvas.width;
-  tmpCanvas.height = srcCanvas.height;
-  const tctx = tmpCanvas.getContext('2d');
-  tctx.fillStyle = '#ffffff';
-  tctx.fillRect(0, 0, tmpCanvas.width, tmpCanvas.height);
-  tctx.drawImage(srcCanvas, 0, 0);
+  const tmpCanvas = composeChartExport(inst, name);
   tmpCanvas.toBlob(function(blob){
     if(!blob){ alert('Gagal membuat gambar.'); return; }
     const url = URL.createObjectURL(blob);
@@ -4203,6 +4498,7 @@ function triggerJPGDownload(inst, name){
     setTimeout(()=>URL.revokeObjectURL(url), 1000);
   }, 'image/jpeg', 1.0);
 }
+
 function downloadChartJPG(){ triggerJPGDownload(chartInstance, currentSeriesKey ? currentSeriesKey.sub : 'grafik'); }
 function exportSvgAsJPG(svgEl, name){
   if(!svgEl){ alert('Grafik belum siap.'); return; }
@@ -4638,7 +4934,7 @@ function refreshHargaBerlaku(subObj, segs, label, periodKey, periods){
     const items = rows.map((r,i)=>({ name:r.short, value:r.value, color: compDetailColor(r.sub, i) }));
     const W = 600, H = 320;
     const rects = buildTreemapLayout(items, 0, 0, W, H);
-    let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" id="hbTreemapSvg" style="width:100%;height:320px;display:block;background:#fff;">`;
+    let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" id="hbTreemapSvg" style="width:100%;height:320px;display:block;background:var(--card-bg);">`;
     rects.forEach(r=>{
       const rw = Math.max(0, r.w-3), rh = Math.max(0, r.h-3);
       const pct = (r.value/total*100).toFixedID(1);
@@ -4665,7 +4961,7 @@ function refreshHargaBerlaku(subObj, segs, label, periodKey, periods){
         data:{ labels: rows.map(r=>r.short), datasets:[{
           data: rows.map(r=>r.value),
           backgroundColor: rows.map((r,i)=> compDetailColor(r.sub, i)),
-          borderWidth:1, borderColor:'#fff'
+          borderWidth:1, borderColor:cssVarColor('--card-bg','#fff')
         }]},
         options:{ responsive:true, maintainAspectRatio:false,
           plugins:{ legend:{ position:'right', labels:{font:{family:'Inter',size:10.5},color:THEME.main, boxWidth:12} },
@@ -5004,7 +5300,7 @@ function buildTreemapSVG(segs, bySegSK, lastSK){
   const W = 600, H = 320;
   const rects = buildTreemapLayout(items, 0, 0, W, H);
 
-  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" id="compTreemapSvg" style="width:100%;height:320px;display:block;background:#fff;">`;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" id="compTreemapSvg" style="width:100%;height:320px;display:block;background:var(--card-bg);">`;
   rects.forEach(r=>{
     const rw = Math.max(0, r.w - 3);
     const rh = Math.max(0, r.h - 3);
@@ -5090,7 +5386,7 @@ function buildDumbbellSVG(segs, bySegSK, sortedSK, skMap){
       svg += `<line x1="${xOf(minP.v).toFixed(1)}" y1="${y.toFixed(1)}" x2="${xOf(maxP.v).toFixed(1)}" y2="${y.toFixed(1)}" stroke="${THEME.soft}" stroke-width="2.5"></line>`;
     }
     pts.forEach(p=>{
-      svg += `<circle cx="${xOf(p.v).toFixed(1)}" cy="${y.toFixed(1)}" r="6" fill="${p.color}" stroke="#fff" stroke-width="1.5"><title>${escapeHtml(p.name)}: ${fmtNum(p.v)}</title></circle>`;
+      svg += `<circle cx="${xOf(p.v).toFixed(1)}" cy="${y.toFixed(1)}" r="6" fill="${p.color}" stroke="${cssVarColor('--card-bg','#fff')}" stroke-width="1.5"><title>${escapeHtml(p.name)}: ${fmtNum(p.v)}</title></circle>`;
     });
   });
 
@@ -5135,7 +5431,7 @@ function buildStreamSVG(segs, bySegSK, sortedSK, skMap){
     });
     const pathPts = topPts.concat(botPts.slice().reverse());
     const d = pathPts.map((p,idx)=> (idx===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ') + ' Z';
-    svg += `<path d="${d}" fill="${color}" fill-opacity="0.85" stroke="#fff" stroke-width="0.6"><title>${escapeHtml(seg)}</title></path>`;
+    svg += `<path d="${d}" fill="${color}" fill-opacity="0.85" stroke="${cssVarColor('--card-bg','#fff')}" stroke-width="0.6"><title>${escapeHtml(seg)}</title></path>`;
   });
 
   const labelStep = Math.max(1, Math.ceil(n/8));
@@ -5275,7 +5571,7 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
             datasets:[{
               data: segs.map(s=> bySegSK[s][lastSK] || 0),
               backgroundColor: segs.map((s,i)=>hexToRgba(compDetailColor(s, i), 0.65)),
-              borderColor:'#fff', borderWidth:1.5
+              borderColor:cssVarColor('--card-bg','#fff'), borderWidth:1.5
             }]
           },
           options:{
@@ -5322,7 +5618,7 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
             datasets:[{
               data: segs.map(s=> bySegSK[s][lastSK] || 0),
               backgroundColor: segs.map((s,i)=>compDetailColor(s, i)),
-              borderColor:'#fff', borderWidth:2
+              borderColor:cssVarColor('--card-bg','#fff'), borderWidth:2
             }]
           },
           options:{
@@ -5344,12 +5640,12 @@ function refreshCompositionDetail(subObj, segs, fromYear, toYear){
               {
                 data: segs.map(s=> bySegSK[s][lastSK] || 0),
                 backgroundColor: segs.map((s,i)=>compDetailColor(s, i)),
-                borderColor:'#fff', borderWidth:2, weight:1
+                borderColor:cssVarColor('--card-bg','#fff'), borderWidth:2, weight:1
               },
               {
                 data:[totalSum],
                 backgroundColor:[currentCompKey ? getGroupColor(currentCompKey.kategori, currentCompKey.kelompok) : THEME.accent],
-                borderColor:'#fff', borderWidth:2, weight:0.55
+                borderColor:cssVarColor('--card-bg','#fff'), borderWidth:2, weight:0.55
               }
             ]
           },
@@ -6929,7 +7225,7 @@ function renderComparePolarArea(keys, seriesAnalysisData){
 
   compareChart = new Chart(ctx, {
     type:'polarArea',
-    data:{ labels: paLabels, datasets:[{ data: paData, backgroundColor: colors, borderColor:'#fff', borderWidth:1.5 }] },
+    data:{ labels: paLabels, datasets:[{ data: paData, backgroundColor: colors, borderColor:cssVarColor('--card-bg','#fff'), borderWidth:1.5 }] },
     options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{
@@ -7171,7 +7467,7 @@ function buildCompareStreamSVG(keys){
     });
     const pathPts = topPts.concat(botPts.slice().reverse());
     const d = pathPts.map((p,idx)=> (idx===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ') + ' Z';
-    svg += `<path d="${d}" fill="${color}" fill-opacity="0.85" stroke="#fff" stroke-width="0.6"><title>${escapeHtml(subLabel(info.sub))}</title></path>`;
+    svg += `<path d="${d}" fill="${color}" fill-opacity="0.85" stroke="${cssVarColor('--card-bg','#fff')}" stroke-width="0.6"><title>${escapeHtml(subLabel(info.sub))}</title></path>`;
   });
 
   const labelStep = Math.max(1, Math.ceil(n/8));
@@ -10449,7 +10745,7 @@ function renderConvMatrix(){
   const head = `<tr><th>Sektor</th>${headCells}</tr>`;
   const bodyRows = sectors.map(rowS=>{
     const cells = sectors.map(colS=>{
-      if(rowS===colS) return `<td style="background:#F3F4F6;color:#BBB;text-align:center;">—</td>`;
+      if(rowS===colS) return `<td style="background:var(--cream-deep);color:var(--brown-soft);text-align:center;">—</td>`;
       const v = matrix[rowS][colS];
       const bg = convMatrixColor(v, maxAbs);
       return `<td style="background:${bg};text-align:center;color:var(--brown-deep);font-weight:600;">${v===undefined||v===null||isNaN(v)?'-':v.toFixedID(2)}</td>`;
@@ -13331,8 +13627,8 @@ function renderNkIlor(){
     nkMakeChart('ilorTren', 'nkIlorTren', {
       type:'line',
       data:{ labels:pts.map(p=>String(p.y)), datasets:[
-        { label:'ILOR Klungkung', data:kv.map(tf), borderColor:THEME.main, backgroundColor:THEME.main, borderWidth:2.4, pointRadius:0, pointHoverRadius:5, tension:0, spanGaps:false },
-        { label:'ILOR Bali',      data:bv.map(tf), borderColor:THEME.soft, backgroundColor:THEME.soft, borderWidth:2.4, pointRadius:0, pointHoverRadius:5, tension:0, spanGaps:false }
+        { label:'ILOR Klungkung', data:kv.map(tf), borderColor:THEME.main, backgroundColor:hexToRgba(THEME.main, 0.24), fill:'origin', borderWidth:2.2, pointRadius:0, pointHoverRadius:5, tension:0, cubicInterpolationMode:'monotone', spanGaps:false },
+        { label:'ILOR Bali',      data:bv.map(tf), borderColor:THEME.soft, backgroundColor:hexToRgba(THEME.soft, 0.34), fill:'origin', borderWidth:2.2, pointRadius:0, pointHoverRadius:5, tension:0, cubicInterpolationMode:'monotone', spanGaps:false }
       ]},
       options:{
         responsive:true, maintainAspectRatio:false,
@@ -13696,6 +13992,7 @@ function applyGlobalSearch(query){
   const box = document.getElementById('globalSearchBox');
   if(box) box.classList.toggle('has-query', q.length>0);
   const filtered = q.length > 0 || cardFilterMode !== 'all';
+  const hlBar = document.getElementById('highlightBar'); if(hlBar) hlBar.style.display = filtered ? 'none' : '';
   const kelompokBlocks = document.querySelectorAll('.kelompok-block');
   if(!kelompokBlocks.length) return;
   kelompokBlocks.forEach(block=>{
@@ -13755,6 +14052,11 @@ if(paletteSelectEl){
   paletteSelectEl.value = currentPaletteName;
   syncCustomColorVisible();
   paletteSelectEl.addEventListener('change', (e)=>{ applyPalette(e.target.value); syncCustomColorVisible(); });
+}
+const darkToggleEl = document.getElementById('darkToggle');
+if(darkToggleEl){
+  darkToggleEl.textContent = darkMode ? '☀️' : '🌙';
+  darkToggleEl.addEventListener('click', ()=> toggleDarkMode());
 }
 
 loadData();
