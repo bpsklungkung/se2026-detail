@@ -193,6 +193,9 @@
     background:transparent; border:none; outline:none; cursor:pointer;
     padding:8px 4px; -webkit-appearance:none; appearance:none;
   }
+  /* Daftar pilihan (popup) native <select> tidak ikut var(--*) pada closed-box saja — disetel eksplisit
+     di semua select dashboard supaya teks tetap terbaca saat mode gelap (latar gelap, teks terang) maupun terang. */
+  select option{ background:var(--card-bg,#fff); color:var(--brown); }
   @media (max-width: 860px){
     .palette-picker{ padding:0 8px; }
     .palette-picker select{ font-size:11.5px; }
@@ -3277,24 +3280,31 @@ const IPH = (function(){
       '</div>'+
       '<div id="iphError"></div>'+
       '<div class="iph-kpis" id="iphKpis"><div class="state-msg" style="margin:20px 0"><span class="spinner"></span>Memuat data IPH…</div></div>'+
+      
       '<div class="iph-sec-head"><div><div class="ss-section-title">Tren IPH mingguan — Klungkung vs Bali</div><p class="iph-desc" id="iphSubIdx"></p></div>'+
         '<div class="iph-tools"><button type="button" class="dl-btn" data-jpg="idx">⬇ JPG</button></div></div>'+
       box('iphChIdx', 300, 'Grafik indeks IPH mingguan Klungkung dan Bali')+
-      '<div class="iph-sec-head"><div><div class="ss-section-title">Tren Growth IPH mingguan — Klungkung vs Bali</div><p class="iph-desc" id="iphSubMain"></p></div>'+
-        '<div class="iph-tools"><button type="button" class="dl-btn" data-jpg="main">⬇ JPG</button></div></div>'+
-      box('iphChMain', 360, 'Grafik growth IPH mingguan Klungkung dan Bali')+
-      '<div class="iph-sec-head"><div><div class="ss-section-title">Selisih IPH Klungkung terhadap Bali</div><p class="iph-desc">Selisih indeks IPH mingguan Klungkung dikurangi Bali, dalam poin.</p></div>'+
-        '<div class="iph-tools"><button type="button" class="dl-btn" data-jpg="gapIdx">⬇ JPG</button></div></div>'+
-      box('iphChGapIdx', 190, 'Grafik selisih indeks IPH Klungkung dan Bali')+'<div class="iph-swatch" id="iphGapIdxLegend"></div>'+
-      '<div class="iph-sec-head"><div><div class="ss-section-title">Selisih Growth IPH Klungkung terhadap Bali</div><p class="iph-desc">Selisih growth IPH mingguan Klungkung dikurangi Bali, dalam poin persentase.</p></div>'+
-        '<div class="iph-tools"><button type="button" class="dl-btn" data-jpg="gap">⬇ JPG</button></div></div>'+
-      box('iphChGap', 190, 'Grafik selisih growth IPH Klungkung dan Bali')+'<div class="iph-swatch" id="iphGapLegend"></div>'+
-      '<div class="iph-sec-head"><div><div class="ss-section-title">Komoditas penyumbang utama</div><p class="iph-desc" id="iphSubKom"></p></div>'+
-        '<div class="iph-tools">'+regionBtns+'<button type="button" class="dl-btn" data-jpg="kom">⬇ JPG</button></div></div>'+
-      box('iphChKom', 340, 'Grafik komoditas penyumbang utama IPH')+
+      
       '<div class="iph-sec-head"><div><div class="ss-section-title">Tabel data mingguan</div><p class="iph-desc" id="iphSubTbl"></p></div>'+
         '<div class="iph-tools"><input class="iph-search" id="iphTblSearch" type="search" placeholder="Cari minggu / komoditas…" aria-label="Cari di tabel"><button type="button" class="dl-btn" id="iphBtnXlsx">⬇ Excel</button></div></div>'+
       '<div class="ss-table-wrap"><div class="ss-table-scroll" style="max-height:520px;"><table class="ss-table iph-table" id="iphTbl"></table></div></div>'+
+
+      '<div class="iph-sec-head"><div><div class="ss-section-title">Tren Growth IPH mingguan — Klungkung vs Bali</div><p class="iph-desc" id="iphSubMain"></p></div>'+
+        '<div class="iph-tools"><button type="button" class="dl-btn" data-jpg="main">⬇ JPG</button></div></div>'+
+      box('iphChMain', 360, 'Grafik growth IPH mingguan Klungkung dan Bali')+
+      
+      '<div class="iph-sec-head"><div><div class="ss-section-title">Selisih IPH Klungkung terhadap Bali</div><p class="iph-desc">Selisih indeks IPH mingguan Klungkung dikurangi Bali, dalam poin.</p></div>'+
+        '<div class="iph-tools"><button type="button" class="dl-btn" data-jpg="gapIdx">⬇ JPG</button></div></div>'+
+      box('iphChGapIdx', 190, 'Grafik selisih indeks IPH Klungkung dan Bali')+'<div class="iph-swatch" id="iphGapIdxLegend"></div>'+
+      
+      '<div class="iph-sec-head"><div><div class="ss-section-title">Selisih Growth IPH Klungkung terhadap Bali</div><p class="iph-desc">Selisih growth IPH mingguan Klungkung dikurangi Bali, dalam poin persentase.</p></div>'+
+        '<div class="iph-tools"><button type="button" class="dl-btn" data-jpg="gap">⬇ JPG</button></div></div>'+
+      box('iphChGap', 190, 'Grafik selisih growth IPH Klungkung dan Bali')+'<div class="iph-swatch" id="iphGapLegend"></div>'+
+      
+      '<div class="iph-sec-head"><div><div class="ss-section-title">Komoditas penyumbang utama</div><p class="iph-desc" id="iphSubKom"></p></div>'+
+        '<div class="iph-tools">'+regionBtns+'<button type="button" class="dl-btn" data-jpg="kom">⬇ JPG</button></div></div>'+
+      box('iphChKom', 340, 'Grafik komoditas penyumbang utama IPH')+
+      
       '<details class="ss-method-note"><summary>Catatan metode &amp; kualitas data</summary><ul id="iphNotesList"></ul></details>'+
     '</section>';
   }
