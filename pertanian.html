@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verifikasi UTP</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
+  <style>
+    :root{
+      --primary: #4A1620;
+      --primary-dark: #2E0D14;
+      --bg: #FFFFFF;
+      --card: #FFFFFF;
+      --border: #E5E7EB;
+      --text: #2E0D14;
+      --muted: #7A2636;
+      --hover: #F3F4F6;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    .container{max-width:1600px;margin:auto;padding:24px}
+    header{
+      background:var(--primary);
+      color:#fff;
+      border-radius:18px;
+      padding:24px 28px;
+      margin-bottom:20px;
+      box-shadow:0 10px 30px rgba(74,22,32,.18);
+    }
+    h1{margin:0;font-size:28px}
+    .subtitle{margin:7px 0 0;opacity:.85}
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:18px;
+      box-shadow:0 4px 18px rgba(15,23,42,.04);
+      margin-bottom:18px;
+    }
+    .filters{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+      gap:12px;
+    }
+    .filter label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px}
+    select,input{
+      width:100%;
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:10px 12px;
+      background:#fff;
+      font-size:14px;
+      color:var(--text);
+      outline:none;
+    }
+    select:focus,input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(74,22,32,.12)}
+    .toolbar{display:flex;gap:12px;align-items:end;margin-top:14px;flex-wrap:wrap}
+    .search{flex:1;min-width:220px}
+    button{
+      border:0;border-radius:10px;padding:10px 16px;
+      background:var(--primary);color:#fff;font-weight:700;cursor:pointer;
+    }
+    button:hover{background:var(--primary-dark)}
+    .meta{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;color:var(--muted);font-size:14px}
+    .table-wrap{overflow:auto;border:1px solid var(--border);border-radius:12px}
+    
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:11px;
+    }
+    
+    /* --- CSS Sorting Headers --- */
+    thead th{
+      background:var(--primary);
+      color:#fff;
+      position:sticky;top:0;z-index:1;
+      font-weight:700;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    thead th:hover{
+      background: var(--primary-dark);
+    }
+    .sort-icon {
+      display: inline-block;
+      margin-left: 4px;
+      font-size: 10px;
+      vertical-align: middle;
+      transition: opacity 0.2s;
+    }
+    .sort-icon.inactive {
+      opacity: 0.3;
+    }
+    thead th:hover .sort-icon.inactive {
+      opacity: 0.8; 
+    }
+    
+    th,td{
+      padding:5px 6px;
+      border-bottom:1px solid var(--border);
+      text-align:left;
+      white-space:normal; 
+      word-break:normal; 
+      overflow-wrap:break-word; 
+      vertical-align:top; 
+    }
+    tbody tr:hover{background:var(--hover)}
+    
+    /* --- Styles untuk tombol Link & Tanda Setrip --- */
+    .link-btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:34px;height:34px;border-radius:9px;background:#F4E3E6;color:#B23A48;
+      text-decoration:none;font-size:18px;
+    }
+    .link-btn:hover{background:#B23A48;color:#fff;}
+    
+    .dash-btn {
+      display:inline-flex;align-items:center;justify-content:center;
+      width:34px;height:34px;border-radius:9px;background:#F3F4F6;color:#9CA3AF;
+      font-size:14px;
+    }
+
+    .link-btn.has-ket, .dash-btn.has-ket {
+      background: #DCFCE7;
+      color: #166534;
+    }
+    .link-btn.has-ket:hover {
+      background: #166534;
+      color: #fff;
+    }
+
+    .empty{text-align:center;color:var(--muted);padding:32px;font-size:14px}
+    .loading{padding:40px;text-align:center;color:var(--muted)}
+    .badge{
+      display:inline-block;padding:4px 8px;border-radius:999px;
+      background:#F4E3E6;color:#B23A48;font-size:12px;
+    }
+    .badge-done{background:#DCFCE7;color:#166534;font-weight:700;white-space:nowrap}
+    .verif-select, .keterangan-input{
+      width:100%;min-width:110px;border:1px solid var(--border);border-radius:8px;
+      padding:5px 6px;font-size:11px;background:#fff;color:var(--text);
+    }
+    .keterangan-cell{min-width:170px}
+    .save-btn{
+      padding:5px 10px;font-size:11px;border-radius:8px;background:var(--primary);
+      color:#fff;border:0;cursor:pointer;white-space:nowrap;margin-top:4px;
+    }
+    .save-btn:hover{background:var(--primary-dark)}
+    .save-btn:disabled{opacity:.6;cursor:not-allowed}
+    .done-wrap{font-size:11px;line-height:1.5}
+    .done-wrap .who{font-weight:700;color:var(--text)}
+    .done-wrap .ket{color:var(--muted)}
+    .edit-link{display:inline-block;margin-top:4px;font-size:11px;color:#B23A48;cursor:pointer;text-decoration:underline;background:none;border:0;padding:0}
+    th.col-highlight{background:var(--primary-dark)}
+    td.col-highlight{background:#FBF0F1}
+    .summary-grid{
+      display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px;
+    }
+    .summary-card{
+      background:var(--card);border:1px solid var(--border);border-radius:14px;
+      padding:14px 16px;box-shadow:0 4px 18px rgba(15,23,42,.04);
+    }
+    .summary-card .num{font-size:24px;font-weight:800;color:var(--primary);line-height:1.1}
+    .summary-card .lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-top:4px}
+    .summary-card.verif .num{color:#166534}
+    .summary-card.verif .bar{
+      height:6px;border-radius:999px;background:#F4E3E6;margin-top:8px;overflow:hidden;
+    }
+    .summary-card.verif .bar-fill{height:100%;background:#166534;border-radius:999px}
+    @media(max-width:1100px){.summary-grid{grid-template-columns:repeat(3,1fr)}}
+    @media(max-width:600px){.summary-grid{grid-template-columns:repeat(2,1fr)}}
+    .pagination{
+      display:flex;justify-content:center;align-items:center;gap:8px;
+      padding-top:16px;flex-wrap:wrap;
+    }
+    .pagination button{padding:8px 12px;min-width:40px}
+    .pagination button:disabled{opacity:.45;cursor:not-allowed}
+    .page-info{font-size:14px;color:var(--muted);padding:0 6px}
+    
+    /* Panel Filter Dropdown */
+    .ms-wrap{position:relative}
+    .ms-toggle{
+      width:100%;text-align:left;background:#fff;border:1px solid var(--border);
+      border-radius:10px;padding:10px 12px;font-size:14px;color:var(--text);
+      font-weight:400;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:6px;
+      overflow:hidden;
+    }
+    .ms-toggle span.txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .ms-toggle::after{content:"▾";color:var(--muted);font-size:11px;flex:none}
+    .ms-toggle.active{border-color:var(--primary);color:var(--primary);font-weight:700}
+    .ms-panel{
+      position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:20;
+      background:#fff;border:1px solid var(--border);border-radius:12px;
+      box-shadow:0 12px 30px rgba(15,23,42,.14);padding:8px;max-height:300px;
+      display:flex;flex-direction:column;
+    }
+    .ms-panel[hidden]{display:none}
+    .ms-search-wrap{padding:2px 4px 8px;border-bottom:1px solid var(--border);margin-bottom:6px}
+    .ms-search-input{padding:6px 10px;font-size:12px;border-radius:6px;}
+    .ms-actions{display:flex;justify-content:space-between;gap:8px;padding:2px 4px 8px;border-bottom:1px solid var(--border);margin-bottom:6px}
+    .ms-actions button{
+      background:none;border:0;color:var(--primary);font-size:11px;font-weight:700;
+      padding:2px 4px;cursor:pointer;border-radius:6px;
+    }
+    .ms-actions button:hover{background:var(--hover)}
+    .ms-options{overflow:auto;display:flex;flex-direction:column;gap:2px}
+    .ms-option{
+      display:flex;align-items:center;gap:8px;padding:6px 6px;border-radius:8px;
+      font-size:13px;cursor:pointer;
+    }
+    .ms-option:hover{background:var(--hover)}
+    .ms-option input{width:auto;flex:none}
+    .ms-empty{padding:10px;font-size:12px;color:var(--muted);text-align:center}
+    
+    @media(max-width:1100px){.filters{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:600px){.container{padding:12px}.filters{grid-template-columns:1fr}header{padding:20px}h1{font-size:22px}}
+
+    /* --- CSS Custom Tooltip --- */
+    .tooltip-wrap {
+      position: relative;
+      display: inline-flex;
+      cursor: pointer;
+    }
+    .tooltip-content {
+      visibility: hidden;
+      width: max-content;
+      max-width: 250px;
+      background-color: var(--primary-dark);
+      color: #fff;
+      text-align: left;
+      border-radius: 8px;
+      padding: 8px 12px;
+      position: absolute;
+      z-index: 100;
+      bottom: 130%; 
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+      font-size: 12px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      pointer-events: none; 
+    }
+    .tooltip-content::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: var(--primary-dark) transparent transparent transparent;
+    }
+    .tooltip-wrap:hover .tooltip-content {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .hl-red { color: #ff6b6b; font-weight: bold; }
+    .hl-green { color: #51cf66; font-weight: bold; }
+
+    .recap-grid{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:start;
+    }
+    .recap-box h3{
+      margin:0 0 8px;font-size:14px;color:var(--primary);
+    }
+    .recap-box table{font-size:12px}
+    .recap-box th{background:var(--primary);color:#fff;padding:6px 8px;text-align:left}
+    .recap-box td{padding:6px 8px;border-bottom:1px solid var(--border)}
+    @media(max-width:1100px){.recap-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:600px){.recap-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Data UTP Kecamatan & Desa Yang Tidak Ditemukan, Tutup dan Ganda</h1>
+    <p class="subtitle">Data UTP Yang Kemungkinan Ditemukan</p>
+  </header>
+
+  <div class="summary-grid" id="summaryCards"></div>
+
+  <section class="card">
+    <div class="meta">
+      <span>Rekap Data</span>
+      <button id="exportRecapBtn" type="button">📊 Export Rekap</button>
+    </div>
+    <div class="recap-grid">
+      <div class="recap-box">
+        <h3>Rekap per Kecamatan</h3>
+        <div class="table-wrap"><table id="recapKecamatan"></table></div>
+      </div>
+      <div class="recap-box">
+        <h3>Rekap per Kemungkinan</h3>
+        <div class="table-wrap"><table id="recapKemungkinan"></table></div>
+      </div>
+      <div class="recap-box">
+        <h3>Rekap per Tindakan</h3>
+        <div class="table-wrap"><table id="recapTindakan"></table></div>
+      </div>
+      <div class="recap-box">
+        <h3>Rekap per Verifikator</h3>
+        <div class="table-wrap"><table id="recapVerifikator"></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="filters" id="filters"></div>
+    <div class="toolbar">
+      <div class="search">
+        <label style="display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px">Pencarian</label>
+        <input id="searchInput" type="search" placeholder="Cari di seluruh data..." />
+      </div>
+      <button id="resetBtn">Reset Filter</button>
+      <button id="exportExcelBtn" type="button">📊 Export Excel</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="meta">
+      <span id="resultInfo"></span>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <label style="font-size: 12px; color: var(--muted); font-weight: 700;">Tampilkan:</label>
+        <select id="pageSizeSelect" style="width: 70px; padding: 4px 8px; font-size: 12px; min-width: 0; border: 1px solid var(--border); border-radius: 8px;">
+          <option value="10">10</option>
+          <option value="15">15</option>
+          <option value="20">20</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table id="dataTable"></table>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </section>
+</div>
+
+<script>
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSltJpM4nu0YYP-76cILTuWVQxUyQdXH6wmoq53EAELzbNqOXrHFMqM43Zp7D0pTUAd8Pxo-pE-3hEL/pub?output=csv";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxaLUBYIhnCvVkiZC-cVwfN-_h0XQgudJMpncEABjFCh0rChKFc181RUGJZVmCcN7mf/exec";
+
+// Ditambahkan 'Mitra' pada daftar verifikator
+const VERIFIKATOR_NAMES = [
+  "Zidan","Herlinda","Permana","Sutama","Purnami","Sukma","Asya","Indri",
+  "Budiriani","Rosma","Eka","Yoga","Ave","Monic","Suparta","Halim","Okta",
+  "Bajra","Agung","Sudiasa","Ari","Toni","Wija","Dekci","Suar","Mitra"
+];
+
+const FILTER_COLUMNS = [0,1,2,3,4];
+let extraFilterColumns = [];
+const VIRTUAL_JENIS = "__JENIS__";
+const EXCLUDED_COLUMNS = [7,8,9,10]; 
+const LINK_COLUMN = 20;            
+const DUPLICATE_RIGHTMOST_HEADERS = ["PEKERJAAN KRT", "PEKERJAAN PENGUSAHA"];
+
+let headers = [];
+let rows = [];
+let filteredRows = [];
+let currentPage = 1;
+let PAGE_SIZE = 10;
+let submittedMap = {}; 
+let editingKeys = new Set(); 
+
+// --- Variabel State Sorting ---
+let sortCol = null;
+let sortAsc = true;
+
+let filterState = {};       
+let openFilterKey = null;   
+let lastAvailableMap = {};  
+
+let msSearchState = {}; 
+let focusedSearchKey = null; 
+
+function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+}
+
+function clean(v) {
+  return (v ?? "").toString().trim();
+}
+
+function getUnifiedHJI(row) {
+  for (const index of EXCLUDED_COLUMNS) {
+    if (clean(row[index]) !== "") return headers[index] || "";
+  }
+  return "";
+}
+
+function getVisibleColumns() {
+  const targetHeaders = DUPLICATE_RIGHTMOST_HEADERS.map(normalizeHeader);
+  const rightmostIndex = {};
+  headers.forEach((header, index) => {
+    const normalized = normalizeHeader(header);
+    if (targetHeaders.includes(normalized)) rightmostIndex[normalized] = index;
+  });
+
+  return Array.from({length: Math.min(headers.length, LINK_COLUMN + 2)}, (_, i) => i)
+    .filter(i => !EXCLUDED_COLUMNS.includes(i) && i !== LINK_COLUMN)
+    .filter(i => {
+      const normalized = normalizeHeader(headers[i]);
+      return !targetHeaders.includes(normalized) || rightmostIndex[normalized] === i;
+    });
+}
+
+function normalizeHeader(value) {
+  return clean(value).toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+function findColumnByHeader(keyword) {
+  const target = normalizeHeader(keyword);
+  return headers.findIndex(h => normalizeHeader(h) === target);
+}
+
+function getRowKey(row) {
+  const idxKec = findColumnByHeader("KECAMATAN");
+  const idxDesa = findColumnByHeader("DESA");
+  const idxSls = findColumnByHeader("SLS");
+  const idxUtp = findColumnByHeader("NAMA UTP");
+  return [idxKec, idxDesa, idxSls, idxUtp]
+    .map(i => (i >= 0 ? clean(row[i]) : ""))
+    .join("|");
+}
+
+function getFilterDefinitions() {
+  const definitions = FILTER_COLUMNS.map(index => ({
+    key: index,
+    label: headers[index] || `Kolom ${index + 1}`,
+    getValue: row => clean(row[index])
+  }));
+
+  extraFilterColumns = [
+    { name: "Tindakan", index: findColumnByHeader("Tindakan") },
+    { name: "Kemungkinan", index: findColumnByHeader("Kemungkinan") },
+    { name: "Status", index: findColumnByHeader("Status") } 
+  ].filter(item => item.index >= 0 && !FILTER_COLUMNS.includes(item.index));
+
+  extraFilterColumns.forEach(item => {
+    definitions.push({
+      key: item.index,
+      label: headers[item.index] || item.name,
+      getValue: row => clean(row[item.index])
+    });
+  });
+
+  definitions.push({
+    key: VIRTUAL_JENIS,
+    label: "Jenis",
+    getValue: row => getUnifiedHJI(row)
+  });
+
+  // Filter __VERIFIKASI__ dihapus karena tabel tidak menampilkan baris yang sudah terverifikasi
+
+  return definitions;
+}
+
+function initFilters() {
+  filterState = {};
+  msSearchState = {};
+  getFilterDefinitions().forEach(def => { filterState[String(def.key)] = new Set(); });
+  openFilterKey = null;
+  applyFilters();
+}
+
+function rowMatchesFilters(row, definitions, excludeKey) {
+  return definitions.every(def => {
+    const key = String(def.key);
+    if (excludeKey !== null && key === String(excludeKey)) return true;
+    const selected = filterState[key];
+    if (!selected || selected.size === 0) return true;
+    return selected.has(def.getValue(row));
+  });
+}
+
+function matchesSearch(row) {
+  const search = clean(document.getElementById("searchInput").value).toLowerCase();
+  if (!search) return true;
+  return row.some(cell => clean(cell).toLowerCase().includes(search)) ||
+    getUnifiedHJI(row).toLowerCase().includes(search);
+}
+
+function renderFilterUI(definitions, availableMap) {
+  const container = document.getElementById("filters");
+  container.innerHTML = "";
+
+  definitions.forEach(def => {
+    const key = String(def.key);
+    if (!filterState[key]) filterState[key] = new Set();
+    const selected = filterState[key];
+    const available = availableMap[key] || new Set();
+
+    const wrap = document.createElement("div");
+    wrap.className = "filter ms-wrap";
+    wrap.dataset.key = key;
+
+    const label = document.createElement("label");
+    label.textContent = def.label;
+
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "ms-toggle" + (selected.size ? " active" : "");
+    const selectedArr = [...selected];
+    const toggleText = selectedArr.length === 0
+      ? `Semua ${def.label}`
+      : selectedArr.length <= 2
+        ? selectedArr.join(", ")
+        : `${selectedArr.length} dipilih`;
+    toggle.innerHTML = `<span class="txt">${escapeHtml(toggleText)}</span>`;
+
+    const panel = document.createElement("div");
+    panel.className = "ms-panel";
+    panel.hidden = openFilterKey !== key;
+    
+    const msSearchWrap = document.createElement("div");
+    msSearchWrap.className = "ms-search-wrap";
+    const currentSearch = msSearchState[key] || "";
+    msSearchWrap.innerHTML = `<input type="text" class="ms-search-input" data-key="${escapeAttr(key)}" placeholder="Cari ${escapeAttr(def.label)}..." value="${escapeAttr(currentSearch)}"/>`;
+
+    const actions = document.createElement("div");
+    actions.className = "ms-actions";
+    actions.innerHTML = `<button type="button" data-act="all" data-key="${escapeAttr(key)}">Pilih Semua</button><button type="button" data-act="clear" data-key="${escapeAttr(key)}">Hapus</button>`;
+
+    const optionsWrap = document.createElement("div");
+    optionsWrap.className = "ms-options";
+
+    const values = [...available].sort((a,b) => {
+      if(key === "__VERIFIKASI__") {
+        if(a === "Belum") return -1;
+        if(b === "Belum") return 1;
+      }
+      return a.localeCompare(b, "id")
+    });
+    
+    if (!values.length) {
+      optionsWrap.innerHTML = `<div class="ms-empty">Tidak ada opsi</div>`;
+    } else {
+      values.forEach(value => {
+        const optLabel = document.createElement("label");
+        optLabel.className = "ms-option";
+        
+        if (currentSearch && !value.toLowerCase().includes(currentSearch)) {
+            optLabel.style.display = 'none';
+        }
+
+        const checked = selected.has(value) ? "checked" : "";
+        optLabel.innerHTML = `<input type="checkbox" data-key="${escapeAttr(key)}" value="${escapeAttr(value)}" ${checked}/><span>${escapeHtml(value)}</span>`;
+        optionsWrap.appendChild(optLabel);
+      });
+    }
+
+    panel.append(msSearchWrap, actions, optionsWrap);
+    wrap.append(label, toggle, panel);
+    container.appendChild(wrap);
+  });
+
+  if (focusedSearchKey) {
+    const activeInput = document.querySelector(`.ms-search-input[data-key="${cssEscape(focusedSearchKey)}"]`);
+    if (activeInput) {
+      activeInput.focus();
+      const len = activeInput.value.length;
+      activeInput.setSelectionRange(len, len);
+    }
+  }
+}
+
+// --- Fungsi Eksekusi Sorting Array ---
+function applySort() {
+  if (!sortCol) return;
+  
+  filteredRows.sort((a, b) => {
+    let valA = "";
+    let valB = "";
+    const keyA = getRowKey(a);
+    const keyB = getRowKey(b);
+    
+    if (sortCol === "virtual_jenis") {
+      valA = getUnifiedHJI(a);
+      valB = getUnifiedHJI(b);
+    } else if (sortCol === "virtual_link") {
+      valA = clean(a[LINK_COLUMN]);
+      valB = clean(b[LINK_COLUMN]);
+    } else if (sortCol === "virtual_verif") {
+      valA = submittedMap[keyA] ? submittedMap[keyA].verifikasi : "Belum";
+      valB = submittedMap[keyB] ? submittedMap[keyB].verifikasi : "Belum";
+    } else if (sortCol === "virtual_ket") {
+      valA = submittedMap[keyA] ? (submittedMap[keyA].keterangan || "") : "";
+      valB = submittedMap[keyB] ? (submittedMap[keyB].keterangan || "") : "";
+    } else {
+      valA = clean(a[Number(sortCol)]);
+      valB = clean(b[Number(sortCol)]);
+    }
+
+    if (!valA && valB) return 1;
+    if (!valB && valA) return -1;
+
+    const cmp = valA.localeCompare(valB, 'id', { numeric: true, sensitivity: 'base' });
+    return sortAsc ? cmp : -cmp;
+  });
+}
+
+function handleSortClick(key) {
+  if (sortCol === key) {
+    sortAsc = !sortAsc;
+  } else {
+    sortCol = key;
+    sortAsc = true;
+  }
+  applySort();
+  currentPage = 1;
+  renderTable();
+}
+
+function applyFilters() {
+  const definitions = getFilterDefinitions();
+
+  let availableMap = {};
+  let stable = false;
+  let iterations = 0;
+  while (!stable && iterations < 6) {
+    stable = true;
+    definitions.forEach(def => {
+      const key = String(def.key);
+      const avail = new Set();
+      rows.forEach(row => {
+        if (rowMatchesFilters(row, definitions, key) && matchesSearch(row)) {
+          const v = def.getValue(row);
+          if (v) avail.add(v);
+        }
+      });
+      availableMap[key] = avail;
+
+      const selected = filterState[key];
+      if (selected && selected.size) {
+        [...selected].forEach(v => {
+          if (!avail.has(v)) { selected.delete(v); stable = false; }
+        });
+      }
+    });
+    iterations++;
+  }
+
+  lastAvailableMap = availableMap;
+  // Tetap memasukkan semua baris ke filteredRows untuk keperluan Statistik/Rekap
+  filteredRows = rows.filter(row => rowMatchesFilters(row, definitions, null) && matchesSearch(row));
+
+  applySort();
+  
+  renderFilterUI(definitions, availableMap);
+  currentPage = 1;
+  renderTable();
+}
+
+function renderSummaryCards() {
+  const container = document.getElementById("summaryCards");
+  if (!container) return;
+
+  const cols = [
+    { name: "KECAMATAN", label: "Kecamatan" },
+    { name: "DESA", label: "Desa" },
+    { name: "SLS", label: "SLS" },
+    { name: "PML", label: "PML" },
+    { name: "PPL", label: "PPL" }
+  ];
+
+  let html = "";
+  cols.forEach(c => {
+    const idx = findColumnByHeader(c.name);
+    const count = idx >= 0
+      ? new Set(filteredRows.map(r => clean(r[idx])).filter(Boolean)).size
+      : 0;
+    html += `
+      <div class="summary-card">
+        <div class="num">${count.toLocaleString("id-ID")}</div>
+        <div class="lbl">${escapeHtml(c.label)}</div>
+      </div>`;
+  });
+
+  const total = filteredRows.length;
+  const done = filteredRows.filter(r => submittedMap[getRowKey(r)]).length;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  html += `
+    <div class="summary-card verif">
+      <div class="num">${done.toLocaleString("id-ID")}/${total.toLocaleString("id-ID")}</div>
+      <div class="lbl">Verifikasi (${pct}%)</div>
+      <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>
+    </div>`;
+
+  container.innerHTML = html;
+}
+
+function buildRecap(getValueFn) {
+  const counts = {};
+  filteredRows.forEach(row => {
+    const v = clean(getValueFn(row)) || "(Kosong)";
+    counts[v] = (counts[v] || 0) + 1;
+  });
+  return counts;
+}
+
+// Parse timestamp sheet berformat "DD/MM/YYYY H:MM[:SS]" (fallback ke Date parser bawaan)
+function parseSheetTimestamp(str) {
+  const s = clean(str);
+  if (!s) return null;
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})[ ,]+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?/);
+  if (m) {
+    const [, dd, mm, yyyy, hh, mi, ss] = m;
+    const d = new Date(+yyyy, +mm - 1, +dd, +hh, +mi, ss ? +ss : 0);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function getTodayStart() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
+function getRowTimestamp(row) {
+  const idx = findColumnByHeader("Timestamp");
+  return parseSheetTimestamp(row[idx >= 0 ? idx : 0]);
+}
+
+// Rekap "kemarin" untuk kolom yang nilainya tetap (Kecamatan/Kemungkinan/Tindakan):
+function buildRecapAsOfYesterday(getValueFn) {
+  const cutoff = getTodayStart();
+  const counts = {};
+  filteredRows.forEach(row => {
+    const ts = getRowTimestamp(row);
+    if (ts && ts >= cutoff) return;
+    const v = clean(getValueFn(row)) || "(Kosong)";
+    counts[v] = (counts[v] || 0) + 1;
+  });
+  return counts;
+}
+
+// Rekap "kemarin" untuk Verifikator
+function buildRecapVerifikatorAsOfYesterday() {
+  const cutoff = getTodayStart();
+  const counts = {};
+  filteredRows.forEach(row => {
+    const saved = submittedMap[getRowKey(row)];
+    const ts = saved && saved.timestamp ? parseSheetTimestamp(saved.timestamp) : null;
+    const v = (saved && saved.verifikasi && ts && ts < cutoff) ? saved.verifikasi : "Belum";
+    counts[v] = (counts[v] || 0) + 1;
+  });
+  return counts;
+}
+
+function renderTrendBadge(delta) {
+  if (delta > 0) return `<span style="color:#15803d;font-weight:700">▲ ${delta.toLocaleString("id-ID")}</span>`;
+  if (delta < 0) return `<span style="color:#b91c1c;font-weight:700">▼ ${Math.abs(delta).toLocaleString("id-ID")}</span>`;
+  return `<span style="color:var(--muted)">– 0</span>`;
+}
+
+function renderRecapTable(tableId, counts, labelHeader, prevCounts) {
+  const container = document.getElementById(tableId);
+  if (!container) return;
+
+  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+  const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  const showTrend = !!prevCounts;
+
+  let html = `<thead><tr><th>${escapeHtml(labelHeader)}</th><th>Jumlah</th><th>%</th>${showTrend ? '<th>Tren</th>' : ''}</tr></thead><tbody>`;
+  if (!entries.length) {
+    html += `<tr><td colspan="${showTrend ? 4 : 3}" class="empty">Tidak ada data</td></tr>`;
+  } else {
+    let totalPrev = 0;
+    entries.forEach(([label, count]) => {
+      const pct = total ? Math.round((count / total) * 100) : 0;
+      let trendCell = "";
+      if (showTrend) {
+        const prev = prevCounts[label] || 0;
+        totalPrev += prev;
+        trendCell = `<td style="text-align:center">${renderTrendBadge(count - prev)}</td>`;
+      }
+      html += `<tr><td>${escapeHtml(label)}</td><td style="text-align:center">${count.toLocaleString("id-ID")}</td><td style="text-align:center">${pct}%</td>${trendCell}</tr>`;
+    });
+    const totalTrendCell = showTrend ? `<td style="text-align:center">${renderTrendBadge(total - totalPrev)}</td>` : "";
+    html += `<tr style="font-weight:700;background:var(--hover)"><td>Total</td><td style="text-align:center">${total.toLocaleString("id-ID")}</td><td style="text-align:center">100%</td>${totalTrendCell}</tr>`;
+  }
+  html += "</tbody>";
+  container.innerHTML = html;
+}
+
+function renderRecapTables() {
+  renderRecapTable(
+    "recapKecamatan",
+    buildRecap(row => row[findColumnByHeader("KECAMATAN")]),
+    "Kecamatan",
+    buildRecapAsOfYesterday(row => row[findColumnByHeader("KECAMATAN")])
+  );
+  renderRecapTable(
+    "recapKemungkinan",
+    buildRecap(row => row[findColumnByHeader("Kemungkinan")]),
+    "Kemungkinan",
+    buildRecapAsOfYesterday(row => row[findColumnByHeader("Kemungkinan")])
+  );
+  renderRecapTable(
+    "recapTindakan",
+    buildRecap(row => row[findColumnByHeader("Tindakan")]),
+    "Tindakan",
+    buildRecapAsOfYesterday(row => row[findColumnByHeader("Tindakan")])
+  );
+  renderRecapTable(
+    "recapVerifikator",
+    buildRecap(row => {
+      const saved = submittedMap[getRowKey(row)];
+      return saved && saved.verifikasi ? saved.verifikasi : "Belum";
+    }),
+    "Verifikator",
+    buildRecapVerifikatorAsOfYesterday()
+  );
+}
+
+async function exportRecapToExcel() {
+  const btn = document.getElementById("exportRecapBtn");
+  if (btn) { btn.disabled = true; btn.textContent = "Menyiapkan..."; }
+  try {
+    const workbook = new ExcelJS.Workbook();
+
+    const recaps = [
+      { name: "Kecamatan", counts: buildRecap(row => row[findColumnByHeader("KECAMATAN")]) },
+      { name: "Kemungkinan", counts: buildRecap(row => row[findColumnByHeader("Kemungkinan")]) },
+      { name: "Tindakan", counts: buildRecap(row => row[findColumnByHeader("Tindakan")]) },
+      { name: "Verifikator", counts: buildRecap(row => {
+          const saved = submittedMap[getRowKey(row)];
+          return saved && saved.verifikasi ? saved.verifikasi : "Belum";
+        })
+      }
+    ];
+
+    recaps.forEach(r => {
+      const sheet = workbook.addWorksheet(r.name);
+      const total = Object.values(r.counts).reduce((a, b) => a + b, 0);
+      const entries = Object.entries(r.counts).sort((a, b) => b[1] - a[1]);
+
+      const headerRow = sheet.addRow([r.name, "Jumlah", "%"]);
+      headerRow.eachCell(cell => {
+        cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF4A1620" } };
+        cell.alignment = { vertical: "middle" };
+      });
+
+      entries.forEach(([label, count]) => {
+        const pct = total ? Math.round((count / total) * 100) : 0;
+        sheet.addRow([label, count, `${pct}%`]);
+      });
+
+      const totalRow = sheet.addRow(["Total", total, "100%"]);
+      totalRow.eachCell(cell => { cell.font = { bold: true }; });
+
+      sheet.columns = [{ width: 26 }, { width: 14 }, { width: 10 }];
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/octet-stream" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Rekap_UTP_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error(err);
+    alert("Gagal membuat file Excel rekap.");
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "📊 Export Rekap"; }
+  }
+}
+
+document.getElementById("exportRecapBtn").addEventListener("click", exportRecapToExcel);
+
+async function exportToExcel() {
+  const btn = document.getElementById("exportExcelBtn");
+  if (btn) { btn.disabled = true; btn.textContent = "Menyiapkan..."; }
+  try {
+    const visibleColumns = getVisibleColumns();
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Data UTP");
+
+    const headerLabels = visibleColumns.map(i => headers[i] || `Kolom ${i + 1}`)
+      .concat(["JENIS", "LINK", "VERIFIKASI", "KETERANGAN"]);
+    const headerRow = sheet.addRow(headerLabels);
+    headerRow.eachCell(cell => {
+      cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF4A1620" } };
+      cell.alignment = { vertical: "middle" };
+    });
+
+    filteredRows.forEach(row => {
+      const key = getRowKey(row);
+      const saved = submittedMap[key];
+      const dataRow = visibleColumns.map(i => clean(row[i]));
+      dataRow.push(getUnifiedHJI(row));
+      dataRow.push(clean(row[LINK_COLUMN]));
+      dataRow.push(saved ? saved.verifikasi : "Belum");
+      dataRow.push(saved ? (saved.keterangan || "") : "");
+      sheet.addRow(dataRow);
+    });
+
+    sheet.columns.forEach(col => { col.width = 18; });
+    sheet.views = [{ state: "frozen", ySplit: 1 }];
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/octet-stream" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Data_UTP_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error(err);
+    alert("Gagal membuat file Excel.");
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "📊 Export Excel"; }
+  }
+}
+
+document.getElementById("exportExcelBtn").addEventListener("click", exportToExcel);
+
+function renderTable() {
+  renderSummaryCards();
+  renderRecapTables();
+  const table = document.getElementById("dataTable");
+  const visibleColumns = getVisibleColumns();
+  const pagination = document.getElementById("pagination");
+  const highlightHeaders = ["USAHA UTP", "TINDAKAN", "KEMUNGKINAN", "STATUS"].map(normalizeHeader);
+  const isHighlightCol = i => highlightHeaders.includes(normalizeHeader(headers[i]));
+
+  // --- Pembuatan Header Table dengan Atribut Sorting ---
+  let html = "<thead><tr>";
+  visibleColumns.forEach(i => {
+    const sortKey = String(i);
+    const isActive = sortCol === sortKey;
+    const icon = isActive ? (sortAsc ? "▲" : "▼") : "⇅";
+    const inactiveClass = isActive ? "" : " inactive";
+    html += `<th data-sort="${sortKey}"${isHighlightCol(i) ? ' class="col-highlight"' : ""}>
+               ${escapeHtml(headers[i] || `Kolom ${i+1}`)} <span class="sort-icon${inactiveClass}">${icon}</span>
+             </th>`;
+  });
+  
+  const virtuals = [
+    { key: "virtual_jenis", label: "JENIS" },
+    { key: "virtual_link", label: "LINK" },
+    { key: "virtual_verif", label: "VERIFIKASI" },
+    { key: "virtual_ket", label: "KETERANGAN" }
+  ];
+  virtuals.forEach(v => {
+    const isActive = sortCol === v.key;
+    const icon = isActive ? (sortAsc ? "▲" : "▼") : "⇅";
+    const inactiveClass = isActive ? "" : " inactive";
+    html += `<th data-sort="${v.key}">${v.label} <span class="sort-icon${inactiveClass}">${icon}</span></th>`;
+  });
+  
+  html += `</tr></thead><tbody>`;
+
+  // FILTER BARIS YANG BELUM DIVERIFIKASI UNTUK DITAMPILKAN DI TABEL
+  const tableRows = filteredRows.filter(row => {
+    const key = getRowKey(row);
+    const saved = submittedMap[key];
+    return !(saved && saved.verifikasi); // Hanya yang belum diverifikasi yang tampil
+  });
+
+  if (!tableRows.length) {
+    const colspanTotal = visibleColumns.length + 4; 
+    html += `<tr><td class="empty" colspan="${colspanTotal}">Tidak ada data yang sesuai atau semua sudah diverifikasi.</td></tr></tbody>`;
+    table.innerHTML = html;
+    document.getElementById("resultInfo").textContent = `Menampilkan 0 data`;
+    pagination.innerHTML = "";
+    return;
+  }
+
+  const totalPages = Math.ceil(tableRows.length / PAGE_SIZE);
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const endIndex = Math.min(startIndex + PAGE_SIZE, tableRows.length);
+  const pageRows = tableRows.slice(startIndex, endIndex);
+
+  pageRows.forEach(row => {
+    const key = getRowKey(row);
+    html += "<tr>";
+
+    visibleColumns.forEach(i => {
+      html += `<td${isHighlightCol(i) ? ' class="col-highlight"' : ""}>${escapeHtml(clean(row[i]))}</td>`;
+    });
+
+    html += `<td>${escapeHtml(getUnifiedHJI(row))}</td>`;
+
+    const url = clean(row[LINK_COLUMN]);
+    const tooltipTextRaw = clean(row[10]); 
+    const ternakRaw = clean(row[22]);      
+    const lahanRaw = clean(row[23]);       
+    
+    let tooltipHtml = getHighlightedTooltip(tooltipTextRaw);
+    tooltipHtml += `<hr style="border:0;border-top:1px dashed rgba(255,255,255,0.3);margin:6px 0;">`;
+    tooltipHtml += `Jumlah ternak = ${escapeHtml(ternakRaw)}<br>`;
+    tooltipHtml += `Lahan = ${escapeHtml(lahanRaw)}`;
+    
+    const ketClass = tooltipTextRaw !== "" ? " has-ket" : "";
+
+    if (url && /^https?:\/\//i.test(url)) {
+      html += `<td>
+        <div class="tooltip-wrap">
+          <a class="link-btn${ketClass}" href="${escapeAttr(url)}" target="_blank" rel="noopener noreferrer" aria-label="Buka link">🔗</a>
+          <div class="tooltip-content">${tooltipHtml}</div>
+        </div>
+      </td>`;
+    } else {
+      html += `<td>
+        <div class="tooltip-wrap">
+          <span class="dash-btn${ketClass}">—</span>
+          <div class="tooltip-content">${tooltipHtml}</div>
+        </div>
+      </td>`;
+    }
+
+    html += renderVerifikasiCells(key);
+    html += "</tr>";
+  });
+
+  html += "</tbody>";
+  table.innerHTML = html;
+  
+  const resultInfo = document.getElementById("resultInfo");
+  if (resultInfo) {
+    resultInfo.textContent =
+      `Menampilkan ${startIndex + 1}-${endIndex} dari ${tableRows.length.toLocaleString("id-ID")} data belum diverifikasi (${rows.length.toLocaleString("id-ID")} total keseluruhan)`;
+  }
+
+  attachVerifikasiHandlers();
+  renderPagination(totalPages);
+}
+
+function renderVerifikasiCells(key) {
+  const saved = submittedMap[key];
+  const isEditing = editingKeys.has(key);
+  const safeKey = escapeAttr(key);
+
+  if (saved && !isEditing) {
+    return `
+      <td><span class="badge badge-done">✓ ${escapeHtml(saved.verifikasi)}</span></td>
+      <td class="keterangan-cell">
+        <div class="done-wrap">
+          <div class="ket">${escapeHtml(saved.keterangan || "-")}</div>
+          <button type="button" class="edit-link" data-key="${safeKey}" data-action="edit">Ubah</button>
+        </div>
+      </td>`;
+  }
+
+  const options = [`<option value="">Pilih nama…</option>`]
+    .concat(VERIFIKATOR_NAMES.map(name => {
+      const selected = saved && saved.verifikasi === name ? "selected" : "";
+      return `<option value="${escapeAttr(name)}" ${selected}>${escapeHtml(name)}</option>`;
+    })).join("");
+
+  return `
+    <td>
+      <select class="verif-select" data-key="${safeKey}">${options}</select>
+    </td>
+    <td class="keterangan-cell">
+      <input type="text" class="keterangan-input" data-key="${safeKey}" placeholder="Keterangan..." value="${escapeAttr(saved ? saved.keterangan : "")}" />
+      <br/>
+      <button type="button" class="save-btn" data-key="${safeKey}" data-action="save">Simpan</button>
+    </td>`;
+}
+
+function attachVerifikasiHandlers() {
+  document.querySelectorAll('[data-action="save"]').forEach(btn => {
+    btn.addEventListener("click", () => saveVerifikasi(btn.dataset.key));
+  });
+  document.querySelectorAll('[data-action="edit"]').forEach(btn => {
+    btn.addEventListener("click", () => {
+      editingKeys.add(btn.dataset.key);
+      renderTable();
+    });
+  });
+}
+
+// Menangkap event klik Table untuk proses Sorting
+document.getElementById("dataTable").addEventListener("click", (e) => {
+  const th = e.target.closest("th[data-sort]");
+  if (th) {
+    handleSortClick(th.dataset.sort);
+  }
+});
+
+async function saveVerifikasi(key) {
+  const select = document.querySelector(`.verif-select[data-key="${cssEscape(key)}"]`);
+  const input = document.querySelector(`.keterangan-input[data-key="${cssEscape(key)}"]`);
+  const btn = document.querySelector(`.save-btn[data-key="${cssEscape(key)}"]`);
+  const verifikasi = select ? select.value : "";
+  const keterangan = input ? input.value.trim() : "";
+
+  if (!verifikasi) {
+    alert("Pilih nama verifikator terlebih dahulu.");
+    return;
+  }
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf("GANTI_DENGAN_URL_WEB_APP_ANDA") !== -1) {
+    alert("APPS_SCRIPT_URL belum diisi. Deploy UtpVerifikasiAPI.gs sebagai Web App lalu isi URL-nya di kode.");
+    return;
+  }
+
+  const rowRef = rows.find(r => getRowKey(r) === key);
+  const linkValue = rowRef ? clean(rowRef[LINK_COLUMN]) : "";
+
+  let keysToSave = [key];
+  if (linkValue && /^https?:\/\//i.test(linkValue)) {
+    keysToSave = rows.filter(r => clean(r[LINK_COLUMN]) === linkValue).map(r => getRowKey(r));
+    keysToSave = [...new Set(keysToSave)]; 
+  }
+
+  if (btn) { btn.disabled = true; btn.textContent = "Menyimpan..."; }
+
+  try {
+    for (const k of keysToSave) {
+      const rRef = rows.find(r => getRowKey(r) === k);
+      const payload = {
+        key: k,
+        kecamatan: rRef ? clean(rRef[findColumnByHeader("KECAMATAN")]) : "",
+        desa: rRef ? clean(rRef[findColumnByHeader("DESA")]) : "",
+        sls: rRef ? clean(rRef[findColumnByHeader("SLS")]) : "",
+        namaUtp: rRef ? clean(rRef[findColumnByHeader("NAMA UTP")]) : "",
+        verifikasi,
+        keterangan
+      };
+
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" }, 
+        body: JSON.stringify(payload)
+      });
+      
+      const data = await res.json();
+      if (!data || data.status !== "ok") throw new Error((data && data.message) || "Gagal menyimpan");
+
+      submittedMap[k] = { verifikasi, keterangan, timestamp: data.timestamp || new Date().toISOString() };
+      editingKeys.delete(k);
+    }
+    
+    applyFilters(); // Table akan di-render ulang dan otomatis menghilangkan yang baru saja diverifikasi
+  } catch (err) {
+    console.error(err);
+    alert("Gagal menyimpan beberapa data ke server. Coba lagi.");
+    if (btn) { btn.disabled = false; btn.textContent = "Simpan"; }
+  }
+}
+
+function cssEscape(value) {
+  return String(value).replace(/["\\]/g, "\\$&");
+}
+
+async function loadSubmitted() {
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf("GANTI_DENGAN_URL_WEB_APP_ANDA") !== -1) return;
+  try {
+    const res = await fetch(APPS_SCRIPT_URL);
+    const data = await res.json();
+    submittedMap = {};
+    (data.items || []).forEach(item => {
+      submittedMap[item.key] = {
+        verifikasi: item.verifikasi,
+        keterangan: item.keterangan,
+        timestamp: item.timestamp
+      };
+    });
+  } catch (err) {
+    console.error("Gagal memuat status verifikasi:", err);
+  }
+}
+
+function renderPagination(totalPages) {
+  const pagination = document.getElementById("pagination");
+  let html = `<button type="button" id="prevPage" ${currentPage === 1 ? "disabled" : ""}>← Sebelumnya</button>`;
+
+  const maxButtons = 5;
+  let start = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+  let end = Math.min(totalPages, start + maxButtons - 1);
+  start = Math.max(1, end - maxButtons + 1);
+
+  for (let p = start; p <= end; p++) {
+    html += `<button type="button" class="page-btn" data-page="${p}" ${p === currentPage ? "disabled" : ""}>${p}</button>`;
+  }
+
+  html += `<button type="button" id="nextPage" ${currentPage === totalPages ? "disabled" : ""}>Berikutnya →</button>`;
+  html += `<span class="page-info">Halaman ${currentPage} dari ${totalPages}</span>`;
+  pagination.innerHTML = html;
+
+  document.getElementById("prevPage").addEventListener("click", () => {
+    if (currentPage > 1) { currentPage--; renderTable(); }
+  });
+  document.getElementById("nextPage").addEventListener("click", () => {
+    if (currentPage < totalPages) { currentPage++; renderTable(); }
+  });
+  pagination.querySelectorAll(".page-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentPage = Number(btn.dataset.page);
+      renderTable();
+    });
+  });
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+function escapeAttr(value) { return escapeHtml(value); }
+
+function getHighlightedTooltip(text) {
+  if (!text) return "Keterangan kosong";
+  
+  let htmlText = escapeHtml(text);
+  
+  const redWords = ["dijual", "sakit", "tidak bekerja lagi", "bukan", "sudah tidak", "usia", "tua", "memang", "tutup", "ganda"];
+  const greenWords = ["masih", "aktif"];
+  
+  const redPattern = new RegExp(`(${redWords.join('|')})`, 'gi');
+  const greenPattern = new RegExp(`(${greenWords.join('|')})`, 'gi');
+  
+  htmlText = htmlText.replace(redPattern, '<span class="hl-red">$&</span>');
+  htmlText = htmlText.replace(greenPattern, '<span class="hl-green">$&</span>');
+  
+  return htmlText;
+}
+
+async function loadData() {
+  await loadSubmitted();
+  Papa.parse(SHEET_URL, {
+    download: true,
+    skipEmptyLines: "greedy",
+    complete: (result) => {
+      if (!result.data || !result.data.length) {
+        const el = document.getElementById("resultInfo");
+        if (el) el.textContent = "Data tidak ditemukan.";
+        return;
+      }
+
+      headers = result.data[0].map(clean);
+      
+      let lastValidIndex = result.data.length - 1;
+      let foundLink = false;
+      for (let i = result.data.length - 1; i >= 1; i--) {
+        if (clean(result.data[i][LINK_COLUMN]) !== "") {
+          lastValidIndex = i;
+          foundLink = true;
+          break;
+        }
+      }
+      const sliceEnd = foundLink ? lastValidIndex + 1 : result.data.length;
+
+      // FILTER TAMBAHAN: Cek Kolom Y (Index 24) harus bernilai "1. Ditemukan"
+      rows = result.data.slice(1, sliceEnd)
+        .filter(row => {
+          const isNotEmpty = row.some(cell => clean(cell) !== "");
+          const isDitemukan = clean(row[24]) === "1. Ditemukan";
+          return isNotEmpty && isDitemukan;
+        });
+
+      filteredRows = [...rows];
+      initFilters();
+    },
+    error: (error) => {
+      const el = document.getElementById("resultInfo");
+      if (el) el.textContent = "Gagal memuat Google Sheet.";
+      console.error(error);
+    }
+  });
+}
+
+const debouncedApplyFilters = debounce(applyFilters, 300);
+document.getElementById("searchInput").addEventListener("input", debouncedApplyFilters);
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+  Object.keys(filterState).forEach(k => filterState[k].clear());
+  msSearchState = {}; 
+  document.getElementById("searchInput").value = "";
+  openFilterKey = null;
+  sortCol = null; 
+  applyFilters();
+});
+
+document.getElementById("filters").addEventListener("click", (e) => {
+  const toggleBtn = e.target.closest(".ms-toggle");
+  if (toggleBtn) {
+    const key = toggleBtn.closest(".ms-wrap").dataset.key;
+    openFilterKey = (openFilterKey === key) ? null : key;
+    renderFilterUI(getFilterDefinitions(), lastAvailableMap);
+    return;
+  }
+  const actBtn = e.target.closest("[data-act]");
+  if (actBtn) {
+    const key = actBtn.dataset.key;
+    const act = actBtn.dataset.act;
+    if (!filterState[key]) filterState[key] = new Set();
+    if (act === "clear") {
+      filterState[key].clear();
+    } else if (act === "all") {
+      filterState[key] = new Set(lastAvailableMap[key] || []);
+    }
+    openFilterKey = key; 
+    applyFilters();
+  }
+});
+
+document.getElementById("filters").addEventListener("change", (e) => {
+  const input = e.target.closest('input[type="checkbox"][data-key]');
+  if (!input) return;
+  const key = input.dataset.key;
+  const value = input.value;
+  if (!filterState[key]) filterState[key] = new Set();
+  if (input.checked) filterState[key].add(value);
+  else filterState[key].delete(value);
+  openFilterKey = key; 
+  applyFilters();
+});
+
+document.getElementById("filters").addEventListener("input", (e) => {
+  if (e.target.classList.contains("ms-search-input")) {
+    const key = e.target.dataset.key;
+    const term = e.target.value.toLowerCase();
+    msSearchState[key] = term; 
+
+    const panel = e.target.closest('.ms-panel');
+    const options = panel.querySelectorAll('.ms-option');
+    options.forEach(opt => {
+      const text = opt.textContent.toLowerCase();
+      opt.style.display = text.includes(term) ? 'flex' : 'none';
+    });
+  }
+});
+
+document.getElementById("filters").addEventListener("focusin", (e) => {
+  if (e.target.classList.contains("ms-search-input")) focusedSearchKey = e.target.dataset.key;
+});
+document.getElementById("filters").addEventListener("focusout", (e) => {
+  if (e.target.classList.contains("ms-search-input")) focusedSearchKey = null;
+});
+
+document.addEventListener("click", (e) => {
+  if (openFilterKey !== null && !e.target.closest(".ms-wrap")) {
+    openFilterKey = null;
+    renderFilterUI(getFilterDefinitions(), lastAvailableMap);
+  }
+});
+
+document.getElementById("pageSizeSelect").addEventListener("change", (e) => {
+  PAGE_SIZE = parseInt(e.target.value);
+  currentPage = 1; 
+  renderTable();
+});
+
+loadData();
+</script>
+</body>
+</html>
