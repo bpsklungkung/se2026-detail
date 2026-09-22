@@ -2823,7 +2823,7 @@ const IPH = (function(){
   const BLN_S = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
   const REG_NAME = {k:'Klungkung', b:'Bali'};
 
-  const state = {type:'line', region:'k', q:'', from:null, to:null};   // from/to = indeks bulan (tahun*12 + bulan)
+  const state = {type:'area', region:'k', q:'', from:null, to:null};   // type: 'area' | 'bar' (khusus grafik tren)
   let ROWS = [], QUALITY = {}, charts = {};
   let loadState = 'idle', loadError = '', loadedAt = null;
 
@@ -2950,6 +2950,7 @@ const IPH = (function(){
     return rows;
   }
   const gapOf = r => (r.k.g!=null && r.b.g!=null) ? r.k.g - r.b.g : null;
+  const gapIdxOf = r => (r.k.v!=null && r.b.v!=null) ? r.k.v - r.b.v : null;
   const andilText = list => list.map(a=>pretty(a.name)+' ('+sfmt(a.v,3)+')').join('; ');
   const weekNote = r => { const n = []; if(r.fixedYear) n.push('tahun dikoreksi'); if(r.holiday && (r.k.v==null||r.b.v==null)) n.push(r.holidayText||'libur'); return n; };
 
@@ -3015,10 +3016,31 @@ const IPH = (function(){
   const axT = t => ({ display:true, text:t, color:THEME.mid, font:{family:'Inter', size:11} });
   const legendOpt = () => ({ position:'top', align:'end', labels:{ usePointStyle:true, boxWidth:8, font:{family:'Inter', size:11}, color:THEME.main } });
 
+  const AREA_ALPHA = hex => hex+'2e'; // ~18% alpha, cukup untuk area terisi tanpa menutupi grid
+  function trendDataset(name, reg, color, isBar, values){
+    return { label:name, data:values, borderColor:color, backgroundColor:isBar?color:AREA_ALPHA(color),
+      borderWidth:isBar?0:2, borderRadius:isBar?2:0, pointRadius:0, pointHoverRadius:isBar?0:4,
+      tension:.2, spanGaps:true, fill:isBar?false:'origin' };
+  }
+  function drawIdx(rows){
+    const isBar = state.type==='bar', c = C();
+    const ds = (name, reg, color)=>trendDataset(name, reg, color, isBar, rows.map(r=>r[reg].v==null?null:+r[reg].v.toFixed(4)));
+    mk('iphChIdx', {
+      type:isBar?'bar':'line',
+      data:{ labels:rows.map(r=>r.label), datasets:[ds('Klungkung','k',c.k), ds('Bali','b',c.b)] },
+      options:{
+        responsive:true, maintainAspectRatio:false, animation:{duration:300}, interaction:{mode:'index', intersect:false},
+        plugins:{ legend:legendOpt(), tooltip:{ callbacks:{ label:x=>' '+x.dataset.label+': '+fmt(x.parsed.y,2)+' poin' } } },
+        scales:{ x:{ grid:{display:false}, ticks:Object.assign(tick(), {autoSkip:true, maxTicksLimit:14, maxRotation:45}) },
+                 y:{ grid:gridCfg(), title:axT('Indeks IPH (poin)'), ticks:tick() } }
+      }
+    });
+    $('iphChIdx').setAttribute('aria-label','Grafik indeks IPH mingguan Klungkung dan Bali, '+periodText());
+    $('iphSubIdx').textContent = periodText()+' · '+rows.length+' minggu · angka indeks (poin), seperti IHK — bukan persen.';
+  }
   function drawMain(rows){
-    const isBar = state.type==='bar', many = rows.length>40, c = C();
-    const ds = (name, reg, color)=>({ label:name, data:rows.map(r=>r[reg].g==null?null:+r[reg].g.toFixed(4)), borderColor:color,
-      backgroundColor:color, borderWidth:isBar?0:2, borderRadius:isBar?2:0, pointRadius:isBar?0:(many?0:3), pointHoverRadius:4, tension:.2, spanGaps:true, fill:false });
+    const isBar = state.type==='bar', c = C();
+    const ds = (name, reg, color)=>trendDataset(name, reg, color, isBar, rows.map(r=>r[reg].g==null?null:+r[reg].g.toFixed(4)));
     mk('iphChMain', {
       type:isBar?'bar':'line',
       data:{ labels:rows.map(r=>r.label), datasets:[ds('Klungkung','k',c.k), ds('Bali','b',c.b)] },
@@ -3038,6 +3060,22 @@ const IPH = (function(){
     });
     $('iphChMain').setAttribute('aria-label','Grafik growth IPH mingguan Klungkung dan Bali, '+periodText());
     $('iphSubMain').textContent = periodText()+' · '+rows.length+' minggu · arahkan kursor untuk melihat komoditas penyumbang tiap minggu.';
+  }
+  function drawGapIdx(rows){
+    const c = C();
+    mk('iphChGapIdx', {
+      type:'bar',
+      data:{ labels:rows.map(r=>r.label), datasets:[{ label:'Selisih K − B', data:rows.map(r=>{ const g = gapIdxOf(r); return g==null?null:+g.toFixed(4); }),
+        borderWidth:0, borderRadius:2, backgroundColor:x=>{ const v = x.raw; return v==null?'transparent':(v>=0?c.up:c.dn); } }] },
+      options:{
+        responsive:true, maintainAspectRatio:false, animation:{duration:250},
+        plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:x=>' Selisih indeks K − B: '+sfmt(x.parsed.y,2)+' poin' } } },
+        scales:{ x:{ grid:{display:false}, ticks:Object.assign(tick(), {autoSkip:true, maxTicksLimit:14, maxRotation:45}) },
+                 y:{ grid:gridCfg(), title:axT('Poin (indeks)'), ticks:tick() } }
+      }
+    });
+    const cc = C();
+    $('iphGapIdxLegend').innerHTML = '<span><i style="background:'+cc.up+'"></i>Indeks Klungkung lebih tinggi dari Bali</span><span><i style="background:'+cc.dn+'"></i>Indeks Klungkung lebih rendah dari Bali</span>';
   }
   function drawGap(rows){
     const c = C();
@@ -3123,7 +3161,7 @@ const IPH = (function(){
     if(!ROWS.length || !$('iphRoot')) return;
     const rows = shownRows();
     applyColors();
-    renderKPIs(rows); drawMain(rows); drawGap(rows); drawKom(rows); renderTable(rows); renderNotes();
+    renderKPIs(rows); drawIdx(rows); drawMain(rows); drawGapIdx(rows); drawGap(rows); drawKom(rows); renderTable(rows); renderNotes();
     syncControls();
   }
   function syncControls(){
@@ -3152,7 +3190,9 @@ const IPH = (function(){
     cv.toBlob(b=>{ if(b) dl(b, file+'_'+todayStr()+'.jpg'); else alert('Gagal membuat gambar.'); }, 'image/jpeg', 1.0);
   }
   function onJPG(kind){
-    if(kind==='main') exportChart('iphChMain', 'Growth IPH Mingguan — Klungkung vs Bali', 'Growth_IPH_mingguan');
+    if(kind==='idx') exportChart('iphChIdx', 'Indeks IPH Mingguan — Klungkung vs Bali', 'Indeks_IPH_mingguan');
+    else if(kind==='main') exportChart('iphChMain', 'Growth IPH Mingguan — Klungkung vs Bali', 'Growth_IPH_mingguan');
+    else if(kind==='gapIdx') exportChart('iphChGapIdx', 'Selisih Indeks IPH Klungkung terhadap Bali (mingguan)', 'Indeks_IPH_selisih_mingguan');
     else if(kind==='gap') exportChart('iphChGap', 'Selisih Growth IPH Klungkung terhadap Bali (mingguan)', 'Growth_IPH_selisih_mingguan');
     else if(kind==='kom') exportChart('iphChKom', 'Komoditas penyumbang utama IPH '+REG_NAME[state.region], 'IPH_komoditas_'+REG_NAME[state.region]);
   }
@@ -3232,14 +3272,20 @@ const IPH = (function(){
       '<div class="ss-controls">'+
         '<div class="ctrl-item"><label for="iphFrom">Dari minggu</label><select id="iphFrom"></select></div>'+
         '<div class="ctrl-item"><label for="iphTo">Sampai minggu</label><select id="iphTo"></select></div>'+
-        '<div class="ctrl-item"><label for="iphSelType">Jenis Grafik</label><select id="iphSelType"><option value="line">Garis</option><option value="bar">Batang</option></select></div>'+
+        '<div class="ctrl-item"><label for="iphSelType">Jenis Grafik</label><select id="iphSelType"><option value="area">Area</option><option value="bar">Batang</option></select></div>'+
         '<div class="iph-status"><span id="iphStatus">Memuat data…</span><button type="button" class="iph-link" id="iphReload">Muat ulang</button></div>'+
       '</div>'+
       '<div id="iphError"></div>'+
       '<div class="iph-kpis" id="iphKpis"><div class="state-msg" style="margin:20px 0"><span class="spinner"></span>Memuat data IPH…</div></div>'+
+      '<div class="iph-sec-head"><div><div class="ss-section-title">Tren IPH mingguan — Klungkung vs Bali</div><p class="iph-desc" id="iphSubIdx"></p></div>'+
+        '<div class="iph-tools"><button type="button" class="dl-btn" data-jpg="idx">⬇ JPG</button></div></div>'+
+      box('iphChIdx', 300, 'Grafik indeks IPH mingguan Klungkung dan Bali')+
       '<div class="iph-sec-head"><div><div class="ss-section-title">Tren Growth IPH mingguan — Klungkung vs Bali</div><p class="iph-desc" id="iphSubMain"></p></div>'+
         '<div class="iph-tools"><button type="button" class="dl-btn" data-jpg="main">⬇ JPG</button></div></div>'+
       box('iphChMain', 360, 'Grafik growth IPH mingguan Klungkung dan Bali')+
+      '<div class="iph-sec-head"><div><div class="ss-section-title">Selisih IPH Klungkung terhadap Bali</div><p class="iph-desc">Selisih indeks IPH mingguan Klungkung dikurangi Bali, dalam poin.</p></div>'+
+        '<div class="iph-tools"><button type="button" class="dl-btn" data-jpg="gapIdx">⬇ JPG</button></div></div>'+
+      box('iphChGapIdx', 190, 'Grafik selisih indeks IPH Klungkung dan Bali')+'<div class="iph-swatch" id="iphGapIdxLegend"></div>'+
       '<div class="iph-sec-head"><div><div class="ss-section-title">Selisih Growth IPH Klungkung terhadap Bali</div><p class="iph-desc">Selisih growth IPH mingguan Klungkung dikurangi Bali, dalam poin persentase.</p></div>'+
         '<div class="iph-tools"><button type="button" class="dl-btn" data-jpg="gap">⬇ JPG</button></div></div>'+
       box('iphChGap', 190, 'Grafik selisih growth IPH Klungkung dan Bali')+'<div class="iph-swatch" id="iphGapLegend"></div>'+
@@ -3260,7 +3306,7 @@ const IPH = (function(){
     });
     $('iphFrom').onchange = e=>{ state.from = parseInt(e.target.value,10); if(state.from > state.to){ state.to = state.from; $('iphTo').value = state.to; } render(); };
     $('iphTo').onchange   = e=>{ state.to = parseInt(e.target.value,10); if(state.to < state.from){ state.from = state.to; $('iphFrom').value = state.from; } render(); };
-    $('iphSelType').onchange = e=>{ state.type = e.target.value; drawMain(shownRows()); };
+    $('iphSelType').onchange = e=>{ state.type = e.target.value; const rows = shownRows(); drawIdx(rows); drawMain(rows); };
     $('iphTblSearch').oninput = e=>{ state.q = e.target.value; renderTable(shownRows()); };
     $('iphBtnXlsx').onclick = runExcel;
     $('iphReload').onclick = load;
