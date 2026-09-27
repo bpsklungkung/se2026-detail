@@ -12,8 +12,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';document.head.appendChild(s);"></script>
 <style>
   :root{
-    --cream:#FFFFFF;
-    --cream-deep:#F3F4F6;
+    --cream:#FFFEFD;
+    --cream-deep:#F3ECEB;
     --peach:#F4E3E6;
     --peach-soft:#F4E3E6;
     --orange:#B23A48;
@@ -29,8 +29,8 @@
     --white:#FFFFFF;
     --card-bg:#FFFFFF;
     --page-bg:#FFFFFF;
-    --line:transparent;
-    --border:transparent;
+    --line:#E6DAD8;
+    --border:#E6DAD8;
     --shadow: none;
     --radius:11px;
   }
@@ -109,6 +109,10 @@
     margin-top:0;
     padding:16px 0 10px;
     display:flex; align-items:center; gap:14px;
+  }
+  html.dark .tabbar-sticky-wrap{
+    background:rgba(18,14,14,0.88);
+    backdrop-filter:blur(10px);
   }
   .tabbar-sticky-wrap .tabbar{ flex:1; min-width:0; margin-top:0; }
   .tabbar-stats{
@@ -224,6 +228,16 @@
 
   /* ===== Layout ===== */
   .page-wrap{ max-width:1280px; margin:0 auto; padding:0 24px; }
+  @media (max-width: 640px){
+    .page-wrap{ padding:0 14px; }
+    body{ padding-top:10px; }
+  }
+  html.dark .page-wrap,
+  html.dark .content-row,
+  html.dark .center-col,
+  html.dark main{
+    background:transparent;
+  }
 
   /* Tabbar */
   .tabbar{
@@ -240,6 +254,12 @@
   }
   .tabbar::-webkit-scrollbar{ height:5px; }
   .tabbar::-webkit-scrollbar-thumb{ background:var(--cream-deep); border-radius:10px; }
+  @media (max-width: 860px){
+    .tabbar{ gap:4px; padding:8px 8px; }
+  }
+  @media (max-width: 640px){
+    .tabbar{ border-radius:12px; padding:7px 7px; }
+  }
   .tab{
     font-family:'Inter',sans-serif;
     font-weight:600;
@@ -253,6 +273,12 @@
     transition:background .15s, color .15s;
     flex-shrink:0;
     white-space:nowrap;
+  }
+  @media (max-width: 860px){
+    .tab{ font-size:11.75px; padding:7px 11px; }
+  }
+  @media (max-width: 640px){
+    .tab{ font-size:11.25px; padding:7px 10px; }
   }
   .tab.active{ background:var(--orange); color:#fff; }
   .tab:hover:not(.active){ background:var(--peach-soft); }
@@ -1009,6 +1035,12 @@
     grid-template-columns:repeat(auto-fill,minmax(255px,1fr));
     gap:12px;
   }
+  @media (max-width: 900px){
+    .card-grid{ grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; }
+  }
+  @media (max-width: 640px){
+    .card-grid{ grid-template-columns:1fr; gap:10px; }
+  }
 
   .insight-card{
     background:var(--peach-soft);
@@ -1046,6 +1078,25 @@
     flex-direction:column;
     gap:6px;
     position:relative;
+  }
+  @media (max-width: 900px){
+    .card{ padding:12px 16px 12px; border-radius:14px; }
+  }
+  @media (max-width: 640px){
+    .card{
+      border-top-width:40px;
+      border-radius:12px;
+      padding:12px 14px 12px;
+      gap:5px;
+    }
+    .card::after{
+      top:-26px;
+      left:12px;
+      right:12px;
+      font-size:10px;
+      letter-spacing:.02em;
+      white-space:nowrap;
+    }
   }
   .card::after{
     content: attr(data-sub);
@@ -1133,11 +1184,17 @@
   }
   .chart-style-select:hover{ border-color:var(--orange); color:var(--orange-deep); }
   .card-label{
-    font-size:12.5px;
+    font-size:12.25px;
     font-weight:600;
     color:var(--brown-mid);
-    line-height:1.32;
-    min-height:32px;
+    line-height:1.35;
+    min-height:30px;
+  }
+  @media (max-width: 900px){
+    .card-label{ font-size:11.75px; line-height:1.3; }
+  }
+  @media (max-width: 640px){
+    .card-label{ font-size:11.25px; min-height:auto; }
   }
   .card-value-row{
     display:flex;
@@ -1145,12 +1202,21 @@
     justify-content:space-between;
     gap:8px;
   }
+  @media (max-width: 640px){
+    .card-value-row{ align-items:flex-start; flex-wrap:wrap; }
+  }
   .card-value{
     font-family:'Inter',sans-serif;
     font-weight:800;
-    font-size:26px;
+    font-size:24px;
     color:var(--brown-deep);
-    letter-spacing:-.02em;
+    letter-spacing:-.03em;
+  }
+  @media (max-width: 900px){
+    .card-value{ font-size:22px; }
+  }
+  @media (max-width: 640px){
+    .card-value{ font-size:clamp(20px, 6vw, 24px); letter-spacing:-.02em; }
   }
   .card-unit {
     font-family: 'Inter', sans-serif;
@@ -1160,11 +1226,17 @@
     margin-left: 4px;
     letter-spacing: 0;
   }
+  @media (max-width: 640px){
+    .card-unit{ font-size:12px; }
+  }
   .card-period{
     font-size:10.5px;
     color:var(--brown-soft);
     font-weight:600;
     margin-bottom:2px;
+  }
+  @media (max-width: 640px){
+    .card-period{ font-size:9.5px; }
   }
   .card-hint{
     font-size:10px;
@@ -1173,6 +1245,26 @@
     font-weight:500;
     margin-top:auto;
     padding-top:2px;
+  }
+  @media (max-width: 640px){
+    .card-hint{ font-size:9px; }
+  }
+
+  .stat-pill-mini{ min-width:0; }
+  @media (max-width: 640px){
+    .stat-pill-mini{ padding:7px 10px; }
+    .stat-pill-mini .num{ font-size:15px; }
+    .stat-pill-mini .lbl{ font-size:8px; }
+  }
+
+  @media (max-width: 640px){
+    .tabbar-sticky-wrap{ gap:10px; padding:12px 0 8px; }
+    .tabbar-stats{ width:100%; justify-content:flex-start; }
+    .global-search{ width:100%; }
+    .global-search input{ width:100%; }
+    .global-search input:focus{ width:100%; }
+    .palette-picker{ height:34px; }
+    .palette-picker select{ font-size:11px; }
   }
   .badge{
     display:inline-flex;
@@ -1596,6 +1688,170 @@
   .present-dots{ display:flex; gap:5px; flex-wrap:wrap; max-width:60vw; justify-content:center; }
   .present-dots span{ width:6px; height:6px; border-radius:50%; background:var(--line); display:inline-block; }
   .present-dots span.active{ background:var(--orange-deep); width:16px; border-radius:4px; }
+
+  /* ===== BI polish layer: visual-only overrides; remove this block to restore the prior styling ===== */
+  :root{
+    --page-bg:#F3F6F8;
+    --cream:#F7F9FA;
+    --cream-deep:#EAF0F3;
+    --line:#DCE4E8;
+    --border:#DCE4E8;
+    --shadow:0 1px 2px rgba(24,39,48,.05), 0 6px 20px rgba(24,39,48,.04);
+    --radius:8px;
+  }
+  html.dark{
+    --shadow:0 1px 2px rgba(0,0,0,.24), 0 8px 24px rgba(0,0,0,.14);
+  }
+  body{ background:var(--page-bg); }
+  .hero{
+    background:linear-gradient(112deg,var(--brown) 0%,color-mix(in srgb,var(--brown) 82%,var(--orange)) 100%);
+    max-width:1272px;
+    border-bottom:3px solid var(--orange);
+    border-radius:9px;
+    padding:24px 26px 22px;
+    box-shadow:0 10px 28px rgba(38,15,22,.13);
+  }
+  html.dark .hero{
+    background:linear-gradient(112deg,color-mix(in srgb,#181513 90%,var(--orange)),color-mix(in srgb,#181513 76%,var(--orange)));
+  }
+  .hero-eyebrow{ font-size:10px; letter-spacing:.11em; }
+  .hero h1{ font-size:30px; letter-spacing:0; }
+  .hero p{ font-size:12px; }
+  .hero-topic{ border-radius:5px; padding:4px 8px; font-size:9px; }
+  .hero-stats{ gap:8px; }
+  .stat-pill{ border-radius:7px; padding:9px 12px; backdrop-filter:none; }
+  .stat-pill .num{ font-variant-numeric:tabular-nums; }
+
+  .tabbar-sticky-wrap{
+    gap:10px;
+    padding:10px 0 9px;
+    border-bottom:1px solid var(--line);
+  }
+  html.dark .tabbar-sticky-wrap{ background:rgba(24,21,19,.95); }
+  .tabbar-sticky-wrap .tabbar{ margin:0; }
+  .tabbar{ gap:3px; padding:0; background:transparent; border:0; border-radius:0; box-shadow:none; }
+  .tab{ border-radius:6px; padding:8px 11px; font-size:11.5px; }
+  .tab.active{ box-shadow:inset 0 -2px 0 rgba(255,255,255,.45); }
+  .tab:hover:not(.active){ background:var(--cream-deep); }
+  .global-search input,
+  .palette-picker,
+  .stat-pill-mini{
+    border-radius:7px;
+    box-shadow:none;
+  }
+  .global-search input{ min-height:36px; }
+  .palette-picker{ height:36px; }
+  .stat-pill-mini{ padding:7px 11px; }
+  .stat-pill-mini .num{ font-size:15px; font-variant-numeric:tabular-nums; }
+  .stat-pill-mini .lbl{ font-size:8px; }
+
+  .page-wrap{ max-width:1320px; }
+  main{ padding-top:16px; }
+  .section-head{
+    margin:20px 0 11px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--line);
+  }
+  .section-head h2{ font-size:15px; font-weight:700; }
+  .kelompok-chip{ font-size:12px; padding-bottom:6px; margin-bottom:10px; }
+  .card-grid{ grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:11px; }
+  .card:not(.comp-card):not(.insight-card){
+    border-top-width:38px;
+    border-radius:8px;
+    padding:12px 14px 12px;
+    gap:5px;
+    box-shadow:var(--shadow);
+  }
+  .card:not(.comp-card):not(.insight-card)::after{
+    top:-27px;
+    left:13px;
+    right:76px;
+    font-size:9px;
+    letter-spacing:.06em;
+  }
+  .card:not(.comp-card):not(.insight-card) .fav-btn,
+  .card:not(.comp-card):not(.insight-card) .present-btn{
+    top:-32px;
+    width:26px;
+    height:26px;
+    border:1px solid rgba(255,255,255,.3);
+    border-radius:5px;
+    background:rgba(0,0,0,.12);
+    opacity:.94;
+  }
+  .card:not(.comp-card):not(.insight-card) .fav-btn{ right:10px; font-size:16px; }
+  .card:not(.comp-card):not(.insight-card) .present-btn{ right:42px; font-size:14px; }
+  .card:not(.comp-card):not(.insight-card) .fav-btn.on,
+  .card:not(.comp-card):not(.insight-card) .present-btn.on{ background:rgba(0,0,0,.24); opacity:1; }
+  .card:not(.comp-card):not(.insight-card) .fav-btn:hover,
+  .card:not(.comp-card):not(.insight-card) .present-btn:hover{ transform:translateY(-1px); background:rgba(0,0,0,.24); opacity:1; }
+  .comp-card .fav-btn,
+  .comp-card .present-btn{
+    top:10px;
+    width:26px;
+    height:26px;
+    border:1px solid var(--line);
+    border-radius:5px;
+    background:var(--peach-soft);
+    color:var(--brown-mid);
+    opacity:1;
+  }
+  .comp-card .fav-btn{ right:10px; color:var(--kat-accent,var(--orange)); }
+  .comp-card .present-btn{ right:42px; }
+  .comp-card .card-label{ padding-right:78px; }
+  .comp-card .fav-btn.on,
+  .comp-card .present-btn.on{ background:var(--kat-accent,var(--orange)); border-color:var(--kat-accent,var(--orange)); color:#fff; }
+  .card:not(.comp-card):not(.insight-card):hover{
+    transform:translateY(-1px);
+    border-left-color:var(--line);
+    border-right-color:var(--line);
+    border-bottom-color:var(--line);
+    box-shadow:0 5px 16px rgba(24,39,48,.10);
+  }
+  .card-label{ min-height:29px; font-size:11.5px; line-height:1.35; }
+  .card-value{ font-size:25px; letter-spacing:0; font-variant-numeric:tabular-nums; }
+  .card-unit{ font-size:12px; }
+  .card-period{ font-size:10px; }
+  .card-hint{ opacity:.82; }
+  .card.insight-card{ border-radius:8px; padding:12px 14px; }
+  .insight-card-title{ font-size:11px; }
+  .insight-card-text{ font-size:12px; line-height:1.5; }
+  .badge{ border-radius:5px; padding:3px 7px; font-variant-numeric:tabular-nums; }
+  .ss-kpi-grid{ grid-template-columns:repeat(auto-fit,minmax(168px,1fr)); gap:11px; }
+  .tw-summary,
+  .hl-col,
+  .compare-controls,
+  .ss-controls,
+  .compare-picker,
+  .compare-defs-box,
+  .inf-transform-panel,
+  .mod-builder,
+  .kel-filter-panel,
+  .news-card,
+  .chart-box{
+    border:1px solid var(--line);
+    border-radius:8px;
+    box-shadow:var(--shadow);
+  }
+  .tw-summary{ border-left:3px solid var(--orange); }
+  .kel-filter-panel,
+  .news-card{ padding:13px; }
+  .chart-box{ background:var(--card-bg); }
+  table.ss-table thead th{ background:#2B2023; color:#fff; }
+  table.ss-table td{ font-variant-numeric:tabular-nums; }
+  .ss-section-title{ margin-top:16px; padding-left:9px; border-left:3px solid var(--orange); }
+
+  @media (max-width:760px){
+    .hero{ width:calc(100% - 32px); padding:18px 16px; }
+    .hero h1{ font-size:25px; }
+    .tabbar-sticky-wrap{ padding:8px 0; }
+    .card-grid{ grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); }
+  }
+  @media (max-width:640px){
+    .card-grid{ grid-template-columns:1fr; }
+    .card-value{ font-size:23px; }
+    .section-head{ margin-top:17px; }
+  }
 </style>
 </head>
 <body>
@@ -2267,9 +2523,9 @@ function ccEnsureContrast(h, s, l, min){
   while(ccContrastWhite(hex) < min && l > 0.16 && k < 50){ l -= 0.015; hex = ccHslToHex(h,s,l); k++; }
   return hex;
 }
-/* 10 warna senada: [main, accent, lalu 8 turunan accent]. Hue hanya digeser tipis (±8…32°) sehingga tetap satu keluarga warna;
-   pembeda antar-kartu utamanya terang-gelap dan kepekatan (saturasi), bergantian agar kartu bersebelahan tidak kembar.
-   Palet abu (saturasi rendah): hue tetap, hanya terang-gelap yang bervariasi. */
+  /* 10 warna senada: [main, accent, lalu 8 turunan accent]. Hue hanya digeser tipis (±8…32°) sehingga tetap satu keluarga warna;
+    pembeda antar-kartu utamanya terang-gelap dan kepekatan (saturasi), bergantian agar kartu bersebelahan tidak kembar.
+    Palet abu (saturasi rendah): hue tetap, hanya terang-gelap yang bervariasi. */
 function harmonizedPalette(preset){
   const [h0, s0] = ccRgbToHsl(...ccHexToRgb(preset.accent));
   const neutral = s0 < 0.22;
@@ -2280,8 +2536,8 @@ function harmonizedPalette(preset){
   const neutralL = [.28,.40,.34,.46,.24,.38,.32,.44];
   const out = [preset.main, preset.accent];
   spec.forEach(([dh, fs, L], i)=>{
-    out.push(neutral ? ccEnsureContrast(h0, S0, neutralL[i], 3.4)
-                     : ccEnsureContrast(h0 + dh, Math.min(0.85, S0*fs), L, 3.4));
+    out.push(neutral ? ccEnsureContrast(h0, S0, neutralL[i], 4.5)
+             : ccEnsureContrast(h0 + dh, Math.min(0.85, S0*fs), L, 4.5));
   });
   return out;
 }
@@ -2300,10 +2556,11 @@ function darkPreset(base){
   const S = Math.min(0.70, Math.max(0.25, s0));
   const H = (l, sat) => ccHslToHex(h, Math.min(1, sat), l);
   const compare = base.compareColors.map(c=>ccDarkAdjust(c, 0.52, 0.74));
+  const accent = ccEnsureContrast(h, S, ccRgbToHsl(...ccHexToRgb(ccDarkAdjust(base.accent, 0.50, 0.66)))[2], 4.5);
   return {
     label: base.label,
     main: H(.72, S*.75), mid: H(.80, S*.35), deep: H(.94, S*.20), soft: H(.52, S*.45), light: H(.24, S*.35),
-    accent: ccDarkAdjust(base.accent, 0.50, 0.66),
+    accent,
     compareColors: compare, kategoriPalette: base.kategoriPalette.map(c=>ccDarkAdjust(c, 0.40, 0.62)),
     vars: {
       '--brown': H(.90, S*.22), '--brown-deep': H(.97, S*.12), '--brown-mid': H(.80, S*.30), '--brown-soft': H(.64, S*.20),
@@ -2335,11 +2592,19 @@ function applyPalette(name, opts){
   if(!basePreset) return;
   const preset = darkMode ? darkPreset(basePreset) : basePreset;
   currentPaletteName = name;
-  THEME = { main:preset.main, mid:preset.mid, deep:preset.deep, soft:preset.soft, accent:preset.accent, light:preset.light,
+  const [accentHue, accentSaturation, accentLightness] = ccRgbToHsl(...ccHexToRgb(preset.accent));
+  const accent = darkMode ? preset.accent : ccEnsureContrast(accentHue, accentSaturation, accentLightness, 4.5);
+  const [softHue, softSaturation, softLightness] = ccRgbToHsl(...ccHexToRgb(preset.soft));
+  const soft = darkMode ? preset.soft : ccEnsureContrast(softHue, softSaturation, softLightness, 4.5);
+  THEME = { main:preset.main, mid:preset.mid, deep:preset.deep, soft, accent, light:preset.light,
     c3:preset.compareColors[3], c4:preset.compareColors[4], c5:preset.compareColors[5], c7:preset.compareColors[7] };
   COMPARE_COLORS = preset.compareColors.slice();
   KATEGORI_PALETTE = (cardColorMode === 'senada') ? harmonizedPalette(basePreset) : basePreset.kategoriPalette.slice();
   if(darkMode) KATEGORI_PALETTE = KATEGORI_PALETTE.map(c=>ccDarkAdjust(c, 0.40, 0.62));
+  KATEGORI_PALETTE = KATEGORI_PALETTE.map(c=>{
+    const [h,s,l] = ccRgbToHsl(...ccHexToRgb(c));
+    return ccEnsureContrast(h,s,l,4.5);
+  });
   if(typeof GROUP_COLOR_MAP !== 'undefined') GROUP_COLOR_MAP = {};
 
   const root = document.documentElement.style;
