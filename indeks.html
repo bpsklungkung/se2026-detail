@@ -8528,7 +8528,7 @@ function computeSeriesAnalysis(keys){
   const list = [];
   keys.forEach(k=>{
     const info = compareIndex[k];
-    const filteredEntries = info.entries.filter(e => inCompareRange(e));
+    const filteredEntries = info.entries.filter(e => inCompareRange(e)).sort((a,b)=>sortKey(a)-sortKey(b));
     if(filteredEntries.length === 0) return;
     let maxObj = filteredEntries[0], minObj = filteredEntries[0];
     filteredEntries.forEach(e=>{
@@ -8538,16 +8538,34 @@ function computeSeriesAnalysis(keys){
     const firstVal = filteredEntries[0].data;
     const lastVal = filteredEntries[filteredEntries.length-1].data;
     const diff = lastVal - firstVal;
-    const pct = firstVal !== 0 ? (diff/firstVal)*100 : 0;
-    const spanYears = (compareTo - compareFrom) || 1;
-    const cagr = firstVal > 0 ? (Math.pow(lastVal/firstVal, 1/spanYears)-1)*100 : 0;
+    // Basis awal harus positif agar persentase perubahan bermakna secara wajar —
+    // basis nol ATAU negatif (mis. indikator laju pertumbuhan yang sedang kontraksi)
+    // akan membalik/mendistorsi tanda hasil bila tetap dipaksakan dibagi.
+    const pct = firstVal > 0 ? (diff/firstVal)*100 : null;
+    const firstEntry = filteredEntries[0], lastEntry = filteredEntries[filteredEntries.length-1];
+    const spanYears = compareIsQuarterly
+      ? ((lastEntry.tahun*4 + triwulanToNum(lastEntry.triwulan)) - (firstEntry.tahun*4 + triwulanToNum(firstEntry.triwulan))) / 4
+      : lastEntry.tahun - firstEntry.tahun;
+    // CAGR hanya bermakna kalau rentangnya minimal setahun penuh — untuk rentang
+    // triwulanan yang lebih pendek dari setahun, memangkatkan (1/spanYears) akan
+    // "menyetahunkan" pola musiman jangka pendek jadi angka yang jauh membesar
+    // dan menyesatkan (mis. +5% TW1→TW2 dibaca sebagai +21%/tahun).
+    const cagr = firstVal > 0 && lastVal > 0 && spanYears >= 1
+      ? (Math.pow(lastVal/firstVal, 1/spanYears)-1)*100
+      : null;
+    const previousYearEntry = compareIsQuarterly
+      ? info.entries.find(e=>e.tahun===lastEntry.tahun-1 && triwulanToNum(e.triwulan)===triwulanToNum(lastEntry.triwulan)) || null
+      : null;
     list.push({
       key:k,
       name: info.sub, first:firstVal, last:lastVal, pct, cagr,
+      firstLabel:periodLabel(firstEntry), lastLabel:periodLabel(lastEntry),
       max:maxObj.data, maxLabel:periodLabel(maxObj),
       min:minObj.data, minLabel:periodLabel(minObj),
       unit: SATUAN[info.sub] || '',
-      rawValues: filteredEntries.map(e=>e.data)
+      rawValues: filteredEntries.map(e=>e.data),
+      periodEntries:filteredEntries,
+      previousYearEntry
     });
   });
   return list;
@@ -9771,36 +9789,173 @@ function generateAdvancedAIInsight(dataList){
     return;
   }
 
-  let html = `<span class="insight-section-title">📊 Rangkuman Kinerja &amp; Tren Multi-Indikator</span>`;
-  html += `<div class="insight-intro">Analisis mencakup rentang waktu <b>${compareRangeLabel()}</b>:</div>`;
+  let html = `<span class="insight-section-title">📊 Ringkasan Kinerja Lintas Indikator</span>`;
+  html += `<div class="insight-intro">Rentang analisis: <b>${compareRangeLabel()}</b>.`;
+  if(normalizeCompare) html += ` Grafik menggunakan indeks dengan nilai awal 100; analisis berikut tetap memakai perubahan nilai asli tiap indikator.`;
+  html += `</div>`;
 
-  html += `<ul class="insight-list">`;
+  const periodMaps = dataList.map(item=>new Map((item.periodEntries||[]).map(entry=>[sortKey(entry),entry])));
+  const commonPeriods = periodMaps.length
+    ? [...periodMaps[0].keys()].filter(period=>periodMaps.every(periodMap=>periodMap.has(period))).sort((a,b)=>a-b)
+    : [];
+  const expectedPeriods = compareFrom==null || compareTo==null ? 0 : (compareIsQuarterly
+    ? Math.max(0,(compareTo*4+(compareToTW||4))-(compareFrom*4+(compareFromTW||1))+1)
+    : Math.max(0,compareTo-compareFrom+1));
+  if(expectedPeriods > 0){
+    const sharedPct = commonPeriods.length/expectedPeriods*100;
+    html += `<span class="insight-section-title">🧾 Kelengkapan Data &amp; Cakupan</span>`;
+    html += `<div class="insight-intro">Periode yang memiliki data pada <b>semua indikator terpilih</b>: ${commonPeriods.length} dari ${expectedPeriods} (${sharedPct.toFixedID(1)}%).</div>`;
+    html += `<ul class="insight-list">` + dataList.map((item,index)=>{
+      const count = periodMaps[index].size;
+      return `<li><b>${escapeHtml(item.name)}</b>: ${count} dari ${expectedPeriods} periode (${(count/expectedPeriods*100).toFixedID(1)}%).</li>`;
+    }).join('') + `</ul>`;
+  }
+
+  const comparable = dataList.filter(item=>item.pct !== null && Number.isFinite(item.pct));
+  if(comparable.length){
+    const rising = comparable.filter(item=>item.pct>0).length;
+    const falling = comparable.filter(item=>item.pct<0).length;
+    const unchanged = comparable.filter(item=>item.pct===0).length;
+    const ranked = comparable.slice().sort((a,b)=>b.pct-a.pct);
+    const excluded = dataList.length - comparable.length;
+    html += `<div class="insight-note">Dari ${comparable.length} indikator yang persentase perubahannya bisa dihitung (nilai awal positif), <b>${rising} naik</b>, <b>${falling} turun</b>, dan <b>${unchanged} tidak berubah</b>. Perubahan kumulatif tertinggi: <b>${escapeHtml(ranked[0].name)}</b> (${ranked[0].pct>0?'+':''}${ranked[0].pct.toFixedID(1)}%); terendah: <b>${escapeHtml(ranked[ranked.length-1].name)}</b> (${ranked[ranked.length-1].pct>0?'+':''}${ranked[ranked.length-1].pct.toFixedID(1)}%).${excluded>0?` ${excluded} indikator lain tidak disertakan di sini karena nilai awalnya nol atau negatif — lihat baris "Tren, Rentang, dan Laju Tahunan" di bawah untuk indikator tersebut.`:''}</div>`;
+  }else{
+    html += `<div class="insight-note">Perubahan persentase kumulatif tidak dapat dihitung karena nilai awal semua indikator bernilai nol atau negatif (basis persentase tidak wajar untuk kasus ini).</div>`;
+  }
+
+  html += `<span class="insight-section-title">📈 Tren, Rentang, dan Laju Tahunan</span><ul class="insight-list">`;
   dataList.forEach(item=>{
-    const arah = item.pct > 0 ? 'menunjukkan tren kenaikan' : (item.pct < 0 ? 'menunjukkan tren penurunan' : 'cenderung stagnan');
-    const warnaArah = item.pct > 0 ? 'color:var(--rust);' : (item.pct < 0 ? 'color:var(--green);' : '');
-
-    html += `<li><b>${escapeHtml(item.name)}</b>: <span style="${warnaArah}font-weight:700;">${arah}</span> sebesar <b>${item.pct > 0 ? '+' : ''}${item.pct.toFixedID(1)}%</b> secara kumulatif (Laju rata-rata tahunan/CAGR: <b>${item.cagr > 0 ? '+' : ''}${item.cagr.toFixedID(2)}%/tahun</b>). Nilai tertinggi tercatat pada <b>${item.maxLabel}</b> (${fmtNum(item.max)} ${item.unit}), sementara titik terendahnya berada di <b>${item.minLabel}</b> (${fmtNum(item.min)} ${item.unit}).</li>`;
+    let trendText = item.pct === null ? 'persentase kumulatif tidak dapat dihitung (basis awal nol/negatif)' :
+      (item.pct > 0 ? `meningkat <b>+${item.pct.toFixedID(1)}%</b>` : (item.pct < 0 ? `menurun <b>${item.pct.toFixedID(1)}%</b>` : 'tidak berubah'));
+    let cagrText = item.cagr === null ? 'CAGR belum dapat dihitung untuk rentang ini' :
+      `CAGR <b>${item.cagr>0?'+':''}${item.cagr.toFixedID(2)}%/tahun</b>`;
+    html += `<li><b>${escapeHtml(item.name)}</b>: ${trendText} dari <b>${escapeHtml(item.firstLabel)}</b> ke <b>${escapeHtml(item.lastLabel)}</b>; ${cagrText}. Rentang nilai <b>${fmtNum(item.min)}–${fmtNum(item.max)} ${escapeHtml(item.unit)}</b> (terendah ${escapeHtml(item.minLabel)}, tertinggi ${escapeHtml(item.maxLabel)}).</li>`;
   });
   html += `</ul>`;
 
-  if(dataList.some(d=>d.rawValues && d.rawValues.filter(v=>v!==null&&v!==undefined).length >= 3)){
+  const hasRecentDetails = dataList.some(item=>(item.periodEntries||[]).length>=2 || item.previousYearEntry || (item.periodEntries||[]).length>=6);
+  if(hasRecentDetails){
+    html += `<span class="insight-section-title">⏱ Perubahan Terbaru &amp; Momentum</span><ul class="insight-list">`;
+    dataList.forEach(item=>{
+      const entries = item.periodEntries || [];
+      const parts = [];
+      if(entries.length>=2){
+        const previous = entries[entries.length-2], latest = entries[entries.length-1];
+        const delta = latest.data-previous.data;
+        const pct = previous.data>0 ? (delta/previous.data*100) : null;
+        let recent = `Perubahan terbaru (${escapeHtml(periodLabel(previous))} → ${escapeHtml(periodLabel(latest))}): ${delta>0?'+':''}${fmtNum(delta)} ${escapeHtml(item.unit)}`;
+        if(pct!==null) recent += ` (${pct>0?'+':''}${pct.toFixedID(1)}%)`;
+        else recent += ` (persentase tidak tersedia: basis sebelumnya nol/negatif)`;
+        parts.push(recent);
+      }
+      if(item.previousYearEntry){
+        const latest = entries[entries.length-1];
+        const prior = item.previousYearEntry;
+        const delta = latest.data-prior.data;
+        const pct = prior.data>0 ? (delta/prior.data*100) : null;
+        let yoy = `YoY terhadap ${escapeHtml(periodLabel(prior))}: ${delta>0?'+':''}${fmtNum(delta)} ${escapeHtml(item.unit)}`;
+        if(pct!==null) yoy += ` (${pct>0?'+':''}${pct.toFixedID(1)}%)`;
+        else yoy += ` (persentase tidak tersedia: basis tahun lalu nol/negatif)`;
+        parts.push(yoy);
+      }
+      if(entries.length>=6){
+        const previousWindow=entries.slice(-6,-3), recentWindow=entries.slice(-3);
+        const previousAverage=previousWindow.reduce((sum,entry)=>sum+entry.data,0)/previousWindow.length;
+        const recentAverage=recentWindow.reduce((sum,entry)=>sum+entry.data,0)/recentWindow.length;
+        const delta=recentAverage-previousAverage;
+        const pct=previousAverage>0 ? (delta/previousAverage*100) : null;
+        let momentum=`Rata-rata 3 observasi terbaru ${fmtNum(recentAverage)} dibanding ${fmtNum(previousAverage)} pada 3 sebelumnya`;
+        if(pct!==null) momentum += ` (${pct>0?'+':''}${pct.toFixedID(1)}%)`;
+        parts.push(momentum);
+      }
+      if(parts.length) html += `<li><b>${escapeHtml(item.name)}</b>: ${parts.join('; ')}.</li>`;
+    });
+    html += `</ul>`;
+  }
+
+  const volList = dataList.map(item=>{
+    const vals = (item.rawValues||[]).filter(v=>v!==null && v!==undefined);
+    if(vals.length < 3) return {name:item.name,cv:null};
+    const mean = vals.reduce((s,v)=>s+v,0)/vals.length;
+    if(mean===0) return {name:item.name,cv:null};
+    const variance = vals.reduce((s,v)=>s+Math.pow(v-mean,2),0)/vals.length;
+    return {name:item.name,cv:Math.abs(Math.sqrt(variance)/mean*100),pct:item.pct};
+  }).filter(item=>item.cv!==null);
+  if(volList.length){
     html += `<span class="insight-section-title">📈 Volatilitas Tiap Indikator</span>`;
-    const volList = dataList.map(item=>{
-      const vals = (item.rawValues||[]).filter(v=>v!==null && v!==undefined);
-      if(vals.length < 3) return {name:item.name, cv:null};
-      const mean = vals.reduce((s,v)=>s+v,0)/vals.length;
-      const variance = vals.reduce((s,v)=>s+Math.pow(v-mean,2),0)/vals.length;
-      const cv = mean !== 0 ? Math.abs(Math.sqrt(variance)/mean*100) : 0;
-      return {name:item.name, cv};
-    }).filter(v=>v.cv !== null);
     volList.sort((a,b)=>b.cv-a.cv);
-    if(volList.length > 0){
-      html += `<ul class="insight-list">` + volList.map(v=>{
-        let w = 'stabil';
-        if(v.cv >= 25) w = 'cukup fluktuatif';
-        else if(v.cv >= 10) w = 'sedikit berfluktuasi';
-        return `<li><b>${escapeHtml(v.name)}</b>: ${w} (CV ≈ ${v.cv.toFixedID(1)}%)</li>`;
-      }).join('') + `</ul>`;
+    html += `<ul class="insight-list">` + volList.map(v=>{
+      let w = 'stabil';
+      if(v.cv >= 25) w = 'cukup fluktuatif';
+      else if(v.cv >= 10) w = 'sedikit berfluktuasi';
+      return `<li><b>${escapeHtml(v.name)}</b>: ${w} (CV ≈ ${v.cv.toFixedID(1)}%)</li>`;
+    }).join('') + `</ul>`;
+  }
+
+  const quadrantData = volList.filter(item=>item.pct!==null && Number.isFinite(item.pct));
+  if(quadrantData.length >= 3){
+    const medianGrowth = seriesMedian(quadrantData.map(item=>item.pct));
+    const medianVolatility = seriesMedian(quadrantData.map(item=>item.cv));
+    html += `<span class="insight-section-title">▦ Kuadran Pertumbuhan &amp; Volatilitas</span>`;
+    html += `<div class="insight-intro">Posisi relatif terhadap median indikator terpilih: pertumbuhan ${medianGrowth>0?'+':''}${medianGrowth.toFixedID(1)}% dan CV ${medianVolatility.toFixedID(1)}%.</div>`;
+    html += `<ul class="insight-list">` + quadrantData.map(item=>{
+      const growthHigh = item.pct>=medianGrowth;
+      const volatilityHigh = item.cv>=medianVolatility;
+      const group = growthHigh
+        ? (volatilityHigh ? 'pertumbuhan dan volatilitas relatif tinggi' : 'pertumbuhan relatif tinggi, volatilitas lebih rendah')
+        : (volatilityHigh ? 'pertumbuhan relatif rendah, volatilitas lebih tinggi' : 'pertumbuhan dan volatilitas relatif rendah');
+      return `<li><b>${escapeHtml(item.name)}</b>: ${group} (${item.pct>0?'+':''}${item.pct.toFixedID(1)}%; CV ${item.cv.toFixedID(1)}%).</li>`;
+    }).join('') + `</ul>`;
+  }
+
+  if(dataList.length >= 2 && commonPeriods.length >= 2){
+    const relativeItems = dataList.map((item,index)=>({item,periodMap:periodMaps[index]}))
+      .filter(entry=>entry.periodMap.get(commonPeriods[0]).data>0);
+    if(relativeItems.length >= 2){
+      const spreadAt = period=>{
+        const indexes = relativeItems.map(entry=>entry.periodMap.get(period).data/entry.periodMap.get(commonPeriods[0]).data*100);
+        return Math.max(...indexes)-Math.min(...indexes);
+      };
+      const previousSpread=spreadAt(commonPeriods[commonPeriods.length-2]);
+      const latestSpread=spreadAt(commonPeriods[commonPeriods.length-1]);
+      const spreadChange=latestSpread-previousSpread;
+      const direction=spreadChange>0.05?'melebar (divergen)':(spreadChange < -0.05?'menyempit (konvergen)':'relatif tetap');
+      html += `<span class="insight-section-title">↔ Konvergensi / Divergensi Kinerja</span>`;
+      html += `<div class="insight-note">Setelah tiap seri diindeks ke 100 pada periode bersama pertama, rentang antarindeks kini <b>${latestSpread.toFixedID(1)} poin</b> dan ${direction} ${Math.abs(spreadChange).toFixedID(1)} poin sejak observasi bersama sebelumnya. Ini membandingkan laju relatif, bukan level atau satuan asli.</div>`;
+    }
+  }
+
+  if(dataList.length >= 2){
+    const lagPairs=[];
+    const timeIndex=entry=>compareIsQuarterly
+      ? entry.tahun*4+triwulanToNum(entry.triwulan)
+      : entry.tahun;
+    for(let i=0;i<dataList.length;i++){
+      for(let j=i+1;j<dataList.length;j++){
+        const left=new Map((dataList[i].periodEntries||[]).map(entry=>[timeIndex(entry),entry.data]));
+        const right=new Map((dataList[j].periodEntries||[]).map(entry=>[timeIndex(entry),entry.data]));
+        const leftLeads=[],rightLeads=[];
+        left.forEach((value,period)=>{
+          if(right.has(period+1)) leftLeads.push([value,right.get(period+1)]);
+          if(right.has(period-1)) rightLeads.push([right.get(period-1),value]);
+        });
+        if(leftLeads.length>=5){
+          const r=pearsonCorrelation(leftLeads.map(pair=>pair[0]),leftLeads.map(pair=>pair[1]));
+          if(r!==null) lagPairs.push({lead:dataList[i].name,follow:dataList[j].name,r,n:leftLeads.length});
+        }
+        if(rightLeads.length>=5){
+          const r=pearsonCorrelation(rightLeads.map(pair=>pair[0]),rightLeads.map(pair=>pair[1]));
+          if(r!==null) lagPairs.push({lead:dataList[j].name,follow:dataList[i].name,r,n:rightLeads.length});
+        }
+      }
+    }
+    if(lagPairs.length){
+      lagPairs.sort((a,b)=>Math.abs(b.r)-Math.abs(a.r));
+      html += `<span class="insight-section-title">⇢ Hubungan Tertunda Satu Periode</span>`;
+      html += `<ul class="insight-list">` + lagPairs.slice(0,3).map(pair=>
+        `<li><b>${escapeHtml(pair.lead)}</b> mendahului <b>${escapeHtml(pair.follow)}</b>: r = ${pair.r.toFixedID(2)} (${pair.n} pasangan periode).</li>`
+      ).join('') + `</ul>`;
+      html += `<div class="insight-note">Asosiasi dengan jeda satu periode bersifat eksploratif, bukan bukti sebab-akibat; tren bersama dapat memengaruhi korelasi.</div>`;
     }
   }
 
@@ -9808,8 +9963,11 @@ function generateAdvancedAIInsight(dataList){
     const corrPairs = [];
     for(let i=0;i<dataList.length;i++){
       for(let j=i+1;j<dataList.length;j++){
-        const r = pearsonCorrelation(dataList[i].rawValues||[], dataList[j].rawValues||[]);
-        if(r !== null) corrPairs.push({a:dataList[i].name, b:dataList[j].name, r});
+        const leftByPeriod = new Map((dataList[i].periodEntries||[]).map(entry=>[sortKey(entry),entry.data]));
+        const rightByPeriod = new Map((dataList[j].periodEntries||[]).map(entry=>[sortKey(entry),entry.data]));
+        const sharedPeriods = [...leftByPeriod.keys()].filter(period=>rightByPeriod.has(period)).sort((a,b)=>a-b);
+        const r = pearsonCorrelation(sharedPeriods.map(period=>leftByPeriod.get(period)),sharedPeriods.map(period=>rightByPeriod.get(period)));
+        if(r !== null) corrPairs.push({a:dataList[i].name, b:dataList[j].name, r, n:sharedPeriods.length});
       }
     }
     if(corrPairs.length > 0){
@@ -9823,7 +9981,7 @@ function generateAdvancedAIInsight(dataList){
         else if(p.r >= 0.3){ word = 'cenderung bergerak searah'; cls='trend-up'; }
         else if(p.r <= -0.7){ word = 'bergerak berlawanan arah dengan kuat (trade-off)'; cls='trend-down'; }
         else if(p.r <= -0.3){ word = 'cenderung bergerak berlawanan arah'; cls='trend-down'; }
-        html += `<li><b>${escapeHtml(p.a)}</b> vs <b>${escapeHtml(p.b)}</b>: <span class="${cls}" style="font-weight:700;">${word}</span> (r = ${p.r.toFixedID(2)})</li>`;
+        html += `<li><b>${escapeHtml(p.a)}</b> vs <b>${escapeHtml(p.b)}</b>: <span class="${cls}" style="font-weight:700;">${word}</span> (r = ${p.r.toFixedID(2)}, ${p.n} periode bersama)</li>`;
       });
       html += `</ul>`;
     }
@@ -9911,6 +10069,13 @@ document.addEventListener('keydown', (e)=>{
   if(e.key === 'Escape') closeDetail();
 });
 
+function seriesMedian(values){
+  const sorted = values.filter(Number.isFinite).slice().sort((a,b)=>a-b);
+  if(!sorted.length) return null;
+  const mid = Math.floor(sorted.length/2);
+  return sorted.length%2 ? sorted[mid] : (sorted[mid-1]+sorted[mid])/2;
+}
+
 function buildSeriesInsight(filtered, indikator){
   if(!filtered || filtered.length === 0) return 'Tidak ada data pada rentang periode ini.';
   const satuan = SATUAN[indikator] ? ' ' + escapeHtml(SATUAN[indikator]) : '';
@@ -9932,21 +10097,55 @@ function buildSeriesInsight(filtered, indikator){
   if(last.data > first.data){ trendWord = 'meningkat dibandingkan'; trendClass = 'trend-up'; }
   else if(last.data < first.data){ trendWord = 'menurun dibandingkan'; trendClass = 'trend-down'; }
 
-  // Paragraf disusun dari yang paling sederhana (nilai terkini) ke yang paling kompleks
-  // (sebaran & pergerakan antarperiode), masing-masing sebagai satu paragraf berdiri sendiri.
   const paras = [];
 
   let p1 = `Pada periode <b>${periodLabel(last)}</b>, indikator <b>${escapeHtml(indikator)}</b> tercatat <b>${fmtNum(last.data)}${satuan}</b>.`;
   if(first !== last){
     const diff = last.data - first.data;
-    const pct = first.data !== 0 ? (diff/first.data*100) : 0;
-    const spanYears = (last.tahun - first.tahun) || 1;
-    const cagr = first.data > 0 ? (Math.pow(last.data/first.data, 1/spanYears) - 1) * 100 : 0;
-    p1 += ` Nilai ini <span class="${trendClass}">${trendWord}</span> periode <b>${periodLabel(first)}</b> (${fmtNum(first.data)}${satuan}), setara perubahan kumulatif <b>${pct>0?'+':''}${pct.toFixedID(1)}%</b> (laju rata-rata tahunan/CAGR: <b>${cagr>0?'+':''}${cagr.toFixedID(2)}%/tahun</b>).`;
+    // Basis awal harus positif — basis nol ATAU negatif (mis. indikator yang bisa
+    // kontraksi/minus) akan membalik tanda persentase bila tetap dipaksakan dibagi.
+    const pct = first.data > 0 ? (diff/first.data*100) : null;
+    const elapsedYears = first.triwulan && last.triwulan
+      ? ((last.tahun*4 + triwulanToNum(last.triwulan)) - (first.tahun*4 + triwulanToNum(first.triwulan))) / 4
+      : last.tahun - first.tahun;
+    // CAGR hanya bermakna untuk rentang minimal setahun penuh — untuk rentang
+    // triwulanan lebih pendek dari setahun, memangkatkan (1/elapsedYears) akan
+    // menyetahunkan pola musiman jangka pendek jadi angka yang membesar dan menyesatkan.
+    const cagr = first.data > 0 && last.data > 0 && elapsedYears >= 1
+      ? (Math.pow(last.data/first.data, 1/elapsedYears) - 1) * 100
+      : null;
+    p1 += ` Nilai ini <span class="${trendClass}">${trendWord}</span> periode <b>${periodLabel(first)}</b> (${fmtNum(first.data)}${satuan}), dengan perubahan kumulatif `;
+    p1 += pct === null ? `tidak dapat dihitung karena nilai awal nol/negatif` : `<b>${pct>0?'+':''}${pct.toFixedID(1)}%</b>`;
+    if(cagr !== null) p1 += ` dan laju rata-rata tahunan (CAGR) <b>${cagr>0?'+':''}${cagr.toFixedID(2)}%/tahun</b>`;
+    p1 += '.';
   }
   paras.push(p1);
 
   paras.push(`Sepanjang rentang ini, nilai tertinggi tercatat pada <b>${periodLabel(maxObj)}</b> (${fmtNum(maxObj.data)}${satuan}) dan terendah pada <b>${periodLabel(minObj)}</b> (${fmtNum(minObj.data)}${satuan}), dengan rata-rata sekitar <b>${fmtNum(avg)}${satuan}</b>.`);
+
+  if(filtered.length >= 2){
+    const previous = filtered[filtered.length-2];
+    const change = last.data - previous.data;
+    const changePct = previous.data>0 ? (change/previous.data*100) : null;
+    const changeWord = change > 0 ? 'naik' : (change < 0 ? 'turun' : 'tetap');
+    const changeClass = change > 0 ? 'trend-up' : (change < 0 ? 'trend-down' : 'trend-flat');
+    const comparisonLabel = last.triwulan ? 'triwulan sebelumnya' : 'periode sebelumnya';
+    let latestText = `Perubahan terbaru (${periodLabel(previous)} ke ${periodLabel(last)}) <span class="${changeClass}">${changeWord} ${fmtNum(Math.abs(change))}${satuan}</span>`;
+    if(changePct !== null) latestText += ` (${changePct>0?'+':''}${changePct.toFixedID(1)}%)`;
+    latestText += ` dibanding ${comparisonLabel}.`;
+
+    if(last.triwulan){
+      const priorYearQuarter = filtered.find(entry=>entry.tahun===last.tahun-1 && triwulanToNum(entry.triwulan)===triwulanToNum(last.triwulan));
+      if(priorYearQuarter){
+        const yearChange = last.data - priorYearQuarter.data;
+        const yearChangePct = priorYearQuarter.data>0 ? (yearChange/priorYearQuarter.data*100) : null;
+        latestText += ` Dibanding <b>${periodLabel(priorYearQuarter)}</b>, nilainya ${yearChange>0?'naik':(yearChange<0?'turun':'tetap')} ${fmtNum(Math.abs(yearChange))}${satuan}`;
+        if(yearChangePct !== null) latestText += ` (${yearChangePct>0?'+':''}${yearChangePct.toFixedID(1)}%)`;
+        latestText += '.';
+      }
+    }
+    paras.push(latestText);
+  }
 
   if(filtered.length >= 3){
     let volWord = 'cenderung stabil dari tahun ke tahun';
@@ -9969,18 +10168,75 @@ function buildSeriesInsight(filtered, indikator){
       else if(dir === streakDir){ streak++; } else break;
     }
     const totalMoves = upCount + downCount + flatCount;
-    let p4 = `Dari ${totalMoves} pergerakan antar periode, tercatat <b>${upCount} kali naik</b> dan <b>${downCount} kali turun</b>`;
+    let p4 = `Dari ${totalMoves} pergerakan antarperiode, tercatat <b>${upCount} kali naik</b>, <b>${downCount} kali turun</b>, dan <b>${flatCount} kali tetap</b>`;
     if(streak >= 2 && (streakDir === 'up' || streakDir === 'down')){
-      p4 += `, dengan tren <b>${streakDir==='up'?'kenaikan':'penurunan'} beruntun ${streak} periode terakhir</b>`;
+      p4 += `, termasuk <b>${streak} periode ${streakDir==='up'?'kenaikan':'penurunan'} beruntun</b>`;
     }
     p4 += '.';
-
-    if(filtered.length >= 2){
-      const lastYoY = filtered[filtered.length-1].data - filtered[filtered.length-2].data;
-      const lastYoYPct = filtered[filtered.length-2].data !== 0 ? (lastYoY/filtered[filtered.length-2].data*100) : 0;
-      p4 += ` Perubahan periode terakhir (<b>${periodLabel(filtered[filtered.length-2])}</b> → <b>${periodLabel(filtered[filtered.length-1])}</b>) sebesar <b>${lastYoY>0?'+':''}${fmtNum(lastYoY)}${satuan}</b> (${lastYoYPct>0?'+':''}${lastYoYPct.toFixedID(1)}%).`;
-    }
     paras.push(p4);
+  }
+
+  if(filtered.length >= 6){
+    const previousWindow = filtered.slice(-6,-3);
+    const recentWindow = filtered.slice(-3);
+    const previousAverage = previousWindow.reduce((total,entry)=>total+entry.data,0) / previousWindow.length;
+    const recentAverage = recentWindow.reduce((total,entry)=>total+entry.data,0) / recentWindow.length;
+    const momentumChange = recentAverage - previousAverage;
+    const momentumPct = previousAverage>0 ? (momentumChange/previousAverage*100) : null;
+    const momentumWord = momentumChange > 0 ? 'menguat' : (momentumChange < 0 ? 'melemah' : 'relatif tetap');
+    let momentumText = `Momentum <b>${momentumWord}</b>: rata-rata tiga periode terbaru (${periodLabel(recentWindow[0])}–${periodLabel(recentWindow[recentWindow.length-1])}) sebesar <b>${fmtNum(recentAverage)}${satuan}</b>, dibanding <b>${fmtNum(previousAverage)}${satuan}</b> pada tiga periode sebelumnya`;
+    if(momentumPct !== null) momentumText += ` (${momentumPct>0?'+':''}${momentumPct.toFixedID(1)}%)`;
+    momentumText += '.';
+    paras.push(momentumText);
+  }
+
+  if(filtered.length >= 3){
+    const older = filtered[filtered.length-3], previous = filtered[filtered.length-2];
+    if(older.data>0 && previous.data>0){
+      const priorRate = (previous.data-older.data)/older.data*100;
+      const latestRate = (last.data-previous.data)/previous.data*100;
+      const rateShift = latestRate-priorRate;
+      const paceWord = rateShift > 0 ? 'menguat' : (rateShift < 0 ? 'melemah' : 'tetap');
+      paras.push(`Laju perubahan ${paceWord}: bergerak dari <b>${priorRate>0?'+':''}${priorRate.toFixedID(1)}%</b> menjadi <b>${latestRate>0?'+':''}${latestRate.toFixedID(1)}%</b> (${rateShift>0?'+':''}${rateShift.toFixedID(1)} poin persentase).`);
+    }
+  }
+
+  if(filtered.length >= 6){
+    const changes = filtered.slice(1).map((entry,index)=>entry.data-filtered[index].data);
+    const medianChange = seriesMedian(changes);
+    const deviations = changes.map(change=>Math.abs(change-medianChange));
+    const mad = seriesMedian(deviations);
+    const latestChange = changes[changes.length-1];
+    let isAnomaly = false;
+    if(mad > 0){
+      isAnomaly = Math.abs(0.6745*(latestChange-medianChange)/mad) >= 3.5;
+    }else{
+      const sortedChanges = changes.slice().sort((a,b)=>a-b);
+      const q1 = sortedChanges[Math.floor((sortedChanges.length-1)*0.25)];
+      const q3 = sortedChanges[Math.ceil((sortedChanges.length-1)*0.75)];
+      const iqr = q3-q1;
+      isAnomaly = iqr > 0
+        ? latestChange < q1-1.5*iqr || latestChange > q3+1.5*iqr
+        : latestChange !== medianChange;
+    }
+    if(isAnomaly){
+      paras.push(`<span class="trend-flat"><b>Sinyal anomali statistik:</b></span> perubahan terbaru pada <b>${periodLabel(last)}</b> (${latestChange>0?'+':''}${fmtNum(latestChange)}${satuan}) menyimpang dari pola perubahan historis. Ini penanda untuk ditinjau, bukan penjelasan penyebab.`);
+    }
+  }
+
+  if(last.triwulan){
+    const quarter = triwulanToNum(last.triwulan);
+    const sameQuarter = filtered.filter(entry=>entry!==last && triwulanToNum(entry.triwulan)===quarter);
+    if(sameQuarter.length >= 2){
+      const seasonalAverage = sameQuarter.reduce((total,entry)=>total+entry.data,0)/sameQuarter.length;
+      const seasonalDiff = last.data-seasonalAverage;
+      const seasonalPct = seasonalAverage>0 ? seasonalDiff/seasonalAverage*100 : null;
+      const position = seasonalDiff > 0 ? 'di atas' : (seasonalDiff < 0 ? 'di bawah' : 'setara dengan');
+      let seasonalText = `${periodLabel(last)} berada <b>${position}</b> rata-rata historis TW ${last.triwulan} (${fmtNum(seasonalAverage)}${satuan}, dari ${sameQuarter.length} tahun pembanding)`;
+      if(seasonalPct!==null) seasonalText += ` sebesar ${seasonalDiff>0?'+':''}${seasonalPct.toFixedID(1)}%`;
+      seasonalText += '. Ini perbandingan musiman deskriptif, bukan proyeksi.';
+      paras.push(seasonalText);
+    }
   }
 
   return paras.map(p=>`<p>${p}</p>`).join(' ');
