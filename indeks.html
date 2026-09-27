@@ -413,7 +413,7 @@
     *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
     body{ background:#fff !important; padding:0 !important; }
     .tabbar-sticky-wrap, .tabbar-vertical, .side-extra, .fav-btn, .present-btn, .card-filter-bar, .highlight-bar, .dl-btn, .overlay, .drawer,
-    .left-col, .global-search, .palette-picker, .tw-copy, .copy-narr, .kbd-help, .cf-chip, .mini-fav{ display:none !important; }
+    .left-col, .global-search, .palette-picker, .tw-copy, .copy-narr, .kbd-help, .cf-chip, .mini-fav, .site-footer{ display:none !important; }
     .hero{ width:100% !important; max-width:none !important; border-radius:8px; margin:0 0 8px !important; }
     .tw-summary{ break-inside:avoid; }
     .card, .comp-card, .kelompok-block, .ss-kpi-grid, .table-scroll, canvas{ break-inside:avoid; }
@@ -1859,22 +1859,22 @@
 <div class="hero">
   <div class="hero-inner">
     <div class="hero-brand">
-      <div class="hero-eyebrow">BPS Kabupaten Klungkung</div>
+      <div class="hero-eyebrow" data-i18n="heroEyebrow">BPS Kabupaten Klungkung</div>
       <h1>DINAMO</h1>
-      <p>Dashboard Insight dan Data Makro</p>
+      <p data-i18n="heroSubtitle">Dashboard Insight dan Data Makro</p>
       <div class="hero-topics" aria-label="Bidang indikator">
-        <span class="hero-topic">PDRB</span>
-        <span class="hero-topic">Pasar Kerja</span>
-        <span class="hero-topic">Kemiskinan</span>
-        <span class="hero-topic">Analisis Regional</span>
+        <span class="hero-topic" data-i18n="topicPdrb">PDRB</span>
+        <span class="hero-topic" data-i18n="topicNaker">Pasar Kerja</span>
+        <span class="hero-topic" data-i18n="topicKemiskinan">Kemiskinan</span>
+        <span class="hero-topic" data-i18n="topicRegional">Analisis Regional</span>
       </div>
     </div>
     <div class="hero-timeline" id="heroTimeline" aria-label="Sebaran seri data Tahunan dan Triwulanan"></div>
     <div class="hero-coverage" aria-label="Cakupan data dashboard">
-      <div class="hero-coverage-title">Rentang Data</div>
+      <div class="hero-coverage-title" data-i18n="coverageTitle">Rentang Data</div>
       <div class="hero-stats">
-        <div class="stat-pill"><div class="lbl">TAHUNAN</div><div class="num" id="heroAnnualRange">Memuat...</div></div>
-        <div class="stat-pill"><div class="lbl">TRIWULANAN</div><div class="num" id="heroQuarterRange">Memuat...</div></div>
+        <div class="stat-pill"><div class="lbl" data-i18n="lblTahunan">TAHUNAN</div><div class="num" id="heroAnnualRange" data-i18n="loading">Memuat...</div></div>
+        <div class="stat-pill"><div class="lbl" data-i18n="lblTriwulanan">TRIWULANAN</div><div class="num" id="heroQuarterRange" data-i18n="loading">Memuat...</div></div>
       </div>
     </div>
   </div>
@@ -1910,22 +1910,24 @@
         </select>
         <input type="color" id="paletteCustomColor" title="Pilih warna aksen sendiri; seluruh palet diturunkan dari warna ini" style="display:none;">
         <span class="pp-sep"></span>
-        <button type="button" class="dark-toggle" id="darkToggle" title="Mode gelap (D)" aria-pressed="false">🌙</button>
+        <button type="button" class="dark-toggle" id="darkToggle" data-i18n-title="darkToggleTitle" title="Mode gelap (D)" aria-pressed="false">🌙</button>
         <span class="pp-sep"></span>
-        <select id="cardColorModeSelect" title="Warna kartu & grafik: Senada = turunan warna palet, Beragam = warna klasik yang berbeda-beda">
-          <option value="senada">Kartu senada</option>
-          <option value="beragam">Kartu beragam</option>
+        <select id="cardColorModeSelect" data-i18n-title="cardColorModeTitle" title="Warna kartu & grafik: Senada = turunan warna palet, Beragam = warna klasik yang berbeda-beda">
+          <option value="senada" data-i18n="cardModeSenada">Kartu senada</option>
+          <option value="beragam" data-i18n="cardModeBeragam">Kartu beragam</option>
         </select>
+        <span class="pp-sep"></span>
+        <button type="button" class="dark-toggle" id="langToggle" data-i18n-title="langToggleTitle" title="Switch to English" aria-pressed="false">EN</button>
       </div>
       <div class="global-search" id="globalSearchBox">
         <span class="gs-icon">🔍</span>
-        <input type="text" id="globalSearchInput" placeholder="Cari indikator atau tab...">
-        <button class="gs-clear" id="globalSearchClear" title="Bersihkan">✕</button>
+        <input type="text" id="globalSearchInput" data-i18n-placeholder="searchPlaceholder" placeholder="Cari indikator atau tab...">
+        <button class="gs-clear" id="globalSearchClear" data-i18n-title="searchClearTitle" title="Bersihkan">✕</button>
         <div class="gs-suggest" id="gsSuggest"></div>
       </div>
-      <div class="stat-pill-mini"><div class="num" id="statIndikator">–</div><div class="lbl">INDIKATOR</div></div>
-      <div class="stat-pill-mini"><div class="num" id="statKategori">–</div><div class="lbl">KATEGORI</div></div>
-      <div class="stat-pill-mini"><div class="num" id="statTerbaru">–</div><div class="lbl">DATA TERBARU</div></div>
+      <div class="stat-pill-mini"><div class="num" id="statIndikator">–</div><div class="lbl" data-i18n="statIndikator">INDIKATOR</div></div>
+      <div class="stat-pill-mini"><div class="num" id="statKategori">–</div><div class="lbl" data-i18n="statKategori">KATEGORI</div></div>
+      <div class="stat-pill-mini"><div class="num" id="statTerbaru">–</div><div class="lbl" data-i18n="statTerbaru">DATA TERBARU</div></div>
     </div>
   </div>
 
@@ -1935,8 +1937,8 @@
     <div class="left-col">
       <aside class="kel-filter-panel" id="kelFilterPanel"></aside>
       <div class="news-card">
-        <div class="news-card-head">📰 Berita Terkait</div>
-        <div class="news-card-sub">Ekonomi &amp; sosial Klungkung — kurasi manual, tidak realtime.</div>
+        <div class="news-card-head" data-i18n="newsTitle">📰 Berita Terkait</div>
+        <div class="news-card-sub" data-i18n-html="1" data-i18n="newsSub">Ekonomi &amp; sosial Klungkung — kurasi manual, tidak realtime.</div>
         <a class="news-item" href="https://klungkungkab.go.id/berita/detail/kabupaten-klungkung-mencatatkan-performa-ekonomi-luar-biasa-pada-tahun-2025" target="_blank" rel="noopener">
           <div class="news-item-title">Ekonomi Klungkung Tumbuh 5,67% Tahun 2025, PDRB Tembus Rp12 Triliun</div>
           <div class="news-item-meta"><span class="news-item-tag tag-ekonomi">Ekonomi</span><span>klungkungkab.go.id · Apr 2026</span></div>
@@ -1957,7 +1959,7 @@
           <div class="news-item-title">Sorotan DPRD: Realisasi Retribusi Pariwisata Klungkung Masih Rendah</div>
           <div class="news-item-meta"><span class="news-item-tag tag-ekonomi">Ekonomi</span><span>nusabali.com · 2026</span></div>
         </a>
-        <div class="news-card-divider">Portal Data Resmi</div>
+        <div class="news-card-divider" data-i18n="newsDivider">Portal Data Resmi</div>
         <a class="news-item" href="https://mahottama.klungkungkab.go.id/home" target="_blank" rel="noopener">
           <div class="news-item-title">Klungkung Mahottama — Layanan Statistik Sektoral BPS Klungkung</div>
           <div class="news-item-meta"><span class="news-item-tag tag-portal">Portal</span><span>mahottama.klungkungkab.go.id</span></div>
@@ -1970,7 +1972,7 @@
     </div>
     <div class="center-col">
       <main id="main">
-        <div class="state-msg" id="stateMsg"><span class="spinner"></span>Memuat data dari Google Sheets…</div>
+        <div class="state-msg" id="stateMsg"><span class="spinner"></span><span data-i18n="loadingData">Memuat data dari Google Sheets…</span></div>
       </main>
       <nav class="tabbar tabbar-vertical" id="tabsVertical"></nav>
     </div>
@@ -1978,7 +1980,7 @@
 </div>
 
 <footer class="site-footer">
-  <div class="footer-social-title">Ikuti Kami</div>
+  <div class="footer-social-title" data-i18n="footerFollow">Ikuti Kami</div>
   <div class="footer-social-icons">
     <a href="https://www.facebook.com/bpskabklungkung/" target="_blank" rel="noopener" aria-label="Facebook">
       <svg viewBox="0 0 24 24"><path fill="#1877F2" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.234 2.686.234v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
@@ -2543,6 +2545,62 @@ function harmonizedPalette(preset){
 }
 let cardColorMode = 'senada';    // 'senada' = turunan palet · 'beragam' = warna klasik beda-beda
 try{ const m = localStorage.getItem('klk_card_color_mode'); if(m==='senada' || m==='beragam') cardColorMode = m; }catch(e){}
+
+/* ===== Bahasa (ID/EN) — dictionary untuk elemen chrome statis; konten analitik per-tab menyusul bertahap ===== */
+let LANG = 'id';
+try{ const savedLang = localStorage.getItem('klk_lang'); if(savedLang==='id' || savedLang==='en') LANG = savedLang; }catch(e){}
+const I18N = {
+  id: {
+    heroEyebrow:'BPS Kabupaten Klungkung', heroSubtitle:'Dashboard Insight dan Data Makro',
+    topicPdrb:'PDRB', topicNaker:'Pasar Kerja', topicKemiskinan:'Kemiskinan', topicRegional:'Analisis Regional',
+    coverageTitle:'Rentang Data', lblTahunan:'TAHUNAN', lblTriwulanan:'TRIWULANAN', loading:'Memuat...',
+    tabIph:'Mingguan (IPH)', tabBandingkan:'Bandingkan', tabInferensia:'Inferensia', tabSS:'Shift-Share',
+    tabLQ:'LQ', tabKonvergensi:'Konvergensi', tabDiversitas:'Diversitas', tabStruktural:'Struktural',
+    tabNaker:'Naker', tabCariData:'Cari Data', tabModifikasi:'Modifikasi',
+    palettePickerTitle:'Pilih palet warna dashboard', paletteCustomTitle:'Pilih warna aksen sendiri; seluruh palet diturunkan dari warna ini',
+    darkToggleTitle:'Mode gelap (D)', cardColorModeTitle:'Warna kartu & grafik: Senada = turunan warna palet, Beragam = warna klasik yang berbeda-beda',
+    cardModeSenada:'Kartu senada', cardModeBeragam:'Kartu beragam',
+    searchPlaceholder:'Cari indikator atau tab...', searchClearTitle:'Bersihkan',
+    statIndikator:'INDIKATOR', statKategori:'KATEGORI', statTerbaru:'DATA TERBARU',
+    newsTitle:'📰 Berita Terkait', newsSub:'Ekonomi &amp; sosial Klungkung — kurasi manual, tidak realtime.',
+    newsDivider:'Portal Data Resmi', loadingData:'Memuat data dari Google Sheets…',
+    footerFollow:'Ikuti Kami', langToggleTitle:'Switch to English'
+  },
+  en: {
+    heroEyebrow:'BPS Klungkung Regency', heroSubtitle:'Macro Data & Insight Dashboard',
+    topicPdrb:'GRDP', topicNaker:'Labor Market', topicKemiskinan:'Poverty', topicRegional:'Regional Analysis',
+    coverageTitle:'Data Coverage', lblTahunan:'ANNUAL', lblTriwulanan:'QUARTERLY', loading:'Loading...',
+    tabIph:'Weekly (IPH)', tabBandingkan:'Compare', tabInferensia:'Inference', tabSS:'Shift-Share',
+    tabLQ:'LQ', tabKonvergensi:'Convergence', tabDiversitas:'Diversity', tabStruktural:'Structural',
+    tabNaker:'Labor', tabCariData:'Data Request', tabModifikasi:'Modify',
+    palettePickerTitle:'Choose dashboard color palette', paletteCustomTitle:'Pick your own accent color; the whole palette is derived from this color',
+    darkToggleTitle:'Dark mode (D)', cardColorModeTitle:'Card & chart colors: Matching = derived from palette, Varied = distinct classic colors',
+    cardModeSenada:'Matching cards', cardModeBeragam:'Varied cards',
+    searchPlaceholder:'Search indicator or tab...', searchClearTitle:'Clear',
+    statIndikator:'INDICATORS', statKategori:'CATEGORIES', statTerbaru:'LATEST DATA',
+    newsTitle:'📰 Related News', newsSub:'Klungkung economy &amp; society — manually curated, not realtime.',
+    newsDivider:'Official Data Portals', loadingData:'Loading data from Google Sheets…',
+    footerFollow:'Follow Us', langToggleTitle:'Ganti ke Bahasa Indonesia'
+  }
+};
+function trx(key){ return (I18N[LANG] && I18N[LANG][key]) || I18N.id[key] || key; }
+function applyStaticI18n(){
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    if(el.hasAttribute('data-i18n-html')) el.innerHTML = trx(key); else el.textContent = trx(key);
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el=> el.title = trx(el.getAttribute('data-i18n-title')));
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=> el.placeholder = trx(el.getAttribute('data-i18n-placeholder')));
+  const langBtn = document.getElementById('langToggle');
+  if(langBtn){ langBtn.textContent = LANG==='id' ? 'EN' : 'ID'; langBtn.title = trx('langToggleTitle'); }
+}
+function setLang(lang){
+  LANG = lang;
+  try{ localStorage.setItem('klk_lang', LANG); }catch(e){}
+  applyStaticI18n();
+  renderTabs();
+}
 
 /* ===== Mode gelap: permukaan gelap bernuansa palet, teks terang, warna grafik diangkat agar terbaca ===== */
 let darkMode = true;
@@ -4211,7 +4269,7 @@ function renderTabs(){
 
     const iphBtn = document.createElement('button');
     iphBtn.className = 'tab' + (iphMode ? ' active' : '');
-    iphBtn.textContent = 'Mingguan (IPH)';
+    iphBtn.textContent = trx('tabIph');
     iphBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; nkMode = false; iphMode = true; renderTabs(); renderIphView(); };
     tabsEl.appendChild(iphBtn);
 
@@ -4221,53 +4279,53 @@ function renderTabs(){
 
     const cmpBtn = document.createElement('button');
     cmpBtn.className = 'tab' + (compareMode ? ' active' : '');
-    cmpBtn.textContent = 'Bandingkan';
+    cmpBtn.textContent = trx('tabBandingkan');
     cmpBtn.onclick = ()=>{ compareMode = true; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; nkMode = false; iphMode = false; renderTabs(); renderCompareView(); };
     tabsEl.appendChild(cmpBtn);
 
     const infBtn = document.createElement('button');
     infBtn.className = 'tab' + (infMode ? ' active' : '');
-    infBtn.textContent = 'Inferensia';
+    infBtn.textContent = trx('tabInferensia');
     infBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = true; cariMode = false; nkMode = false; iphMode = false; renderTabs(); renderInferensiaView(); };
     tabsEl.appendChild(infBtn);
 
     const ssBtn = document.createElement('button');
     ssBtn.className = 'tab' + (ssMode ? ' active' : '');
-    ssBtn.textContent = 'Shift-Share';
+    ssBtn.textContent = trx('tabSS');
     ssBtn.onclick = sideClick(isV, 'ss', ssMode, ()=>{ compareMode = false; ssMode = true; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; nkMode = false; iphMode = false; renderTabs(); renderShiftShareView(); });
     tabsEl.appendChild(ssBtn);
     sideDecorate(tabsEl, ssBtn, isV, 'ss', ssMode);
 
     const lqBtn = document.createElement('button');
     lqBtn.className = 'tab' + (lqMode ? ' active' : '');
-    lqBtn.textContent = 'LQ';
+    lqBtn.textContent = trx('tabLQ');
     lqBtn.onclick = sideClick(isV, 'lq', lqMode, ()=>{ compareMode = false; ssMode = false; lqMode = true; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; nkMode = false; iphMode = false; renderTabs(); renderLQView(); });
     tabsEl.appendChild(lqBtn);
     sideDecorate(tabsEl, lqBtn, isV, 'lq', lqMode);
 
     const convBtn = document.createElement('button');
     convBtn.className = 'tab' + (convMode ? ' active' : '');
-    convBtn.textContent = 'Konvergensi';
+    convBtn.textContent = trx('tabKonvergensi');
     convBtn.onclick = sideClick(isV, 'conv', convMode, ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = true; divMode = false; advMode = false; infMode = false; cariMode = false; nkMode = false; iphMode = false; renderTabs(); renderKonvergensiView(); });
     tabsEl.appendChild(convBtn);
     sideDecorate(tabsEl, convBtn, isV, 'conv', convMode);
 
     const divBtn = document.createElement('button');
     divBtn.className = 'tab' + (divMode ? ' active' : '');
-    divBtn.textContent = 'Diversitas';
+    divBtn.textContent = trx('tabDiversitas');
     divBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = true; advMode = false; infMode = false; cariMode = false; nkMode = false; iphMode = false; renderTabs(); renderDiversityView(); };
     tabsEl.appendChild(divBtn);
 
     const advBtn = document.createElement('button');
     advBtn.className = 'tab' + (advMode ? ' active' : '');
-    advBtn.textContent = 'Struktural';
+    advBtn.textContent = trx('tabStruktural');
     advBtn.onclick = sideClick(isV, 'adv', advMode, ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = true; infMode = false; cariMode = false; nkMode = false; iphMode = false; renderTabs(); renderAdvancedView(); });
     tabsEl.appendChild(advBtn);
     sideDecorate(tabsEl, advBtn, isV, 'adv', advMode);
 
     const nkBtn = document.createElement('button');
     nkBtn.className = 'tab' + (nkMode ? ' active' : '');
-    nkBtn.textContent = 'Naker';
+    nkBtn.textContent = trx('tabNaker');
     nkBtn.onclick = sideClick(isV, 'nk', nkMode, ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = false; nkMode = true; iphMode = false; renderTabs(); renderNakerView(); });
     tabsEl.appendChild(nkBtn);
     sideDecorate(tabsEl, nkBtn, isV, 'nk', nkMode);
@@ -4278,13 +4336,13 @@ function renderTabs(){
 
     const cariBtn = document.createElement('button');
     cariBtn.className = 'tab' + (cariMode ? ' active' : '');
-    cariBtn.textContent = 'Cari Data';
+    cariBtn.textContent = trx('tabCariData');
     cariBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; cariMode = true; nkMode = false; iphMode = false; renderTabs(); renderCariDataView(); };
     tabsEl.appendChild(cariBtn);
 
     const modBtn = document.createElement('button');
     modBtn.className = 'tab' + (modMode ? ' active' : '');
-    modBtn.textContent = 'Modifikasi';
+    modBtn.textContent = trx('tabModifikasi');
     modBtn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; modMode = true; cariMode = false; nkMode = false; iphMode = false; renderTabs(); renderModifikasiView(); };
     tabsEl.appendChild(modBtn);
     if(isV) tabsEl.appendChild(buildSideExtra());
@@ -16041,6 +16099,11 @@ if(darkToggleEl){
   darkToggleEl.textContent = darkMode ? '☀️' : '🌙';
   darkToggleEl.addEventListener('click', ()=> toggleDarkMode());
 }
+const langToggleEl = document.getElementById('langToggle');
+if(langToggleEl){
+  langToggleEl.addEventListener('click', ()=> setLang(LANG==='id' ? 'en' : 'id'));
+}
+applyStaticI18n();
 
 loadData();
 </script>
