@@ -66,13 +66,16 @@
     max-width:1280px; margin:0 auto; position:relative; z-index:1;
     display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap;
   }
+  .hero-brand{ flex:1 1 250px; min-width:220px; }
+  .hero-topics{ display:flex; flex-wrap:wrap; gap:6px; margin-top:13px; }
+  .hero-topic{ border:1px solid rgba(255,255,255,.3); border-radius:999px; padding:4px 9px; color:rgba(255,255,255,.9); font-size:9px; font-weight:700; letter-spacing:.04em; white-space:nowrap; }
   .hero-coverage{ display:flex; flex-direction:column; align-items:flex-end; gap:7px; min-width:0; }
   .hero-coverage-title{ color:rgba(255,255,255,.72); font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
   .hero-timeline{ flex:1 1 260px; max-width:430px; min-width:230px; align-self:flex-end; padding:2px 4px; }
   .hero-timeline-head{ display:flex; justify-content:space-between; gap:10px; margin-bottom:5px; color:rgba(255,255,255,.74); font-size:8.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
   .hero-timeline-row{ display:grid; grid-template-columns:76px minmax(0,1fr) 58px; align-items:center; gap:8px; margin-top:5px; }
   .hero-timeline-label{ color:rgba(255,255,255,.84); font-size:9px; font-weight:600; }
-  .hero-timeline-bars{ display:flex; align-items:flex-end; gap:2px; height:20px; min-width:0; border-bottom:1px solid rgba(255,255,255,.26); }
+  .hero-timeline-bars{ display:flex; align-items:flex-end; gap:2px; height:36px; min-width:0; border-bottom:1px solid rgba(255,255,255,.26); }
   .hero-timeline-bar{ display:block; flex:1 1 0; min-width:2px; height:var(--bar-height); border-radius:2px 2px 0 0; background:rgba(255,255,255,.74); }
   .hero-timeline-total{ color:rgba(255,255,255,.72); font-size:8.5px; text-align:right; white-space:nowrap; }
   .hero-eyebrow{
@@ -81,6 +84,7 @@
   }
   .hero h1{ color:#fff; font-family:'Sora',sans-serif; font-size:clamp(22px,3vw,32px); font-weight:700; line-height:1.15; }
   .hero p{ color:rgba(255,255,255,.82); margin-top:6px; font-size:12.5px; max-width:480px; line-height:1.45; }
+  @media (max-width:640px){ .hero-brand{ flex-basis:100%; min-width:0; } }
 
   .hero-stats{ display:flex; gap:10px; flex-wrap:wrap; }
   .hero-stats .stat-pill{ min-width:170px; }
@@ -329,15 +333,24 @@
 
   /* ===== Favorit, lencana, dan filter kartu ===== */
   .fav-btn{
-    position:absolute; top:-40px; right:8px; width:30px; height:30px; padding:0;
+    position:absolute; top:-40px; right:8px; width:22px; height:24px; padding:0;
     display:flex; align-items:center; justify-content:center; background:none; border:none; cursor:pointer;
     font-size:18px; line-height:1; color:#fff; opacity:.8; z-index:4; transition:transform .12s, opacity .12s;
   }
   .fav-btn:hover{ transform:scale(1.18); opacity:1; }
   .fav-btn.on{ opacity:1; }
-  .comp-card .fav-btn{ top:10px; color:var(--kat-accent, var(--orange)); }
-  .comp-card .card-label{ padding-right:26px; }
+  .comp-card .fav-btn, .comp-card .present-btn{ top:10px; }
+  .comp-card .fav-btn{ color:var(--kat-accent, var(--orange)); }
+  .comp-card .card-label{ padding-right:54px; }
   .card:not(.comp-card)::after{ right:46px; }
+  .present-btn{
+    position:absolute; top:-40px; right:30px; width:22px; height:24px; padding:0;
+    display:flex; align-items:center; justify-content:center; background:none; border:none; cursor:pointer;
+    font-size:16px; line-height:1; color:#fff; opacity:.7; z-index:4; transition:transform .12s, opacity .12s;
+  }
+  .present-btn:hover{ transform:scale(1.15); opacity:1; }
+  .present-btn.on{ opacity:1; }
+  .comp-card .present-btn{ right:30px; color:var(--kat-accent, var(--orange)); }
   .card-badge{
     display:inline-block; margin-left:6px; padding:1px 7px; border-radius:999px; vertical-align:1px;
     font-size:9px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; white-space:nowrap;
@@ -373,7 +386,7 @@
     @page{ margin:12mm; }
     *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
     body{ background:#fff !important; padding:0 !important; }
-    .tabbar-sticky-wrap, .tabbar-vertical, .side-extra, .fav-btn, .card-filter-bar, .highlight-bar, .dl-btn, .overlay, .drawer,
+    .tabbar-sticky-wrap, .tabbar-vertical, .side-extra, .fav-btn, .present-btn, .card-filter-bar, .highlight-bar, .dl-btn, .overlay, .drawer,
     .left-col, .global-search, .palette-picker, .tw-copy, .copy-narr, .kbd-help, .cf-chip, .mini-fav{ display:none !important; }
     .hero{ width:100% !important; max-width:none !important; border-radius:8px; margin:0 0 8px !important; }
     .tw-summary{ break-inside:avoid; }
@@ -1589,10 +1602,16 @@
 
 <div class="hero">
   <div class="hero-inner">
-    <div>
+    <div class="hero-brand">
       <div class="hero-eyebrow">BPS Kabupaten Klungkung</div>
       <h1>DINAMO</h1>
       <p>Dashboard Insight dan Data Makro</p>
+      <div class="hero-topics" aria-label="Bidang indikator">
+        <span class="hero-topic">PDRB</span>
+        <span class="hero-topic">Pasar Kerja</span>
+        <span class="hero-topic">Kemiskinan</span>
+        <span class="hero-topic">Analisis Regional</span>
+      </div>
     </div>
     <div class="hero-timeline" id="heroTimeline" aria-label="Sebaran seri data Tahunan dan Triwulanan"></div>
     <div class="hero-coverage" aria-label="Cakupan data dashboard">
@@ -2853,7 +2872,7 @@ function renderHeroTimeline(){
   el.innerHTML = `<div class="hero-timeline-head"><span>Sebaran Seri Data</span><span>${total} periode</span></div>`+
     periods.map(period=>{
       const bars = period.points.map(point=>{
-        const height = Math.round(3 + point.count/peak*16);
+        const height = Math.round(4 + point.count/peak*28);
         const label = periodLabel(point.entry);
         return `<span class="hero-timeline-bar" style="--bar-height:${height}px" title="${escapeHtml(label)} · ${point.count} indikator"></span>`;
       }).join('');
@@ -3184,9 +3203,20 @@ function renderHighlights(){
 }
 
 /* ===== Favorit (★), lencana "Baru" & "Belum diperbarui", dan filter kartu ===== */
-const FAV_KEY = 'klk_favorites', SEEN_KEY = 'klk_seen_latest_v1';
+const FAV_KEY = 'klk_favorites', SEEN_KEY = 'klk_seen_latest_v1', PRESENT_SEL_KEY = 'klk_present_selection';
 let FAVORITES = [];
 try{ FAVORITES = JSON.parse(localStorage.getItem(FAV_KEY) || '[]') || []; }catch(e){ FAVORITES = []; }
+/* Seleksi khusus Mode Presentasi (terpisah dari Favorit ★) — dicentang lewat kotak centang di pojok kartu */
+let PRESENT_SELECTION = [];
+try{ PRESENT_SELECTION = JSON.parse(localStorage.getItem(PRESENT_SEL_KEY) || '[]') || []; }catch(e){ PRESENT_SELECTION = []; }
+function presentSelSave(){ try{ localStorage.setItem(PRESENT_SEL_KEY, JSON.stringify(PRESENT_SELECTION)); }catch(e){} }
+function presentSelHas(id){ return PRESENT_SELECTION.some(f=>f.id === id); }
+function presentSelToggle(it){
+  const id = itemId(it);
+  if(presentSelHas(id)) PRESENT_SELECTION = PRESENT_SELECTION.filter(f=>f.id !== id);
+  else PRESENT_SELECTION.push(Object.assign({ id }, it));
+  presentSelSave();
+}
 let SEEN_BASE = {};          // periode terbaru tiap indikator yang sudah "dilihat" (kunjungan sebelumnya)
 let CURRENT_LATEST = {};     // periode terbaru tiap indikator pada data saat ini
 let LATEST_GLOBAL = {};      // periode terbaru per jenis periode (Tahunan / Triwulanan)
@@ -3268,7 +3298,7 @@ function cardFlagsFor(it){
 /* Tambahkan bintang & lencana ke setiap kartu (aman dipanggil berulang) */
 function decorateCards(){
   document.querySelectorAll('#main .card:not(.insight-card)').forEach(card=>{
-    card.querySelectorAll('.fav-btn, .card-badge').forEach(n=>n.remove());
+    card.querySelectorAll('.fav-btn, .present-btn, .card-badge').forEach(n=>n.remove());
     const it = cardItemFromEl(card); if(!it) return;
     const f = cardFlagsFor(it);
     card.dataset.flags = f.flags.join(' ');
@@ -3292,6 +3322,21 @@ function decorateCards(){
       renderSideFav();
     });
     card.appendChild(btn);
+
+    const pOn = presentSelHas(f.id);
+    const pBtn = document.createElement('button');
+    pBtn.type = 'button'; pBtn.className = 'present-btn' + (pOn ? ' on' : '');
+    pBtn.textContent = pOn ? '☑' : '☐';
+    pBtn.title = pOn ? 'Keluarkan dari Mode Presentasi' : 'Tampilkan di Mode Presentasi';
+    pBtn.setAttribute('aria-pressed', pOn ? 'true' : 'false');
+    pBtn.setAttribute('aria-label', (pOn ? 'Keluarkan dari presentasi: ' : 'Tampilkan di presentasi: ') + (it.sub || it.label));
+    pBtn.addEventListener('mousedown', e=>e.stopPropagation());
+    pBtn.addEventListener('click', e=>{
+      e.stopPropagation();
+      presentSelToggle(it);
+      decorateCards();
+    });
+    card.appendChild(pBtn);
   });
   renderCardFilterBar();
   renderHighlights();
@@ -3516,6 +3561,7 @@ const SIDE_TIPS = [
   'Lencana Belum diperbarui muncul bila data terakhir tertinggal 2 tahun (4 triwulan untuk Triwulanan). Arahkan kursor untuk detailnya.',
   'Chip di atas kartu (★ Favorit, Baru, Belum diperbarui) menyaring kartu, dan bisa digabung dengan kolom cari indikator.',
   'Favorit dan riwayat "Terakhir dibuka" tersimpan di browser ini saja, tidak ikut ke perangkat lain.',
+  'Centang ☐ di sebelah ★ pada kartu untuk memilih indikator yang tampil di Mode Presentasi. Kalau tidak ada yang dicentang, presentasi memakai favorit ★, lalu semua indikator.',
   'Di strip PDRB, arahkan kursor ke grafik mini untuk melihat nilai 8 triwulan terakhir.',
   'Klik nama seri di legenda grafik untuk menyembunyikan atau menampilkannya. Klik kotak warnanya untuk mengganti warna.',
   'Pada grafik deret waktu yang panjang, seret di area grafik untuk memperbesar rentang. Klik dua kali untuk mengembalikan.',
@@ -3527,25 +3573,24 @@ const SIDE_TIPS = [
 ];
 let sideTipIdx = 0;   // mulai dari tips terbaru (fitur baru), lalu "Tips lain" menggilir semuanya
 /* =========================================================
-   MODE PRESENTASI: layar penuh, bergantian otomatis antar indikator
-   (favorit bila ada, atau indikator periode aktif/pertama)
+   MODE PRESENTASI: layar penuh, bergantian otomatis antar indikator terpilih
    ========================================================= */
 let presentState = { open:false, items:[], idx:0, timer:null, playing:true, chart:null };
 
 function presentBuildDeck(){
-  let items = FAVORITES.filter(f=>f.k==='series' && STORE[f.periode] && STORE[f.periode][f.kategori] && STORE[f.periode][f.kategori][f.kelompok] && STORE[f.periode][f.kategori][f.kelompok][f.sub])
-    .map(f=>({periode:f.periode, kategori:f.kategori, kelompok:f.kelompok, sub:f.sub}));
-  if(!items.length){
-    const per = (activePeriode && STORE[activePeriode]) ? activePeriode : STORE.__order[0];
-    Object.keys(STORE[per]).forEach(kat=> Object.keys(STORE[per][kat]).forEach(kel=> Object.keys(STORE[per][kat][kel]).forEach(sub=>{
-      items.push({periode:per, kategori:kat, kelompok:kel, sub});
-    })));
-  }
-  return items;
+  return PRESENT_SELECTION.filter(item=>{
+    const group = STORE[item.periode]?.[item.kategori]?.[item.kelompok];
+    if(item.k==='series') return !!group?.[item.sub]?.length;
+    return Array.isArray(item.segs) && item.segs.length>=2 && item.segs.some(seg=>group?.[seg]?.length);
+  }).map(item=>{
+    if(item.k==='series') return {k:item.k, periode:item.periode, kategori:item.kategori, kelompok:item.kelompok, sub:item.sub};
+    const group = STORE[item.periode][item.kategori][item.kelompok];
+    return Object.assign({},item,{segs:item.segs.filter(seg=>group[seg]?.length)});
+  });
 }
 function presentStart(){
   const items = presentBuildDeck();
-  if(!items.length){ alert('Tidak ada indikator untuk ditampilkan.'); return; }
+  if(!items.length){ alert('Centang setidaknya satu indikator pada kartu untuk memulai presentasi.'); return; }
   presentState.items = items; presentState.idx = 0; presentState.open = true; presentState.playing = true;
   document.getElementById('presentOverlay').classList.add('show');
   presentRenderSlide();
@@ -3571,20 +3616,63 @@ function presentTogglePlay(){
 function presentNext(){ presentState.idx = (presentState.idx + 1) % presentState.items.length; presentRenderSlide(); }
 function presentPrev(){ presentState.idx = (presentState.idx - 1 + presentState.items.length) % presentState.items.length; presentRenderSlide(); }
 
+function presentSlideData(it){
+  if(it.k==='series'){
+    const entries = STORE[it.periode]?.[it.kategori]?.[it.kelompok]?.[it.sub] || [];
+    if(!entries.length) return null;
+    return {
+      title:it.sub,
+      labels:entries.map(entry=>entry.triwulan ? `${entry.tahun} ${entry.triwulan}` : entry.tahun),
+      datasets:[{data:entries.map(entry=>entry.data),borderColor:THEME.accent,backgroundColor:hexToRgba(THEME.accent,0.15),fill:true,tension:0.35,pointRadius:0}],
+      latestValue:entries[entries.length-1].data,
+      previousValue:entries.length>1 ? entries[entries.length-2].data : null,
+      unit:SATUAN[it.sub] ? ` ${SATUAN[it.sub]}` : '',
+      composite:false
+    };
+  }
+
+  const group = STORE[it.periode]?.[it.kategori]?.[it.kelompok] || {};
+  const series = (it.segs || []).map(sub=>({sub,entries:group[sub] || []})).filter(item=>item.entries.length);
+  if(!series.length) return null;
+  const values = series.map(item=>new Map(item.entries.map(entry=>[sortKey(entry),entry.data])));
+  const keys = [...new Set(series.flatMap(item=>item.entries.map(sortKey)))].sort((a,b)=>a-b).slice(-12);
+  const labels = keys.map(key=>{
+    const entry = series.map(item=>item.entries.find(value=>sortKey(value)===key)).find(Boolean);
+    return periodLabel(entry);
+  });
+  const colors = getKelompokSpread(getGroupColor(it.kategori,it.kelompok),series.length);
+  const datasets = series.map((item,index)=>{
+    const color = seriesColor(`comp:${it.kelompok}:${item.sub}`,colors[index]);
+    return {label:item.sub,data:keys.map(key=>values[index].get(key) ?? null),backgroundColor:color,borderColor:color,borderWidth:0,stack:'composition'};
+  });
+  const totals = keys.map(key=>values.reduce((sum,points)=>sum+(points.get(key) ?? 0),0));
+  return {
+    title:it.label,
+    labels,
+    datasets,
+    latestValue:totals[totals.length-1],
+    previousValue:totals.length>1 ? totals[totals.length-2] : null,
+    unit:SATUAN[series[0].sub] ? ` ${SATUAN[series[0].sub]}` : '',
+    composite:true
+  };
+}
+
 function presentRenderSlide(){
   const it = presentState.items[presentState.idx];
-  const entries = (STORE[it.periode]?.[it.kategori]?.[it.kelompok]?.[it.sub]) || [];
-  if(!entries.length) return;
-  const last = entries[entries.length-1], prev = entries.length>1 ? entries[entries.length-2] : null;
-  const satuan = SATUAN[it.sub] ? ` ${SATUAN[it.sub]}` : '';
+  const slide = presentSlideData(it);
+  if(!slide) return;
   document.getElementById('presentCounter').textContent = `${presentState.idx+1} / ${presentState.items.length} · ${it.periode}`;
   document.getElementById('presentKicker').textContent = `${it.kategori} › ${it.kelompok}`;
-  document.getElementById('presentTitle').textContent = it.sub;
-  document.getElementById('presentValue').textContent = fmtNum(last.data) + satuan;
+  document.getElementById('presentTitle').textContent = slide.title;
+  document.getElementById('presentValue').textContent = fmtNum(slide.latestValue) + slide.unit;
   const trendEl = document.getElementById('presentTrend');
-  if(prev && prev.data!==0 && prev.data!=null){
-    const pct = (last.data-prev.data)/Math.abs(prev.data)*100;
-    trendEl.innerHTML = `<span class="${pct>0?'trend-up':pct<0?'trend-down':''}">${pct>0?'▲':pct<0?'▼':'■'} ${pct>0?'+':''}${pct.toFixedID(1)}%</span> dari periode sebelumnya`;
+  const percentageUnit = /%|persen|persentase/i.test(slide.unit);
+  if(slide.previousValue!=null && (percentageUnit || slide.previousValue!==0)){
+    const change = percentageUnit
+      ? slide.latestValue-slide.previousValue
+      : (slide.latestValue-slide.previousValue)/Math.abs(slide.previousValue)*100;
+    const changeUnit = percentageUnit ? ' poin persentase' : '%';
+    trendEl.innerHTML = `<span class="${change>0?'trend-up':change<0?'trend-down':''}">${change>0?'▲':change<0?'▼':'■'} ${change>0?'+':''}${change.toFixedID(1)}${changeUnit}</span> dari periode sebelumnya`;
   } else trendEl.textContent = '';
 
   const dots = document.getElementById('presentDots');
@@ -3593,9 +3681,9 @@ function presentRenderSlide(){
   const ctx = document.getElementById('presentCanvas');
   if(presentState.chart){ presentState.chart.destroy(); }
   presentState.chart = new Chart(ctx, {
-    type:'line',
-    data:{ labels: entries.map(e=> e.triwulan? `${e.tahun} ${e.triwulan}`: e.tahun), datasets:[{ data: entries.map(e=>e.data), borderColor:THEME.accent, backgroundColor:hexToRgba(THEME.accent,0.15), fill:true, tension:0.35, pointRadius:0 }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{enabled:false}}, scales:{ x:{display:false}, y:{display:false} } }
+    type:slide.composite ? 'bar' : 'line',
+    data:{ labels:slide.labels, datasets:slide.datasets },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:slide.composite,position:'bottom',labels:{boxWidth:10,padding:8}}, tooltip:{enabled:false}}, scales:{ x:{display:false,stacked:slide.composite}, y:{display:false,stacked:slide.composite} } }
   });
 }
 document.getElementById('presentClose').addEventListener('click', presentClose);
@@ -3653,16 +3741,42 @@ async function exportSummaryPDF(){
   const marginX = 46, contentW = pageW - marginX*2;
   let y = 56;
 
-  doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(74,22,32);
-  doc.text('Ringkasan Indikator', marginX, y); y += 20;
-  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(120,100,105);
+  doc.setFillColor(178,58,72); doc.rect(0,0,pageW,9,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(19); doc.setTextColor(74,22,32);
+  doc.text('Ringkasan Indikator', marginX, y); y += 22;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(120,100,105);
   const now = new Date();
   const tanggal = `${now.getDate()} ${['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][now.getMonth()]} ${now.getFullYear()}`;
-  doc.text(`BPS Kabupaten Klungkung . dibuat ${tanggal}${usedFallback ? ' . belum ada indikator favorit, menampilkan beberapa indikator periode aktif' : ' . indikator favorit yang ditandai'}`, marginX, y);
-  y += 22;
+  const subtitle = `BPS Kabupaten Klungkung · ${tanggal}${usedFallback ? ' · pilihan indikator periode aktif' : ' · indikator favorit'}`;
+  doc.text(doc.splitTextToSize(subtitle,contentW), marginX, y); y += 20;
   doc.setDrawColor(230,215,220); doc.line(marginX, y, pageW-marginX, y); y += 20;
 
-  const ensureSpace = (need)=>{ if(y + need > pageH - 50){ doc.addPage(); y = 56; } };
+  const ensureSpace = (need)=>{ if(y + need > pageH - 44){ doc.addPage(); doc.setFillColor(178,58,72); doc.rect(0,0,pageW,7,'F'); y = 46; } };
+  const drawTrend = (entries)=>{
+    const values = entries.map(entry=>Number(entry.data)).filter(Number.isFinite);
+    if(values.length < 2) return 0;
+    const points = values.slice(-12);
+    const chartX = marginX + 8, chartY = y + 8, chartW = contentW - 16, chartH = 48;
+    const min = Math.min(...points), max = Math.max(...points), spread = max-min || Math.max(Math.abs(max)*.08,1);
+    const low = min - spread*.12, high = max + spread*.12;
+    doc.setDrawColor(239,229,231); doc.setLineWidth(.6);
+    [0,1,2].forEach(step=>{ const gy=chartY+chartH*step/2; doc.line(chartX,gy,chartX+chartW,gy); });
+    const coords = points.map((value,index)=>({
+      x:chartX+(points.length===1?chartW/2:index*chartW/(points.length-1)),
+      y:chartY+chartH-(value-low)/(high-low)*chartH
+    }));
+    doc.setDrawColor(178,58,72); doc.setLineWidth(1.8);
+    for(let index=1;index<coords.length;index++) doc.line(coords[index-1].x,coords[index-1].y,coords[index].x,coords[index].y);
+    coords.forEach(point=>{ doc.setFillColor(178,58,72); doc.circle(point.x,point.y,2.2,'F'); });
+    const labels = entries.slice(-points.length);
+    const labelAt = [0,Math.floor((points.length-1)/2),points.length-1].filter((value,index,array)=>array.indexOf(value)===index);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(130,112,116);
+    labelAt.forEach(index=>{
+      const entry=labels[index], label=entry.triwulan ? `${entry.tahun} ${entry.triwulan}` : String(entry.tahun ?? '');
+      doc.text(label,coords[index].x,chartY+chartH+11,{align:index===0?'left':index===points.length-1?'right':'center'});
+    });
+    return 72;
+  };
 
   items.forEach((it, idx)=>{
     const entries = (STORE[it.periode]?.[it.kategori]?.[it.kelompok]?.[it.sub]) || [];
@@ -3670,27 +3784,40 @@ async function exportSummaryPDF(){
     const last = entries[entries.length-1];
     const satuan = SATUAN[it.sub] ? ' ' + SATUAN[it.sub] : '';
 
-    ensureSpace(70);
+    // --- Pass pengukuran: hitung dulu tinggi konten sebenarnya, supaya kotak latar & jeda halaman pas ---
+    doc.setFont('helvetica','bold'); doc.setFontSize(12.5);
+    const titleLines = doc.splitTextToSize(`${idx+1}. ${it.sub}`, contentW - 20);
+    // Panah unicode "→" tidak didukung font bawaan jsPDF (jadi karakter acak saat dicetak) → ganti "->"
+    const narasiHtml = buildSeriesInsight(entries, it.sub);
+    const narasi = pdfPlainText(narasiHtml).replace(/→/g, '->');
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5);
+    const narasiLines = doc.splitTextToSize(narasi, contentW - 4);
+    const values = entries.map(entry=>Number(entry.data)).filter(Number.isFinite);
+    const chartHeight = values.length >= 2 ? 72 : 0;
+    const boxHeight = 17 + titleLines.length*15 + 14 + 15 + chartHeight + 13 + narasiLines.length*13 + 14;
+
+    ensureSpace(boxHeight + 16);
+    doc.setFillColor(250,247,247); doc.roundedRect(marginX,y,contentW,boxHeight,5,5,'F');
     doc.setFont('helvetica','bold'); doc.setFontSize(12.5); doc.setTextColor(46,13,20);
-    const titleLines = doc.splitTextToSize(`${idx+1}. ${it.sub}`, contentW);
-    doc.text(titleLines, marginX, y); y += titleLines.length*15;
+    doc.text(titleLines, marginX+10, y+17); y += titleLines.length*15;
 
     doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(150,120,130);
-    doc.text(`${it.kategori} › ${it.kelompok} · ${it.periode}`, marginX, y); y += 14;
+    doc.text(`${it.kategori} · ${it.kelompok} · ${it.periode}`, marginX+10, y+3); y += 14;
 
     doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(178,58,72);
-    doc.text(`${fmtNum(last.data)}${satuan}`, marginX, y); y += 16;
+    doc.text(`${fmtNum(last.data)}${satuan}`, marginX+10, y+5); y += 15;
 
-    const narasiHtml = buildSeriesInsight(entries, it.sub);
-    const narasi = pdfPlainText(narasiHtml);
+    if(chartHeight) drawTrend(entries);
+    y += chartHeight;
+    doc.setDrawColor(230,215,220); doc.line(marginX,y,marginX+contentW,y);
+    y += 13;
+
     doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(74,22,32);
-    const lines = doc.splitTextToSize(narasi, contentW);
-    lines.forEach(line=>{ ensureSpace(13); doc.text(line, marginX, y); y += 13; });
+    narasiLines.forEach(line=>{ doc.text(line, marginX, y); y += 13; });
 
-    y += 10;
-    ensureSpace(1);
-    doc.setDrawColor(240,228,231); doc.line(marginX, y, pageW-marginX, y);
-    y += 20;
+    y += 14;
+    doc.setDrawColor(230,215,220); doc.line(marginX, y, pageW-marginX, y);
+    y += 16;
   });
 
   doc.save(`ringkasan_indikator_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.pdf`);
