@@ -1343,9 +1343,27 @@ Papa.parse(CSV_URL, {
     const all = results.data;
     header = all[0] || [];
     
-    rawRows = all.slice(1).map((row, index) => {
-        row.originalIndex = index;
-        return row;
+    // Normalisasi Nilai Tambah (format Indonesia "1.950.000,00" -> "1950000")
+    const normID = v => {
+      const t = (v === undefined || v === null) ? '' : String(v).trim();
+      if (!t) return t;
+      if (t.indexOf(',') !== -1) return t.replace(/\./g, '').replace(',', '.');
+      if (/^-?\d{1,3}(\.\d{3})+$/.test(t)) return t.replace(/\./g, '');
+      return t;
+    };
+
+    // Satu assignment_id hanya ditampilkan/dihitung satu kali (baris pertama)
+    const seenAssign = new Set();
+    rawRows = [];
+    all.slice(1).forEach(row => {
+      const aid = (row[IDX.ASSIGNMENT_ID] || '').toString().trim();
+      if (aid) {
+        if (seenAssign.has(aid)) return;
+        seenAssign.add(aid);
+      }
+      row[IDX.AG] = normID(row[IDX.AG]);
+      row.originalIndex = rawRows.length;
+      rawRows.push(row);
     });
 
     buildColDefs();
