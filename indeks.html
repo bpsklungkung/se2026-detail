@@ -2042,9 +2042,11 @@
 
 <script>
 /* ===== Format angka Indonesia (koma desimal) ===== */
-Object.defineProperty(Number.prototype, 'toFixedID', { value:function(d){ return this.toFixed(d).replace('.', ','); }, writable:true, configurable:true });
+function numLoc(){ return (typeof LANG!=='undefined' && LANG==='en') ? 'en-US' : 'id-ID'; }
+function DEC(){ return (typeof LANG!=='undefined' && LANG==='en') ? '.' : ','; }
+Object.defineProperty(Number.prototype, 'toFixedID', { value:function(d){ return this.toFixed(d).replace('.', DEC()); }, writable:true, configurable:true });
 function axTitle(t){ return { display:true, text:t, color:THEME.mid, font:{family:'Inter', size:11} }; }
-function nfmt(v){ const n = Number(v); return isFinite(n) ? n.toLocaleString('id-ID', {maximumFractionDigits:4}) : String(v); }
+function nfmt(v){ const n = Number(v); return isFinite(n) ? n.toLocaleString(numLoc(), {maximumFractionDigits:4}) : String(v); }
 /* Cari heading terdekat di atas sebuah elemen grafik (untuk aria-label) */
 function chartHeadingFor(node){
   let el = node, heading = '';
@@ -2239,7 +2241,7 @@ const dragZoomPlugin = {
 /* Default global Chart.js: semua line chart tanpa titik/dot, garis mulus (smooth).
    Chart individual yang butuh titik tetap bisa override pointRadius sendiri. */
 if(typeof Chart !== 'undefined'){
-  Chart.defaults.locale = 'id-ID';   // tick & tooltip bawaan Chart.js memakai format angka Indonesia
+  Chart.defaults.locale = numLoc();   // tick & tooltip bawaan Chart.js memakai format angka Indonesia
   Chart.defaults.elements.point.radius = 0;
   Chart.defaults.elements.point.hoverRadius = 4;
   Chart.defaults.elements.point.hitRadius = 10;
@@ -2547,7 +2549,7 @@ let cardColorMode = 'senada';    // 'senada' = turunan palet · 'beragam' = warn
 try{ const m = localStorage.getItem('klk_card_color_mode'); if(m==='senada' || m==='beragam') cardColorMode = m; }catch(e){}
 
 /* ===== Bahasa (ID/EN) — dictionary untuk elemen chrome statis; konten analitik per-tab menyusul bertahap ===== */
-let LANG = 'id';
+var LANG = 'id';
 try{ const savedLang = localStorage.getItem('klk_lang'); if(savedLang==='id' || savedLang==='en') LANG = savedLang; }catch(e){}
 const I18N = {
   id: {
@@ -2588,6 +2590,16 @@ const I18N = {
     lqSectorProspektif:'Sektor Prospektif', lqSectorTertinggal:'Sektor Tertinggal', lqQuadrantTitle:'Posisi Kuadran per Sektor',
     downloadJpg:'⬇ JPG', downloadJpgTitle:'Unduh grafik sebagai JPG', downloadExcel:'⬇ Excel',
     growthPercent:'Pertumbuhan (%)',
+    summaryOf:'Ringkasan', insGroupHas:'Kelompok ini memuat', indicatorsWord:'indikator',
+    insUp:'naik paling tinggi', insVsPrev:'dibanding periode sebelumnya', insDown:'turun paling dalam',
+    insStable:'Nilai terbaru relatif stabil dibanding periode sebelumnya di seluruh indikator kelompok ini.',
+    compSectors:'sektor', compClickGrowth:'Klik untuk nilai &amp; pertumbuhan per tahun', compClickShare:'Klik untuk nilai &amp; proporsi per tahun',
+    compComposition:'Komposisi', compLevel:'Rincian per Jenjang',
+    cinsLargest:'kontribusi terbesar berasal dari', cinsOfTotal:'dari total', cinsIn:'Di', cinsTopGrowth:'Pertumbuhan tertinggi di', cinsRecordedBy:'dicatat oleh',
+    cinsLargestIn:'Kontribusi terbesar di', cinsComesFrom:'berasal dari',
+    gsNone:'Tidak ada yang cocok.', gsIndicator:'Indikator', gsTabs:'Tab &amp; Analisis',
+    definisi:'Definisi', noDefinition:'Belum ada deskripsi definisi untuk indikator ini.', cmpDefsTitle:'Definisi Indikator Terpilih',
+    filterShowData:'Tampilkan Data', filterShowAll:'Tampilkan Semua', filterToggle:'semua/tidak',
     convTitle:'Konvergensi',
     convIntro:'Apakah ekonomi Klungkung mendekati kondisi ekonomi Bali, atau justru semakin menjauh? Tiga sudut pandang: konvergensi total PDRB Klungkung terhadap Bali dari waktu ke waktu, seberapa mirip laju pertumbuhan antar 17 sektor pada satu tahun, dan apakah penyimpangan pertumbuhan Klungkung dari rata-ratanya sendiri cenderung kembali normal atau justru makin melebar.',
     convSubBali:'Klungkung vs Bali', convSubBaliSektoral:'Klungkung vs Bali (Sektoral)', convSubMatrix:'Matriks Sektor', convSubMr:'Mean Reversion',
@@ -2637,6 +2649,16 @@ const I18N = {
     lqSectorProspektif:'Prospective Sectors', lqSectorTertinggal:'Lagging Sectors', lqQuadrantTitle:'Quadrant Position per Sector',
     downloadJpg:'⬇ JPG', downloadJpgTitle:'Download chart as JPG', downloadExcel:'⬇ Excel',
     growthPercent:'Growth (%)',
+    summaryOf:'Summary', insGroupHas:'This group contains', indicatorsWord:'indicators',
+    insUp:'rose the most', insVsPrev:'compared to the previous period', insDown:'fell the most',
+    insStable:'The latest values are relatively stable compared to the previous period across all indicators in this group.',
+    compSectors:'sectors', compClickGrowth:'Click for value &amp; growth by year', compClickShare:'Click for value &amp; share by year',
+    compComposition:'Composition', compLevel:'Breakdown by Level',
+    cinsLargest:'the largest contribution comes from', cinsOfTotal:'of total', cinsIn:'In', cinsTopGrowth:'The highest growth in',  cinsRecordedBy:'was recorded by',
+    cinsLargestIn:'The largest contribution in', cinsComesFrom:'comes from',
+    gsNone:'No matches found.', gsIndicator:'Indicators', gsTabs:'Tabs &amp; Analyses',
+    definisi:'Definition', noDefinition:'No definition is available for this indicator yet.', cmpDefsTitle:'Selected Indicator Definitions',
+    filterShowData:'Show Data', filterShowAll:'Show All', filterToggle:'all/none',
     convTitle:'Convergence',
     convIntro:'Is Klungkung\'s economy converging toward Bali\'s, or diverging further? Three angles: overall GRDP convergence of Klungkung toward Bali over time, how similar growth rates are across the 17 sectors in a given year, and whether Klungkung\'s growth deviations from its own average tend to revert to normal or keep widening.',
     convSubBali:'Klungkung vs Bali', convSubBaliSektoral:'Klungkung vs Bali (Sectoral)', convSubMatrix:'Sector Matrix', convSubMr:'Mean Reversion',
@@ -2663,6 +2685,7 @@ function applyStaticI18n(){
 }
 function setLang(lang){
   LANG = lang;
+  try{ if(window.Chart) Chart.defaults.locale = numLoc(); }catch(e){}
   try{ localStorage.setItem('klk_lang', LANG); }catch(e){}
   applyStaticI18n();
   renderTabs();
@@ -2681,7 +2704,7 @@ function setLang(lang){
 }
 
 /* ===== Mode gelap: permukaan gelap bernuansa palet, teks terang, warna grafik diangkat agar terbaca ===== */
-let darkMode = true;
+var darkMode = true;
 try{ const savedDarkMode = localStorage.getItem('klk_dark'); if(savedDarkMode !== null) darkMode = savedDarkMode === '1'; }catch(e){}
 function ccDarkAdjust(hex, minL, maxL){
   const [h, s, l] = ccRgbToHsl(...ccHexToRgb(hex));
@@ -2796,7 +2819,38 @@ function rerenderCurrentView(){
 let STORE = {};        
 let DEFINISI = {};     
 let SATUAN = {};       
-function subLabel(sub){ return SATUAN[sub] ? `${sub} (${SATUAN[sub]})` : sub; }
+/* ===== Terjemahan nama & definisi dari sheet (kolom I–R) — kunci data tetap Indonesia, hanya tampilan yang diganti ===== */
+let KAT_EN = {}, KEL_EN = {}, SUB_EN = {}, SUB_EN_DEF = {}, DEF_EN = {};
+const TL_EN = {
+  'Klungkung vs Bali (Sektoral)':'Klungkung vs Bali (Sectoral)','Matriks Sektor':'Sector Matrix',
+  'Diferensial Pertumbuhan':'Growth Differential','Perubahan Struktur':'Structural Change','Indeks Krugman':'Krugman Index','Kemiripan Struktur':'Structural Similarity','Kesenjangan Struktur':'Structural Gap','Tipologi Klassen':'Klassen Typology','Transisi Markov':'Markov Transition','Kompleksitas Ekonomi':'Economic Complexity','Ketahanan Ekonomi':'Economic Resilience','Spesialisasi Dinamis':'Dynamic Specialization',
+  'Ringkasan':'Summary','Struktur & Kontribusi':'Structure & Contribution','Produktivitas':'Productivity','Spesialisasi (LQ)':'Specialization (LQ)','Pertumbuhan & Elastisitas':'Growth & Elasticity','Shift-Share TK':'Shift-Share (Labor)','Dekomposisi Produktivitas':'Productivity Decomposition','Tren Sektor':'Sector Trends',
+  'LQ Asli (SLQ · DLQ)':'Raw LQ (SLQ · DLQ)','LQ Simetris (SSLQ · DSLQ)':'Symmetric LQ (SSLQ · DSLQ)',
+  'Bandingkan':'Compare','Inferensia':'Inference','Modifikasi':'Modify','Konvergensi':'Convergence','Diversitas':'Diversity','Analisis Struktural':'Structural Analysis','Naker':'Labor','Mingguan (IPH)':'Weekly (IPH)','Cari Data':'Data Request',
+  'Bandingkan beberapa indikator sekaligus':'Compare several indicators at once','Regresi, ARIMA/ARIMAX, & matriks korelasi':'Regression, ARIMA/ARIMAX & correlation matrix','Buat indikator dari rumus dan data dashboard':'Create indicators from formulas and dashboard data','Dekomposisi pertumbuhan sektor':'Sector growth decomposition','Spesialisasi & keunggulan sektor':'Sector specialization & advantage','Klungkung vs Bali & antarsektor':'Klungkung vs Bali & across sectors','Indeks keragaman ekonomi':'Economic diversity index','Growth Diff, SCI, Krugman, Klassen, dll':'Growth Diff, SCI, Krugman, Klassen, etc.','Ketenagakerjaan & ILOR':'Employment & ILOR','Indeks Perkembangan Harga mingguan':'Weekly Price Development Index','Formulir permintaan data':'Data request form'
+};
+function tl(s){ return (LANG==='en' && TL_EN[s]) ? TL_EN[s] : s; }
+function nk(s){ return (s==null ? '' : String(s)).trim().replace(/\s+/g,' '); }
+function dKat(s){ return LANG==='en' ? (KAT_EN[nk(s)] || s) : s; }
+function dKel(s){ return LANG==='en' ? (KEL_EN[nk(s)] || s) : s; }
+function dSub(s){ if(LANG!=='en') return s; const k = nk(s); return SUB_EN[k] || SUB_EN_DEF[k] || s; }
+function dDef(sub){ if(LANG==='en'){ const e = DEF_EN[nk(sub)]; if(e) return e; } return DEFINISI[sub]; }
+const PERIODE_EN = {'Tahunan':'Annual','Triwulanan':'Quarterly','Triwulan':'Quarterly','Bulanan':'Monthly','Semesteran':'Semiannual','Mingguan':'Weekly'};
+function dPeriode(p){ return LANG==='en' ? (PERIODE_EN[nk(p)] || p) : p; }
+const UNIT_WORDS_EN = {'Persen':'Percent','Juta':'Million','Miliar':'Billion','Triliun':'Trillion','Ribu':'Thousand','Orang':'People','Jiwa':'People','Tahun':'Years','Poin':'Points','Ton':'Tons','Unit':'Units','Bulan':'Months','Hari':'Days','Minggu':'Weeks'};
+function dUnit(u){
+  if(LANG!=='en' || !u) return u;
+  return String(u).replace(/\b(Persen|Juta|Miliar|Triliun|Ribu|Orang|Jiwa|Tahun|Poin|Ton|Unit|Bulan|Hari|Minggu)\b/g, m=>UNIT_WORDS_EN[m]);
+}
+function twEn(s){
+  if(LANG!=='en' || typeof s!=='string') return s;
+  const RN = {I:1,II:2,III:3,IV:4};
+  return s
+    .replace(/\bTW\s+(IV|III|II|I)–(IV|III|II|I)\b/g, (m,a,b)=>`Q${RN[a]}–Q${RN[b]}`)
+    .replace(/\bTW\s+(IV|III|II|I)\b/g, (m,a)=>`Q${RN[a]}`)
+    .replace(/\bTW\s+([1-4])\b/g, (m,a)=>`Q${a}`);
+}
+function subLabel(sub){ return SATUAN[sub] ? `${dSub(sub)} (${dUnit(SATUAN[sub])})` : dSub(sub); }
 let activePeriode = null;
 let ENABLED_KELOMPOK = null;
 let chartInstance = null;
@@ -3037,7 +3091,7 @@ function toNumber(v){
 
 function fmtNum(n){
   if(n===null||n===undefined||isNaN(n)) return '—';
-  return n.toLocaleString('id-ID', {maximumFractionDigits:2});
+  return n.toLocaleString(numLoc(), {maximumFractionDigits:2});
 }
 
 function triwulanToNum(t){
@@ -3050,7 +3104,7 @@ function triwulanToNum(t){
 function sortKey(e){ return e.tahun*10 + triwulanToNum(e.triwulan); }
 
 function periodLabel(e){
-  return e.triwulan ? `${e.tahun} TW ${e.triwulan}` : `${e.tahun}`;
+  return e.triwulan ? twEn(`${e.tahun} TW ${e.triwulan}`) : `${e.tahun}`;
 }
 
 function loadData(){
@@ -3086,6 +3140,7 @@ function buildStore(rows){
   STORE = {};
   DEFINISI = {};
   SATUAN = {};
+  KAT_EN = {}; KEL_EN = {}; SUB_EN = {}; SUB_EN_DEF = {}; DEF_EN = {};
   rows.slice(1).forEach(row=>{ 
     const periode = (row[0]||'').toString().trim();
     const triwulan = (row[1]||'').toString().trim();
@@ -3100,6 +3155,16 @@ function buildStore(rows){
     const defSub = (row[8]||'').toString().trim();
     const defText = (row[9]||'').toString().trim();
     if(defSub && defText && !DEFINISI[defSub]) DEFINISI[defSub] = defText;
+    // Kolom terjemahan: K=Subgroup (EN), L=Definition (EN) untuk kunci I; M–O=kunci Indonesia, P–R=padanan Inggris
+    const defSubEn = (row[10]||'').toString().trim();
+    const defTextEn = (row[11]||'').toString().trim();
+    if(defSub && defTextEn && !DEF_EN[nk(defSub)]) DEF_EN[nk(defSub)] = defTextEn;
+    if(defSub && defSubEn && !SUB_EN_DEF[nk(defSub)]) SUB_EN_DEF[nk(defSub)] = defSubEn;
+    const mKat = nk(row[12]), mKel = nk(row[13]), mSub = nk(row[14]);
+    const eKat = (row[15]||'').toString().trim(), eKel = (row[16]||'').toString().trim(), eSub = (row[17]||'').toString().trim();
+    if(mKat && eKat && !KAT_EN[mKat]) KAT_EN[mKat] = eKat;
+    if(mKel && eKel && !KEL_EN[mKel]) KEL_EN[mKel] = eKel;
+    if(mSub && eSub && !SUB_EN[mSub]) SUB_EN[mSub] = eSub;
     if(subkelompok && satuan && !SATUAN[subkelompok]) SATUAN[subkelompok] = satuan;
 
     if(!periode || !kategori || !kelompok || !subkelompok || isNaN(tahun) || isNaN(data)) return;
@@ -3153,23 +3218,23 @@ function renderKelFilterPanel(periode){
   if(!katObj){ panel.innerHTML = ''; return; }
 
   let html = `<div class="kel-filter-head">
-      <span>Tampilkan Data</span>
-      <button class="kel-filter-reset" id="kelFilterReset">Tampilkan Semua</button>
+      <span>${trx('filterShowData')}</span>
+      <button class="kel-filter-reset" id="kelFilterReset">${trx('filterShowAll')}</button>
     </div>`;
 
   Object.keys(katObj).forEach(kategori=>{
     const kelompokList = Object.keys(katObj[kategori]);
     html += `<div class="kel-filter-kat">
         <div class="kel-filter-kat-head">
-          <span>${escapeHtml(kategori)}</span>
-          <button class="kel-filter-kat-toggle" data-kat="${encodeURIComponent(kategori)}">semua/tidak</button>
+          <span>${escapeHtml(dKat(kategori))}</span>
+          <button class="kel-filter-kat-toggle" data-kat="${encodeURIComponent(kategori)}">${trx('filterToggle')}</button>
         </div>`;
     kelompokList.forEach(kelompok=>{
       const key = `${kategori}|||${kelompok}`;
       const checked = ENABLED_KELOMPOK.has(key) ? 'checked' : '';
       html += `<label class="kel-filter-item">
           <input type="checkbox" data-key="${encodeURIComponent(key)}" ${checked}>
-          <span>${escapeHtml(kelompok)}</span>
+          <span>${escapeHtml(dKel(kelompok))}</span>
         </label>`;
     });
     html += `</div>`;
@@ -3312,7 +3377,7 @@ function twSummaryData(){
   const at = (arr, t, q)=>{ const e = arr ? arr.find(x=>x.tahun===t && triwulanToNum(x.triwulan)===q) : null; return e ? e.data : null; };
   const prev = tw>1 ? [tahun, tw-1] : [tahun-1, 4];
   const R = TW_ROMAN;
-  const lbl = (t, q)=> `TW ${R[q]} ${t}`;
+  const lbl = (t, q)=> twEn(`TW ${R[q]} ${t}`);
 
   // Hitung dari PDRB harga konstan (dipakai bila nilai tercatat tidak ada)
   const calc = {
@@ -3343,9 +3408,9 @@ function twSummaryData(){
     adhb: at(ber, tahun, tw), adhk: at(kon, tahun, tw),
     qtq, yoy, ctc,
     sparkC: series(sC, calc.ctc), sparkY: series(sY, calc.yoy), sparkQ: series(sQ, calc.qtq),
-    qtqSub: `TW ${R[tw]} ${tahun} vs TW ${R[prev[1]]} ${prev[0]}`,
-    yoySub: `TW ${R[tw]} ${tahun} vs TW ${R[tw]} ${tahun-1}`,
-    ctcSub: tw===1 ? `TW I ${tahun} vs TW I ${tahun-1}` : `TW I–${R[tw]} ${tahun} vs TW I–${R[tw]} ${tahun-1}`
+    qtqSub: twEn(`TW ${R[tw]} ${tahun} vs TW ${R[prev[1]]} ${prev[0]}`),
+    yoySub: twEn(`TW ${R[tw]} ${tahun} vs TW ${R[tw]} ${tahun-1}`),
+    ctcSub: twEn(tw===1 ? `TW I ${tahun} vs TW I ${tahun-1}` : `TW I–${R[tw]} ${tahun} vs TW I–${R[tw]} ${tahun-1}`)
   };
 }
 /* Kurva mulus (monotone cubic / Fritsch–Carlson): tidak "overshoot" di antara titik data seperti spline biasa */
@@ -3403,7 +3468,7 @@ function renderTwSummary(){
   if(!el) return;
   const d = twSummaryData();
   if(!d){ el.classList.remove('show'); el.innerHTML = ''; return; }
-  const pct = v => v===null ? '—' : `${v>0?'+':''}${v.toFixed(2).replace('.',',')}%`;
+  const pct = v => v===null ? '—' : `${v>0?'+':''}${v.toFixed(2).replace('.',DEC())}%`;
   const cls = v => v===null ? '' : (v>0 ? 'pos' : (v<0 ? 'neg' : ''));
   const arrow = v => v===null ? '' : (v>0 ? '▲ ' : (v<0 ? '▼ ' : ''));
   // Setiap ukuran pertumbuhan: angka, lalu grafik tren 8 triwulan di sampingnya
@@ -3535,8 +3600,8 @@ function twNarrative(d){
   if(d.ctc !== null) parts.push(`${d.ctc>=0 ? 'tumbuh' : 'terkontraksi'} ${n2(d.ctc)} persen secara kumulatif Januari–${TW_BULAN[d.tw-1]} ${d.tahun} (c-to-c)`);
   let txt = `Ekonomi Kabupaten Klungkung pada triwulan ${R[d.tw]} ${d.tahun} ` + (parts.length ? parts.join(', ') + '.' : 'belum memiliki data pertumbuhan.');
   const lv = [];
-  if(d.adhb !== null) lv.push(`atas dasar harga berlaku sebesar Rp${d.adhb.toLocaleString('id-ID', {minimumFractionDigits:2, maximumFractionDigits:2})} miliar`);
-  if(d.adhk !== null) lv.push(`atas dasar harga konstan 2010 sebesar Rp${d.adhk.toLocaleString('id-ID', {minimumFractionDigits:2, maximumFractionDigits:2})} miliar`);
+  if(d.adhb !== null) lv.push(`atas dasar harga berlaku sebesar Rp${d.adhb.toLocaleString(numLoc(), {minimumFractionDigits:2, maximumFractionDigits:2})} miliar`);
+  if(d.adhk !== null) lv.push(`atas dasar harga konstan 2010 sebesar Rp${d.adhk.toLocaleString(numLoc(), {minimumFractionDigits:2, maximumFractionDigits:2})} miliar`);
   if(lv.length) txt += ` PDRB ${lv.join(' dan ')}.`;
   return txt + ' Sumber: BPS Kabupaten Klungkung.';
 }
@@ -3635,7 +3700,7 @@ function favToggle(it){
 }
 function skLabel(sk){
   const y = Math.floor(sk/10), q = sk % 10;
-  return q ? `${y} TW ${TW_ROMAN[q]}` : `${y}`;
+  return q ? twEn(`${y} TW ${TW_ROMAN[q]}`) : `${y}`;
 }
 /* Periode terbaru tiap indikator & tiap jenis periode; dasar untuk lencana Baru / Belum diperbarui */
 function computeLatestMap(){
@@ -3945,7 +4010,7 @@ function sideLatestHtml(){
     Object.values(STORE[per] || {}).forEach(kat=> Object.values(kat).forEach(kel=> Object.values(kel).forEach(arr=>{
       if(arr && arr.length){ const e = arr[arr.length-1]; if(!best || sortKey(e) > sortKey(best)) best = e; }
     })));
-    if(best) rows.push(`<div><span>${escapeHtml(per)}</span><b>${escapeHtml(best.triwulan ? `TW ${best.triwulan} ${best.tahun}` : String(best.tahun))}</b></div>`);
+    if(best) rows.push(`<div><span>${escapeHtml(per)}</span><b>${escapeHtml(best.triwulan ? twEn(`TW ${best.triwulan} ${best.tahun}`) : String(best.tahun))}</b></div>`);
   });
   return rows.join('') || '<div><span>Data</span><b>—</b></div>';
 }
@@ -4309,7 +4374,7 @@ function sideDecorate(tabsEl, btn, isV, key, isActive){
     const b = document.createElement('button');
     b.className = 'tab-sub' + (t.key===cur ? ' active' : '');
     b.dataset.k = t.key;
-    b.textContent = t.label;
+    b.textContent = tl(t.label);
     b.onclick = ()=>{ cfg.set(t.key); cfg.render(); syncSideSubTabs(); };
     grp.appendChild(b);
   });
@@ -4340,7 +4405,7 @@ function renderTabs(){
     STORE.__order.forEach(p=>{
       const btn = document.createElement('button');
       btn.className = 'tab' + (!compareMode && !ssMode && !lqMode && !convMode && !divMode && !advMode && !infMode && !modMode && !cariMode && !nkMode && !iphMode && p===activePeriode?' active':'');
-      btn.textContent = p;
+      btn.textContent = dPeriode(p);
       btn.onclick = ()=>{ compareMode = false; ssMode = false; lqMode = false; convMode = false; divMode = false; advMode = false; infMode = false; modMode = false; cariMode = false; nkMode = false; iphMode = false; activePeriode = p; renderTabs(); renderContent(p); };
       tabsEl.appendChild(btn);
     });
@@ -5293,7 +5358,7 @@ function growthBadge(entries){
   const growth = (latest/prev - 1) * 100;
   if(Math.abs(growth) < 0.005) return `<span class="badge flat">▬ 0,00%</span>`;
   const up = growth > 0;
-  return `<span class="badge ${up?'up':'down'}">${up?'▲':'▼'} ${up?'+':''}${growth.toFixed(2).replace('.',',')}%</span>`;
+  return `<span class="badge ${up?'up':'down'}">${up?'▲':'▼'} ${up?'+':''}${growth.toFixed(2).replace('.',DEC())}%</span>`;
 }
 
 /* Kartu ringkasan/insight otomatis — mengisi slot kosong di baris terakhir grid kartu
@@ -5318,20 +5383,20 @@ function buildKelompokInsightHtml(kelompok, subObj, normalSubs, kelColor, span){
     const best = movers.slice().sort((a,b)=>b.pct-a.pct)[0];
     const worst = movers.slice().sort((a,b)=>a.pct-b.pct)[0];
     if(best && best.pct>0 && (!worst || worst.sub!==best.sub || worst.pct<=0)){
-      sentence2 += `<b>${escapeHtml(best.sub)}</b> naik paling tinggi (${best.pct>=0?'+':''}${best.pct.toFixed(2).replace('.',',')}%) dibanding periode sebelumnya. `;
+      sentence2 += `<b>${escapeHtml(dSub(best.sub))}</b> ${trx('insUp')} (${best.pct>=0?'+':''}${best.pct.toFixed(2).replace('.',DEC())}%) ${trx('insVsPrev')}. `;
     }
     if(worst && worst.pct<0){
-      sentence2 += `<b>${escapeHtml(worst.sub)}</b> turun paling dalam (${worst.pct.toFixed(2).replace('.',',')}%).`;
+      sentence2 += `<b>${escapeHtml(dSub(worst.sub))}</b> ${trx('insDown')} (${worst.pct.toFixed(2).replace('.',DEC())}%).`;
     }
   }
   if(!sentence2){
-    sentence2 = `Nilai terbaru relatif stabil dibanding periode sebelumnya di seluruh indikator kelompok ini.`;
+    sentence2 = trx('insStable');
   }
-  const countTxt = `${items.length} indikator`;
+  const countTxt = `${items.length} ${trx('indicatorsWord')}`;
 
   return `<div class="card insight-card" style="--kat-accent:${kelColor}; grid-column: span ${span};">
-      <div class="insight-card-head"><span class="insight-card-icon">💡</span><span class="insight-card-title">Ringkasan ${escapeHtml(kelompok)}</span></div>
-      <div class="insight-card-text">Kelompok ini memuat ${countTxt}. ${sentence2}</div>
+      <div class="insight-card-head"><span class="insight-card-icon">💡</span><span class="insight-card-title">${trx('summaryOf')} ${escapeHtml(dKel(kelompok))}</span></div>
+      <div class="insight-card-text">${trx('insGroupHas')} ${countTxt}. ${sentence2}</div>
     </div>`;
 }
 
@@ -5357,21 +5422,21 @@ function buildCompInsightHtml(kelompok, compGroups, subObj, kelColor, span){
     const dominant = withShare.slice().sort((a,b)=>b.share-a.share)[0];
     const dominantShort = shortSegName(dominant.sub, g.label);
     if(g.kind==='berlaku'){
-      parts.push(`Di <b>${escapeHtml(g.label)}</b>, kontribusi terbesar berasal dari <b>${escapeHtml(dominantShort)}</b> (${dominant.share.toFixed(1).replace('.',',')}% dari total).`);
+      parts.push(`${trx('cinsIn')} <b>${escapeHtml(dGroupLabel(g.label))}</b>, ${trx('cinsLargest')} <b>${escapeHtml(dominantShort)}</b> (${dominant.share.toFixed(1).replace('.',DEC())}% ${trx('cinsOfTotal')}).`);
     }else if(g.kind==='konstan'){
-      const growthList = latestEntries.filter(x=> x.prevEntry && x.prevEntry.data && !NO_GROWTH_LABELS.test(shortSegName(x.sub, g.label))).map(x=>({...x, growth: (x.entry.data/x.prevEntry.data - 1)*100}));
+      const growthList = latestEntries.filter(x=> x.prevEntry && x.prevEntry.data && !NO_GROWTH_LABELS.test(shortSegNameId(x.sub, g.label))).map(x=>({...x, growth: (x.entry.data/x.prevEntry.data - 1)*100}));
       if(growthList.length){
         const top = growthList.slice().sort((a,b)=>b.growth-a.growth)[0];
         const topShort = shortSegName(top.sub, g.label);
-        parts.push(`Pertumbuhan tertinggi di <b>${escapeHtml(g.label)}</b> dicatat oleh <b>${escapeHtml(topShort)}</b> (${top.growth>=0?'+':''}${top.growth.toFixed(2).replace('.',',')}%).`);
+        parts.push(`${trx('cinsTopGrowth')} <b>${escapeHtml(dGroupLabel(g.label))}</b> ${trx('cinsRecordedBy')} <b>${escapeHtml(topShort)}</b> (${top.growth>=0?'+':''}${top.growth.toFixed(2).replace('.',DEC())}%).`);
       }else{
-        parts.push(`Kontribusi terbesar di <b>${escapeHtml(g.label)}</b> berasal dari <b>${escapeHtml(dominantShort)}</b> (${dominant.share.toFixed(1).replace('.',',')}% dari total).`);
+        parts.push(`${trx('cinsLargestIn')} <b>${escapeHtml(dGroupLabel(g.label))}</b> ${trx('cinsComesFrom')} <b>${escapeHtml(dominantShort)}</b> (${dominant.share.toFixed(1).replace('.',DEC())}% ${trx('cinsOfTotal')}).`);
       }
     }
   });
   if(!parts.length) return '';
   return `<div class="card insight-card" style="--kat-accent:${kelColor}; grid-column: span ${span};">
-      <div class="insight-card-head"><span class="insight-card-icon">💡</span><span class="insight-card-title">Ringkasan ${escapeHtml(kelompok)}</span></div>
+      <div class="insight-card-head"><span class="insight-card-icon">💡</span><span class="insight-card-title">${trx('summaryOf')} ${escapeHtml(dKel(kelompok))}</span></div>
       <div class="insight-card-text">${parts.join(' ')}</div>
     </div>`;
 }
@@ -5392,7 +5457,7 @@ function renderContent(periode){
     if(visibleKelompok.length === 0) return;
     anyVisible = true;
     html += `<section class="kategori-block">
-      <div class="section-head"><h2><span class="kat-dot"></span>${escapeHtml(kategori)}</h2></div>`;
+      <div class="section-head"><h2><span class="kat-dot"></span>${escapeHtml(dKat(kategori))}</h2></div>`;
 
     visibleKelompok.forEach(kelompok=>{
       const subObj = kelObj[kelompok];
@@ -5403,7 +5468,7 @@ function renderContent(periode){
       const normalSubs = Object.keys(subObj).filter(s=>!claimedSubs.has(s));
 
       html += `<div class="kelompok-block${isFirstKelompokBlock ? ' kelompok-first' : ''}" style="--kat-accent:${kelColor}">
-        <div class="kelompok-chip" style="color:${kelColor}">${escapeHtml(kelompok)}</div>
+        <div class="kelompok-chip" style="color:${kelColor}">${escapeHtml(dKel(kelompok))}</div>
         <div class="card-grid">`;
       isFirstKelompokBlock = false;
 
@@ -5418,11 +5483,11 @@ function renderContent(periode){
           const styleKey = chartStyleKey(kategori, kelompok, sub);
           const isHargaKonstan = /harga\s+konstan/i.test(sub);
 
-          const satuanTeks = SATUAN[sub] ? `<span class="card-unit">${escapeHtml(SATUAN[sub])}</span>` : '';
+          const satuanTeks = SATUAN[sub] ? `<span class="card-unit">${escapeHtml(dUnit(SATUAN[sub]))}</span>` : '';
           const styleOptionsHtml = CHART_STYLE_OPTIONS.map(o=>`<option value="${o.value}" ${o.value===subChartType?'selected':''}>${o.label}</option>`).join('');
 
-          html += `<div class="card" data-key='${key}' data-kel="${escapeHtml(kelompok)}" data-sub="${escapeHtml(sub)}">
-              <div class="card-label card-label-hidden">${escapeHtml(sub)}</div>
+          html += `<div class="card" data-key='${key}' data-kel="${escapeHtml(kelompok)}" data-sub="${escapeHtml(dSub(sub))}">
+              <div class="card-label card-label-hidden">${escapeHtml(dSub(sub))}</div>
               <div class="card-top-row card-top-row-noLabel">
                 <button type="button" class="color-swatch-btn" style="background:${kelColor}" data-colorkey="grp:${escapeHtml(kategori)}|||${escapeHtml(kelompok)}" data-fallbackcolor="${kelColor}" title="${trx('changeGroupColor')}"></button>
                 <select class="chart-style-select" data-stylekey="${escapeHtml(styleKey)}" title="${trx('changeChartStyle')}">${styleOptionsHtml}</select>
@@ -5711,8 +5776,18 @@ function getCompositionGroups(subObj, kelompok){
   return groups;
 }
 
+function dCompLabel(g){
+  if(LANG!=='en') return g.label;
+  const k = nk(g.label);
+  if(GROUP_LABEL_EN[k]) return GROUP_LABEL_EN[k];
+  if(SUB_EN[k] || KEL_EN[k]) return SUB_EN[k] || KEL_EN[k];
+  const names = g.segs.map(s=> dSub(s).replace(/^\d+(\.\d+)?%\s*/,'').trim());
+  const p = longestCommonPrefix(names).trim().replace(/[\s,\-–:\/]+$/,'');
+  return p.length>=4 ? p : g.label;
+}
 function renderCompositionCardHtml(periode,kategori,kelompok,subObj,group,katColor){
   const { label, segs, normalized, kind } = group;
+  const labelShown = dCompLabel(group);
   let maxSK = -Infinity;
   segs.forEach(s=> subObj[s].forEach(e=>{ maxSK = Math.max(maxSK, sortKey(e)); }));
   const latestEntries = segs.map(s=>{
@@ -5727,26 +5802,31 @@ function renderCompositionCardHtml(periode,kategori,kelompok,subObj,group,katCol
   const barSegs = latestEntries.map((x,i)=>{
     const pct = x.entry ? (x.entry.data/total*100) : 0;
     const color = segColors[i];
-    return `<div class="comp-bar-seg" style="flex:${Math.max(pct,0.5)};background:${color};" title="${escapeHtml(x.sub)}: ${fmtNum(x.entry?x.entry.data:NaN)}"></div>`;
+    return `<div class="comp-bar-seg" style="flex:${Math.max(pct,0.5)};background:${color};" title="${escapeHtml(dSub(x.sub))}: ${fmtNum(x.entry?x.entry.data:NaN)}"></div>`;
   }).join('');
 
   const legend = latestEntries.map((x,i)=>{
     const color = segColors[i];
     let shortName = x.sub;
-    if(shortName.startsWith(label)){
-      shortName = shortName.slice(label.length).trim().replace(/^[-–:\/]\s*/,'');
+    if(LANG==='en'){
+      const n = dSub(x.sub).replace(/^\d+(\.\d+)?%\s*/,'').trim();
+      shortName = (kind==='pct' || kind==='level') ? (n.startsWith(labelShown) ? (n.slice(labelShown.length).trim().replace(/^[-–:,\/]\s*/,'') || n) : dSub(x.sub)) : shortSegName(x.sub, label);
+    }else{
+      if(shortName.startsWith(label)){
+        shortName = shortName.slice(label.length).trim().replace(/^[-–:\/]\s*/,'');
+      }
+      if(!shortName) shortName = x.sub;
     }
-    if(!shortName) shortName = x.sub;
-    const valTeks = fmtNum(x.entry?x.entry.data:NaN) + (SATUAN[x.sub] ? ` ${SATUAN[x.sub]}` : '');
+    const valTeks = fmtNum(x.entry?x.entry.data:NaN) + (SATUAN[x.sub] ? ` ${dUnit(SATUAN[x.sub])}` : '');
     const colorKey = 'comp:'+kelompok+':'+x.sub;
-    return `<div class="comp-legend-item" title="${escapeHtml(x.sub)}: ${fmtNum(x.entry?x.entry.data:NaN)}"><span class="dot" data-colorkey="${escapeHtml(colorKey)}" data-fallbackcolor="${kelShades[i]}" style="background:${color}"></span>${escapeHtml(shortName)} <b>${valTeks}</b></div>`;
+    return `<div class="comp-legend-item" title="${escapeHtml(dSub(x.sub))}: ${fmtNum(x.entry?x.entry.data:NaN)}"><span class="dot" data-colorkey="${escapeHtml(colorKey)}" data-fallbackcolor="${kelShades[i]}" style="background:${color}"></span>${escapeHtml(shortName)} <b>${valTeks}</b></div>`;
   }).join('');
 
-  const subtitle = kind==='konstan' ? `${segs.length} sektor · Klik untuk nilai &amp; pertumbuhan per tahun`
-    : kind==='berlaku' ? `${segs.length} sektor · Klik untuk nilai &amp; proporsi per tahun`
-    : (normalized ? 'Komposisi' : 'Rincian per Jenjang');
+  const subtitle = kind==='konstan' ? `${segs.length} ${trx('compSectors')} · ${trx('compClickGrowth')}`
+    : kind==='berlaku' ? `${segs.length} ${trx('compSectors')} · ${trx('compClickShare')}`
+    : (normalized ? trx('compComposition') : trx('compLevel'));
 
-  const satuanTeks = SATUAN[segs[0]] ? ` ${SATUAN[segs[0]]}` : '';
+  const satuanTeks = SATUAN[segs[0]] ? ` ${dUnit(SATUAN[segs[0]])}` : '';
   const isSimpleCard = kind==='berlaku' || kind==='konstan';
 
   const key = encodeURIComponent(JSON.stringify([periode,kategori,kelompok,label,segs,kind||'pct']));
@@ -5755,22 +5835,22 @@ function renderCompositionCardHtml(periode,kategori,kelompok,subObj,group,katCol
   if(isSimpleCard){
     return `<div class="card comp-card" data-compkey='${key}'>
         <div class="comp-color-strip" style="background:${stripGradient}"></div>
-        <div class="card-label">${escapeHtml(label)}</div>
-        <div class="card-period">Diperbarui: ${latestLabel} · ${subtitle}</div>
+        <div class="card-label">${escapeHtml(labelShown)}</div>
+        <div class="card-period">${trx('updatedAt')}: ${latestLabel} · ${subtitle}</div>
         <div class="card-value-row" style="margin-top:8px;">
           <div class="card-value">${fmtNum(total)}<span class="card-unit">${escapeHtml(satuanTeks)}</span></div>
         </div>
-        <div class="card-hint">Klik untuk lihat data</div>
+        <div class="card-hint">${trx('clickToView')}</div>
       </div>`;
   }
 
   return `<div class="card comp-card" data-compkey='${key}'>
       <div class="comp-color-strip" style="background:${stripGradient}"></div>
-      <div class="card-label">${escapeHtml(label)}</div>
-      <div class="card-period">Diperbarui: ${latestLabel} · ${subtitle}</div>
+      <div class="card-label">${escapeHtml(labelShown)}</div>
+      <div class="card-period">${trx('updatedAt')}: ${latestLabel} · ${subtitle}</div>
       <div class="comp-bar">${barSegs}</div>
       <div class="comp-legend">${legend}</div>
-      <div class="card-hint">Klik untuk lihat data</div>
+      <div class="card-hint">${trx('clickToView')}</div>
     </div>`;
 }
 
@@ -5792,8 +5872,8 @@ function openDetail(periode,kategori,kelompok,sub){
   drawer.innerHTML = `
     <div class="drawer-top">
       <div>
-        <div class="drawer-eyebrow">${escapeHtml(kategori)} · ${escapeHtml(kelompok)}</div>
-        <h3>${escapeHtml(sub)}</h3>
+        <div class="drawer-eyebrow">${escapeHtml(dKat(kategori))} · ${escapeHtml(dKel(kelompok))}</div>
+        <h3>${escapeHtml(dSub(sub))}</h3>
       </div>
       <button class="drawer-close" id="closeDrawer">✕</button>
     </div>
@@ -5828,8 +5908,8 @@ function openDetail(periode,kategori,kelompok,sub){
 
     ${DEFINISI[sub] ? `
     <div class="drawer-desc">
-      <div class="drawer-desc-label">Definisi</div>
-      <p>${escapeHtml(DEFINISI[sub])}</p>
+      <div class="drawer-desc-label">${trx('definisi')}</div>
+      <p>${escapeHtml(dDef(sub))}</p>
     </div>` : ''}
 
     <div class="ai-insight-box">
@@ -5945,7 +6025,7 @@ function composeChartExport(inst, name){
   y += Math.round(fFoot*0.9);
   ctx.fillStyle = cSoft; ctx.font = `500 ${fFoot}px Inter, sans-serif`;
   ctx.fillText('Sumber: BPS Kabupaten Klungkung · Dashboard DINAMO', pad, y);
-  const tgl = new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+  const tgl = new Date().toLocaleDateString(numLoc(), { day:'numeric', month:'long', year:'numeric' });
   ctx.textAlign = 'right'; ctx.fillText(`Diunduh ${tgl}`, W - pad, y);
   return cv;
 }
@@ -6168,7 +6248,7 @@ function openCompositionDetail(periode,kategori,kelompok,label,segs){
   drawer.innerHTML = `
     <div class="drawer-top">
       <div>
-        <div class="drawer-eyebrow">${escapeHtml(kategori)} · ${escapeHtml(kelompok)}</div>
+        <div class="drawer-eyebrow">${escapeHtml(dKat(kategori))} · ${escapeHtml(dKel(kelompok))}</div>
         <h3>${escapeHtml(label)}</h3>
       </div>
       <button class="drawer-close" id="closeDrawer">✕</button>
@@ -6209,8 +6289,8 @@ function openCompositionDetail(periode,kategori,kelompok,label,segs){
 
     ${segs.some(s=>DEFINISI[s]) ? `
     <div class="drawer-desc">
-      <div class="drawer-desc-label">Definisi</div>
-      ${segs.filter(s=>DEFINISI[s]).map(s=>`<p><b>${escapeHtml(s)}:</b> ${escapeHtml(DEFINISI[s])}</p>`).join('')}
+      <div class="drawer-desc-label">${trx('definisi')}</div>
+      ${segs.filter(s=>DEFINISI[s]).map(s=>`<p><b>${escapeHtml(dSub(s))}:</b> ${escapeHtml(dDef(s))}</p>`).join('')}
     </div>` : ''}
 
     <div class="ai-insight-box">
@@ -6270,13 +6350,31 @@ function openCompositionDetail(periode,kategori,kelompok,label,segs){
    persentase pertumbuhannya tidak bermakna — dikecualikan dari semua tampilan pertumbuhan. */
 const NO_GROWTH_LABELS = /perubahan\s*inventori|net\s*ekspor/i;
 
-function shortSegName(sub, label){
+function shortSegNameId(sub, label){
   for(const re of PRICE_PREFIX_PATTERNS){
     if(re.test(sub)) return sub.replace(re,'').trim();
   }
   let s = sub;
   if(s.startsWith(label)) s = s.slice(label.length).trim().replace(/^[-–:\/]\s*/,'');
   return s || sub;
+}
+/* Versi tampilan: di mode EN ambil nama Inggris dari sheet; komponen "…, Water Supply" → "Water Supply" */
+function shortSegName(sub, label){
+  if(LANG!=='en') return shortSegNameId(sub, label);
+  const n = dSub(sub);
+  if(n===sub) return shortSegNameId(sub, label);
+  const isPrice = PRICE_PREFIX_PATTERNS.some(re=>re.test(sub));
+  const i = n.indexOf(', ');
+  if(isPrice && i>0) return n.slice(i+2).trim();
+  const L = dGroupLabel(label);
+  if(n.startsWith(L)) return n.slice(L.length).trim().replace(/^[-–:,\/]\s*/,'') || n;
+  return n;
+}
+const GROUP_LABEL_EN = {'Harga Berlaku':'Current Prices','Harga Berlaku (Pengeluaran)':'Current Prices (Expenditure)','Harga Konstan':'Constant Prices','Harga Konstan (Pengeluaran)':'Constant Prices (Expenditure)'};
+function dGroupLabel(label){
+  if(LANG!=='en') return label;
+  const k = nk(label);
+  return GROUP_LABEL_EN[k] || SUB_EN[k] || KEL_EN[k] || label;
 }
 
 /* Daftar periode unik (Tahunan: {tahun}; Triwulanan: {tahun,triwulan}) di antara
@@ -6309,7 +6407,7 @@ function openHargaBerlakuDetail(periode,kategori,kelompok,label,segs){
   drawer.innerHTML = `
     <div class="drawer-top">
       <div>
-        <div class="drawer-eyebrow">${escapeHtml(kategori)} · ${escapeHtml(kelompok)}</div>
+        <div class="drawer-eyebrow">${escapeHtml(dKat(kategori))} · ${escapeHtml(dKel(kelompok))}</div>
         <h3>${escapeHtml(label)}</h3>
       </div>
       <button class="drawer-close" id="closeDrawer">✕</button>
@@ -6325,7 +6423,7 @@ function openHargaBerlakuDetail(periode,kategori,kelompok,label,segs){
     </div>
 
     <div class="drawer-desc">
-      <div class="drawer-desc-label">Definisi</div>
+      <div class="drawer-desc-label">${trx('definisi')}</div>
       <p>Nilai Tambah Bruto atas Dasar Harga Berlaku adalah nilai tambah yang dihasilkan tiap lapangan usaha/sektor, dihitung memakai harga yang berlaku pada tahun/periode berjalan — sehingga angkanya masih mengandung pengaruh perubahan harga (inflasi) dan mencerminkan nilai nominal, bukan volume produksi riil.</p>
     </div>
 
@@ -6454,7 +6552,7 @@ function refreshHargaBerlaku(subObj, segs, label, periodKey, periods){
   }
 
   const head = `<tr><th>Sektor</th><th>Nilai</th><th>Persentase</th></tr>`;
-  const bodyRows = rows.map(r=>`<tr><td>${escapeHtml(r.short)}</td><td>${fmtNum(r.value)} ${escapeHtml(r.satuan)}</td><td>${(r.value/total*100).toFixed(2).replace('.',',')}%</td></tr>`).join('');
+  const bodyRows = rows.map(r=>`<tr><td>${escapeHtml(r.short)}</td><td>${fmtNum(r.value)} ${escapeHtml(r.satuan)}</td><td>${(r.value/total*100).toFixed(2).replace('.',DEC())}%</td></tr>`).join('');
   document.getElementById('hbTable').innerHTML = `<thead>${head}</thead><tbody>${bodyRows}</tbody><tfoot><tr><td>Total</td><td>${fmtNum(total)} ${escapeHtml(rows[0]?rows[0].satuan:'')}</td><td>100%</td></tr></tfoot>`;
 
   document.getElementById('dlHbChart').onclick = ()=>{
@@ -6496,7 +6594,7 @@ function openKonstanSektoralDetail(periode,kategori,kelompok,label,segs){
   drawer.innerHTML = `
     <div class="drawer-top">
       <div>
-        <div class="drawer-eyebrow">${escapeHtml(kategori)} · ${escapeHtml(kelompok)}</div>
+        <div class="drawer-eyebrow">${escapeHtml(dKat(kategori))} · ${escapeHtml(dKel(kelompok))}</div>
         <h3>${escapeHtml(label)}</h3>
       </div>
       <button class="drawer-close" id="closeDrawer">✕</button>
@@ -6512,7 +6610,7 @@ function openKonstanSektoralDetail(periode,kategori,kelompok,label,segs){
     </div>
 
     <div class="drawer-desc">
-      <div class="drawer-desc-label">Definisi</div>
+      <div class="drawer-desc-label">${trx('definisi')}</div>
       <p>Nilai Tambah Bruto atas Dasar Harga Konstan adalah nilai tambah tiap lapangan usaha/sektor yang dihitung memakai harga pada satu tahun dasar tertentu — sehingga pengaruh inflasi/perubahan harga dihilangkan, dan angkanya mencerminkan perubahan volume/kuantitas produksi riil. Indikator ini yang dipakai untuk mengukur pertumbuhan ekonomi.</p>
     </div>
 
@@ -6580,14 +6678,14 @@ function refreshKonstanSektoral(subObj, segs, label, periodKey, periods){
   const mode = isTriwulanan ? hkGrowthMode : 'qtq'; // Tahunan selalu dibanding periode sebelumnya
 
   let compareLabel = prevPeriod ? prevPeriod.label : '';
-  if(mode==='yoy') compareLabel = `${cur.tahun-1} TW ${cur.triwulan}`;
+  if(mode==='yoy') compareLabel = twEn(`${cur.tahun-1} TW ${cur.triwulan}`);
   if(mode==='kumulatif') compareLabel = `Kumulatif s.d. TW ${triwulanToNum(cur.triwulan)} ${cur.tahun-1}`;
 
   const rows = segs.map(s=>{
     const arr = subObj[s];
     const curEntry = arr.find(e=>sortKey(e)===cur.key) || null;
     const short = shortSegName(s,label);
-    const isNoGrowth = NO_GROWTH_LABELS.test(short);
+    const isNoGrowth = NO_GROWTH_LABELS.test(shortSegNameId(s,label));
     let growth = null;
     if(curEntry && !isNoGrowth){
       if(mode==='yoy'){
@@ -6628,7 +6726,7 @@ function refreshKonstanSektoral(subObj, segs, label, periodKey, periods){
   });
 
   const head = `<tr><th>Sektor</th><th>Nilai</th><th>${growthColLabel}</th></tr>`;
-  const bodyRows = rows.map(r=>`<tr><td>${escapeHtml(r.short)}</td><td>${fmtNum(r.value)} ${escapeHtml(r.satuan)}</td><td>${r.isNoGrowth ? `<span style="color:${THEME.mid};">— nilai konstan</span>` : (r.growth===null?'-':`<span class="badge ${r.growth>=0?'up':'down'}">${r.growth>=0?'▲ +':'▼ '}${r.growth.toFixed(2).replace('.',',')}%</span>`)}</td></tr>`).join('');
+  const bodyRows = rows.map(r=>`<tr><td>${escapeHtml(r.short)}</td><td>${fmtNum(r.value)} ${escapeHtml(r.satuan)}</td><td>${r.isNoGrowth ? `<span style="color:${THEME.mid};">— nilai konstan</span>` : (r.growth===null?'-':`<span class="badge ${r.growth>=0?'up':'down'}">${r.growth>=0?'▲ +':'▼ '}${r.growth.toFixed(2).replace('.',DEC())}%</span>`)}</td></tr>`).join('');
   document.getElementById('hkTable').innerHTML = `<thead>${head}</thead><tbody>${bodyRows}</tbody>`;
 
   document.getElementById('dlHkChart').onclick = ()=> triggerJPGDownload(hkChartInstance, `${label}_${fileTag}`);
@@ -7249,7 +7347,7 @@ function inCompareRange(e){
 function compareRangeLabel(){
   if(!compareIsQuarterly) return `${compareFrom} hingga ${compareTo}`;
   const twMap = {1:'I',2:'II',3:'III',4:'IV'};
-  return `${compareFrom} TW ${twMap[compareFromTW||1]} hingga ${compareTo} TW ${twMap[compareToTW||4]}`;
+  return twEn(`${compareFrom} TW ${twMap[compareFromTW||1]} ${LANG==='en'?'to':'hingga'} ${compareTo} TW ${twMap[compareToTW||4]}`);
 }
 
 /* ---------- Statistik inferensia: matriks, korelasi, distribusi t/F ---------- */
@@ -7347,7 +7445,7 @@ function periodLabelFromKey(k){
   const tahun = Math.floor(k/10);
   const twNum = k%10;
   const twMap = {1:'I',2:'II',3:'III',4:'IV'};
-  return twNum ? `${tahun} TW ${twMap[twNum]}` : `${tahun}`;
+  return twNum ? twEn(`${tahun} TW ${twMap[twNum]}`) : `${tahun}`;
 }
 function advancePeriodKey(k, steps){
   if(!infIsQuarterly) return k + steps*10;
@@ -7585,7 +7683,7 @@ function renderInferensiaView(){
     infFromTW = null; infToTW = null;
   }
 
-  const twOptions = (sel)=> ['I','II','III','IV'].map((lbl,i)=>`<option value="${i+1}" ${sel===i+1?'selected':''}>TW ${lbl}</option>`).join('');
+  const twOptions = (sel)=> ['I','II','III','IV'].map((lbl,i)=>`<option value="${i+1}" ${sel===i+1?'selected':''}>${twEn('TW '+lbl)}</option>`).join('');
 
   const main = document.getElementById('main');
   main.innerHTML = `
@@ -7750,7 +7848,7 @@ function renderInfMatrixPicker(){
   if(!picker) return;
   let html = '<div class="picker-kategori" style="margin-top:0;">📐 Pilih Indikator (2–10)</div>';
   Object.keys(katObj).forEach(kategori=>{
-    html += `<div class="picker-kelompok">${escapeHtml(kategori)}</div>`;
+    html += `<div class="picker-kelompok">${escapeHtml(dKat(kategori))}</div>`;
     Object.keys(katObj[kategori]).forEach(kelompok=>{
       Object.keys(katObj[kategori][kelompok]).forEach(sub=>{
         const key = `${kategori}|||${kelompok}|||${sub}`;
@@ -7827,8 +7925,8 @@ function renderInfPickers(){
   let yHtml = '<div class="picker-kategori" style="margin-top:0;">🎯 Variabel Dependen (Y)</div>';
   let xHtml = '<div class="picker-kategori" style="margin-top:0;">📊 Variabel Independen (X)</div>';
   Object.keys(katObj).forEach(kategori=>{
-    yHtml += `<div class="picker-kelompok">${escapeHtml(kategori)}</div>`;
-    xHtml += `<div class="picker-kelompok">${escapeHtml(kategori)}</div>`;
+    yHtml += `<div class="picker-kelompok">${escapeHtml(dKat(kategori))}</div>`;
+    xHtml += `<div class="picker-kelompok">${escapeHtml(dKat(kategori))}</div>`;
     Object.keys(katObj[kategori]).forEach(kelompok=>{
       Object.keys(katObj[kategori][kelompok]).forEach(sub=>{
         const key = `${kategori}|||${kelompok}|||${sub}`;
@@ -7836,13 +7934,13 @@ function renderInfPickers(){
         const yChecked = infY===key ? 'checked' : '';
         yHtml += `<label class="picker-item">
           <input type="radio" name="infYRadio" data-key="${encodeURIComponent(key)}" ${yChecked}>
-          <span>${escapeHtml(sub)}${escapeHtml(unit)}</span>
+          <span>${escapeHtml(dSub(sub))}${escapeHtml(unit)}</span>
         </label>`;
         if(key===infY) return;
         const xChecked = infX.has(key) ? 'checked' : '';
         xHtml += `<label class="picker-item">
           <input type="checkbox" data-key="${encodeURIComponent(key)}" ${xChecked}>
-          <span>${escapeHtml(sub)}${escapeHtml(unit)}</span>
+          <span>${escapeHtml(dSub(sub))}${escapeHtml(unit)}</span>
         </label>`;
       });
     });
@@ -8033,7 +8131,7 @@ function renderArimaPicker(){
   const katObj = STORE[infPeriode];
   let html = '<div class="picker-kategori" style="margin-top:0;">📈 Indikator</div>';
   Object.keys(katObj).forEach(kategori=>{
-    html += `<div class="picker-kelompok">${escapeHtml(kategori)}</div>`;
+    html += `<div class="picker-kelompok">${escapeHtml(dKat(kategori))}</div>`;
     Object.keys(katObj[kategori]).forEach(kelompok=>{
       Object.keys(katObj[kategori][kelompok]).forEach(sub=>{
         const key = `${kategori}|||${kelompok}|||${sub}`;
@@ -8041,7 +8139,7 @@ function renderArimaPicker(){
         const checked = arimaKey===key ? 'checked' : '';
         html += `<label class="picker-item">
           <input type="radio" name="arimaRadio" data-key="${encodeURIComponent(key)}" ${checked}>
-          <span>${escapeHtml(sub)}${escapeHtml(unit)}</span>
+          <span>${escapeHtml(dSub(sub))}${escapeHtml(unit)}</span>
         </label>`;
       });
     });
@@ -8183,7 +8281,7 @@ function renderArimaResult(){
     let twNum = triwulanToNum(lastEntry.triwulan);
     let tahun = lastEntry.tahun;
     for(let s=0;s<stepsAhead;s++){ twNum++; if(twNum>4){ twNum=1; tahun++; } }
-    return `${tahun} TW ${twSeq[twNum-1]}`;
+    return twEn(`${tahun} TW ${twSeq[twNum-1]}`);
   }
   const forecastLabels = forecastVals.map((_,i)=> nextPeriodLabel(i+1));
   const sigmaStep = fit.rmse;
@@ -8465,7 +8563,7 @@ function renderCompareView(){
   } else {
     compareFromTW = null; compareToTW = null;
   }
-  const cmpTwOptions = (sel)=> ['I','II','III','IV'].map((lbl,i)=>`<option value="${i+1}" ${sel===i+1?'selected':''}>TW ${lbl}</option>`).join('');
+  const cmpTwOptions = (sel)=> ['I','II','III','IV'].map((lbl,i)=>`<option value="${i+1}" ${sel===i+1?'selected':''}>${twEn('TW '+lbl)}</option>`).join('');
 
   const main = document.getElementById('main');
   main.innerHTML = `
@@ -8536,7 +8634,7 @@ function renderCompareView(){
               <div class="ai-insight-content" id="aiInsightText">Pilih indikator untuk melihat analisis.</div>
             </div>
             <div class="compare-defs-box">
-              <div class="compare-defs-title">Definisi Indikator Terpilih</div>
+              <div class="compare-defs-title">${trx('cmpDefsTitle')}</div>
               <div id="compareDefsList"></div>
             </div>
           </div>
@@ -8597,16 +8695,16 @@ function renderComparePicker(){
   const katObj = STORE[comparePeriode];
   let html = '';
   Object.keys(katObj).forEach(kategori=>{
-    html += `<div class="picker-kategori">${escapeHtml(kategori)}</div>`;
+    html += `<div class="picker-kategori">${escapeHtml(dKat(kategori))}</div>`;
     Object.keys(katObj[kategori]).forEach(kelompok=>{
-      html += `<div class="picker-kelompok">${escapeHtml(kelompok)}</div>`;
+      html += `<div class="picker-kelompok">${escapeHtml(dKel(kelompok))}</div>`;
       Object.keys(katObj[kategori][kelompok]).forEach(sub=>{
         const key = `${kategori}|||${kelompok}|||${sub}`;
         const checked = compareSelected.has(key) ? 'checked' : '';
         const unit = SATUAN[sub] ? ` (${SATUAN[sub]})` : '';
         html += `<label class="picker-item">
           <input type="checkbox" data-key="${encodeURIComponent(key)}" ${checked}>
-          <span>${escapeHtml(sub)}${escapeHtml(unit)}</span>
+          <span>${escapeHtml(dSub(sub))}${escapeHtml(unit)}</span>
         </label>`;
       });
     });
@@ -10192,7 +10290,7 @@ function renderCompareDefinitions(keys){
   let html = '';
   keys.forEach(k=>{
     const info = compareIndex[k];
-    const def = DEFINISI[info.sub] || 'Belum ada deskripsi definisi untuk indikator ini.';
+    const def = dDef(info.sub) || trx('noDefinition');
     html += `<div class="def-item"><b>${escapeHtml(subLabel(info.sub))}:</b> ${escapeHtml(def)}</div>`;
   });
   listEl.innerHTML = html;
@@ -13226,7 +13324,7 @@ function renderAdvancedView(){
         <p>Sepuluh analisis pelengkap Shift-Share, LQ, dan Diversitas: selisih laju pertumbuhan Klungkung vs Bali, seberapa besar dan di sektor mana struktur ekonomi berubah tiap tahun, derajat spesialisasi ala Krugman, seberapa mirip struktur ekonomi Klungkung dengan Bali, sektor mana penyumbang perbedaan terbesar, klasifikasi tiap sektor ala Tipologi Klassen (maju/berkembang/tertinggal dibanding Bali), bagaimana sektor berpindah kelas dari waktu ke waktu, seberapa kompleks kapabilitas ekonominya, seberapa tahan terhadap guncangan, dan bagaimana pola spesialisasi tiap sektor sejak 2010.</p>
       </div>
       <div class="ss-method-tabs" id="advSubTabs">
-        ${subTabs.map(t=>`<button class="ss-method-tab" data-k="${t.key}">${escapeHtml(t.label)}</button>`).join('')}
+        ${subTabs.map(t=>`<button class="ss-method-tab" data-k="${t.key}">${escapeHtml(tl(t.label))}</button>`).join('')}
       </div>
       <div id="advBody"></div>
     </section>`;
@@ -14425,7 +14523,7 @@ function nkParseNum(v){
 function nkF(n, d){
   if(!nkOk(n)) return '—';
   d = (d===undefined) ? 0 : d;
-  return n.toLocaleString('id-ID', {minimumFractionDigits:d, maximumFractionDigits:d});
+  return n.toLocaleString(numLoc(), {minimumFractionDigits:d, maximumFractionDigits:d});
 }
 function nkSg(n, d){ if(!nkOk(n)) return '—'; return (n>0?'+':'') + nkF(n,d); }
 function nkP(x, d){ return nkOk(x) ? nkF(x*100, d===undefined?2:d) + '%' : '—'; }
@@ -14788,7 +14886,7 @@ function renderNakerView(){
     <section class="ss-wrap">
       ${introHtml}
       <div class="ss-method-tabs" id="nkSubTabs">
-        ${NK_SUBTABS.map(t=>`<button class="ss-method-tab" data-k="${t.key}">${escapeHtml(t.label)}</button>`).join('')}
+        ${NK_SUBTABS.map(t=>`<button class="ss-method-tab" data-k="${t.key}">${escapeHtml(tl(t.label))}</button>`).join('')}
       </div>
       <div class="ss-controls">
         <div class="ctrl-item"><label>Tahun</label><select id="nkTahun"></select></div>
@@ -16095,7 +16193,7 @@ function globalSearchIndicatorMatches(q){
     Object.keys(katObj).forEach(kategori=>{
       Object.keys(katObj[kategori]).forEach(kelompok=>{
         Object.keys(katObj[kategori][kelompok]).forEach(sub=>{
-          if(sub.toLowerCase().includes(q)) out.push({periode,kategori,kelompok,sub});
+          if(sub.toLowerCase().includes(q) || (SUB_EN[nk(sub)]||SUB_EN_DEF[nk(sub)]||'').toLowerCase().includes(q)) out.push({periode,kategori,kelompok,sub});
         });
       });
     });
@@ -16107,19 +16205,19 @@ function renderGlobalSearchSuggestions(q){
   if(!panel) return;
   if(!q || q.length<2){ panel.classList.remove('show'); panel.innerHTML=''; return; }
   const indMatches = globalSearchIndicatorMatches(q).slice(0,6);
-  const tabMatches = GLOBAL_TAB_INDEX.filter(t=> t.label.toLowerCase().includes(q) || t.hint.toLowerCase().includes(q)).slice(0,5);
-  if(!indMatches.length && !tabMatches.length){ panel.innerHTML = '<div class="gs-empty">Tidak ada yang cocok.</div>'; panel.classList.add('show'); return; }
+  const tabMatches = GLOBAL_TAB_INDEX.filter(t=> [t.label, t.hint, tl(t.label), tl(t.hint)].some(x=> x.toLowerCase().includes(q))).slice(0,5);
+  if(!indMatches.length && !tabMatches.length){ panel.innerHTML = '<div class="gs-empty">'+trx('gsNone')+'</div>'; panel.classList.add('show'); return; }
   let html = '';
   if(indMatches.length){
-    html += '<div class="gs-group">Indikator</div>';
+    html += '<div class="gs-group">'+trx('gsIndicator')+'</div>';
     indMatches.forEach((m,i)=>{
-      html += `<div class="gs-item" data-kind="ind" data-idx="${i}"><b>${escapeHtml(m.sub)}</b><span>${escapeHtml(m.kategori)} › ${escapeHtml(m.kelompok)} · ${escapeHtml(m.periode)}</span></div>`;
+      html += `<div class="gs-item" data-kind="ind" data-idx="${i}"><b>${escapeHtml(dSub(m.sub))}</b><span>${escapeHtml(dKat(m.kategori))} › ${escapeHtml(dKel(m.kelompok))} · ${escapeHtml(dPeriode(m.periode))}</span></div>`;
     });
   }
   if(tabMatches.length){
-    html += '<div class="gs-group">Tab &amp; Analisis</div>';
+    html += '<div class="gs-group">'+trx('gsTabs')+'</div>';
     tabMatches.forEach((t,i)=>{
-      html += `<div class="gs-item" data-kind="tab" data-idx="${i}"><b>${escapeHtml(t.label)}</b><span>${escapeHtml(t.hint)}</span></div>`;
+      html += `<div class="gs-item" data-kind="tab" data-idx="${i}"><b>${escapeHtml(tl(t.label))}</b><span>${escapeHtml(tl(t.hint))}</span></div>`;
     });
   }
   panel.innerHTML = html;
@@ -16208,12 +16306,12 @@ const IPH = (function(){
   const $ = id => document.getElementById(id);
   const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   function num(s){ if(s==null) return null; s = String(s).trim(); if(!s) return null; const v = parseFloat(s.replace(',','.')); return isFinite(v) ? v : null; }
-  function fmt(v,d){ if(v==null||!isFinite(v)) return '–'; return v.toFixed(d==null?2:d).replace('.',','); }
+  function fmt(v,d){ if(v==null||!isFinite(v)) return '–'; return v.toFixed(d==null?2:d).replace('.',DEC()); }
   function sfmt(v,d){
     if(v==null||!isFinite(v)) return '–';
     d = d==null?2:d; const t = v.toFixed(d);
-    if(parseFloat(t)===0) return (0).toFixed(d).replace('.',',');
-    return (v>0?'+':'')+t.replace('.',',');
+    if(parseFloat(t)===0) return (0).toFixed(d).replace('.',DEC());
+    return (v>0?'+':'')+t.replace('.',DEC());
   }
   // Untuk kartu ringkas: growth ekstrem (indikasi anomali data) dipangkas presisinya
   // supaya angka tidak meluber di kartu sempit — nilai wajar (di bawah 100) tetap 2 desimal.
