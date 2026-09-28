@@ -2564,7 +2564,40 @@ const I18N = {
     statIndikator:'INDIKATOR', statKategori:'KATEGORI', statTerbaru:'DATA TERBARU',
     newsTitle:'📰 Berita Terkait', newsSub:'Ekonomi &amp; sosial Klungkung — kurasi manual, tidak realtime.',
     newsDivider:'Portal Data Resmi', loadingData:'Memuat data dari Google Sheets…',
-    footerFollow:'Ikuti Kami', langToggleTitle:'Switch to English'
+    footerFollow:'Ikuti Kami', langToggleTitle:'Switch to English',
+    noData:'Tidak ada data.', updatedAt:'Diperbarui', clickToView:'Klik untuk lihat data',
+    noGroupShown:'Tidak ada kelompok yang ditampilkan. Pilih minimal satu kelompok di panel sebelah kiri.',
+    changeGroupColor:'Ganti warna kelompok ini', changeChartStyle:'Ubah gaya grafik',
+    ssTitle:'Shift-Share Dinamis',
+    ssIntro:'Analisis Shift-Share menguraikan pertumbuhan tiap sektor di Klungkung menjadi tiga hal: dorongan pertumbuhan wilayah acuan/Bali (Pertumbuhan Nasional), pengaruh komposisi sektor (Bauran Industri), dan keunggulan/kelemahan bersaing wilayah itu sendiri (Pergeseran Diferensial). Versi <b>dinamis</b> di bawah ini menjumlahkan komponen tersebut dari setiap interval tahun berurutan yang tersedia pada sumber data, sesuai rentang tahun yang dipilih. Tersedia tiga varian: Dynamic Traditional (Dunn), Dynamic Esteban-Marquilas (1972), dan Dynamic Arcelus (1984). Rujukan metode: <a href="https://en.wikipedia.org/wiki/Shift-share_analysis" target="_blank" rel="noopener">Shift-share analysis — Wikipedia ↗</a>',
+    ssLoading:'Memuat data Shift-Share…', ssLoadError:'⚠ Gagal memuat data', ssOpenSource:'Buka sumber data →',
+    ssEmptySource:'Sumber data kosong atau tidak dapat dibaca.', ssEmptySourceShort:'Sumber data kosong.',
+    ssMapOk:'⚙ Atur Pemetaan Kolom', ssMapWarn:'⚠ Atur Pemetaan Kolom (perlu dilengkapi)',
+    ssYearFrom:'Tahun Awal', ssYearTo:'Tahun Akhir',
+    ssMapIncomplete:'Pemetaan kolom belum lengkap/valid. Buka "Atur Pemetaan Kolom" di atas untuk menyesuaikan sumber data dengan struktur yang diharapkan (Tahun_Awal, Tahun_Akhir, Kategori, Klungkung_Awal, Klungkung_Akhir, Bali_Awal, Bali_Akhir, Total_Klungkung_Awal, Total_Klungkung_Akhir, Total_Bali_Awal, Total_Bali_Akhir).',
+    ssNoValidRows:'Tidak ada baris data yang valid (periksa apakah kolom tahun & nilai sudah terisi angka dengan benar).',
+    ssIntervalUsed:'baris interval dari sumber data dipakai & diakumulasi', ssIntervalNone:'Tidak ada interval yang cocok pada rentang ini',
+    ssNoIntervalRange:'Tidak ada interval data pada rentang tahun',
+    lqTitle:'Location Quotient (SLQ &amp; DLQ)',
+    lqIntro:'Location Quotient mengukur derajat spesialisasi/keunggulan suatu sektor di Klungkung dibanding Bali. <b>Static LQ (SLQ)</b> membandingkan pangsa sektor di dua wilayah pada tahun terpilih; <b>Dynamic LQ (DLQ)</b> melakukan hal serupa namun memakai laju pertumbuhan tahunan (tahun terpilih vs tahun sebelumnya), sehingga menangkap potensi sektor ke depan, bukan hanya kontribusinya saat ini. Karena nilai SLQ/DLQ tidak simetris di sekitar 1 (rentang 0 s.d. tak terhingga), tersedia pula versi <b>simetris (SSLQ &amp; DSLQ)</b> yang mentransformasikannya ke rentang -1 s.d. 1 agar lebih adil secara statistik. Kedua versi menghasilkan klasifikasi sektor yang identik. Sektor diklasifikasikan menjadi <b>Unggulan</b>, <b>Andalan</b>, <b>Prospektif</b>, atau <b>Tertinggal</b> berdasarkan kombinasi SLQ &amp; DLQ.',
+    loadingGeneric:'Memuat data…',
+    lqRaw:'LQ Asli (SLQ · DLQ)', lqSym:'LQ Simetris (SSLQ · DSLQ)', lblTahun:'Tahun',
+    lqNoYearData:'Tidak ada data Tahun yang terbaca dari sheet.',
+    lqYearVs:'dibandingkan terhadap tahun', lqNoSectorYear:'Tidak ada sektor dengan data lengkap pada tahun',
+    lqPeriode:'Periode', lqSectorUnggulan:'Sektor Unggulan', lqSectorAndalan:'Sektor Andalan',
+    lqSectorProspektif:'Sektor Prospektif', lqSectorTertinggal:'Sektor Tertinggal', lqQuadrantTitle:'Posisi Kuadran per Sektor',
+    downloadJpg:'⬇ JPG', downloadJpgTitle:'Unduh grafik sebagai JPG', downloadExcel:'⬇ Excel',
+    growthPercent:'Pertumbuhan (%)',
+    convTitle:'Konvergensi',
+    convIntro:'Apakah ekonomi Klungkung mendekati kondisi ekonomi Bali, atau justru semakin menjauh? Tiga sudut pandang: konvergensi total PDRB Klungkung terhadap Bali dari waktu ke waktu, seberapa mirip laju pertumbuhan antar 17 sektor pada satu tahun, dan apakah penyimpangan pertumbuhan Klungkung dari rata-ratanya sendiri cenderung kembali normal atau justru makin melebar.',
+    convSubBali:'Klungkung vs Bali', convSubBaliSektoral:'Klungkung vs Bali (Sektoral)', convSubMatrix:'Matriks Sektor', convSubMr:'Mean Reversion',
+    convHowToRead:'📖 Cara membaca',
+    convHowToReadPts:'<li><b>Relative Level</b> = PDRB Klungkung ÷ PDRB Bali (seberapa besar ekonomi Klungkung dibanding Bali).</li><li><b>Absolute Log Gap</b> = |ln(Klungkung/Bali)| — makin kecil, makin dekat secara relatif ke Bali (konvergen).</li><li><b>Growth Differential</b> = selisih laju pertumbuhan Klungkung dikurangi Bali dalam poin persentase (pp): positif berarti Klungkung tumbuh lebih cepat.</li>',
+    convStatusLabel:'💡 Status', convStatusConverging:'gap terhadap Bali mengecil dibanding tahun sebelumnya.', convStatusDiverging:'gap melebar.', convStatusStable:'relatif tidak berubah.',
+    convYearLatest:'Tahun Terbaru', convRelLevel:'Relative Level', convGrowthDiff:'Growth Differential', convStatusLatest:'Status Terbaru',
+    convYearConverging:'Tahun Converging', convYearDiverging:'Tahun Diverging',
+    convChartGrowth:'Growth Klungkung vs Bali', convChartGrowthDiff:'Growth Differential (pp)', convChartAbsGap:'Absolute Log Gap — makin kecil makin konvergen',
+    convTableTitle:'Tabel Konvergensi Klungkung–Bali', growthKlungkung:'Growth Klungkung', growthBali:'Growth Bali'
   },
   en: {
     heroEyebrow:'BPS Klungkung Regency', heroSubtitle:'Macro Data & Insight Dashboard',
@@ -2580,7 +2613,40 @@ const I18N = {
     statIndikator:'INDICATORS', statKategori:'CATEGORIES', statTerbaru:'LATEST DATA',
     newsTitle:'📰 Related News', newsSub:'Klungkung economy &amp; society — manually curated, not realtime.',
     newsDivider:'Official Data Portals', loadingData:'Loading data from Google Sheets…',
-    footerFollow:'Follow Us', langToggleTitle:'Ganti ke Bahasa Indonesia'
+    footerFollow:'Follow Us', langToggleTitle:'Ganti ke Bahasa Indonesia',
+    noData:'No data available.', updatedAt:'Updated', clickToView:'Click to view data',
+    noGroupShown:'No group is shown. Select at least one group in the left panel.',
+    changeGroupColor:'Change this group color', changeChartStyle:'Change chart style',
+    ssTitle:'Dynamic Shift-Share',
+    ssIntro:'Shift-Share analysis breaks down each sector\'s growth in Klungkung into three parts: the pull of overall Bali/reference-region growth (National Growth Effect), the effect of the sector\'s mix (Industry Mix), and the region\'s own competitive edge or weakness (Differential/Regional Shift). The <b>dynamic</b> version below sums these components across every consecutive year interval available in the source data, within the selected year range. Three variants are available: Dynamic Traditional (Dunn), Dynamic Esteban-Marquilas (1972), and Dynamic Arcelus (1984). Method reference: <a href="https://en.wikipedia.org/wiki/Shift-share_analysis" target="_blank" rel="noopener">Shift-share analysis — Wikipedia ↗</a>',
+    ssLoading:'Loading Shift-Share data…', ssLoadError:'⚠ Failed to load data', ssOpenSource:'Open data source →',
+    ssEmptySource:'Data source is empty or unreadable.', ssEmptySourceShort:'Data source is empty.',
+    ssMapOk:'⚙ Configure Column Mapping', ssMapWarn:'⚠ Configure Column Mapping (incomplete)',
+    ssYearFrom:'Start Year', ssYearTo:'End Year',
+    ssMapIncomplete:'Column mapping is incomplete/invalid. Open "Configure Column Mapping" above to match the source data to the expected structure (Tahun_Awal, Tahun_Akhir, Kategori, Klungkung_Awal, Klungkung_Akhir, Bali_Awal, Bali_Akhir, Total_Klungkung_Awal, Total_Klungkung_Akhir, Total_Bali_Awal, Total_Bali_Akhir).',
+    ssNoValidRows:'No valid data rows (check whether the year & value columns contain proper numbers).',
+    ssIntervalUsed:'interval row(s) from the source data used & accumulated', ssIntervalNone:'No interval matches this range',
+    ssNoIntervalRange:'No interval data in the year range',
+    lqTitle:'Location Quotient (SLQ &amp; DLQ)',
+    lqIntro:'Location Quotient measures a sector\'s degree of specialization/advantage in Klungkung compared to Bali. <b>Static LQ (SLQ)</b> compares the sector\'s share in the two regions for the selected year; <b>Dynamic LQ (DLQ)</b> does the same but uses the annual growth rate (selected year vs. previous year), capturing the sector\'s future potential rather than just its current contribution. Since SLQ/DLQ values aren\'t symmetric around 1 (range 0 to infinity), a <b>symmetric version (SSLQ &amp; DSLQ)</b> is also available, transforming them to a −1 to 1 range for a statistically fairer comparison. Both versions produce identical sector classifications. Sectors are classified as <b>Leading</b>, <b>Mainstay</b>, <b>Prospective</b>, or <b>Lagging</b> based on the SLQ &amp; DLQ combination.',
+    loadingGeneric:'Loading data…',
+    lqRaw:'Raw LQ (SLQ · DLQ)', lqSym:'Symmetric LQ (SSLQ · DSLQ)', lblTahun:'Year',
+    lqNoYearData:'No Year data could be read from the sheet.',
+    lqYearVs:'compared to year', lqNoSectorYear:'No sector has complete data for the year',
+    lqPeriode:'Period', lqSectorUnggulan:'Leading Sectors', lqSectorAndalan:'Mainstay Sectors',
+    lqSectorProspektif:'Prospective Sectors', lqSectorTertinggal:'Lagging Sectors', lqQuadrantTitle:'Quadrant Position per Sector',
+    downloadJpg:'⬇ JPG', downloadJpgTitle:'Download chart as JPG', downloadExcel:'⬇ Excel',
+    growthPercent:'Growth (%)',
+    convTitle:'Convergence',
+    convIntro:'Is Klungkung\'s economy converging toward Bali\'s, or diverging further? Three angles: overall GRDP convergence of Klungkung toward Bali over time, how similar growth rates are across the 17 sectors in a given year, and whether Klungkung\'s growth deviations from its own average tend to revert to normal or keep widening.',
+    convSubBali:'Klungkung vs Bali', convSubBaliSektoral:'Klungkung vs Bali (Sectoral)', convSubMatrix:'Sector Matrix', convSubMr:'Mean Reversion',
+    convHowToRead:'📖 How to read',
+    convHowToReadPts:'<li><b>Relative Level</b> = Klungkung GRDP ÷ Bali GRDP (how large Klungkung\'s economy is relative to Bali\'s).</li><li><b>Absolute Log Gap</b> = |ln(Klungkung/Bali)| — the smaller, the closer (relatively) to Bali (converging).</li><li><b>Growth Differential</b> = Klungkung\'s growth rate minus Bali\'s, in percentage points (pp): positive means Klungkung grew faster.</li>',
+    convStatusLabel:'💡 Status', convStatusConverging:'the gap to Bali narrowed compared to the previous year.', convStatusDiverging:'the gap widened.', convStatusStable:'relatively unchanged.',
+    convYearLatest:'Latest Year', convRelLevel:'Relative Level', convGrowthDiff:'Growth Differential', convStatusLatest:'Latest Status',
+    convYearConverging:'Converging Years', convYearDiverging:'Diverging Years',
+    convChartGrowth:'Growth: Klungkung vs Bali', convChartGrowthDiff:'Growth Differential (pp)', convChartAbsGap:'Absolute Log Gap — smaller means more convergent',
+    convTableTitle:'Klungkung–Bali Convergence Table', growthKlungkung:'Klungkung Growth', growthBali:'Bali Growth'
   }
 };
 function trx(key){ return (I18N[LANG] && I18N[LANG][key]) || I18N.id[key] || key; }
@@ -2600,6 +2666,18 @@ function setLang(lang){
   try{ localStorage.setItem('klk_lang', LANG); }catch(e){}
   applyStaticI18n();
   renderTabs();
+  if(compareMode) renderCompareView();
+  else if(infMode) renderInferensiaView();
+  else if(ssMode) renderShiftShareView();
+  else if(lqMode) renderLQView();
+  else if(convMode) renderKonvergensiView();
+  else if(divMode) renderDiversityView();
+  else if(advMode) renderAdvancedView();
+  else if(nkMode) renderNakerView();
+  else if(cariMode) renderCariDataView();
+  else if(modMode) renderModifikasiView();
+  else if(iphMode) renderIphView();
+  else if(activePeriode) renderContent(activePeriode);
 }
 
 /* ===== Mode gelap: permukaan gelap bernuansa palet, teks terang, warna grafik diangkat agar terbaca ===== */
@@ -3001,7 +3079,7 @@ function loadData(){
 
 function showError(msg){
   document.getElementById('main').innerHTML =
-    `<div class="state-msg">⚠ ${msg}<br><br><a href="${CSV_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div>`;
+    `<div class="state-msg">⚠ ${msg}<br><br><a href="${CSV_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">${trx('ssOpenSource')}</a></div>`;
 }
 
 function buildStore(rows){
@@ -5301,7 +5379,7 @@ function buildCompInsightHtml(kelompok, compGroups, subObj, kelColor, span){
 function renderContent(periode){
   const main = document.getElementById('main');
   const katObj = STORE[periode];
-  if(!katObj){ main.innerHTML = '<div class="state-msg">Tidak ada data.</div>'; return; }
+  if(!katObj){ main.innerHTML = `<div class="state-msg">${trx('noData')}</div>`; return; }
 
   renderKelFilterPanel(periode);
 
@@ -5346,18 +5424,18 @@ function renderContent(periode){
           html += `<div class="card" data-key='${key}' data-kel="${escapeHtml(kelompok)}" data-sub="${escapeHtml(sub)}">
               <div class="card-label card-label-hidden">${escapeHtml(sub)}</div>
               <div class="card-top-row card-top-row-noLabel">
-                <button type="button" class="color-swatch-btn" style="background:${kelColor}" data-colorkey="grp:${escapeHtml(kategori)}|||${escapeHtml(kelompok)}" data-fallbackcolor="${kelColor}" title="Ganti warna kelompok ini"></button>
-                <select class="chart-style-select" data-stylekey="${escapeHtml(styleKey)}" title="Ubah gaya grafik">${styleOptionsHtml}</select>
+                <button type="button" class="color-swatch-btn" style="background:${kelColor}" data-colorkey="grp:${escapeHtml(kategori)}|||${escapeHtml(kelompok)}" data-fallbackcolor="${kelColor}" title="${trx('changeGroupColor')}"></button>
+                <select class="chart-style-select" data-stylekey="${escapeHtml(styleKey)}" title="${trx('changeChartStyle')}">${styleOptionsHtml}</select>
               </div>
               <div>
-                <div class="card-period">Diperbarui: ${periodLabel(latest)}</div>
+                <div class="card-period">${trx('updatedAt')}: ${periodLabel(latest)}</div>
                 <div class="card-value-row">
                   <div class="card-value">${fmtNum(latest.data)}${satuanTeks}</div>
                   ${isHargaKonstan ? growthBadge(entries) : changeBadge(entries)}
                 </div>
               </div>
               ${makeSparkline(entries, kelColor, subChartType)}
-              <div class="card-hint">Klik untuk lihat data</div>
+              <div class="card-hint">${trx('clickToView')}</div>
             </div>`;
       });
 
@@ -5383,7 +5461,7 @@ function renderContent(periode){
   });
 
   if(!anyVisible){
-    html = `<div class="state-msg">Tidak ada kelompok yang ditampilkan. Pilih minimal satu kelompok di panel sebelah kiri.</div>`;
+    html = `<div class="state-msg">${trx('noGroupShown')}</div>`;
   }
 
   main.innerHTML = (anyVisible ? '<div class="card-filter-bar" id="cardFilterBar"></div><div class="highlight-bar" id="highlightBar"></div>' : '') + html;
@@ -5744,7 +5822,7 @@ function openDetail(periode,kategori,kelompok,sub){
     </div>` : ''}
 
     <div class="chart-box-wrap">
-      <button class="dl-btn" id="dlChart" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+      <button class="dl-btn" id="dlChart" title="${trx('downloadJpgTitle')}">${trx('downloadJpg')}</button>
       <div class="chart-box"><canvas id="detailChart"></canvas></div>
     </div>
 
@@ -5761,7 +5839,7 @@ function openDetail(periode,kategori,kelompok,sub){
 
     <div class="table-head-row">
       <span class="table-head-label">Riwayat Data</span>
-      <button class="dl-btn" id="dlExcel" title="Unduh tabel sebagai Excel">⬇ Excel</button>
+      <button class="dl-btn" id="dlExcel" title="Unduh tabel sebagai Excel">${trx('downloadExcel')}</button>
     </div>
     <div class="table-scroll">
       <table class="drawer-table" id="detailTable"></table>
@@ -6122,7 +6200,7 @@ function openCompositionDetail(periode,kategori,kelompok,label,segs){
     </div>
 
     <div class="chart-box-wrap">
-      <button class="dl-btn" id="dlCompChart" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+      <button class="dl-btn" id="dlCompChart" title="${trx('downloadJpgTitle')}">${trx('downloadJpg')}</button>
       <div class="chart-box" id="compChartBox" style="height:320px;"><canvas id="compDetailChart"></canvas></div>
     </div>
     <div class="comp-chart-note" id="compChartNote"></div>
@@ -6142,7 +6220,7 @@ function openCompositionDetail(periode,kategori,kelompok,label,segs){
 
     <div class="table-head-row">
       <span class="table-head-label">Riwayat Data</span>
-      <button class="dl-btn" id="dlCompExcel" title="Unduh tabel sebagai Excel">⬇ Excel</button>
+      <button class="dl-btn" id="dlCompExcel" title="Unduh tabel sebagai Excel">${trx('downloadExcel')}</button>
     </div>
     <div class="table-scroll">
       <table class="drawer-table" id="compDetailTable"></table>
@@ -6257,13 +6335,13 @@ function openHargaBerlakuDetail(periode,kategori,kelompok,label,segs){
     </div>
 
     <div class="chart-box-wrap">
-      <button class="dl-btn" id="dlHbChart" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+      <button class="dl-btn" id="dlHbChart" title="${trx('downloadJpgTitle')}">${trx('downloadJpg')}</button>
       <div class="chart-box" id="hbChartBox" style="height:380px;"><canvas id="hbChartCanvas"></canvas></div>
     </div>
 
     <div class="table-head-row">
       <span class="table-head-label">Nilai &amp; Proporsi per Sektor</span>
-      <button class="dl-btn" id="dlHbExcel" title="Unduh tabel sebagai Excel">⬇ Excel</button>
+      <button class="dl-btn" id="dlHbExcel" title="Unduh tabel sebagai Excel">${trx('downloadExcel')}</button>
     </div>
     <div class="table-scroll">
       <table class="drawer-table" id="hbTable"></table>
@@ -6444,13 +6522,13 @@ function openKonstanSektoralDetail(periode,kategori,kelompok,label,segs){
     </div>
 
     <div class="chart-box-wrap">
-      <button class="dl-btn" id="dlHkChart" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+      <button class="dl-btn" id="dlHkChart" title="${trx('downloadJpgTitle')}">${trx('downloadJpg')}</button>
       <div class="chart-box" style="height:380px;"><canvas id="hkChartCanvas"></canvas></div>
     </div>
 
     <div class="table-head-row">
       <span class="table-head-label">Nilai &amp; Pertumbuhan per Sektor</span>
-      <button class="dl-btn" id="dlHkExcel" title="Unduh tabel sebagai Excel">⬇ Excel</button>
+      <button class="dl-btn" id="dlHkExcel" title="Unduh tabel sebagai Excel">${trx('downloadExcel')}</button>
     </div>
     <div class="table-scroll">
       <table class="drawer-table" id="hkTable"></table>
@@ -7726,7 +7804,7 @@ function renderInfMatrixResult(){
     <div class="inf-model-desc">Tiap sel menunjukkan koefisien korelasi Pearson (r) antara sepasang indikator pada rentang tahun terpilih, dari <b>-1</b> (berlawanan arah sempurna) sampai <b>+1</b> (searah sempurna). Warna aksen palet = korelasi positif, warna komplementer = korelasi negatif; makin pekat warnanya, makin kuat hubungannya. <b>Korelasi bukan sebab-akibat.</b></div>
     <div class="corr-heat-wrap"><table class="corr-heat">${thead}<tbody>${tbody}</tbody></table></div>
     ${topPairs ? `<div class="ss-section-title">Pasangan Korelasi Terkuat</div><ul class="mn-points" style="margin-top:0;">${topPairs}</ul>` : ''}
-    <div class="table-head-row" style="margin-top:14px;"><span class="table-head-label">Ekspor</span><button class="dl-btn" id="corrExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="table-head-row" style="margin-top:14px;"><span class="table-head-label">Ekspor</span><button class="dl-btn" id="corrExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
   `;
   document.getElementById('corrExcelBtn').onclick = async ()=>{
     const header = ['Indikator', ...labels];
@@ -8445,7 +8523,7 @@ function renderCompareView(){
         <div class="compare-picker" id="cmpPicker"></div>
         <div class="compare-chart-area">
           <div class="chart-box-wrap" id="cmpChartWrap" style="display:none;">
-            <button class="dl-btn" id="dlCompareChart" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+            <button class="dl-btn" id="dlCompareChart" title="${trx('downloadJpgTitle')}">${trx('downloadJpg')}</button>
             <div class="chart-box" id="cmpChartBox" style="height:360px;">
               <canvas id="compareChart"></canvas>
             </div>
@@ -10855,25 +10933,25 @@ function renderShiftShareView(){
 
   const introHtml = `
     <div class="ss-intro">
-      <h2>Shift-Share Dinamis</h2>
-      <p>Analisis Shift-Share menguraikan pertumbuhan tiap sektor di Klungkung menjadi tiga hal: dorongan pertumbuhan wilayah acuan/Bali (Pertumbuhan Nasional), pengaruh komposisi sektor (Bauran Industri), dan keunggulan/kelemahan bersaing wilayah itu sendiri (Pergeseran Diferensial). Versi <b>dinamis</b> di bawah ini menjumlahkan komponen tersebut dari setiap interval tahun berurutan yang tersedia pada sumber data, sesuai rentang tahun yang dipilih. Tersedia tiga varian: Dynamic Traditional (Dunn), Dynamic Esteban-Marquilas (1972), dan Dynamic Arcelus (1984). Rujukan metode: <a href="https://en.wikipedia.org/wiki/Shift-share_analysis" target="_blank" rel="noopener">Shift-share analysis — Wikipedia ↗</a></p>
+      <h2>${trx('ssTitle')}</h2>
+      <p>${trx('ssIntro')}</p>
     </div>`;
 
   if(ssLoadState==='idle'){
-    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>Memuat data Shift-Share…</div></section>`;
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>${trx('ssLoading')}</div></section>`;
     loadShiftShareData();
     return;
   }
   if(ssLoadState==='loading'){
-    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>Memuat data Shift-Share…</div></section>`;
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>${trx('ssLoading')}</div></section>`;
     return;
   }
   if(ssLoadState==='error'){
-    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(ssLoadError)}<br><br><a href="${SS_CSV_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div></section>`;
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">${trx('ssLoadError')}: ${escapeHtml(ssLoadError)}<br><br><a href="${SS_CSV_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">${trx('ssOpenSource')}</a></div></section>`;
     return;
   }
   if(!ssRawRows || !ssRawRows.length){
-    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">Sumber data kosong atau tidak dapat dibaca.</div></section>`;
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">${trx('ssEmptySource')}</div></section>`;
     return;
   }
 
@@ -10891,10 +10969,10 @@ function renderShiftShareView(){
       <div class="ss-method-note" id="ssMethodNote"></div>
 
       <div class="ss-controls">
-        <div class="ctrl-item"><label>Tahun Awal</label><select id="ssFrom"></select></div>
-        <div class="ctrl-item"><label>Tahun Akhir</label><select id="ssTo"></select></div>
+        <div class="ctrl-item"><label>${trx('ssYearFrom')}</label><select id="ssFrom"></select></div>
+        <div class="ctrl-item"><label>${trx('ssYearTo')}</label><select id="ssTo"></select></div>
         <div class="ctrl-item" style="font-size:11.5px;color:var(--brown-soft);" id="ssIntervalInfo"></div>
-        <button class="ss-mapping-toggle" id="ssMapToggle">${mappingOk ? '⚙ Atur Pemetaan Kolom' : '⚠ Atur Pemetaan Kolom (perlu dilengkapi)'}</button>
+        <button class="ss-mapping-toggle" id="ssMapToggle">${mappingOk ? trx('ssMapOk') : trx('ssMapWarn')}</button>
       </div>
 
       <div class="ss-mapping-panel${ssMappingPanelOpen ? ' open' : ''}" id="ssMapPanel"></div>
@@ -10915,7 +10993,7 @@ function renderShiftShareView(){
   };
 
   if(!mappingOk){
-    document.getElementById('ssBody').innerHTML = `<div class="state-msg">Pemetaan kolom belum lengkap/valid. Buka "Atur Pemetaan Kolom" di atas untuk menyesuaikan sumber data dengan struktur yang diharapkan (Tahun_Awal, Tahun_Akhir, Kategori, Klungkung_Awal, Klungkung_Akhir, Bali_Awal, Bali_Akhir, Total_Klungkung_Awal, Total_Klungkung_Akhir, Total_Bali_Awal, Total_Bali_Akhir).</div>`;
+    document.getElementById('ssBody').innerHTML = `<div class="state-msg">${trx('ssMapIncomplete')}</div>`;
     ssMappingPanelOpen = true;
     document.getElementById('ssMapPanel').classList.add('open');
     return;
@@ -10924,7 +11002,7 @@ function renderShiftShareView(){
   const dataset = buildSSDataset();
 
   if(!dataset.length){
-    document.getElementById('ssBody').innerHTML = `<div class="state-msg">Tidak ada baris data yang valid (periksa apakah kolom tahun & nilai sudah terisi angka dengan benar).</div>`;
+    document.getElementById('ssBody').innerHTML = `<div class="state-msg">${trx('ssNoValidRows')}</div>`;
     return;
   }
 
@@ -10953,10 +11031,10 @@ function renderShiftShareView(){
   ssResult = result;
 
   document.getElementById('ssIntervalInfo').textContent =
-    result.nRows>0 ? `${result.nRows} baris interval dari sumber data dipakai & diakumulasi` : 'Tidak ada interval yang cocok pada rentang ini';
+    result.nRows>0 ? `${result.nRows} ${trx('ssIntervalUsed')}` : trx('ssIntervalNone');
 
   if(!result.perKategori.length){
-    document.getElementById('ssBody').innerHTML = `<div class="state-msg">Tidak ada interval data pada rentang tahun ${ssYearFrom}–${ssYearTo}. Coba perlebar rentang tahun.</div>`;
+    document.getElementById('ssBody').innerHTML = `<div class="state-msg">${trx('ssNoIntervalRange')} ${ssYearFrom}–${ssYearTo}. Coba perlebar rentang tahun.</div>`;
     return;
   }
 
@@ -11070,7 +11148,7 @@ function renderSSBody(result){
     <div class="ss-section-title">Posisi Kuadran per Sektor</div>
     <div class="ss-quad-grid">
       <div class="chart-box-wrap">
-        <button class="dl-btn" id="dlSSQuad" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+        <button class="dl-btn" id="dlSSQuad" title="${trx('downloadJpgTitle')}">${trx('downloadJpg')}</button>
         <div class="chart-box" style="height:360px;"><canvas id="ssQuadCanvas"></canvas></div>
       </div>
       <div>
@@ -11086,13 +11164,13 @@ function renderSSBody(result){
 
     <div class="ss-section-title">Komponen Shift-Share per Sektor</div>
     <div class="chart-box-wrap">
-      <button class="dl-btn" id="dlSSChart" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+      <button class="dl-btn" id="dlSSChart" title="${trx('downloadJpgTitle')}">${trx('downloadJpg')}</button>
       <div class="chart-box" style="height:${Math.max(260, perKategori.length*26)}px;"><canvas id="ssChartCanvas"></canvas></div>
     </div>
 
     <div class="table-head-row">
       <span class="table-head-label">Tabel Hasil Shift-Share (${ssMethod==='tradisional'?'Dynamic Traditional':ssMethod==='em'?'Dynamic Esteban-Marquilas':'Dynamic Arcelus'})</span>
-      <button class="dl-btn" id="ssExcelBtn" style="position:static;">⬇ Excel</button>
+      <button class="dl-btn" id="ssExcelBtn" style="position:static;">${trx('downloadExcel')}</button>
     </div>
     <div class="ss-table-wrap ss-table-scroll">
       <table class="ss-table" id="ssTable"></table>
@@ -11401,25 +11479,25 @@ function renderLQView(){
 
   const introHtml = `
     <div class="ss-intro">
-      <h2>Location Quotient (SLQ &amp; DLQ)</h2>
-      <p>Location Quotient mengukur derajat spesialisasi/keunggulan suatu sektor di Klungkung dibanding Bali. <b>Static LQ (SLQ)</b> membandingkan pangsa sektor di dua wilayah pada tahun terpilih; <b>Dynamic LQ (DLQ)</b> melakukan hal serupa namun memakai laju pertumbuhan tahunan (tahun terpilih vs tahun sebelumnya), sehingga menangkap potensi sektor ke depan, bukan hanya kontribusinya saat ini. Karena nilai SLQ/DLQ tidak simetris di sekitar 1 (rentang 0 s.d. tak terhingga), tersedia pula versi <b>simetris (SSLQ &amp; DSLQ)</b> yang mentransformasikannya ke rentang -1 s.d. 1 agar lebih adil secara statistik. Kedua versi menghasilkan klasifikasi sektor yang identik. Sektor diklasifikasikan menjadi <b>Unggulan</b>, <b>Andalan</b>, <b>Prospektif</b>, atau <b>Tertinggal</b> berdasarkan kombinasi SLQ &amp; DLQ.</p>
+      <h2>${trx('lqTitle')}</h2>
+      <p>${trx('lqIntro')}</p>
     </div>`;
 
   if(lqLoadState==='idle'){
-    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>Memuat data…</div></section>`;
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div></section>`;
     loadLQData();
     return;
   }
   if(lqLoadState==='loading'){
-    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>Memuat data…</div></section>`;
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div></section>`;
     return;
   }
   if(lqLoadState==='error'){
-    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(lqLoadError)}<br><br><a href="${LQ_DYN_CSV_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div></section>`;
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">${trx('ssLoadError')}: ${escapeHtml(lqLoadError)}<br><br><a href="${LQ_DYN_CSV_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">${trx('ssOpenSource')}</a></div></section>`;
     return;
   }
   if(!lqRawRows || !lqRawRows.length){
-    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">Sumber data kosong atau tidak dapat dibaca.</div></section>`;
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">${trx('ssEmptySource')}</div></section>`;
     return;
   }
 
@@ -11428,13 +11506,13 @@ function renderLQView(){
       ${introHtml}
 
       <div class="ss-method-tabs" id="lqMethodTabs">
-        <button class="ss-method-tab" data-m="raw">LQ Asli (SLQ · DLQ)</button>
-        <button class="ss-method-tab" data-m="symmetric">LQ Simetris (SSLQ · DSLQ)</button>
+        <button class="ss-method-tab" data-m="raw">${trx('lqRaw')}</button>
+        <button class="ss-method-tab" data-m="symmetric">${trx('lqSym')}</button>
       </div>
       <div class="ss-method-note" id="lqMethodNote"></div>
 
       <div class="ss-controls">
-        <div class="ctrl-item"><label>Tahun</label><select id="lqTahun"></select></div>
+        <div class="ctrl-item"><label>${trx('lblTahun')}</label><select id="lqTahun"></select></div>
         <div class="ctrl-item" style="font-size:11.5px;color:var(--brown-soft);" id="lqIntervalInfo"></div>
       </div>
 
@@ -11449,7 +11527,7 @@ function renderLQView(){
 
   const years = lqAvailableYears(lqRawRows);
   if(years.length < 1){
-    document.getElementById('lqBody').innerHTML = `<div class="state-msg">Tidak ada data Tahun yang terbaca dari sheet.</div>`;
+    document.getElementById('lqBody').innerHTML = `<div class="state-msg">${trx('lqNoYearData')}</div>`;
     return;
   }
 
@@ -11468,10 +11546,10 @@ function renderLQView(){
   lqResult = result;
 
   document.getElementById('lqIntervalInfo').textContent =
-    `Tahun ${lqYear} · dibandingkan terhadap tahun ${lqYearFrom}`;
+    `${trx('lblTahun')} ${lqYear} · ${trx('lqYearVs')} ${lqYearFrom}`;
 
   if(!result.perKategori.length){
-    document.getElementById('lqBody').innerHTML = `<div class="state-msg">Tidak ada sektor dengan data lengkap pada tahun ${lqYear}.</div>`;
+    document.getElementById('lqBody').innerHTML = `<div class="state-msg">${trx('lqNoSectorYear')} ${lqYear}.</div>`;
     return;
   }
 
@@ -11499,7 +11577,7 @@ function updateLQMethodNote(){
       <div class="formula-caption">Transformasi ke rentang −1 s.d. 1 dengan titik netral di 0. Ambang klasifikasi: 0. Menghasilkan klasifikasi sektor yang identik dengan SLQ-DLQ (terbukti lewat korelasi Spearman = 1 pada studi rujukan).</div>
       <div class="mn-row"><b class="mn-label">💡 Cara membaca angka</b><ul class="mn-points"><li><b>SSLQ = 0</b> setara dengan SLQ = 1 (netral).</li><li><b>SSLQ mendekati +1</b> berarti spesialisasi sangat kuat (SLQ jauh di atas 1); <b>SSLQ mendekati −1</b> berarti sangat tidak terspesialisasi (SLQ mendekati 0).</li><li><b>DSLQ</b> mengikuti pola yang sama terhadap DLQ: mendekati +1 = tumbuh jauh lebih cepat dari Bali, mendekati −1 = tumbuh jauh lebih lambat. Karena skalanya simetris & seragam antar sektor, versi ini lebih adil dipakai untuk membandingkan "seberapa jauh" posisi tiap sektor dari titik netral, bukan cuma arah unggul/tidaknya saja.</li></ul></div>`
   };
-  document.getElementById('lqMethodNote').innerHTML = `<b>${lqMethod==='raw'?'LQ Asli (SLQ · DLQ)':'LQ Simetris (SSLQ · DSLQ)'}</b><br><br>${notes[lqMethod]}`;
+  document.getElementById('lqMethodNote').innerHTML = `<b>${lqMethod==='raw'?trx('lqRaw'):trx('lqSym')}</b><br><br>${notes[lqMethod]}`;
 }
 
 function renderLQBody(result){
@@ -11512,17 +11590,17 @@ function renderLQBody(result){
 
   body.innerHTML = `
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">Periode</div><div class="stat-value" style="font-size:15px;">${lqYearFrom}–${lqYearTo}</div></div>
-      <div class="stat-box"><div class="stat-label">Sektor Unggulan</div><div class="stat-value" style="font-size:15px;color:${LQ_KLAS.unggulan.color};">${counts.unggulan}</div></div>
-      <div class="stat-box"><div class="stat-label">Sektor Andalan</div><div class="stat-value" style="font-size:15px;color:${LQ_KLAS.andalan.color};">${counts.andalan}</div></div>
-      <div class="stat-box"><div class="stat-label">Sektor Prospektif</div><div class="stat-value" style="font-size:15px;color:${LQ_KLAS.prospektif.color};">${counts.prospektif}</div></div>
-      <div class="stat-box"><div class="stat-label">Sektor Tertinggal</div><div class="stat-value" style="font-size:15px;color:${LQ_KLAS.tertinggal.color};">${counts.tertinggal}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('lqPeriode')}</div><div class="stat-value" style="font-size:15px;">${lqYearFrom}–${lqYearTo}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('lqSectorUnggulan')}</div><div class="stat-value" style="font-size:15px;color:${LQ_KLAS.unggulan.color};">${counts.unggulan}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('lqSectorAndalan')}</div><div class="stat-value" style="font-size:15px;color:${LQ_KLAS.andalan.color};">${counts.andalan}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('lqSectorProspektif')}</div><div class="stat-value" style="font-size:15px;color:${LQ_KLAS.prospektif.color};">${counts.prospektif}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('lqSectorTertinggal')}</div><div class="stat-value" style="font-size:15px;color:${LQ_KLAS.tertinggal.color};">${counts.tertinggal}</div></div>
     </div>
 
-    <div class="ss-section-title">Posisi Kuadran per Sektor</div>
+    <div class="ss-section-title">${trx('lqQuadrantTitle')}</div>
     <div class="ss-quad-grid">
       <div class="chart-box-wrap">
-        <button class="dl-btn" id="dlLQQuad" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+        <button class="dl-btn" id="dlLQQuad" title="${trx('downloadJpgTitle')}">${trx('downloadJpg')}</button>
         <div class="chart-box" style="height:360px;"><canvas id="lqQuadCanvas"></canvas></div>
       </div>
       <div>
@@ -11538,13 +11616,13 @@ function renderLQBody(result){
 
     <div class="ss-section-title">${isRaw?'SLQ vs DLQ':'SSLQ vs DSLQ'} per Sektor</div>
     <div class="chart-box-wrap">
-      <button class="dl-btn" id="dlLQChart" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+      <button class="dl-btn" id="dlLQChart" title="${trx('downloadJpgTitle')}">${trx('downloadJpg')}</button>
       <div class="chart-box" style="height:${Math.max(260, perKategori.length*26)}px;"><canvas id="lqChartCanvas"></canvas></div>
     </div>
 
     <div class="table-head-row">
       <span class="table-head-label">Tabel Hasil LQ</span>
-      <button class="dl-btn" id="lqExcelBtn" style="position:static;">⬇ Excel</button>
+      <button class="dl-btn" id="lqExcelBtn" style="position:static;">${trx('downloadExcel')}</button>
     </div>
     <div class="ss-table-wrap ss-table-scroll">
       <table class="ss-table" id="lqTable"></table>
@@ -11792,16 +11870,17 @@ function renderKonvergensiView(){
   if(filterPanel) filterPanel.style.display = 'none';
   const main = document.getElementById('main');
 
+  const subTabLabelKeys = {bali:'convSubBali', baliSektoral:'convSubBaliSektoral', matrix:'convSubMatrix', mr:'convSubMr'};
   const subTabs = CONV_SUBTABS;
 
   main.innerHTML = `
     <section class="ss-wrap">
       <div class="ss-intro">
-        <h2>Konvergensi</h2>
-        <p>Apakah ekonomi Klungkung mendekati kondisi ekonomi Bali, atau justru semakin menjauh? Tiga sudut pandang: konvergensi total PDRB Klungkung terhadap Bali dari waktu ke waktu, seberapa mirip laju pertumbuhan antar 17 sektor pada satu tahun, dan apakah penyimpangan pertumbuhan Klungkung dari rata-ratanya sendiri cenderung kembali normal atau justru makin melebar.</p>
+        <h2>${trx('convTitle')}</h2>
+        <p>${trx('convIntro')}</p>
       </div>
       <div class="ss-method-tabs" id="convSubTabs">
-        ${subTabs.map(t=>`<button class="ss-method-tab" data-k="${t.key}">${escapeHtml(t.label)}</button>`).join('')}
+        ${subTabs.map(t=>`<button class="ss-method-tab" data-k="${t.key}">${escapeHtml(trx(subTabLabelKeys[t.key]))}</button>`).join('')}
       </div>
       <div id="convBody"></div>
     </section>`;
@@ -11819,13 +11898,13 @@ function renderKonvergensiView(){
 function renderConvBali(){
   const body = document.getElementById('convBody');
 
-  if(convBaliLoadState==='idle'){ body.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; loadConvBaliData(); return; }
-  if(convBaliLoadState==='loading'){ body.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; return; }
+  if(convBaliLoadState==='idle'){ body.innerHTML = `<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div>`; loadConvBaliData(); return; }
+  if(convBaliLoadState==='loading'){ body.innerHTML = `<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div>`; return; }
   if(convBaliLoadState==='error'){
-    body.innerHTML = `<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(convBaliLoadError)}<br><br><a href="${CONV_BALI_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div>`;
+    body.innerHTML = `<div class="state-msg">${trx('ssLoadError')}: ${escapeHtml(convBaliLoadError)}<br><br><a href="${CONV_BALI_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">${trx('ssOpenSource')}</a></div>`;
     return;
   }
-  if(!convBaliRows || !convBaliRows.length){ body.innerHTML = `<div class="state-msg">Sumber data kosong atau tidak dapat dibaca.</div>`; return; }
+  if(!convBaliRows || !convBaliRows.length){ body.innerHTML = `<div class="state-msg">${trx('ssEmptySource')}</div>`; return; }
 
   const rows = convBaliRows.map(r=>({
     tahun: parseInt(r['Tahun']),
@@ -11847,40 +11926,40 @@ function renderConvBali(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div class="mn-row"><b class="mn-label">📖 Cara membaca</b><ul class="mn-points"><li><b>Relative Level</b> = PDRB Klungkung ÷ PDRB Bali (seberapa besar ekonomi Klungkung dibanding Bali).</li><li><b>Absolute Log Gap</b> = |ln(Klungkung/Bali)| — makin kecil, makin dekat secara relatif ke Bali (konvergen).</li><li><b>Growth Differential</b> = selisih laju pertumbuhan Klungkung dikurangi Bali dalam poin persentase (pp): positif berarti Klungkung tumbuh lebih cepat.</li></ul></div>
-      <div style="margin-top:6px"><b class="mn-label">💡 Status</b> <span style="color:${getConvStatusColor().CONVERGING};font-weight:700;">CONVERGING</span> — gap terhadap Bali mengecil dibanding tahun sebelumnya. <span style="color:${getConvStatusColor().DIVERGING};font-weight:700;">DIVERGING</span> — gap melebar. <span style="color:${getConvStatusColor().STABLE};font-weight:700;">STABLE</span> — relatif tidak berubah.</div>
+      <div class="mn-row"><b class="mn-label">${trx('convHowToRead')}</b><ul class="mn-points">${trx('convHowToReadPts')}</ul></div>
+      <div style="margin-top:6px"><b class="mn-label">${trx('convStatusLabel')}</b> <span style="color:${getConvStatusColor().CONVERGING};font-weight:700;">CONVERGING</span> — ${trx('convStatusConverging')} <span style="color:${getConvStatusColor().DIVERGING};font-weight:700;">DIVERGING</span> — ${trx('convStatusDiverging')} <span style="color:${getConvStatusColor().STABLE};font-weight:700;">STABLE</span> — ${trx('convStatusStable')}</div>
     </div>
 
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">Tahun Terbaru</div><div class="stat-value" style="font-size:15px;">${last.tahun}</div></div>
-      <div class="stat-box"><div class="stat-label">Relative Level</div><div class="stat-value" style="font-size:15px;">${(last.relLevel*100).toFixedID(2)}%</div></div>
-      <div class="stat-box"><div class="stat-label">Growth Differential</div><div class="stat-value" style="font-size:15px;color:${last.growthDiff>=0?'var(--green)':'var(--rust)'};">${last.growthDiff>=0?'+':''}${last.growthDiff.toFixedID(2)} pp</div></div>
-      <div class="stat-box"><div class="stat-label">Status Terbaru</div><div class="stat-value" style="font-size:14px;color:${getConvStatusColor()[last.status]||'var(--brown)'};">${escapeHtml(last.status)}</div></div>
-      <div class="stat-box"><div class="stat-label">Tahun Converging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().CONVERGING};">${cCounts.CONVERGING}</div></div>
-      <div class="stat-box"><div class="stat-label">Tahun Diverging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().DIVERGING};">${cCounts.DIVERGING}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('convYearLatest')}</div><div class="stat-value" style="font-size:15px;">${last.tahun}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('convRelLevel')}</div><div class="stat-value" style="font-size:15px;">${(last.relLevel*100).toFixedID(2)}%</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('convGrowthDiff')}</div><div class="stat-value" style="font-size:15px;color:${last.growthDiff>=0?'var(--green)':'var(--rust)'};">${last.growthDiff>=0?'+':''}${last.growthDiff.toFixedID(2)} pp</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('convStatusLatest')}</div><div class="stat-value" style="font-size:14px;color:${getConvStatusColor()[last.status]||'var(--brown)'};">${escapeHtml(last.status)}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('convYearConverging')}</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().CONVERGING};">${cCounts.CONVERGING}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('convYearDiverging')}</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().DIVERGING};">${cCounts.DIVERGING}</div></div>
     </div>
 
-    <div class="ss-section-title">Growth Klungkung vs Bali</div>
+    <div class="ss-section-title">${trx('convChartGrowth')}</div>
     <div class="chart-box-wrap">
-      <button class="dl-btn" id="dlConvChart1" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+      <button class="dl-btn" id="dlConvChart1" title="${trx('downloadJpgTitle')}">${trx('downloadJpg')}</button>
       <div class="chart-box" style="height:280px;"><canvas id="convChart1"></canvas></div>
     </div>
 
-    <div class="ss-section-title">Growth Differential (pp)</div>
+    <div class="ss-section-title">${trx('convChartGrowthDiff')}</div>
     <div class="chart-box-wrap">
-      <button class="dl-btn" id="dlConvChart2" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+      <button class="dl-btn" id="dlConvChart2" title="${trx('downloadJpgTitle')}">${trx('downloadJpg')}</button>
       <div class="chart-box" style="height:260px;"><canvas id="convChart2"></canvas></div>
     </div>
 
-    <div class="ss-section-title">Absolute Log Gap — makin kecil makin konvergen</div>
+    <div class="ss-section-title">${trx('convChartAbsGap')}</div>
     <div class="chart-box-wrap">
-      <button class="dl-btn" id="dlConvChart3" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+      <button class="dl-btn" id="dlConvChart3" title="${trx('downloadJpgTitle')}">${trx('downloadJpg')}</button>
       <div class="chart-box" style="height:260px;"><canvas id="convChart3"></canvas></div>
     </div>
 
     <div class="table-head-row">
-      <span class="table-head-label">Tabel Konvergensi Klungkung–Bali</span>
-      <button class="dl-btn" id="convBaliExcelBtn" style="position:static;">⬇ Excel</button>
+      <span class="table-head-label">${trx('convTableTitle')}</span>
+      <button class="dl-btn" id="convBaliExcelBtn" style="position:static;">${trx('downloadExcel')}</button>
     </div>
     <div class="ss-table-wrap ss-table-scroll">
       <table class="ss-table" id="convBaliTable"></table>
@@ -11893,12 +11972,12 @@ function renderConvBali(){
   convBaliChart1 = new Chart(document.getElementById('convChart1'), {
     type:'line',
     data:{ labels, datasets:[
-      { label:'Growth Klungkung', data:rows.map(r=> isNaN(r.growthK)?null:r.growthK*100), borderColor:THEME.accent, backgroundColor:THEME.accent, tension:0.35, pointRadius:0 },
-      { label:'Growth Bali', data:rows.map(r=> isNaN(r.growthB)?null:r.growthB*100), borderColor:THEME.c4, backgroundColor:THEME.c4, tension:0.35, pointRadius:0 }
+      { label:trx('growthKlungkung'), data:rows.map(r=> isNaN(r.growthK)?null:r.growthK*100), borderColor:THEME.accent, backgroundColor:THEME.accent, tension:0.35, pointRadius:0 },
+      { label:trx('growthBali'), data:rows.map(r=> isNaN(r.growthB)?null:r.growthB*100), borderColor:THEME.c4, backgroundColor:THEME.c4, tension:0.35, pointRadius:0 }
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main} }, tooltip:{ callbacks:{ label:(it)=> `${it.dataset.label}: ${it.parsed.y.toFixedID(2)}%` } } },
-      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle('Pertumbuhan (%)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}, callback:(v)=>nfmt(v)+'%'}} }
+      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle(trx('growthPercent')), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}, callback:(v)=>nfmt(v)+'%'}} }
     }
   });
 
@@ -12120,10 +12199,10 @@ function convYearSelectHtml(id, years, selected){
 /* ---- 01. Detail per Tahun (per sektor) ---- */
 function renderConvSektorDetail(){
   const el = document.getElementById('convSektoralBody');
-  if(convSektor01LoadState==='idle'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; loadConvSektor01(); return; }
-  if(convSektor01LoadState==='loading'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; return; }
-  if(convSektor01LoadState==='error'){ el.innerHTML = `<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(convSektor01LoadError)}<br><br><a href="${CONV_SEKTOR_01_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div>`; return; }
-  if(!convSektor01Rows || !convSektor01Rows.length){ el.innerHTML = `<div class="state-msg">Sumber data kosong.</div>`; return; }
+  if(convSektor01LoadState==='idle'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div>`; loadConvSektor01(); return; }
+  if(convSektor01LoadState==='loading'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div>`; return; }
+  if(convSektor01LoadState==='error'){ el.innerHTML = `<div class="state-msg">${trx('ssLoadError')}: ${escapeHtml(convSektor01LoadError)}<br><br><a href="${CONV_SEKTOR_01_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">${trx('ssOpenSource')}</a></div>`; return; }
+  if(!convSektor01Rows || !convSektor01Rows.length){ el.innerHTML = `<div class="state-msg">${trx('ssEmptySourceShort')}</div>`; return; }
 
   const years = [...new Set(convSektor01Rows.map(r=>r.tahun))].sort((a,b)=>a-b);
   if(!convSektorYear || !years.includes(convSektorYear)) convSektorYear = years[years.length-1];
@@ -12142,8 +12221,8 @@ function renderConvSektorDetail(){
       <div class="stat-box"><div class="stat-label">Gap Terbesar</div><div class="stat-value" style="font-size:11px;line-height:1.4;">${rows[0]?escapeHtml(rows[0].sektor)+' ('+rows[0].absGap.toFixedID(2)+' pp)':'-'}</div></div>
     </div>
     <div class="ss-section-title">Absolute Growth Gap per Sektor — ${convSektorYear}</div>
-    <div class="chart-box-wrap"><button class="dl-btn" id="dlConvSektorDetailChart">⬇ JPG</button><div class="chart-box" style="height:340px;"><canvas id="convSektorDetailChart"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Detail Sektor — ${convSektorYear}</span><button class="dl-btn" id="convSektorDetailExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlConvSektorDetailChart">${trx('downloadJpg')}</button><div class="chart-box" style="height:340px;"><canvas id="convSektorDetailChart"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Detail Sektor — ${convSektorYear}</span><button class="dl-btn" id="convSektorDetailExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="convSektorDetailTable"></table></div>
   `;
 
@@ -12181,10 +12260,10 @@ function renderConvSektorDetail(){
 /* ---- 02. Trajectory Sektor (agregat 2011-2025) ---- */
 function renderConvSektorTrajectory(){
   const el = document.getElementById('convSektoralBody');
-  if(convSektor02LoadState==='idle'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; loadConvSektor02(); return; }
-  if(convSektor02LoadState==='loading'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; return; }
-  if(convSektor02LoadState==='error'){ el.innerHTML = `<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(convSektor02LoadError)}<br><br><a href="${CONV_SEKTOR_02_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div>`; return; }
-  if(!convSektor02Rows || !convSektor02Rows.length){ el.innerHTML = `<div class="state-msg">Sumber data kosong.</div>`; return; }
+  if(convSektor02LoadState==='idle'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div>`; loadConvSektor02(); return; }
+  if(convSektor02LoadState==='loading'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div>`; return; }
+  if(convSektor02LoadState==='error'){ el.innerHTML = `<div class="state-msg">${trx('ssLoadError')}: ${escapeHtml(convSektor02LoadError)}<br><br><a href="${CONV_SEKTOR_02_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">${trx('ssOpenSource')}</a></div>`; return; }
+  if(!convSektor02Rows || !convSektor02Rows.length){ el.innerHTML = `<div class="state-msg">${trx('ssEmptySourceShort')}</div>`; return; }
 
   const rows = [...convSektor02Rows].sort((a,b)=> a.avgGap - b.avgGap);
   const nConv = rows.filter(r=>r.trajectory==='CONVERGING').length;
@@ -12199,8 +12278,8 @@ function renderConvSektorTrajectory(){
       <div class="stat-box"><div class="stat-label">Paling Divergen</div><div class="stat-value" style="font-size:11px;line-height:1.4;">${rows[rows.length-1]?escapeHtml(rows[rows.length-1].sektor):'-'}</div></div>
     </div>
     <div class="ss-section-title">Gap 2011 vs 2025 per Sektor</div>
-    <div class="chart-box-wrap"><button class="dl-btn" id="dlConvSektorTrajChart">⬇ JPG</button><div class="chart-box" style="height:340px;"><canvas id="convSektorTrajChart"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Trajectory Sektor</span><button class="dl-btn" id="convSektorTrajExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlConvSektorTrajChart">${trx('downloadJpg')}</button><div class="chart-box" style="height:340px;"><canvas id="convSektorTrajChart"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Trajectory Sektor</span><button class="dl-btn" id="convSektorTrajExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="convSektorTrajTable"></table></div>
   `;
 
@@ -12242,10 +12321,10 @@ function renderConvSektorTrajectory(){
 /* ---- 03. Heatmap Sektor x Tahun ---- */
 function renderConvSektorHeatmap(){
   const el = document.getElementById('convSektoralBody');
-  if(convSektor03LoadState==='idle'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; loadConvSektor03(); return; }
-  if(convSektor03LoadState==='loading'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; return; }
-  if(convSektor03LoadState==='error'){ el.innerHTML = `<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(convSektor03LoadError)}<br><br><a href="${CONV_SEKTOR_03_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div>`; return; }
-  if(!convSektor03Data || !convSektor03Data.sectors.length){ el.innerHTML = `<div class="state-msg">Sumber data kosong.</div>`; return; }
+  if(convSektor03LoadState==='idle'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div>`; loadConvSektor03(); return; }
+  if(convSektor03LoadState==='loading'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div>`; return; }
+  if(convSektor03LoadState==='error'){ el.innerHTML = `<div class="state-msg">${trx('ssLoadError')}: ${escapeHtml(convSektor03LoadError)}<br><br><a href="${CONV_SEKTOR_03_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">${trx('ssOpenSource')}</a></div>`; return; }
+  if(!convSektor03Data || !convSektor03Data.sectors.length){ el.innerHTML = `<div class="state-msg">${trx('ssEmptySourceShort')}</div>`; return; }
 
   const { sectors, years, matrix } = convSektor03Data;
   let allVals = [];
@@ -12254,7 +12333,7 @@ function renderConvSektorHeatmap(){
 
   el.innerHTML = `
     <div class="ss-method-note"><div><b class="mn-label">💡 Cara membaca</b> Baris = sektor, kolom = tahun. Warna hijau → gap pertumbuhan sektor tsb terhadap Bali kecil di tahun itu; merah → gap besar. Kolom tahun baru otomatis muncul begitu ditambahkan di sheet sumber.</div></div>
-    <div class="table-head-row"><span class="table-head-label">Heatmap Absolute Growth Gap (pp)</span><button class="dl-btn" id="convSektorHeatmapExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="table-head-row"><span class="table-head-label">Heatmap Absolute Growth Gap (pp)</span><button class="dl-btn" id="convSektorHeatmapExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll" style="max-height:560px;"><table class="ss-table" id="convSektorHeatmapTable" style="font-size:10.5px;"></table></div>
   `;
 
@@ -12279,10 +12358,10 @@ function renderConvSektorHeatmap(){
 /* ---- 04. Snapshot Tahun (dihitung dari sheet 01: |gap|>=1pp => BERBEDA) ---- */
 function renderConvSektorSnapshot(){
   const el = document.getElementById('convSektoralBody');
-  if(convSektor01LoadState==='idle'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; loadConvSektor01(); return; }
-  if(convSektor01LoadState==='loading'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; return; }
-  if(convSektor01LoadState==='error'){ el.innerHTML = `<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(convSektor01LoadError)}<br><br><a href="${CONV_SEKTOR_01_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div>`; return; }
-  if(!convSektor01Rows || !convSektor01Rows.length){ el.innerHTML = `<div class="state-msg">Sumber data kosong.</div>`; return; }
+  if(convSektor01LoadState==='idle'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div>`; loadConvSektor01(); return; }
+  if(convSektor01LoadState==='loading'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div>`; return; }
+  if(convSektor01LoadState==='error'){ el.innerHTML = `<div class="state-msg">${trx('ssLoadError')}: ${escapeHtml(convSektor01LoadError)}<br><br><a href="${CONV_SEKTOR_01_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">${trx('ssOpenSource')}</a></div>`; return; }
+  if(!convSektor01Rows || !convSektor01Rows.length){ el.innerHTML = `<div class="state-msg">${trx('ssEmptySourceShort')}</div>`; return; }
 
   const years = [...new Set(convSektor01Rows.map(r=>r.tahun))].sort((a,b)=>a-b);
   if(!convSektorYear || !years.includes(convSektorYear)) convSektorYear = years[years.length-1];
@@ -12301,7 +12380,7 @@ function renderConvSektorSnapshot(){
       <div class="stat-box"><div class="stat-label">Sangat Mirip</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor()['SANGAT MIRIP']};">${nMirip}</div></div>
       <div class="stat-box"><div class="stat-label">Berbeda</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().BERBEDA};">${nBeda}</div></div>
     </div>
-    <div class="table-head-row"><span class="table-head-label">Snapshot ${convSektorYear}</span><button class="dl-btn" id="convSektorSnapExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="table-head-row"><span class="table-head-label">Snapshot ${convSektorYear}</span><button class="dl-btn" id="convSektorSnapExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="convSektorSnapTable"></table></div>
   `;
 
@@ -12328,10 +12407,10 @@ function renderConvSektorSnapshot(){
 /* ---- 05. Sinkronisasi (Synchronization Index) ---- */
 function renderConvSektorSync(){
   const el = document.getElementById('convSektoralBody');
-  if(convSektor05LoadState==='idle'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; loadConvSektor05(); return; }
-  if(convSektor05LoadState==='loading'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; return; }
-  if(convSektor05LoadState==='error'){ el.innerHTML = `<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(convSektor05LoadError)}<br><br><a href="${CONV_SEKTOR_05_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div>`; return; }
-  if(!convSektor05Rows || !convSektor05Rows.length){ el.innerHTML = `<div class="state-msg">Sumber data kosong.</div>`; return; }
+  if(convSektor05LoadState==='idle'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div>`; loadConvSektor05(); return; }
+  if(convSektor05LoadState==='loading'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div>`; return; }
+  if(convSektor05LoadState==='error'){ el.innerHTML = `<div class="state-msg">${trx('ssLoadError')}: ${escapeHtml(convSektor05LoadError)}<br><br><a href="${CONV_SEKTOR_05_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">${trx('ssOpenSource')}</a></div>`; return; }
+  if(!convSektor05Rows || !convSektor05Rows.length){ el.innerHTML = `<div class="state-msg">${trx('ssEmptySourceShort')}</div>`; return; }
 
   const years = [...new Set(convSektor05Rows.map(r=>r.tahun))].sort((a,b)=>a-b);
   if(!convSektorYear || !years.includes(convSektorYear)) convSektorYear = years[years.length-1];
@@ -12350,8 +12429,8 @@ function renderConvSektorSync(){
       <div class="stat-box"><div class="stat-label">Sinkronisasi Rendah</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().LOW};">${nLow}</div></div>
     </div>
     <div class="ss-section-title">Synchronization Index per Sektor — ${convSektorYear}</div>
-    <div class="chart-box-wrap"><button class="dl-btn" id="dlConvSektorSyncChart">⬇ JPG</button><div class="chart-box" style="height:340px;"><canvas id="convSektorSyncChart"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Sinkronisasi — ${convSektorYear}</span><button class="dl-btn" id="convSektorSyncExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlConvSektorSyncChart">${trx('downloadJpg')}</button><div class="chart-box" style="height:340px;"><canvas id="convSektorSyncChart"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Sinkronisasi — ${convSektorYear}</span><button class="dl-btn" id="convSektorSyncExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="convSektorSyncTable"></table></div>
   `;
 
@@ -12388,10 +12467,10 @@ function renderConvSektorSync(){
 /* ---- 06. Ringkasan Tahunan (semua sektor, per tahun) ---- */
 function renderConvSektorYearly(){
   const el = document.getElementById('convSektoralBody');
-  if(convSektor06LoadState==='idle'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; loadConvSektor06(); return; }
-  if(convSektor06LoadState==='loading'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; return; }
-  if(convSektor06LoadState==='error'){ el.innerHTML = `<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(convSektor06LoadError)}<br><br><a href="${CONV_SEKTOR_06_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div>`; return; }
-  if(!convSektor06Rows || !convSektor06Rows.length){ el.innerHTML = `<div class="state-msg">Sumber data kosong.</div>`; return; }
+  if(convSektor06LoadState==='idle'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div>`; loadConvSektor06(); return; }
+  if(convSektor06LoadState==='loading'){ el.innerHTML = `<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div>`; return; }
+  if(convSektor06LoadState==='error'){ el.innerHTML = `<div class="state-msg">${trx('ssLoadError')}: ${escapeHtml(convSektor06LoadError)}<br><br><a href="${CONV_SEKTOR_06_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">${trx('ssOpenSource')}</a></div>`; return; }
+  if(!convSektor06Rows || !convSektor06Rows.length){ el.innerHTML = `<div class="state-msg">${trx('ssEmptySourceShort')}</div>`; return; }
 
   const rows = [...convSektor06Rows].sort((a,b)=>a.tahun-b.tahun);
   const last = rows[rows.length-1];
@@ -12405,8 +12484,8 @@ function renderConvSektorYearly(){
       <div class="stat-box"><div class="stat-label">Sektor Diverging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().DIVERGING};">${isNaN(last.sectorsDiv)?'-':last.sectorsDiv}</div></div>
     </div>
     <div class="ss-section-title">Mean & Median Absolute Gap per Tahun</div>
-    <div class="chart-box-wrap"><button class="dl-btn" id="dlConvSektorYearlyChart">⬇ JPG</button><div class="chart-box" style="height:300px;"><canvas id="convSektorYearlyChart"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Ringkasan Tahunan</span><button class="dl-btn" id="convSektorYearlyExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlConvSektorYearlyChart">${trx('downloadJpg')}</button><div class="chart-box" style="height:300px;"><canvas id="convSektorYearlyChart"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Ringkasan Tahunan</span><button class="dl-btn" id="convSektorYearlyExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="convSektorYearlyTable"></table></div>
   `;
 
@@ -12461,13 +12540,13 @@ function convMatrixColor(v, maxAbs){
 function renderConvMatrix(){
   const body = document.getElementById('convBody');
 
-  if(convMatrixLoadState==='idle'){ body.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; loadConvMatrixData(); return; }
-  if(convMatrixLoadState==='loading'){ body.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; return; }
+  if(convMatrixLoadState==='idle'){ body.innerHTML = `<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div>`; loadConvMatrixData(); return; }
+  if(convMatrixLoadState==='loading'){ body.innerHTML = `<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div>`; return; }
   if(convMatrixLoadState==='error'){
-    body.innerHTML = `<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(convMatrixLoadError)}<br><br><a href="${CONV_ANTARSEKTOR_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div>`;
+    body.innerHTML = `<div class="state-msg">${trx('ssLoadError')}: ${escapeHtml(convMatrixLoadError)}<br><br><a href="${CONV_ANTARSEKTOR_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">${trx('ssOpenSource')}</a></div>`;
     return;
   }
-  if(!convAntarSectors.length || !convAntarYears.length){ body.innerHTML = `<div class="state-msg">Sumber data kosong atau tidak dapat dibaca.</div>`; return; }
+  if(!convAntarSectors.length || !convAntarYears.length){ body.innerHTML = `<div class="state-msg">${trx('ssEmptySource')}</div>`; return; }
 
   if(!convMatrixYear || !convAntarYears.includes(convMatrixYear)) convMatrixYear = convAntarYears[convAntarYears.length-1];
   const sectors = convAntarSectors;
@@ -12506,7 +12585,7 @@ function renderConvMatrix(){
 
     <div class="table-head-row">
       <span class="table-head-label">Matriks Absolute Growth Gap (pp) — ${convMatrixYear}</span>
-      <button class="dl-btn" id="convMatrixExcelBtn" style="position:static;">⬇ Excel</button>
+      <button class="dl-btn" id="convMatrixExcelBtn" style="position:static;">${trx('downloadExcel')}</button>
     </div>
     <div class="ss-table-wrap ss-table-scroll" style="max-height:560px;">
       <table class="ss-table" id="convMatrixTable" style="font-size:10.5px;"></table>
@@ -12543,13 +12622,13 @@ function renderConvMatrix(){
 function renderConvMr(){
   const body = document.getElementById('convBody');
 
-  if(convMrLoadState==='idle'){ body.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; loadConvMrData(); return; }
-  if(convMrLoadState==='loading'){ body.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; return; }
+  if(convMrLoadState==='idle'){ body.innerHTML = `<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div>`; loadConvMrData(); return; }
+  if(convMrLoadState==='loading'){ body.innerHTML = `<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div>`; return; }
   if(convMrLoadState==='error'){
-    body.innerHTML = `<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(convMrLoadError)}<br><br><a href="${CONV_MR_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div>`;
+    body.innerHTML = `<div class="state-msg">${trx('ssLoadError')}: ${escapeHtml(convMrLoadError)}<br><br><a href="${CONV_MR_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">${trx('ssOpenSource')}</a></div>`;
     return;
   }
-  if(!convMrRows || !convMrRows.length){ body.innerHTML = `<div class="state-msg">Sumber data kosong atau tidak dapat dibaca.</div>`; return; }
+  if(!convMrRows || !convMrRows.length){ body.innerHTML = `<div class="state-msg">${trx('ssEmptySource')}</div>`; return; }
 
   const rows = convMrRows.map(r=>({
     tahun: parseInt(r['Tahun']),
@@ -12588,13 +12667,13 @@ function renderConvMr(){
 
     <div class="ss-section-title">Growth Gap per Tahun</div>
     <div class="chart-box-wrap">
-      <button class="dl-btn" id="dlConvMrChart" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+      <button class="dl-btn" id="dlConvMrChart" title="${trx('downloadJpgTitle')}">${trx('downloadJpg')}</button>
       <div class="chart-box" style="height:280px;"><canvas id="convMrChartCanvas"></canvas></div>
     </div>
 
     <div class="table-head-row">
       <span class="table-head-label">Tabel Growth Mean-Reversion</span>
-      <button class="dl-btn" id="convMrExcelBtn" style="position:static;">⬇ Excel</button>
+      <button class="dl-btn" id="convMrExcelBtn" style="position:static;">${trx('downloadExcel')}</button>
     </div>
     <div class="ss-table-wrap ss-table-scroll">
       <table class="ss-table" id="convMrTable"></table>
@@ -12796,23 +12875,23 @@ function renderDiversityView(){
   }
 
   if(divLoadState==='idle'){
-    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>Memuat data…</div></section>`;
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div></section>`;
     loadDivData();
     return;
   }
   if(divLoadState==='loading'){
-    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>Memuat data…</div></section>`;
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div></section>`;
     return;
   }
   if(divLoadState==='error'){
-    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(divLoadError)}<br><br><a href="${DIV_CSV_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div>
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">${trx('ssLoadError')}: ${escapeHtml(divLoadError)}<br><br><a href="${DIV_CSV_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">${trx('ssOpenSource')}</a></div>
       <button class="ss-mapping-apply" id="divUrlReset" style="margin-top:10px;">Ganti Link Sumber Data</button>
     </section>`;
     document.getElementById('divUrlReset').onclick = ()=>{ DIV_CSV_URL=''; divLoadState='idle'; renderDiversityView(); };
     return;
   }
   if(!divRawRows || !divRawRows.length){
-    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">Sumber data kosong atau tidak dapat dibaca.</div></section>`;
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">${trx('ssEmptySource')}</div></section>`;
     return;
   }
 
@@ -12923,7 +13002,7 @@ function renderDivBody(series){
       </div>
     </div>
     <div class="chart-box-wrap">
-      <button class="dl-btn" id="dlDivTs" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+      <button class="dl-btn" id="dlDivTs" title="${trx('downloadJpgTitle')}">${trx('downloadJpg')}</button>
       <div class="chart-box" style="height:320px;"><canvas id="divTsCanvas"></canvas></div>
     </div>
 
@@ -12932,13 +13011,13 @@ function renderDivBody(series){
       <div class="ctrl-item"><label>Tahun</label><select id="divCompYear"></select></div>
     </div>
     <div class="chart-box-wrap">
-      <button class="dl-btn" id="dlDivComp" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+      <button class="dl-btn" id="dlDivComp" title="${trx('downloadJpgTitle')}">${trx('downloadJpg')}</button>
       <div class="chart-box" style="height:${Math.max(280, Object.keys(latest.kShares).length*24)}px;"><canvas id="divCompCanvas"></canvas></div>
     </div>
 
     <div class="table-head-row">
       <span class="table-head-label">Tabel Indeks per Tahun</span>
-      <button class="dl-btn" id="divExcelBtn" style="position:static;">⬇ Excel</button>
+      <button class="dl-btn" id="divExcelBtn" style="position:static;">${trx('downloadExcel')}</button>
     </div>
     <div class="ss-table-wrap ss-table-scroll">
       <table class="ss-table" id="divTable"></table>
@@ -13178,7 +13257,7 @@ function advEnsureLoaded(key){
   const state = advLoadState[key];
   if(!state || state==='idle'){
     advLoadState[key] = 'loading';
-    body.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`;
+    body.innerHTML = `<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div>`;
     Papa.parse(ADV_URLS[key], {
       download:true, header:false, skipEmptyLines:false,
       complete:function(res){
@@ -13208,15 +13287,15 @@ function advEnsureLoaded(key){
     });
     return false;
   }
-  if(state==='loading'){ body.innerHTML = `<div class="state-msg"><span class="spinner"></span>Memuat data…</div>`; return false; }
+  if(state==='loading'){ body.innerHTML = `<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div>`; return false; }
   if(state==='error'){
-    body.innerHTML = `<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(advLoadError[key]||'')}<br><br><a href="${ADV_URLS[key]}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div>
+    body.innerHTML = `<div class="state-msg">${trx('ssLoadError')}: ${escapeHtml(advLoadError[key]||'')}<br><br><a href="${ADV_URLS[key]}" target="_blank" style="color:var(--orange-deep);font-weight:600;">${trx('ssOpenSource')}</a></div>
       <button class="ss-mapping-apply" id="advRetryBtn" style="margin-top:10px;">Coba Lagi</button>`;
     const btn = document.getElementById('advRetryBtn');
     if(btn) btn.onclick = ()=>{ advLoadState[key]='idle'; renderAdvancedView(); };
     return false;
   }
-  if(!advRaw[key] || !advRaw[key].length){ body.innerHTML = `<div class="state-msg">Sumber data kosong.</div>`; return false; }
+  if(!advRaw[key] || !advRaw[key].length){ body.innerHTML = `<div class="state-msg">${trx('ssEmptySourceShort')}</div>`; return false; }
   return true;
 }
 
@@ -13286,10 +13365,10 @@ function renderAdvGrowthDiff(){
       <div class="stat-box"><div class="stat-label">Status</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${escapeHtml(badge.label)}</div></div>
     </div>
     <div class="ss-section-title">Tren Pertumbuhan: Klungkung vs Bali</div>
-    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvGrowthTs">⬇ JPG</button><div class="chart-box" style="height:280px;"><canvas id="advGrowthTsCanvas"></canvas></div></div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvGrowthTs">${trx('downloadJpg')}</button><div class="chart-box" style="height:280px;"><canvas id="advGrowthTsCanvas"></canvas></div></div>
     <div class="ss-section-title">Growth Differential & Cumulative Relative Gap</div>
-    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvGrowthDiff">⬇ JPG</button><div class="chart-box" style="height:280px;"><canvas id="advGrowthDiffCanvas"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Growth Differential per Tahun</span><button class="dl-btn" id="advGrowthExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvGrowthDiff">${trx('downloadJpg')}</button><div class="chart-box" style="height:280px;"><canvas id="advGrowthDiffCanvas"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Growth Differential per Tahun</span><button class="dl-btn" id="advGrowthExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advGrowthTable"></table></div>
   `;
 
@@ -13392,11 +13471,11 @@ function renderAdvStructChange(){
       <div class="mn-row"><b class="mn-label">💡 Cara membaca angka</b><ul class="mn-points"><li><b>SCI</b> makin besar berarti struktur ekonomi berubah makin cepat tahun itu.</li><li><b>Structural Gap Sektoral</b> menunjukkan sektor mana yang pergeserannya paling berbeda arah/besaran antara Klungkung dan Bali. Pilih tahun untuk melihat detail per sektor.</li></ul></div>
     </div>
     <div class="ss-section-title">Tren SCI: Klungkung vs Bali</div>
-    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvSciTs">⬇ JPG</button><div class="chart-box" style="height:280px;"><canvas id="advSciTsCanvas"></canvas></div></div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvSciTs">${trx('downloadJpg')}</button><div class="chart-box" style="height:280px;"><canvas id="advSciTsCanvas"></canvas></div></div>
     <div class="ss-controls" style="margin-bottom:10px;"><div class="ctrl-item"><label>Tahun</label><select id="advSciYear"></select></div></div>
     <div class="ss-section-title">Perubahan Share per Sektor</div>
-    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvSciSektor">⬇ JPG</button><div class="chart-box" style="height:400px;"><canvas id="advSciSektorCanvas"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Perubahan Struktur Sektoral</span><button class="dl-btn" id="advSciExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvSciSektor">${trx('downloadJpg')}</button><div class="chart-box" style="height:400px;"><canvas id="advSciSektorCanvas"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Perubahan Struktur Sektoral</span><button class="dl-btn" id="advSciExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advSciTable"></table></div>
   `;
 
@@ -13546,7 +13625,7 @@ function renderAdvKlassen(){
 
     <div class="ss-quad-grid">
       <div class="chart-box-wrap">
-        <button class="dl-btn" id="dlAdvKlassen" title="Unduh grafik sebagai JPG">⬇ JPG</button>
+        <button class="dl-btn" id="dlAdvKlassen" title="${trx('downloadJpgTitle')}">${trx('downloadJpg')}</button>
         <div class="chart-box" style="height:380px;"><canvas id="advKlassenCanvas"></canvas></div>
       </div>
       <div>
@@ -13557,7 +13636,7 @@ function renderAdvKlassen(){
     </div>
     ${missing ? `<div class="nk-caption" style="margin-top:10px;">${missing} sektor tidak dapat diklasifikasikan pada ${year} karena belum ada data tahun sebelumnya untuk menghitung laju pertumbuhan.</div>` : ''}
 
-    <div class="table-head-row" style="margin-top:18px;"><span class="table-head-label">Tabel Tipologi Klassen — ${year}</span><button class="dl-btn" id="advKlassenExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="table-head-row" style="margin-top:18px;"><span class="table-head-label">Tabel Tipologi Klassen — ${year}</span><button class="dl-btn" id="advKlassenExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advKlassenTable"></table></div>
   `;
 
@@ -13670,8 +13749,8 @@ function renderAdvKrugman(){
       <div class="stat-box"><div class="stat-label">Status</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${escapeHtml(badge.label)}</div></div>
     </div>
     <div class="ss-section-title">Tren Indeks Krugman Antar Tahun</div>
-    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvKrugman">⬇ JPG</button><div class="chart-box" style="height:280px;"><canvas id="advKrugmanCanvas"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Indeks Krugman per Tahun</span><button class="dl-btn" id="advKrugmanExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvKrugman">${trx('downloadJpg')}</button><div class="chart-box" style="height:280px;"><canvas id="advKrugmanCanvas"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Indeks Krugman per Tahun</span><button class="dl-btn" id="advKrugmanExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advKrugmanTable"></table></div>
   `;
 
@@ -13760,11 +13839,11 @@ function renderAdvSimilarity(){
       <div class="stat-box"><div class="stat-label">Total Absolute Gap</div><div class="stat-value" style="font-size:15px;">${latest.totalGap.toFixedID(3)}</div></div>
     </div>
     <div class="ss-section-title">Tren Kemiripan Struktur Antar Tahun</div>
-    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvSimTs">⬇ JPG</button><div class="chart-box" style="height:280px;"><canvas id="advSimTsCanvas"></canvas></div></div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvSimTs">${trx('downloadJpg')}</button><div class="chart-box" style="height:280px;"><canvas id="advSimTsCanvas"></canvas></div></div>
     <div class="ss-section-title">Perbandingan Komposisi Sektor</div>
     <div class="ss-controls" style="margin-bottom:10px;"><div class="ctrl-item"><label>Tahun</label><select id="advSimYear"></select></div></div>
-    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvSimComp">⬇ JPG</button><div class="chart-box" style="height:${Math.max(280,Object.keys(latest.kShares).length*24)}px;"><canvas id="advSimCompCanvas"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel SSI per Tahun</span><button class="dl-btn" id="advSimExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvSimComp">${trx('downloadJpg')}</button><div class="chart-box" style="height:${Math.max(280,Object.keys(latest.kShares).length*24)}px;"><canvas id="advSimCompCanvas"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel SSI per Tahun</span><button class="dl-btn" id="advSimExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advSimTable"></table></div>
   `;
 
@@ -13854,8 +13933,8 @@ function renderAdvGap(){
     </div>
     <div class="ss-controls" style="margin-bottom:10px;"><div class="ctrl-item"><label>Tahun</label><select id="advGapYear"></select></div></div>
     <div class="ss-section-title">Kontribusi Sektor terhadap Kesenjangan Struktur</div>
-    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvGap">⬇ JPG</button><div class="chart-box" style="height:400px;"><canvas id="advGapCanvas"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Kesenjangan Sektor</span><button class="dl-btn" id="advGapExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvGap">${trx('downloadJpg')}</button><div class="chart-box" style="height:400px;"><canvas id="advGapCanvas"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Kesenjangan Sektor</span><button class="dl-btn" id="advGapExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advGapTable"></table></div>
   `;
 
@@ -13948,7 +14027,7 @@ function renderAdvMarkov(){
     ${latestMovers.length? `
     <div class="ss-section-title">Sektor yang Berubah Kelas di ${latestYear}</div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advMarkovMoversTable"></table></div>` : ''}
-    <div class="table-head-row" style="margin-top:18px;"><span class="table-head-label">Ekspor Data Transisi Lengkap</span><button class="dl-btn" id="advMarkovExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="table-head-row" style="margin-top:18px;"><span class="table-head-label">Ekspor Data Transisi Lengkap</span><button class="dl-btn" id="advMarkovExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
   `;
 
   const maxProb = Math.max(0.01, ...MARKOV_ORDER.flatMap(a=> MARKOV_ORDER.map(b=> rowTotals[a]? counts[a][b]/rowTotals[a] : 0)));
@@ -14037,11 +14116,11 @@ function renderAdvComplexity(){
       <div class="stat-box"><div class="stat-label">Rata-rata RCA Unggulan</div><div class="stat-value" style="font-size:15px;">${latest.avgRca.toFixedID(2)}</div></div>
     </div>
     <div class="ss-section-title">Tren ECP Antar Tahun</div>
-    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvEcpTs">⬇ JPG</button><div class="chart-box" style="height:280px;"><canvas id="advEcpTsCanvas"></canvas></div></div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvEcpTs">${trx('downloadJpg')}</button><div class="chart-box" style="height:280px;"><canvas id="advEcpTsCanvas"></canvas></div></div>
     <div class="ss-section-title">RCA per Sektor</div>
     <div class="ss-controls" style="margin-bottom:10px;"><div class="ctrl-item"><label>Tahun</label><select id="advEcpYear"></select></div></div>
-    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvEcpRca">⬇ JPG</button><div class="chart-box" style="height:${Math.max(280, latest.sektor.length*24)}px;"><canvas id="advEcpRcaCanvas"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel ECP per Tahun</span><button class="dl-btn" id="advEcpExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvEcpRca">${trx('downloadJpg')}</button><div class="chart-box" style="height:${Math.max(280, latest.sektor.length*24)}px;"><canvas id="advEcpRcaCanvas"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel ECP per Tahun</span><button class="dl-btn" id="advEcpExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advEcpTable"></table></div>
   `;
 
@@ -14156,8 +14235,8 @@ function renderAdvResilience(){
         </div>
       </div>
     </div>
-    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvReri">⬇ JPG</button><div class="chart-box" style="height:320px;"><canvas id="advReriCanvas"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel RERI per Tahun</span><button class="dl-btn" id="advReriExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvReri">${trx('downloadJpg')}</button><div class="chart-box" style="height:320px;"><canvas id="advReriCanvas"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel RERI per Tahun</span><button class="dl-btn" id="advReriExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advReriTable"></table></div>
   `;
 
@@ -14292,8 +14371,8 @@ function renderAdvTrajectory(){
         </div>`).join('')}
     </div>
     <div class="ss-section-title">Peta Lintasan Tiap Sektor (SLQ Awal → SLQ ${latestYear})</div>
-    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvTraj">⬇ JPG</button><div class="chart-box" style="height:${Math.max(320, summary.length*26)}px;"><canvas id="advTrajCanvas"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Klasifikasi Lintasan Sektor</span><button class="dl-btn" id="advTrajExcelBtn" style="position:static;">⬇ Excel</button></div>
+    <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvTraj">${trx('downloadJpg')}</button><div class="chart-box" style="height:${Math.max(320, summary.length*26)}px;"><canvas id="advTrajCanvas"></canvas></div></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Klasifikasi Lintasan Sektor</span><button class="dl-btn" id="advTrajExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advTrajTable"></table></div>
   `;
 
@@ -14396,7 +14475,7 @@ function nkDestroyCharts(){
   nkCharts = {};
 }
 function nkChartBox(id, height, dlId){
-  return `<div class="chart-box-wrap">${dlId?`<button class="dl-btn" id="${dlId}" title="Unduh grafik sebagai JPG">⬇ JPG</button>`:''}<div class="chart-box" style="height:${height}px;"><canvas id="${id}"></canvas></div></div>`;
+  return `<div class="chart-box-wrap">${dlId?`<button class="dl-btn" id="${dlId}" title="${trx('downloadJpgTitle')}">${trx('downloadJpg')}</button>`:''}<div class="chart-box" style="height:${height}px;"><canvas id="${id}"></canvas></div></div>`;
 }
 function nkMakeChart(key, canvasId, config){
   const ctx = document.getElementById(canvasId);
@@ -14690,16 +14769,16 @@ function renderNakerView(){
   const introHtml = `<div class="ss-intro"><h2>Ketenagakerjaan (Naker)</h2><p>${introText}</p></div>`;
 
   if(nkLoadState==='idle'){
-    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>Memuat data…</div></section>`;
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div></section>`;
     loadNakerData();
     return;
   }
   if(nkLoadState==='loading'){
-    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>Memuat data…</div></section>`;
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div></section>`;
     return;
   }
   if(nkLoadState==='error'){
-    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">⚠ Gagal memuat data: ${escapeHtml(nkLoadError)}<br><br><a href="${NK_CSV_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">Buka sumber data →</a></div><button class="ss-mapping-apply" id="nkRetryBtn" style="margin-top:10px;">Coba Lagi</button></section>`;
+    main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">${trx('ssLoadError')}: ${escapeHtml(nkLoadError)}<br><br><a href="${NK_CSV_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">${trx('ssOpenSource')}</a></div><button class="ss-mapping-apply" id="nkRetryBtn" style="margin-top:10px;">Coba Lagi</button></section>`;
     const rb = document.getElementById('nkRetryBtn');
     if(rb) rb.onclick = ()=>{ nkLoadState = 'idle'; renderNakerView(); };
     return;
@@ -14911,7 +14990,7 @@ function renderNkStruktur(){
       <div>${nkLegendHtml(def, order, counts)}</div>
     </div>
     <div class="nk-caption">Sumbu vertikal berskala logaritmik. Sektor dengan TK = 0 tidak dapat dipetakan (IP tidak terdefinisi).</div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Struktur &amp; Kontribusi</span><button class="dl-btn" id="nkStrukExcel" style="position:static;">⬇ Excel</button></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Struktur &amp; Kontribusi</span><button class="dl-btn" id="nkStrukExcel" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="nkStrukTable"></table></div>`;
 
   document.getElementById('nkStrukTable').innerHTML = `<thead><tr><th>Sektor</th><th>Tipologi</th><th>TK (orang)</th><th>Pangsa TK</th><th>Pangsa PDRB</th><th>Selisih (pp)</th><th>IP</th><th>Pangsa TK Bali</th><th>Δ Pangsa TK${ch?` (${nkBase}→${nkYear})`:''}</th></tr></thead><tbody>${
@@ -15004,7 +15083,7 @@ function renderNkProduktivitas(){
     ${nkChartBox('nkProdRasio', Math.max(320, rowsR.length*26), 'nkDlProdRasio')}
     <div class="ss-section-title">Tren Produktivitas Total ${D.years[0]}–${D.years[D.years.length-1]}</div>
     ${nkChartBox('nkProdTrend', 280, 'nkDlProdTrend')}
-    <div class="table-head-row"><span class="table-head-label">Tabel Produktivitas</span><button class="dl-btn" id="nkProdExcel" style="position:static;">⬇ Excel</button></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Produktivitas</span><button class="dl-btn" id="nkProdExcel" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="nkProdTable"></table></div>
     ${ch && ch.rows.some(r=>r.flag) ? nkFlagNote() : ''}`;
 
@@ -15128,7 +15207,7 @@ function renderNkSpesialisasi(){
     <div class="ss-section-title">Peta Panas LQ Tenaga Kerja ${D.years[0]}–${D.years[D.years.length-1]}</div>
     <div class="ss-table-wrap ss-table-scroll" style="max-height:none;"><table class="ss-table nk-heat" id="nkLqHeat"></table></div>
     <div class="nk-caption">Hijau = LQ ≥ 1 (basis), merah = LQ &lt; 1. Kolom tahun terpilih (${nkYear}) ditebalkan. “—” = TK sektor bernilai 0 pada tahun tersebut.</div>
-    <div class="table-head-row"><span class="table-head-label">Tabel LQ (${nkYear})</span><button class="dl-btn" id="nkLqExcel" style="position:static;">⬇ Excel</button></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel LQ (${nkYear})</span><button class="dl-btn" id="nkLqExcel" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="nkLqTable"></table></div>`;
 
   document.getElementById('nkLqTable').innerHTML = `<thead><tr><th>Sektor</th><th>Klasifikasi</th><th>LQ TK</th><th>LQ PDRB</th><th>Pangsa TK Klungkung</th><th>Pangsa TK Bali</th><th>Δ LQ TK${ch?` (${nkBase}→${nkYear})`:''}</th></tr></thead><tbody>${
@@ -15224,7 +15303,7 @@ function renderNkElastisitas(){
       <div>${nkLegendHtml(def, order, counts)}</div>
     </div>
     <div class="nk-caption" id="nkElasOutside"></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Pertumbuhan &amp; Elastisitas</span><button class="dl-btn" id="nkElasExcel" style="position:static;">⬇ Excel</button></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Pertumbuhan &amp; Elastisitas</span><button class="dl-btn" id="nkElasExcel" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="nkElasTable"></table></div>
     ${rows.some(r=>r.flag)?nkFlagNote():''}`;
 
@@ -15438,7 +15517,7 @@ function renderNkIlor(){
     <div class="nk-caption">ILOR sektor sama dengan kemiringan garis dari titik asal (0,0) ke titik sektor: kuadran kanan-atas dan kiri-bawah menghasilkan ILOR positif, kuadran kiri-atas dan kanan-bawah menghasilkan ILOR negatif.</div>
     <div class="nk-caption" id="nkIlorQuadOutside"></div>
     ${nkInsightBox(insights)}
-    <div class="table-head-row"><span class="table-head-label">Tabel ILOR per Lapangan Usaha (${nkBase}→${nkYear})</span><button class="dl-btn" id="nkIlorExcel" style="position:static;">⬇ Excel</button></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel ILOR per Lapangan Usaha (${nkBase}→${nkYear})</span><button class="dl-btn" id="nkIlorExcel" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="nkIlorTable"></table></div>
     ${nkIlorFootnotes(rows.concat([t]))}
     <div class="ss-section-title">Tren ILOR per Tahun (dibanding tahun sebelumnya)</div>
@@ -15450,7 +15529,7 @@ function renderNkIlor(){
       </div></div></div>
     ${nkChartBox('nkIlorTren', 300, 'nkDlIlorTren')}
     <div class="nk-caption" id="nkIlorTrenNote"></div>
-    <div class="table-head-row"><span class="table-head-label">ILOR Seluruh Sektor per Tahun (dibanding tahun sebelumnya)</span><button class="dl-btn" id="nkIlorYrExcel" style="position:static;">⬇ Excel</button></div>
+    <div class="table-head-row"><span class="table-head-label">ILOR Seluruh Sektor per Tahun (dibanding tahun sebelumnya)</span><button class="dl-btn" id="nkIlorYrExcel" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="nkIlorYrTable"></table></div>
     ${nkBase!==prevYear ? `<div class="nk-caption">Baris tahun ${nkYear} disorot. Angkanya membandingkan ${nkYear} dengan tahun sebelumnya, sehingga dapat berbeda dari ringkasan di atas yang memakai tahun pembanding ${nkBase}.</div>` : `<div class="nk-caption">Baris tahun ${nkYear} disorot.</div>`}
     ${nkIlorFootnotes(yr.map(x=>x.t))}`;
@@ -15658,7 +15737,7 @@ function renderNkShiftShare(){
       ${nkChartBox('nkSsQuad', 380, 'nkDlSsQuad')}
       <div>${nkLegendHtml(def, order, counts)}</div>
     </div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Shift-Share Tenaga Kerja</span><button class="dl-btn" id="nkSsExcel" style="position:static;">⬇ Excel</button></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Shift-Share Tenaga Kerja</span><button class="dl-btn" id="nkSsExcel" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="nkSsTable"></table></div>
     ${rows.some(r=>r.flag)?nkFlagNote():''}`;
 
@@ -15765,7 +15844,7 @@ function renderNkDekomposisi(){
     <div class="ss-section-title">Kontribusi per Lapangan Usaha</div>
     ${nkChartBox('nkDecBar', Math.max(340, rows.length*32), 'nkDlDecBar')}
     ${nkInsightBox(insights)}
-    <div class="table-head-row"><span class="table-head-label">Tabel Dekomposisi Produktivitas</span><button class="dl-btn" id="nkDecExcel" style="position:static;">⬇ Excel</button></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Dekomposisi Produktivitas</span><button class="dl-btn" id="nkDecExcel" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="nkDecTable"></table></div>`;
 
   document.getElementById('nkDecTable').innerHTML = `<thead><tr><th>Sektor</th><th>Penggerak</th><th>Pangsa TK ${nkBase}</th><th>Pangsa TK ${nkYear}</th><th>Δ Pangsa (pp)</th><th>Prod. ${nkBase} (jt)</th><th>Prod. ${nkYear} (jt)</th><th>Within</th><th>Between</th><th>Interaksi</th><th>Total</th></tr></thead><tbody>${
@@ -15881,7 +15960,7 @@ function renderNkTren(){
     <div class="ss-section-title" id="nkTrenTitle"></div>
     ${nkChartBox('nkTrenCanvas', 380, 'nkDlTren')}
     <div class="nk-caption">Pita berwarna menandai tahun terpilih (${nkYear}). Klik nama seri pada legenda untuk mengganti warnanya. Maksimal ${NK_TREN_MAX} sektor ditampilkan sekaligus.</div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Tren</span><button class="dl-btn" id="nkTrenExcel" style="position:static;">⬇ Excel</button></div>
+    <div class="table-head-row"><span class="table-head-label">Tabel Tren</span><button class="dl-btn" id="nkTrenExcel" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table nk-heat" id="nkTrenTable"></table></div>`;
 
   const updateHead = ()=>{
@@ -16577,27 +16656,27 @@ const IPH = (function(){
       '<div class="iph-kpis" id="iphKpis"><div class="state-msg" style="margin:20px 0"><span class="spinner"></span>Memuat data IPH…</div></div>'+
       
       '<div class="iph-sec-head"><div><div class="ss-section-title">Tren IPH mingguan — Klungkung vs Bali</div><p class="iph-desc" id="iphSubIdx"></p></div>'+
-        '<div class="iph-tools"><button type="button" class="dl-btn" data-jpg="idx">⬇ JPG</button></div></div>'+
+        '<div class="iph-tools"><button type="button" class="dl-btn" data-jpg="idx">'+trx('downloadJpg')+'</button></div></div>'+
       box('iphChIdx', 300, 'Grafik indeks IPH mingguan Klungkung dan Bali')+
       
       '<div class="iph-sec-head"><div><div class="ss-section-title">Tabel data mingguan</div><p class="iph-desc" id="iphSubTbl"></p></div>'+
-        '<div class="iph-tools"><input class="iph-search" id="iphTblSearch" type="search" placeholder="Cari minggu / komoditas…" aria-label="Cari di tabel"><button type="button" class="dl-btn" id="iphBtnXlsx">⬇ Excel</button></div></div>'+
+        '<div class="iph-tools"><input class="iph-search" id="iphTblSearch" type="search" placeholder="Cari minggu / komoditas…" aria-label="Cari di tabel"><button type="button" class="dl-btn" id="iphBtnXlsx">'+trx('downloadExcel')+'</button></div></div>'+
       '<div class="ss-table-wrap"><div class="ss-table-scroll" style="max-height:520px;"><table class="ss-table iph-table" id="iphTbl"></table></div></div>'+
 
       '<div class="iph-sec-head"><div><div class="ss-section-title">Tren Growth IPH mingguan — Klungkung vs Bali</div><p class="iph-desc" id="iphSubMain"></p></div>'+
-        '<div class="iph-tools"><button type="button" class="dl-btn" data-jpg="main">⬇ JPG</button></div></div>'+
+        '<div class="iph-tools"><button type="button" class="dl-btn" data-jpg="main">'+trx('downloadJpg')+'</button></div></div>'+
       box('iphChMain', 360, 'Grafik growth IPH mingguan Klungkung dan Bali')+
       
       '<div class="iph-sec-head"><div><div class="ss-section-title">Selisih IPH Klungkung terhadap Bali</div><p class="iph-desc">Selisih indeks IPH mingguan Klungkung dikurangi Bali, dalam poin.</p></div>'+
-        '<div class="iph-tools"><button type="button" class="dl-btn" data-jpg="gapIdx">⬇ JPG</button></div></div>'+
+        '<div class="iph-tools"><button type="button" class="dl-btn" data-jpg="gapIdx">'+trx('downloadJpg')+'</button></div></div>'+
       box('iphChGapIdx', 190, 'Grafik selisih indeks IPH Klungkung dan Bali')+'<div class="iph-swatch" id="iphGapIdxLegend"></div>'+
       
       '<div class="iph-sec-head"><div><div class="ss-section-title">Selisih Growth IPH Klungkung terhadap Bali</div><p class="iph-desc">Selisih growth IPH mingguan Klungkung dikurangi Bali, dalam poin persentase.</p></div>'+
-        '<div class="iph-tools"><button type="button" class="dl-btn" data-jpg="gap">⬇ JPG</button></div></div>'+
+        '<div class="iph-tools"><button type="button" class="dl-btn" data-jpg="gap">'+trx('downloadJpg')+'</button></div></div>'+
       box('iphChGap', 190, 'Grafik selisih growth IPH Klungkung dan Bali')+'<div class="iph-swatch" id="iphGapLegend"></div>'+
       
       '<div class="iph-sec-head"><div><div class="ss-section-title">Komoditas penyumbang utama</div><p class="iph-desc" id="iphSubKom"></p></div>'+
-        '<div class="iph-tools">'+regionBtns+'<button type="button" class="dl-btn" data-jpg="kom">⬇ JPG</button></div></div>'+
+        '<div class="iph-tools">'+regionBtns+'<button type="button" class="dl-btn" data-jpg="kom">'+trx('downloadJpg')+'</button></div></div>'+
       box('iphChKom', 340, 'Grafik komoditas penyumbang utama IPH')+
       
       '<details class="ss-method-note"><summary>Catatan metode &amp; kualitas data</summary><ul id="iphNotesList"></ul></details>'+
