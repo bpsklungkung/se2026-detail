@@ -2673,6 +2673,55 @@ const I18N = {
     scChartTs:'Tren SCI: Klungkung vs Bali', scChartSektor:'Perubahan Share per Sektor', scTable:'Tabel Perubahan Struktur Sektoral',
     axSci:'Structural Change Index (%)', axShareChange:'Perubahan pangsa (pp)',
     thShareK:'Share K', thShareB:'Share Bali', thDeltaShareK:'Δ Share K', thDeltaShareB:'Δ Share Bali', thGapSektoral:'Gap Sektoral',
+    klQ1t:'Maju & Tumbuh Pesat', klQ1d:'Pangsa sektor di Klungkung lebih besar dari Bali, dan tumbuh lebih cepat dari Bali pada tahun yang sama — sektor unggulan yang momentumnya masih menguat.',
+    klQ2t:'Maju tapi Tertekan', klQ2d:'Pangsa sektor di Klungkung lebih besar dari Bali, tetapi pertumbuhannya lebih lambat dari Bali — sektor mapan yang mulai kehilangan momentum.',
+    klQ3t:'Potensial/Berkembang', klQ3d:'Pangsa sektor di Klungkung masih lebih kecil dari Bali, namun tumbuh lebih cepat dari Bali — sektor berkembang dengan potensi menyusul.',
+    klQ4t:'Relatif Tertinggal', klQ4d:'Pangsa sektor di Klungkung lebih kecil dari Bali dan pertumbuhannya juga lebih lambat — bukan sektor basis maupun sektor berkembang.',
+    klApaItu:'Tipologi Klassen memetakan tiap sektor ke empat kuadran dengan membandingkan Klungkung terhadap Bali pada dua sisi sekaligus: seberapa besar pangsa sektor itu (dibanding Bali) dan seberapa cepat sektor itu tumbuh (dibanding Bali), pada tahun yang sama.',
+    klFormula1:'Share Gap (pp) = Share Sektorₖ − Share Sektor_Bali (tahun t)', klFormula2:'Growth Gap (pp) = Pertumbuhan Sektorₖ − Pertumbuhan Sektor_Bali (t vs t−1)',
+    klCara1:'<b>Share Gap positif</b> = pangsa sektor itu di Klungkung lebih besar dari Bali.',
+    klCara2:'<b>Growth Gap positif</b> = sektor itu tumbuh lebih cepat di Klungkung dibanding Bali tahun itu.',
+    klCara3:'Kombinasi kedua tanda ini membentuk empat kuadran klasik: maju &amp; cepat, maju tapi tertekan, potensial/berkembang, dan relatif tertinggal.',
+    klSektorWord:'sektor', klMissingNote:'sektor tidak dapat diklasifikasikan pada {y} karena belum ada data tahun sebelumnya untuk menghitung laju pertumbuhan.',
+    klTable:'Tabel Tipologi Klassen', klBelumAda:'Belum ada data', klKuadran:'Kuadran',
+    thShareKlungkung:'Share Klungkung', thShareBali:'Share Bali', thShareGap:'Share Gap', thGrowthKlungkung:'Growth Klungkung', thGrowthBaliFull:'Growth Bali', thGrowthGap:'Growth Gap',
+    axShareGapBali:'Share Gap thd Bali (pp)', axGrowthGapBali:'Growth Gap thd Bali (pp)',
+    krSangatMirip:'Sangat Mirip', krMirip:'Mirip', krBerbeda:'Berbeda Struktural',
+    krApaItu:'Krugman Specialization Index mengukur derajat perbedaan struktur ekonomi antar wilayah — konsep klasik dari Paul Krugman untuk melihat seberapa terspesialisasi suatu wilayah dibanding wilayah pembanding.',
+    krFormula1:'Krugman Index = Σ |Shareᵢ,Klungkung − Shareᵢ,Bali|', krFormula2:'Krugman Index (Half) = ½ × Krugman Index',
+    krCaraBaca:'Nilai mendekati <b>0</b> = struktur ekonomi Klungkung sangat mirip Bali (tidak terspesialisasi khusus). Nilai mendekati <b>1</b> = struktur sangat berbeda/terspesialisasi. Secara matematis setara dengan SSI (Krugman Half = 1 − SSI), hanya arah tafsirnya dibalik: di sini makin tinggi = makin berbeda.',
+    krChartTrend:'Tren Indeks Krugman Antar Tahun', krTable:'Tabel Indeks Krugman per Tahun', axKrugmanHalf:'Indeks Krugman (versi setengah)',
+    ssiSangatMirip:'Sangat Mirip', ssiCukupMirip:'Cukup Mirip', ssiBerbeda:'Berbeda',
+    ssiApaItu:'Structural Similarity Index (SSI) mengukur seberapa mirip struktur ekonomi Klungkung dengan Bali — bukan soal siapa "lebih maju", tapi seberapa mirip komposisi sektoralnya.',
+    ssiFormula:'SSI = 1 − ½ × Σ |Shareᵢ,Klungkung − Shareᵢ,Bali|',
+    ssiCaption:'Identik dengan REI di tab Diversitas, hanya sumbu pembandingnya diganti dari "antar tahun" menjadi "antar wilayah".',
+    ssiCaraBaca:'SSI (%) mendekati <b>100%</b> = struktur ekonomi Klungkung nyaris identik dengan Bali. Mendekati <b>0%</b> = struktur sangat berbeda — Klungkung punya "wajah ekonomi" sendiri, bukan sekadar mengikuti pola Bali. Ini indikator kemiripan struktural saja, bukan pernyataan sebab-akibat atau ketergantungan.',
+    ssiTotalGap:'Total Absolute Gap', ssiChartTs:'Tren Kemiripan Struktur Antar Tahun', ssiChartComp:'Perbandingan Komposisi Sektor', ssiTable:'Tabel SSI per Tahun',
+    axSsiPct:'Structural Similarity Index (%)', axShareSektor:'Pangsa sektor (%)',
+    gapApaItu:'Kalau SSI cuma kasih satu angka ringkasan kemiripan struktur, analisis ini membedah <b>sektor mana</b> yang paling menyumbang perbedaan struktur Klungkung vs Bali di tahun tertentu.',
+    gapFormula1:'Gap = |Shareᵢ,Klungkung − Shareᵢ,Bali|', gapFormula2:'Gap Contribution = Gapᵢ / Σ Gap',
+    gapCaraBaca:'Sektor dengan <b>Gap Contribution</b> terbesar (Rank 1) paling membuat struktur ekonomi Klungkung berbeda dari Bali — entah karena porsinya jauh lebih besar di Klungkung (basis kuat/unik) atau jauh lebih kecil (kurang berkembang dibanding Bali).',
+    gapChartTitle:'Kontribusi Sektor terhadap Kesenjangan Struktur', gapTable:'Tabel Kesenjangan Sektor',
+    axGapContrib:'Kontribusi terhadap gap (%)', thRank:'Rank', thKontribusi:'Kontribusi', thAbsGapFull:'Absolute Gap',
+    mkApaItu:'Rantai Markov melihat bagaimana sektor "berpindah kelas" dari tahun ke tahun berdasarkan status LQ-nya, lalu memperkirakan probabilitas perpindahan tersebut — mirip konsep mobilitas kelas sosial, tapi untuk sektor ekonomi.',
+    mkFormulaTitle:'🧮 Aturan Kelas &amp; Formula',
+    mkFormula1:'Kelas: Rendah (SLQ &lt; 0,75) · Menengah (0,75 ≤ SLQ &lt; 1) · Tinggi/Basis (SLQ ≥ 1)', mkFormula2:'P(i→j) = jumlah transisi kelas i ke kelas j / total transisi dari kelas i',
+    mkCara1:'Baris matriks = kelas <b>tahun sebelumnya</b>, kolom = kelas <b>tahun berjalan</b>. Angka di diagonal (Rendah→Rendah, dst.) menunjukkan seberapa stabil/persisten kelas suatu sektor. Angka tinggi di luar diagonal menandakan sektor sering naik/turun kelas.',
+    mkCara2:'<b>Mobility Rate</b> = persentase transisi yang BUKAN "Tetap" — makin tinggi, makin sering sektor berpindah status dari tahun ke tahun.',
+    mkTotalTransisi:'Total Transisi Diamati', mkMobilityRate:'Mobility Rate', mkSektorBerubah:'Sektor Berubah Kelas',
+    mkMatrixTitle:'Matriks Probabilitas Transisi', mkDariKe:'Dari \\ Ke', mkTotal:'Total',
+    mkMoversTitle:'Sektor yang Berubah Kelas di', mkExportTitle:'Ekspor Data Transisi Lengkap',
+    thKelasSebelum:'Kelas Sebelumnya', thKelasSekarang:'Kelas Sekarang', thTransisi:'Transisi', thKelas:'Kelas',
+    mkRendah:'Rendah', mkMenengah:'Menengah', mkTinggi:'Tinggi', mkTetap:'Tetap',
+    ecpApaItu:'Economic Complexity Proxy (ECP) — proksi sederhana dari konsep Economic Complexity Index (Hidalgo &amp; Hausmann) yang biasanya dipakai untuk data ekspor antarnegara, di sini diadaptasi untuk 17 sektor PDRB. Mengukur seberapa banyak &amp; seberapa kuat sektor "unggul" (RCA≥1) yang dimiliki Klungkung dibanding Bali.',
+    ecpFormula1:'RCA = (K Shareᵢ) / (B Shareᵢ)', ecpFormula1Note:'— identik dengan SLQ',
+    ecpFormula2:'D* (Diversifikasi) = jumlah sektor RCA≥1 / total sektor', ecpFormula3:'ECP = normalized(D* × rata-rata RCA sektor unggulan)',
+    ecpCaption:'ECP Normalized 0–100 dinormalisasi min-max lintas seluruh tahun yang tersedia (bukan skala absolut) — tahun dengan ECP=100 adalah tahun PALING kompleks dalam rentang data ini, bukan patokan mutlak. Ini bukan ECI perdagangan klasik.',
+    ecpCaraBaca:'ECP makin tinggi = Klungkung punya makin banyak sektor unggulan (RCA≥1) DAN sektor-sektor itu unggul secara meyakinkan (RCA jauh di atas 1) — tanda ekonomi yang lebih terdiversifikasi &amp; punya banyak kapabilitas sekaligus. ECP rendah = mengandalkan sedikit sektor saja, atau sektor unggulannya cuma sedikit di atas ambang RCA=1.',
+    ecpSektorUnggulan:'Sektor Unggulan (RCA≥1)', ecpAvgRca:'Rata-rata RCA Unggulan', ecpOf17:'dari 17',
+    ecpChartTs:'Tren ECP Antar Tahun', ecpChartRca:'RCA per Sektor', ecpTable:'Tabel ECP per Tahun',
+    axEcpNorm:'ECP ternormalisasi',
+    thSektorUnggulanShort:'Sektor Unggulan', thDiversifikasi:'Diversifikasi', thAvgRcaUnggulan:'Avg RCA Unggulan', thRawEcp:'Raw ECP', thEcpNorm:'ECP Normalized',
     definisi:'Definisi', noDefinition:'Belum ada deskripsi definisi untuk indikator ini.', cmpDefsTitle:'Definisi Indikator Terpilih',
     filterShowData:'Tampilkan Data', filterShowAll:'Tampilkan Semua', filterToggle:'semua/tidak',
     convTitle:'Konvergensi',
@@ -2807,6 +2856,55 @@ const I18N = {
     scChartTs:'SCI Trend: Klungkung vs Bali', scChartSektor:'Share Change per Sector', scTable:'Sectoral Structural Change Table',
     axSci:'Structural Change Index (%)', axShareChange:'Share change (pp)',
     thShareK:'Share K', thShareB:'Share Bali', thDeltaShareK:'Δ Share K', thDeltaShareB:'Δ Share Bali', thGapSektoral:'Sectoral Gap',
+    klQ1t:'Advanced & Fast-Growing', klQ1d:'Klungkung\'s share of this sector is larger than Bali\'s, and it grew faster than Bali in the same year — a leading sector whose momentum is still building.',
+    klQ2t:'Advanced but Slowing', klQ2d:'Klungkung\'s share of this sector is larger than Bali\'s, but its growth is slower than Bali\'s — an established sector starting to lose momentum.',
+    klQ3t:'Emerging/Developing', klQ3d:'Klungkung\'s share of this sector is still smaller than Bali\'s, but it grew faster than Bali — a developing sector with catch-up potential.',
+    klQ4t:'Relatively Lagging', klQ4d:'Klungkung\'s share of this sector is smaller than Bali\'s and its growth is also slower — neither a base sector nor a developing one.',
+    klApaItu:'The Klassen Typology maps each sector into four quadrants by comparing Klungkung to Bali on two dimensions at once: how large the sector\'s share is (vs. Bali) and how fast it grew (vs. Bali), in the same year.',
+    klFormula1:'Share Gap (pp) = Sectorₖ Share − Sector_Bali Share (year t)', klFormula2:'Growth Gap (pp) = Sectorₖ Growth − Sector_Bali Growth (t vs. t−1)',
+    klCara1:'<b>A positive Share Gap</b> = Klungkung\'s share of that sector is larger than Bali\'s.',
+    klCara2:'<b>A positive Growth Gap</b> = that sector grew faster in Klungkung than in Bali that year.',
+    klCara3:'The combination of both signs forms four classic quadrants: advanced &amp; fast, advanced but slowing, emerging/developing, and relatively lagging.',
+    klSektorWord:'sectors', klMissingNote:'sector(s) could not be classified for {y} because there is no prior-year data to compute the growth rate.',
+    klTable:'Klassen Typology Table', klBelumAda:'No data yet', klKuadran:'Quadrant',
+    thShareKlungkung:'Share Klungkung', thShareBali:'Share Bali', thShareGap:'Share Gap', thGrowthKlungkung:'Growth Klungkung', thGrowthBaliFull:'Growth Bali', thGrowthGap:'Growth Gap',
+    axShareGapBali:'Share Gap vs. Bali (pp)', axGrowthGapBali:'Growth Gap vs. Bali (pp)',
+    krSangatMirip:'Very Similar', krMirip:'Similar', krBerbeda:'Structurally Different',
+    krApaItu:'The Krugman Specialization Index measures the degree of economic structure difference between regions — Paul Krugman\'s classic concept for how specialized a region is compared to a reference region.',
+    krFormula1:'Krugman Index = Σ |Shareᵢ,Klungkung − Shareᵢ,Bali|', krFormula2:'Krugman Index (Half) = ½ × Krugman Index',
+    krCaraBaca:'A value close to <b>0</b> = Klungkung\'s economic structure is very similar to Bali\'s (not particularly specialized). A value close to <b>1</b> = the structure is very different/specialized. Mathematically equivalent to SSI (Krugman Half = 1 − SSI), just interpreted in reverse: here, higher = more different.',
+    krChartTrend:'Krugman Index Trend Over Time', krTable:'Krugman Index Table by Year', axKrugmanHalf:'Krugman Index (half version)',
+    ssiSangatMirip:'Very Similar', ssiCukupMirip:'Fairly Similar', ssiBerbeda:'Different',
+    ssiApaItu:'The Structural Similarity Index (SSI) measures how similar Klungkung\'s economic structure is to Bali\'s — not about which is "more advanced", but how similar the sectoral composition is.',
+    ssiFormula:'SSI = 1 − ½ × Σ |Shareᵢ,Klungkung − Shareᵢ,Bali|',
+    ssiCaption:'Identical to REI in the Diversity tab, just with the comparison axis switched from "across years" to "across regions".',
+    ssiCaraBaca:'SSI (%) close to <b>100%</b> = Klungkung\'s economic structure is nearly identical to Bali\'s. Close to <b>0%</b> = the structures are very different — Klungkung has its own "economic face" rather than simply following Bali\'s pattern. This is only a structural-similarity indicator, not a statement of causation or dependency.',
+    ssiTotalGap:'Total Absolute Gap', ssiChartTs:'Structural Similarity Trend Over Time', ssiChartComp:'Sector Composition Comparison', ssiTable:'SSI Table by Year',
+    axSsiPct:'Structural Similarity Index (%)', axShareSektor:'Sector share (%)',
+    gapApaItu:'While SSI gives just one summary number for structural similarity, this analysis breaks down <b>which sector</b> contributes most to the structural difference between Klungkung and Bali in a given year.',
+    gapFormula1:'Gap = |Shareᵢ,Klungkung − Shareᵢ,Bali|', gapFormula2:'Gap Contribution = Gapᵢ / Σ Gap',
+    gapCaraBaca:'The sector with the largest <b>Gap Contribution</b> (Rank 1) contributes most to making Klungkung\'s economic structure different from Bali\'s — either because its share is much larger in Klungkung (a strong/unique base) or much smaller (less developed than in Bali).',
+    gapChartTitle:'Sector Contribution to Structural Gap', gapTable:'Sector Gap Table',
+    axGapContrib:'Contribution to gap (%)', thRank:'Rank', thKontribusi:'Contribution', thAbsGapFull:'Absolute Gap',
+    mkApaItu:'A Markov chain looks at how sectors "change class" from year to year based on their LQ status, then estimates the probability of that transition — similar to social-mobility concepts, but for economic sectors.',
+    mkFormulaTitle:'🧮 Class Rules &amp; Formula',
+    mkFormula1:'Classes: Low (SLQ &lt; 0.75) · Medium (0.75 ≤ SLQ &lt; 1) · High/Base (SLQ ≥ 1)', mkFormula2:'P(i→j) = number of transitions from class i to class j / total transitions from class i',
+    mkCara1:'Matrix rows = class <b>the previous year</b>, columns = class <b>the current year</b>. Diagonal values (Low→Low, etc.) show how stable/persistent a sector\'s class is. High off-diagonal values indicate a sector frequently moves up or down a class.',
+    mkCara2:'<b>Mobility Rate</b> = the percentage of transitions that are NOT "Unchanged" — higher means sectors change status more often year to year.',
+    mkTotalTransisi:'Total Transitions Observed', mkMobilityRate:'Mobility Rate', mkSektorBerubah:'Sectors That Changed Class',
+    mkMatrixTitle:'Transition Probability Matrix', mkDariKe:'From \\ To', mkTotal:'Total',
+    mkMoversTitle:'Sectors That Changed Class in', mkExportTitle:'Export Full Transition Data',
+    thKelasSebelum:'Previous Class', thKelasSekarang:'Current Class', thTransisi:'Transition', thKelas:'Class',
+    mkRendah:'Low', mkMenengah:'Medium', mkTinggi:'High', mkTetap:'Unchanged',
+    ecpApaItu:'Economic Complexity Proxy (ECP) — a simplified proxy for the Economic Complexity Index concept (Hidalgo &amp; Hausmann), usually applied to cross-country export data, adapted here for 17 GRDP sectors. It measures how many &amp; how strongly Klungkung has "advantaged" sectors (RCA≥1) compared to Bali.',
+    ecpFormula1:'RCA = (K Shareᵢ) / (B Shareᵢ)', ecpFormula1Note:'— identical to SLQ',
+    ecpFormula2:'D* (Diversification) = number of sectors with RCA≥1 / total sectors', ecpFormula3:'ECP = normalized(D* × average RCA of advantaged sectors)',
+    ecpCaption:'ECP Normalized 0–100 is min-max normalized across all available years (not an absolute scale) — the year with ECP=100 is simply the MOST complex year within this data range, not an absolute benchmark. This is not the classic trade ECI.',
+    ecpCaraBaca:'A higher ECP = Klungkung has more advantaged sectors (RCA≥1) AND those sectors are convincingly ahead (RCA well above 1) — a sign of a more diversified economy with many capabilities at once. A low ECP = relying on just a few sectors, or advantaged sectors only barely above the RCA=1 threshold.',
+    ecpSektorUnggulan:'Advantaged Sectors (RCA≥1)', ecpAvgRca:'Average RCA (Advantaged)', ecpOf17:'of 17',
+    ecpChartTs:'ECP Trend Over Time', ecpChartRca:'RCA per Sector', ecpTable:'ECP Table by Year',
+    axEcpNorm:'Normalized ECP',
+    thSektorUnggulanShort:'Advantaged Sectors', thDiversifikasi:'Diversification', thAvgRcaUnggulan:'Avg RCA (Advantaged)', thRawEcp:'Raw ECP', thEcpNorm:'ECP Normalized',
     definisi:'Definition', noDefinition:'No definition is available for this indicator yet.', cmpDefsTitle:'Selected Indicator Definitions',
     filterShowData:'Show Data', filterShowAll:'Show All', filterToggle:'all/none',
     convTitle:'Convergence',
@@ -13797,10 +13895,10 @@ function advDetectKlassenCols(){
 }
 
 const KLASSEN_QUAD = {
-  1:{ title:'Maju & Tumbuh Pesat', desc:'Pangsa sektor di Klungkung lebih besar dari Bali, dan tumbuh lebih cepat dari Bali pada tahun yang sama — sektor unggulan yang momentumnya masih menguat.', color:'#3e5a2a' },
-  2:{ title:'Maju tapi Tertekan', desc:'Pangsa sektor di Klungkung lebih besar dari Bali, tetapi pertumbuhannya lebih lambat dari Bali — sektor mapan yang mulai kehilangan momentum.', get color(){ return THEME.c4; } },
-  3:{ title:'Potensial/Berkembang', desc:'Pangsa sektor di Klungkung masih lebih kecil dari Bali, namun tumbuh lebih cepat dari Bali — sektor berkembang dengan potensi menyusul.', get color(){ return THEME.c3; } },
-  4:{ title:'Relatif Tertinggal', desc:'Pangsa sektor di Klungkung lebih kecil dari Bali dan pertumbuhannya juga lebih lambat — bukan sektor basis maupun sektor berkembang.', get color(){ return THEME.accent; } }
+  1:{ get title(){ return trx('klQ1t'); }, get desc(){ return trx('klQ1d'); }, color:'#3e5a2a' },
+  2:{ get title(){ return trx('klQ2t'); }, get desc(){ return trx('klQ2d'); }, get color(){ return THEME.c4; } },
+  3:{ get title(){ return trx('klQ3t'); }, get desc(){ return trx('klQ3d'); }, get color(){ return THEME.c3; } },
+  4:{ get title(){ return trx('klQ4t'); }, get desc(){ return trx('klQ4d'); }, get color(){ return THEME.accent; } }
 };
 function klassenClassify(shareGap, growthGap){
   if(shareGap>=0 && growthGap>=0) return 1;
@@ -13848,7 +13946,7 @@ function renderAdvKlassen(){
   const bySektor = advBuildKlassenSeries();
   const years = [...new Set(Object.values(bySektor).flat().map(x=>x.tahun))].sort((a,b)=>a-b);
   const body = document.getElementById('advBody');
-  if(!years.length){ body.innerHTML = `<div class="state-msg">Tidak ada data valid — periksa struktur kolom sumber data.</div>`; return; }
+  if(!years.length){ body.innerHTML = `<div class="state-msg">${trx('scNoValid')}</div>`; return; }
   if(!advCompYear.klassen || !years.includes(advCompYear.klassen)) advCompYear.klassen = years[years.length-1];
   const year = advCompYear.klassen;
   const rowsAll = advKlassenRowsForYear(bySektor, year);
@@ -13860,23 +13958,23 @@ function renderAdvKlassen(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b class="mn-label">📖 Apa itu analisis ini</b> Tipologi Klassen memetakan tiap sektor ke empat kuadran dengan membandingkan Klungkung terhadap Bali pada dua sisi sekaligus: seberapa besar pangsa sektor itu (dibanding Bali) dan seberapa cepat sektor itu tumbuh (dibanding Bali), pada tahun yang sama.</div>
-      <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
+      <div><b class="mn-label">${trx('advApaIni')}</b> ${trx('klApaItu')}</div>
+      <div style="margin-top:8px"><b class="mn-label">${trx('divFormula')}</b></div>
       <ul class="formula-list">
-        <li>Share Gap (pp) = Share Sektorₖ − Share Sektor_Bali (tahun t)</li>
-        <li>Growth Gap (pp) = Pertumbuhan Sektorₖ − Pertumbuhan Sektor_Bali (t vs t−1)</li>
+        <li>${trx('klFormula1')}</li>
+        <li>${trx('klFormula2')}</li>
       </ul>
-      <div class="mn-row"><b class="mn-label">💡 Cara membaca angka</b><ul class="mn-points">
-        <li><b>Share Gap positif</b> = pangsa sektor itu di Klungkung lebih besar dari Bali.</li>
-        <li><b>Growth Gap positif</b> = sektor itu tumbuh lebih cepat di Klungkung dibanding Bali tahun itu.</li>
-        <li>Kombinasi kedua tanda ini membentuk empat kuadran klasik: maju &amp; cepat, maju tapi tertekan, potensial/berkembang, dan relatif tertinggal.</li>
+      <div class="mn-row"><b class="mn-label">${trx('advCaraBaca')}</b><ul class="mn-points">
+        <li>${trx('klCara1')}</li>
+        <li>${trx('klCara2')}</li>
+        <li>${trx('klCara3')}</li>
       </ul></div>
     </div>
 
-    <div class="ss-controls" style="margin-bottom:10px;"><div class="ctrl-item"><label>Tahun</label><select id="advKlassenYear"></select></div></div>
+    <div class="ss-controls" style="margin-bottom:10px;"><div class="ctrl-item"><label>${trx('lblTahun2')}</label><select id="advKlassenYear"></select></div></div>
 
     <div class="ss-kpi-grid">
-      ${[1,2,3,4].map(q=>`<div class="stat-box"><div class="stat-label">${escapeHtml(KLASSEN_QUAD[q].title)}</div><div class="stat-value" style="font-size:20px;color:${KLASSEN_QUAD[q].color};">${counts[q]}</div><div style="font-size:10.5px;color:var(--brown-soft);">sektor</div></div>`).join('')}
+      ${[1,2,3,4].map(q=>`<div class="stat-box"><div class="stat-label">${escapeHtml(KLASSEN_QUAD[q].title)}</div><div class="stat-value" style="font-size:20px;color:${KLASSEN_QUAD[q].color};">${counts[q]}</div><div style="font-size:10.5px;color:var(--brown-soft);">${trx('klSektorWord')}</div></div>`).join('')}
     </div>
 
     <div class="ss-quad-grid">
@@ -13890,9 +13988,9 @@ function renderAdvKlassen(){
         </div>
       </div>
     </div>
-    ${missing ? `<div class="nk-caption" style="margin-top:10px;">${missing} sektor tidak dapat diklasifikasikan pada ${year} karena belum ada data tahun sebelumnya untuk menghitung laju pertumbuhan.</div>` : ''}
+    ${missing ? `<div class="nk-caption" style="margin-top:10px;">${missing} ${trx('klMissingNote').replace('{y}', year)}</div>` : ''}
 
-    <div class="table-head-row" style="margin-top:18px;"><span class="table-head-label">Tabel Tipologi Klassen — ${year}</span><button class="dl-btn" id="advKlassenExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
+    <div class="table-head-row" style="margin-top:18px;"><span class="table-head-label">${trx('klTable')} — ${year}</span><button class="dl-btn" id="advKlassenExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advKlassenTable"></table></div>
   `;
 
@@ -13900,7 +13998,7 @@ function renderAdvKlassen(){
   years.forEach(y=> yearSel.innerHTML += `<option value="${y}" ${y===year?'selected':''}>${y}</option>`);
   yearSel.onchange = ()=>{ advCompYear.klassen = parseInt(yearSel.value); renderAdvKlassen(); };
 
-  document.getElementById('advKlassenTable').innerHTML = `<thead><tr><th>Sektor</th><th>Share Klungkung</th><th>Share Bali</th><th>Share Gap</th><th>Growth Klungkung</th><th>Growth Bali</th><th>Growth Gap</th><th>Kuadran</th></tr></thead><tbody>${
+  document.getElementById('advKlassenTable').innerHTML = `<thead><tr><th>${trx('thSektor')}</th><th>${trx('thShareKlungkung')}</th><th>${trx('thShareBali')}</th><th>${trx('thShareGap')}</th><th>${trx('thGrowthKlungkung')}</th><th>${trx('thGrowthBaliFull')}</th><th>${trx('thGrowthGap')}</th><th>${trx('klKuadran')}</th></tr></thead><tbody>${
     rowsAll.slice().sort((a,b)=>{
       const qa = a.quad||99, qb = b.quad||99;
       if(qa!==qb) return qa-qb;
@@ -13914,7 +14012,7 @@ function renderAdvKlassen(){
         `<td>${r.riK==null?'-':(r.riK*100).toFixedID(2)+'%'}</td>`+
         `<td>${r.riB==null?'-':(r.riB*100).toFixedID(2)+'%'}</td>`+
         `<td>${r.growthGap==null?'-':(r.growthGap*100>=0?'+':'')+(r.growthGap*100).toFixedID(2)+' pp'}</td>`+
-        `<td>${q?`<span style="color:${q.color};font-weight:700;">${escapeHtml(q.title)}</span>`:'<span style="color:var(--brown-soft);">Belum ada data</span>'}</td></tr>`;
+        `<td>${q?`<span style="color:${q.color};font-weight:700;">${escapeHtml(q.title)}</span>`:`<span style="color:var(--brown-soft);">${trx('klBelumAda')}</span>`}</td></tr>`;
     }).join('')
   }</tbody>`;
 
@@ -13934,8 +14032,8 @@ function renderAdvKlassen(){
         tooltip:{ callbacks:{ label:item=> `${item.raw.label}: Share Gap=${item.raw.x>=0?'+':''}${fmtNum(item.raw.x)}pp, Growth Gap=${item.raw.y>=0?'+':''}${fmtNum(item.raw.y)}pp` } }
       },
       scales:{
-        x:{ min:-padX, max:padX, grid:{color:THEME.light}, title:{display:true, text:'Share Gap thd Bali (pp)', color:THEME.mid, font:{family:'Inter', size:11}}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10} } },
-        y:{ min:-padY, max:padY, grid:{color:THEME.light}, title:{display:true, text:'Growth Gap thd Bali (pp)', color:THEME.mid, font:{family:'Inter', size:11}}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10} } }
+        x:{ min:-padX, max:padX, grid:{color:THEME.light}, title:{display:true, text:trx('axShareGapBali'), color:THEME.mid, font:{family:'Inter', size:11}}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10} } },
+        y:{ min:-padY, max:padY, grid:{color:THEME.light}, title:{display:true, text:trx('axGrowthGapBali'), color:THEME.mid, font:{family:'Inter', size:11}}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10} } }
       }
     },
     plugins:[ssCrosshairPlugin]
@@ -13943,8 +14041,8 @@ function renderAdvKlassen(){
 
   document.getElementById('dlAdvKlassen').onclick = ()=> triggerJPGDownload(advCharts.klassen, `tipologi_klassen_${year}`);
   document.getElementById('advKlassenExcelBtn').onclick = async ()=>{
-    await exportStyledExcel(`tipologi_klassen_${year}`, 'Tipologi Klassen', ['Sektor','Share Klungkung (%)','Share Bali (%)','Share Gap (pp)','Growth Klungkung (%)','Growth Bali (%)','Growth Gap (pp)','Kuadran'],
-      rowsAll.map(r=>[r.sektor, isNaN(r.shareK)?null:r.shareK*100, isNaN(r.shareB)?null:r.shareB*100, r.shareGap==null?null:r.shareGap*100, r.riK==null?null:r.riK*100, r.riB==null?null:r.riB*100, r.growthGap==null?null:r.growthGap*100, r.quad?KLASSEN_QUAD[r.quad].title:'Belum ada data']));
+    await exportStyledExcel(`tipologi_klassen_${year}`, trx('klTable'), [trx('thSektor'),trx('thShareKlungkung')+' (%)',trx('thShareBali')+' (%)',trx('thShareGap')+' (pp)',trx('thGrowthKlungkung')+' (%)',trx('thGrowthBaliFull')+' (%)',trx('thGrowthGap')+' (pp)',trx('klKuadran')],
+      rowsAll.map(r=>[r.sektor, isNaN(r.shareK)?null:r.shareK*100, isNaN(r.shareB)?null:r.shareB*100, r.shareGap==null?null:r.shareGap*100, r.riK==null?null:r.riK*100, r.riB==null?null:r.riB*100, r.growthGap==null?null:r.growthGap*100, r.quad?KLASSEN_QUAD[r.quad].title:trx('klBelumAda')]));
   };
 }
 
@@ -13975,9 +14073,9 @@ function advBuildKrugmanSeries(){
   return rows;
 }
 function krugmanBadge(status){
-  if(/very similar/i.test(status)) return {label:'Sangat Mirip', color:'#3e5a2a'};
-  if(/similar/i.test(status)) return {label:'Mirip', color:THEME.c3};
-  if(/different/i.test(status)) return {label:'Berbeda Struktural', color:THEME.accent};
+  if(/very similar/i.test(status)) return {label:trx('krSangatMirip'), color:'#3e5a2a'};
+  if(/similar/i.test(status)) return {label:trx('krMirip'), color:THEME.c3};
+  if(/different/i.test(status)) return {label:trx('krBerbeda'), color:THEME.accent};
   return {label:status||'-', color:THEME.mid};
 }
 function renderAdvKrugman(){
@@ -13991,26 +14089,26 @@ function renderAdvKrugman(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b class="mn-label">📖 Apa itu indeks ini</b> Krugman Specialization Index mengukur derajat perbedaan struktur ekonomi antar wilayah — konsep klasik dari Paul Krugman untuk melihat seberapa terspesialisasi suatu wilayah dibanding wilayah pembanding.</div>
-      <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
+      <div><b class="mn-label">${trx('advApaIni')}</b> ${trx('krApaItu')}</div>
+      <div style="margin-top:8px"><b class="mn-label">${trx('divFormula')}</b></div>
       <ul class="formula-list">
-        <li>Krugman Index = Σ |Shareᵢ,Klungkung − Shareᵢ,Bali|</li>
-        <li>Krugman Index (Half) = ½ × Krugman Index</li>
+        <li>${trx('krFormula1')}</li>
+        <li>${trx('krFormula2')}</li>
       </ul>
-      <div style="margin-top:8px"><b class="mn-label">💡 Cara membaca angka</b> Nilai mendekati <b>0</b> = struktur ekonomi Klungkung sangat mirip Bali (tidak terspesialisasi khusus). Nilai mendekati <b>1</b> = struktur sangat berbeda/terspesialisasi. Secara matematis setara dengan SSI (Krugman Half = 1 − SSI), hanya arah tafsirnya dibalik: di sini makin tinggi = makin berbeda.</div>
+      <div style="margin-top:8px"><b class="mn-label">${trx('advCaraBaca')}</b> ${trx('krCaraBaca')}</div>
     </div>
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('yearlyLatestYear')}</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
       <div class="stat-box"><div class="stat-label">Krugman Index (Half)</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${latest.half.toFixedID(3)}</div></div>
-      <div class="stat-box"><div class="stat-label">Status</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${escapeHtml(badge.label)}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('thStatus')}</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${escapeHtml(badge.label)}</div></div>
     </div>
-    <div class="ss-section-title">Tren Indeks Krugman Antar Tahun</div>
+    <div class="ss-section-title">${trx('krChartTrend')}</div>
     <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvKrugman">${trx('downloadJpg')}</button><div class="chart-box" style="height:280px;"><canvas id="advKrugmanCanvas"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Indeks Krugman per Tahun</span><button class="dl-btn" id="advKrugmanExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
+    <div class="table-head-row"><span class="table-head-label">${trx('krTable')}</span><button class="dl-btn" id="advKrugmanExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advKrugmanTable"></table></div>
   `;
 
-  document.getElementById('advKrugmanTable').innerHTML = `<thead><tr><th>Tahun</th><th>Sum Absolute Share Gap</th><th>Krugman Index (Half)</th><th>Status</th></tr></thead><tbody>${
+  document.getElementById('advKrugmanTable').innerHTML = `<thead><tr><th>${trx('thTahun2')}</th><th>Sum Absolute Share Gap</th><th>Krugman Index (Half)</th><th>${trx('thStatus')}</th></tr></thead><tbody>${
     series.map(s=>{ const b=krugmanBadge(s.status); return `<tr><td>${s.tahun}</td><td>${s.sumGap.toFixedID(4)}</td><td>${s.half.toFixedID(4)}</td><td><span class="ss-badge-quad" style="background:${b.color}">${escapeHtml(b.label)}</span></td></tr>`; }).join('')
   }</tbody>`;
 
@@ -14023,12 +14121,12 @@ function renderAdvKrugman(){
     ]},
     options:{ responsive:true, maintainAspectRatio:false, interaction:{intersect:false, mode:'index'},
       plugins:{legend:{display:false}},
-      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle('Indeks Krugman (versi setengah)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
+      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle(trx('axKrugmanHalf')), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
   });
 
   document.getElementById('dlAdvKrugman').onclick = ()=> triggerJPGDownload(advCharts.krugman, `krugman_index_tren`);
   document.getElementById('advKrugmanExcelBtn').onclick = async ()=>{
-    await exportStyledExcel('krugman_index', 'Krugman', ['Tahun','Sum Absolute Share Gap','Krugman Index (Half)','Status'], series.map(s=>[s.tahun,s.sumGap,s.half,s.status]));
+    await exportStyledExcel('krugman_index', 'Krugman', [trx('thTahun2'),'Sum Absolute Share Gap','Krugman Index (Half)',trx('thStatus')], series.map(s=>[s.tahun,s.sumGap,s.half,s.status]));
   };
 }
 
@@ -14066,16 +14164,16 @@ function advBuildSimilaritySeries(){
   return rows;
 }
 function ssiBadge(pct){
-  if(pct>=85) return {label:'Sangat Mirip', color:'#3e5a2a'};
-  if(pct>=70) return {label:'Cukup Mirip', color:THEME.c3};
-  return {label:'Berbeda', color:THEME.accent};
+  if(pct>=85) return {label:trx('ssiSangatMirip'), color:'#3e5a2a'};
+  if(pct>=70) return {label:trx('ssiCukupMirip'), color:THEME.c3};
+  return {label:trx('ssiBerbeda'), color:THEME.accent};
 }
 function renderAdvSimilarity(){
   if(!advEnsureLoaded('similarity')) return;
   if(!advMap.similarity) advDetectSimilarityCols();
   const series = advBuildSimilaritySeries();
   const body = document.getElementById('advBody');
-  if(!series.length){ body.innerHTML = `<div class="state-msg">Tidak ada data valid — periksa struktur kolom sumber data.</div>`; return; }
+  if(!series.length){ body.innerHTML = `<div class="state-msg">${trx('scNoValid')}</div>`; return; }
 
   if(!advCompYear.similarity || !series.find(s=>s.tahun===advCompYear.similarity)) advCompYear.similarity = series[series.length-1].tahun;
   const latest = series[series.length-1];
@@ -14083,23 +14181,23 @@ function renderAdvSimilarity(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b class="mn-label">📖 Apa itu indeks ini</b> Structural Similarity Index (SSI) mengukur seberapa mirip struktur ekonomi Klungkung dengan Bali — bukan soal siapa "lebih maju", tapi seberapa mirip komposisi sektoralnya.</div>
-      <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
-      <ul class="formula-list"><li>SSI = 1 − ½ × Σ |Shareᵢ,Klungkung − Shareᵢ,Bali|</li></ul>
-      <div class="formula-caption">Identik dengan REI di tab Diversitas, hanya sumbu pembandingnya diganti dari "antar tahun" menjadi "antar wilayah".</div>
-      <div style="margin-top:8px"><b class="mn-label">💡 Cara membaca angka</b> SSI (%) mendekati <b>100%</b> = struktur ekonomi Klungkung nyaris identik dengan Bali. Mendekati <b>0%</b> = struktur sangat berbeda — Klungkung punya "wajah ekonomi" sendiri, bukan sekadar mengikuti pola Bali. Ini indikator kemiripan struktural saja, bukan pernyataan sebab-akibat atau ketergantungan.</div>
+      <div><b class="mn-label">${trx('advApaIni')}</b> ${trx('ssiApaItu')}</div>
+      <div style="margin-top:8px"><b class="mn-label">${trx('divFormula')}</b></div>
+      <ul class="formula-list"><li>${trx('ssiFormula')}</li></ul>
+      <div class="formula-caption">${trx('ssiCaption')}</div>
+      <div style="margin-top:8px"><b class="mn-label">${trx('advCaraBaca')}</b> ${trx('ssiCaraBaca')}</div>
     </div>
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('yearlyLatestYear')}</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
       <div class="stat-box"><div class="stat-label">SSI</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${latest.ssiPct.toFixedID(1)}% · ${badge.label}</div></div>
-      <div class="stat-box"><div class="stat-label">Total Absolute Gap</div><div class="stat-value" style="font-size:15px;">${latest.totalGap.toFixedID(3)}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('ssiTotalGap')}</div><div class="stat-value" style="font-size:15px;">${latest.totalGap.toFixedID(3)}</div></div>
     </div>
-    <div class="ss-section-title">Tren Kemiripan Struktur Antar Tahun</div>
+    <div class="ss-section-title">${trx('ssiChartTs')}</div>
     <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvSimTs">${trx('downloadJpg')}</button><div class="chart-box" style="height:280px;"><canvas id="advSimTsCanvas"></canvas></div></div>
-    <div class="ss-section-title">Perbandingan Komposisi Sektor</div>
-    <div class="ss-controls" style="margin-bottom:10px;"><div class="ctrl-item"><label>Tahun</label><select id="advSimYear"></select></div></div>
+    <div class="ss-section-title">${trx('ssiChartComp')}</div>
+    <div class="ss-controls" style="margin-bottom:10px;"><div class="ctrl-item"><label>${trx('lblTahun2')}</label><select id="advSimYear"></select></div></div>
     <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvSimComp">${trx('downloadJpg')}</button><div class="chart-box" style="height:${Math.max(280,Object.keys(latest.kShares).length*24)}px;"><canvas id="advSimCompCanvas"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel SSI per Tahun</span><button class="dl-btn" id="advSimExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
+    <div class="table-head-row"><span class="table-head-label">${trx('ssiTable')}</span><button class="dl-btn" id="advSimExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advSimTable"></table></div>
   `;
 
@@ -14107,7 +14205,7 @@ function renderAdvSimilarity(){
   series.forEach(s=> yearSel.innerHTML += `<option value="${s.tahun}" ${s.tahun===advCompYear.similarity?'selected':''}>${s.tahun}</option>`);
   yearSel.onchange = ()=>{ advCompYear.similarity = parseInt(yearSel.value); renderAdvSimCompChart(series.find(s=>s.tahun===advCompYear.similarity)); };
 
-  document.getElementById('advSimTable').innerHTML = `<thead><tr><th>Tahun</th><th>Total Absolute Gap</th><th>SSI</th><th>SSI (%)</th><th>Klasifikasi</th></tr></thead><tbody>${
+  document.getElementById('advSimTable').innerHTML = `<thead><tr><th>${trx('thTahun2')}</th><th>Total Absolute Gap</th><th>SSI</th><th>SSI (%)</th><th>${trx('thKlasifikasi')}</th></tr></thead><tbody>${
     series.map(s=>{ const b=ssiBadge(s.ssiPct); return `<tr><td>${s.tahun}</td><td>${s.totalGap.toFixedID(3)}</td><td>${s.ssi.toFixedID(3)}</td><td>${s.ssiPct.toFixedID(1)}%</td><td><span class="ss-badge-quad" style="background:${b.color}">${b.label}</span></td></tr>`; }).join('')
   }</tbody>`;
 
@@ -14116,7 +14214,7 @@ function renderAdvSimilarity(){
   advCharts.simTs = new Chart(ctx, {
     type:'line',
     data:{ labels: series.map(s=>s.tahun), datasets:[{ label:'SSI (%)', data: series.map(s=>s.ssiPct), borderColor:THEME.main, backgroundColor:'rgba(74,22,32,0.14)', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle('Structural Similarity Index (%)'), min:0,max:100,grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{size:10},callback:v=>nfmt(v)+'%'}} } }
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle(trx('axSsiPct')), min:0,max:100,grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{size:10},callback:v=>nfmt(v)+'%'}} } }
   });
 
   renderAdvSimCompChart(series.find(s=>s.tahun===advCompYear.similarity));
@@ -14124,7 +14222,7 @@ function renderAdvSimilarity(){
   document.getElementById('dlAdvSimTs').onclick = ()=> triggerJPGDownload(advCharts.simTs, `ssi_tren`);
   document.getElementById('dlAdvSimComp').onclick = ()=> triggerJPGDownload(advCharts.simComp, `ssi_komposisi_${advCompYear.similarity}`);
   document.getElementById('advSimExcelBtn').onclick = async ()=>{
-    await exportStyledExcel('structural_similarity', 'SSI', ['Tahun','Total Absolute Gap','SSI','SSI (%)'], series.map(s=>[s.tahun,s.totalGap,s.ssi,s.ssiPct]));
+    await exportStyledExcel('structural_similarity', 'SSI', [trx('thTahun2'),'Total Absolute Gap','SSI','SSI (%)'], series.map(s=>[s.tahun,s.totalGap,s.ssi,s.ssiPct]));
   };
 }
 function renderAdvSimCompChart(s){
@@ -14140,7 +14238,7 @@ function renderAdvSimCompChart(s){
     ]},
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
       plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main}}},
-      scales:{ x:{title:axTitle('Pangsa sektor (%)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>nfmt(v)+'%'}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
+      scales:{ x:{title:axTitle(trx('axShareSektor')), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>nfmt(v)+'%'}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
   });
 }
 
@@ -14179,18 +14277,18 @@ function renderAdvGap(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b class="mn-label">📖 Apa itu analisis ini</b> Kalau SSI cuma kasih satu angka ringkasan kemiripan struktur, analisis ini membedah <b>sektor mana</b> yang paling menyumbang perbedaan struktur Klungkung vs Bali di tahun tertentu.</div>
-      <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
+      <div><b class="mn-label">${trx('advApaIni')}</b> ${trx('gapApaItu')}</div>
+      <div style="margin-top:8px"><b class="mn-label">${trx('divFormula')}</b></div>
       <ul class="formula-list">
-        <li>Gap = |Shareᵢ,Klungkung − Shareᵢ,Bali|</li>
-        <li>Gap Contribution = Gapᵢ / Σ Gap</li>
+        <li>${trx('gapFormula1')}</li>
+        <li>${trx('gapFormula2')}</li>
       </ul>
-      <div style="margin-top:8px"><b class="mn-label">💡 Cara membaca angka</b> Sektor dengan <b>Gap Contribution</b> terbesar (Rank 1) paling membuat struktur ekonomi Klungkung berbeda dari Bali — entah karena porsinya jauh lebih besar di Klungkung (basis kuat/unik) atau jauh lebih kecil (kurang berkembang dibanding Bali).</div>
+      <div style="margin-top:8px"><b class="mn-label">${trx('advCaraBaca')}</b> ${trx('gapCaraBaca')}</div>
     </div>
-    <div class="ss-controls" style="margin-bottom:10px;"><div class="ctrl-item"><label>Tahun</label><select id="advGapYear"></select></div></div>
-    <div class="ss-section-title">Kontribusi Sektor terhadap Kesenjangan Struktur</div>
+    <div class="ss-controls" style="margin-bottom:10px;"><div class="ctrl-item"><label>${trx('lblTahun2')}</label><select id="advGapYear"></select></div></div>
+    <div class="ss-section-title">${trx('gapChartTitle')}</div>
     <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvGap">${trx('downloadJpg')}</button><div class="chart-box" style="height:400px;"><canvas id="advGapCanvas"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Kesenjangan Sektor</span><button class="dl-btn" id="advGapExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
+    <div class="table-head-row"><span class="table-head-label">${trx('gapTable')}</span><button class="dl-btn" id="advGapExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advGapTable"></table></div>
   `;
 
@@ -14203,7 +14301,7 @@ function renderAdvGap(){
   document.getElementById('dlAdvGap').onclick = ()=> triggerJPGDownload(advCharts.gap, `structural_gap_${advCompYear.gap}`);
   document.getElementById('advGapExcelBtn').onclick = async ()=>{
     const yr = rows.filter(r=>r.tahun===advCompYear.gap).sort((a,b)=>a.rank-b.rank);
-    await exportStyledExcel(`structural_gap_${advCompYear.gap}`, 'Gap', ['Sektor','K Share','B Share','Absolute Gap','Gap Contribution','Rank'], yr.map(r=>[r.sektor,r.kShare,r.bShare,r.gap,r.contrib,r.rank]));
+    await exportStyledExcel(`structural_gap_${advCompYear.gap}`, 'Gap', [trx('thSektor'),'K Share','B Share','Absolute Gap','Gap Contribution',trx('thRank')], yr.map(r=>[r.sektor,r.kShare,r.bShare,r.gap,r.contrib,r.rank]));
   };
 }
 function renderAdvGapForYear(rows){
@@ -14214,9 +14312,9 @@ function renderAdvGapForYear(rows){
     type:'bar',
     data:{ labels: yr.map(r=>r.sektor), datasets:[{ label:'Gap Contribution (%)', data: yr.map(r=>r.contrib*100), backgroundColor: yr.map((r,i)=> i===0?THEME.accent:THEME.accent) }] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
-      scales:{ x:{title:axTitle('Kontribusi terhadap gap (%)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>nfmt(v)+'%'}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
+      scales:{ x:{title:axTitle(trx('axGapContrib')), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>nfmt(v)+'%'}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
   });
-  document.getElementById('advGapTable').innerHTML = `<thead><tr><th>Rank</th><th>Sektor</th><th>K Share</th><th>B Share</th><th>Absolute Gap</th><th>Kontribusi</th></tr></thead><tbody>${
+  document.getElementById('advGapTable').innerHTML = `<thead><tr><th>${trx('thRank')}</th><th>${trx('thSektor')}</th><th>K Share</th><th>B Share</th><th>Absolute Gap</th><th>${trx('thKontribusi')}</th></tr></thead><tbody>${
     yr.map(r=>`<tr><td>${r.rank}</td><td>${escapeHtml(r.sektor)}</td><td>${(r.kShare*100).toFixedID(2)}%</td><td>${(r.bShare*100).toFixedID(2)}%</td><td>${r.gap.toFixedID(4)}</td><td>${(r.contrib*100).toFixedID(1)}%</td></tr>`).join('')
   }</tbody>`;
 }
@@ -14245,6 +14343,7 @@ function advBuildMarkovRows(){
   return rows;
 }
 const MARKOV_ORDER = ['Rendah','Menengah','Tinggi'];
+function mkLabel(k){ const m={'Rendah':'mkRendah','Menengah':'mkMenengah','Tinggi':'mkTinggi','Tetap':'mkTetap'}; return m[k] ? trx(m[k]) : k; }
 function renderAdvMarkov(){
   if(!advEnsureLoaded('markov')) return;
   if(!advMap.markov) advDetectMarkovCols();
@@ -14265,47 +14364,47 @@ function renderAdvMarkov(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b class="mn-label">📖 Apa itu analisis ini</b> Rantai Markov melihat bagaimana sektor "berpindah kelas" dari tahun ke tahun berdasarkan status LQ-nya, lalu memperkirakan probabilitas perpindahan tersebut — mirip konsep mobilitas kelas sosial, tapi untuk sektor ekonomi.</div>
-      <div style="margin-top:8px"><b class="mn-label">🧮 Aturan Kelas &amp; Formula</b></div>
+      <div><b class="mn-label">${trx('advApaIni')}</b> ${trx('mkApaItu')}</div>
+      <div style="margin-top:8px"><b class="mn-label">${trx('mkFormulaTitle')}</b></div>
       <ul class="formula-list">
-        <li>Kelas: Rendah (SLQ &lt; 0,75) · Menengah (0,75 ≤ SLQ &lt; 1) · Tinggi/Basis (SLQ ≥ 1)</li>
-        <li>P(i→j) = jumlah transisi kelas i ke kelas j / total transisi dari kelas i</li>
+        <li>${trx('mkFormula1')}</li>
+        <li>${trx('mkFormula2')}</li>
       </ul>
-      <div class="mn-row"><b class="mn-label">💡 Cara membaca angka</b><ul class="mn-points"><li>Baris matriks = kelas <b>tahun sebelumnya</b>, kolom = kelas <b>tahun berjalan</b>. Angka di diagonal (Rendah→Rendah, dst.) menunjukkan seberapa stabil/persisten kelas suatu sektor. Angka tinggi di luar diagonal menandakan sektor sering naik/turun kelas.</li><li><b>Mobility Rate</b> = persentase transisi yang BUKAN "Tetap" — makin tinggi, makin sering sektor berpindah status dari tahun ke tahun.</li></ul></div>
+      <div class="mn-row"><b class="mn-label">${trx('advCaraBaca')}</b><ul class="mn-points"><li>${trx('mkCara1')}</li><li>${trx('mkCara2')}</li></ul></div>
     </div>
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">Total Transisi Diamati</div><div class="stat-value" style="font-size:15px;">${withPrev.length}</div></div>
-      <div class="stat-box"><div class="stat-label">Mobility Rate</div><div class="stat-value" style="font-size:15px;">${mobilityRate.toFixedID(1)}%</div></div>
-      <div class="stat-box"><div class="stat-label">Sektor Berubah Kelas (${latestYear})</div><div class="stat-value" style="font-size:15px;">${latestMovers.length}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('mkTotalTransisi')}</div><div class="stat-value" style="font-size:15px;">${withPrev.length}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('mkMobilityRate')}</div><div class="stat-value" style="font-size:15px;">${mobilityRate.toFixedID(1)}%</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('mkSektorBerubah')} (${latestYear})</div><div class="stat-value" style="font-size:15px;">${latestMovers.length}</div></div>
     </div>
-    <div class="ss-section-title">Matriks Probabilitas Transisi</div>
+    <div class="ss-section-title">${trx('mkMatrixTitle')}</div>
     <div class="ss-table-wrap" style="margin-bottom:18px;"><table class="ss-table" id="advMarkovMatrix"></table></div>
     ${latestMovers.length? `
-    <div class="ss-section-title">Sektor yang Berubah Kelas di ${latestYear}</div>
+    <div class="ss-section-title">${trx('mkMoversTitle')} ${latestYear}</div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advMarkovMoversTable"></table></div>` : ''}
-    <div class="table-head-row" style="margin-top:18px;"><span class="table-head-label">Ekspor Data Transisi Lengkap</span><button class="dl-btn" id="advMarkovExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
+    <div class="table-head-row" style="margin-top:18px;"><span class="table-head-label">${trx('mkExportTitle')}</span><button class="dl-btn" id="advMarkovExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
   `;
 
   const maxProb = Math.max(0.01, ...MARKOV_ORDER.flatMap(a=> MARKOV_ORDER.map(b=> rowTotals[a]? counts[a][b]/rowTotals[a] : 0)));
-  const matrixHead = `<tr><th>Dari \\ Ke</th>${MARKOV_ORDER.map(b=>`<th>${b}</th>`).join('')}<th>Total</th></tr>`;
+  const matrixHead = `<tr><th>${trx('mkDariKe')}</th>${MARKOV_ORDER.map(b=>`<th>${mkLabel(b)}</th>`).join('')}<th>${trx('mkTotal')}</th></tr>`;
   const matrixRows = MARKOV_ORDER.map(a=>{
     const cells = MARKOV_ORDER.map(b=>{
       const c = counts[a][b]; const p = rowTotals[a]? c/rowTotals[a] : 0;
       const alpha = maxProb>0 ? (0.12+0.65*(p/maxProb)) : 0.12;
       return `<td style="background:rgba(31,111,107,${alpha.toFixed(2)});text-align:center;">${(p*100).toFixed(0)}%<br><span style="font-size:10px;color:var(--brown-soft);">(n=${c})</span></td>`;
     }).join('');
-    return `<tr><td style="font-weight:700;">${a}</td>${cells}<td style="text-align:center;">${rowTotals[a]}</td></tr>`;
+    return `<tr><td style="font-weight:700;">${mkLabel(a)}</td>${cells}<td style="text-align:center;">${rowTotals[a]}</td></tr>`;
   }).join('');
   document.getElementById('advMarkovMatrix').innerHTML = `<thead>${matrixHead}</thead><tbody>${matrixRows}</tbody>`;
 
   if(latestMovers.length){
-    document.getElementById('advMarkovMoversTable').innerHTML = `<thead><tr><th>Sektor</th><th>Kelas Sebelumnya</th><th>Kelas Sekarang</th><th>SLQ</th><th>Transisi</th></tr></thead><tbody>${
-      latestMovers.map(r=>`<tr><td>${escapeHtml(r.sektor)}</td><td>${r.kelasSebelum}</td><td>${r.kelas}</td><td>${r.slq.toFixedID(2)}</td><td>${escapeHtml(r.transisi)}</td></tr>`).join('')
+    document.getElementById('advMarkovMoversTable').innerHTML = `<thead><tr><th>${trx('thSektor')}</th><th>${trx('thKelasSebelum')}</th><th>${trx('thKelasSekarang')}</th><th>SLQ</th><th>${trx('thTransisi')}</th></tr></thead><tbody>${
+      latestMovers.map(r=>`<tr><td>${escapeHtml(r.sektor)}</td><td>${mkLabel(r.kelasSebelum)}</td><td>${mkLabel(r.kelas)}</td><td>${r.slq.toFixedID(2)}</td><td>${escapeHtml(mkLabel(r.transisi))}</td></tr>`).join('')
     }</tbody>`;
   }
 
   document.getElementById('advMarkovExcelBtn').onclick = async ()=>{
-    await exportStyledExcel('markov_transition', 'Markov', ['Tahun','Sektor','SLQ','Kelas','Kelas Sebelumnya','Transisi'], rows.map(r=>[r.tahun,r.sektor,r.slq,r.kelas,r.kelasSebelum,r.transisi]));
+    await exportStyledExcel('markov_transition', 'Markov', [trx('thTahun2'),trx('thSektor'),'SLQ',trx('thKelas'),trx('thKelasSebelum'),trx('thTransisi')], rows.map(r=>[r.tahun,r.sektor,r.slq,r.kelas,r.kelasSebelum,r.transisi]));
   };
 }
 
@@ -14355,28 +14454,28 @@ function renderAdvComplexity(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b class="mn-label">📖 Apa itu indeks ini</b> Economic Complexity Proxy (ECP) — proksi sederhana dari konsep Economic Complexity Index (Hidalgo &amp; Hausmann) yang biasanya dipakai untuk data ekspor antarnegara, di sini diadaptasi untuk 17 sektor PDRB. Mengukur seberapa banyak &amp; seberapa kuat sektor "unggul" (RCA≥1) yang dimiliki Klungkung dibanding Bali.</div>
-      <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
+      <div><b class="mn-label">${trx('advApaIni')}</b> ${trx('ecpApaItu')}</div>
+      <div style="margin-top:8px"><b class="mn-label">${trx('divFormula')}</b></div>
       <ul class="formula-list">
-        <li>RCA = (K Shareᵢ) / (B Shareᵢ) <span style="font-family:'Inter',sans-serif;color:var(--brown-mid);">— identik dengan SLQ</span></li>
-        <li>D* (Diversifikasi) = jumlah sektor RCA≥1 / total sektor</li>
-        <li>ECP = normalized(D* × rata-rata RCA sektor unggulan)</li>
+        <li>${trx('ecpFormula1')} <span style="font-family:'Inter',sans-serif;color:var(--brown-mid);">${trx('ecpFormula1Note')}</span></li>
+        <li>${trx('ecpFormula2')}</li>
+        <li>${trx('ecpFormula3')}</li>
       </ul>
-      <div class="formula-caption">ECP Normalized 0–100 dinormalisasi min-max lintas seluruh tahun yang tersedia (bukan skala absolut) — tahun dengan ECP=100 adalah tahun PALING kompleks dalam rentang data ini, bukan patokan mutlak. Ini bukan ECI perdagangan klasik.</div>
-      <div style="margin-top:8px"><b class="mn-label">💡 Cara membaca angka</b> ECP makin tinggi = Klungkung punya makin banyak sektor unggulan (RCA≥1) DAN sektor-sektor itu unggul secara meyakinkan (RCA jauh di atas 1) — tanda ekonomi yang lebih terdiversifikasi &amp; punya banyak kapabilitas sekaligus. ECP rendah = mengandalkan sedikit sektor saja, atau sektor unggulannya cuma sedikit di atas ambang RCA=1.</div>
+      <div class="formula-caption">${trx('ecpCaption')}</div>
+      <div style="margin-top:8px"><b class="mn-label">${trx('advCaraBaca')}</b> ${trx('ecpCaraBaca')}</div>
     </div>
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('yearlyLatestYear')}</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
       <div class="stat-box"><div class="stat-label">ECP Normalized</div><div class="stat-value" style="font-size:15px;">${latest.ecpNorm.toFixedID(1)}</div></div>
-      <div class="stat-box"><div class="stat-label">Sektor Unggulan (RCA≥1)</div><div class="stat-value" style="font-size:15px;">${latest.dt} dari 17</div></div>
-      <div class="stat-box"><div class="stat-label">Rata-rata RCA Unggulan</div><div class="stat-value" style="font-size:15px;">${latest.avgRca.toFixedID(2)}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('ecpSektorUnggulan')}</div><div class="stat-value" style="font-size:15px;">${latest.dt} ${trx('ecpOf17')}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('ecpAvgRca')}</div><div class="stat-value" style="font-size:15px;">${latest.avgRca.toFixedID(2)}</div></div>
     </div>
-    <div class="ss-section-title">Tren ECP Antar Tahun</div>
+    <div class="ss-section-title">${trx('ecpChartTs')}</div>
     <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvEcpTs">${trx('downloadJpg')}</button><div class="chart-box" style="height:280px;"><canvas id="advEcpTsCanvas"></canvas></div></div>
-    <div class="ss-section-title">RCA per Sektor</div>
-    <div class="ss-controls" style="margin-bottom:10px;"><div class="ctrl-item"><label>Tahun</label><select id="advEcpYear"></select></div></div>
+    <div class="ss-section-title">${trx('ecpChartRca')}</div>
+    <div class="ss-controls" style="margin-bottom:10px;"><div class="ctrl-item"><label>${trx('lblTahun2')}</label><select id="advEcpYear"></select></div></div>
     <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvEcpRca">${trx('downloadJpg')}</button><div class="chart-box" style="height:${Math.max(280, latest.sektor.length*24)}px;"><canvas id="advEcpRcaCanvas"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel ECP per Tahun</span><button class="dl-btn" id="advEcpExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
+    <div class="table-head-row"><span class="table-head-label">${trx('ecpTable')}</span><button class="dl-btn" id="advEcpExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advEcpTable"></table></div>
   `;
 
@@ -14384,7 +14483,7 @@ function renderAdvComplexity(){
   years.forEach(y=> yrSel.innerHTML += `<option value="${y}" ${y===advCompYear.complexity?'selected':''}>${y}</option>`);
   yrSel.onchange = ()=>{ advCompYear.complexity = parseInt(yrSel.value); renderAdvEcpRcaChart(byYear[advCompYear.complexity]); };
 
-  document.getElementById('advEcpTable').innerHTML = `<thead><tr><th>Tahun</th><th>Sektor Unggulan</th><th>Diversifikasi</th><th>Avg RCA Unggulan</th><th>Raw ECP</th><th>ECP Normalized</th></tr></thead><tbody>${
+  document.getElementById('advEcpTable').innerHTML = `<thead><tr><th>${trx('thTahun2')}</th><th>${trx('thSektorUnggulanShort')}</th><th>${trx('thDiversifikasi')}</th><th>${trx('thAvgRcaUnggulan')}</th><th>${trx('thRawEcp')}</th><th>${trx('thEcpNorm')}</th></tr></thead><tbody>${
     yearSeries.map(y=>`<tr><td>${y.tahun}</td><td>${y.dt}</td><td>${(y.divers*100).toFixedID(1)}%</td><td>${y.avgRca.toFixedID(2)}</td><td>${y.rawEcp.toFixedID(3)}</td><td>${y.ecpNorm.toFixedID(1)}</td></tr>`).join('')
   }</tbody>`;
 
@@ -14393,7 +14492,7 @@ function renderAdvComplexity(){
   advCharts.ecpTs = new Chart(ctx, {
     type:'line',
     data:{ labels: years, datasets:[{ label:'ECP Normalized', data: yearSeries.map(y=>y.ecpNorm), borderColor:THEME.c5, backgroundColor:hexToRgba(THEME.c5,0.18), fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle('ECP ternormalisasi'), min:0,max:100,grid:{color:THEME.light},ticks:{color:THEME.mid,font:{size:10}}} } }
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle(trx('axEcpNorm')), min:0,max:100,grid:{color:THEME.light},ticks:{color:THEME.mid,font:{size:10}}} } }
   });
 
   renderAdvEcpRcaChart(byYear[advCompYear.complexity]);
@@ -14401,7 +14500,7 @@ function renderAdvComplexity(){
   document.getElementById('dlAdvEcpTs').onclick = ()=> triggerJPGDownload(advCharts.ecpTs, 'ecp_tren');
   document.getElementById('dlAdvEcpRca').onclick = ()=> triggerJPGDownload(advCharts.ecpRca, `ecp_rca_${advCompYear.complexity}`);
   document.getElementById('advEcpExcelBtn').onclick = async ()=>{
-    await exportStyledExcel('economic_complexity', 'ECP', ['Tahun','Sektor Unggulan (D_t)','Diversifikasi','Avg RCA Unggulan','Raw ECP','ECP Normalized'], yearSeries.map(y=>[y.tahun,y.dt,y.divers,y.avgRca,y.rawEcp,y.ecpNorm]));
+    await exportStyledExcel('economic_complexity', 'ECP', [trx('thTahun2'),trx('thSektorUnggulanShort')+' (D_t)',trx('thDiversifikasi'),trx('thAvgRcaUnggulan'),trx('thRawEcp'),trx('thEcpNorm')], yearSeries.map(y=>[y.tahun,y.dt,y.divers,y.avgRca,y.rawEcp,y.ecpNorm]));
   };
 }
 function renderAdvEcpRcaChart(yearData){
