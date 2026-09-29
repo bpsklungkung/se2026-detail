@@ -2722,6 +2722,31 @@ const I18N = {
     ecpChartTs:'Tren ECP Antar Tahun', ecpChartRca:'RCA per Sektor', ecpTable:'Tabel ECP per Tahun',
     axEcpNorm:'ECP ternormalisasi',
     thSektorUnggulanShort:'Sektor Unggulan', thDiversifikasi:'Diversifikasi', thAvgRcaUnggulan:'Avg RCA Unggulan', thRawEcp:'Raw ECP', thEcpNorm:'ECP Normalized',
+    reriSangatTahan:'Sangat Tahan', reriCukupTahan:'Cukup Tahan', reriRentan:'Rentan',
+    reriApaItu:'Regional Economic Resilience Index (RERI) — indeks komposit yang mengukur seberapa tahan struktur ekonomi Klungkung: apakah cukup terdiversifikasi, stabil dari waktu ke waktu, tidak terlalu terkonsentrasi, dan mampu pulih setelah guncangan (mis. pandemi).',
+    reriFormula:'RERI = 100 × (0,25×DE + 0,25×Stability + 0,25×HHI_Diversification + 0,25×RC)',
+    reriCaption:'DE = Entropy ternormalisasi; Stability = 1 − REI struktur (kebalikan pergeseran struktur antar tahun, lihat tab Diversitas); HHI_Diversification = 1 − HHI; RC (Recovery Capacity) dihitung untuk 2021–2025 terhadap baseline 2019, tahun lain N/A. Bobot keempatnya sama rata (25%).',
+    reriCaraBaca:'RERI tinggi (mendekati 100) = ekonomi Klungkung terdiversifikasi baik, strukturnya stabil dari tahun ke tahun, tidak bertumpu pada satu-dua sektor, dan (untuk tahun setelah 2021) sudah pulih dari guncangan sebelumnya. RERI rendah menandakan salah satu atau lebih aspek itu lemah — cek komponen mana yang paling menekan skornya lewat grafik di bawah.',
+    reriDiversifikasi:'Diversifikasi (DE)', reriStabilitas:'Stabilitas Struktur', reriRecoveryCap:'Recovery Capacity',
+    reriChartTitle:'Tren RERI &amp; Komponennya', reriTable:'Tabel RERI per Tahun', reriMinOne:'Minimal 1 indeks harus ditampilkan.',
+    axSkor0100:'Skor (0–100)',
+    thHhiDiv:'HHI Div.', thRecoveryCapShort:'Recovery Cap.',
+    trajDescLeader:'Konsisten jadi sektor unggulan (SLQ≥1) sejak awal periode hingga sekarang.',
+    trajDescEmerging:'Awalnya bukan unggulan, tapi tren SLQ-nya naik — kandidat sektor unggulan baru.',
+    trajDescDeclining:'Dulunya unggulan, tapi SLQ-nya menurun — berisiko kehilangan status basisnya.',
+    trajDescNonspec:'Konsisten bukan sektor unggulan sepanjang periode.',
+    trajDescPotential:'Belum unggulan, tren belum cukup jelas naik/turun — perlu dipantau lebih lanjut.',
+    trajApaItu:'Menggabungkan status LQ sepanjang waktu untuk melihat lintasan tiap sektor — bukan cuma "unggul atau tidak sekarang", tapi "menuju ke arah mana" dari 2010 sampai tahun terakhir.',
+    trajFormulaTitle:'🧮 Formula &amp; Klasifikasi',
+    trajFormula1:'DLQ &amp; ΔSLQ dihitung tiap tahun (lihat tab LQ untuk detail DLQ)', trajFormula2:'DSS = skor lintasan relatif terhadap tahun dasar 2010',
+    trajKlasifikasiCaption:'Klasifikasi: <b>Persistent Leader</b> (konsisten unggul), <b>Emerging</b> (tren naik menuju unggul), <b>Declining Specialist</b> (dulu unggul, kini menurun), <b>Persistent Non-specialist</b> (konsisten tidak unggul), <b>Potential</b> (belum jelas arahnya).',
+    trajCara1:'Sektor <b>Persistent Leader</b> adalah fondasi ekonomi yang paling bisa diandalkan karena keunggulannya teruji lama.',
+    trajCara2:'Sektor <b>Emerging</b> patut diperhatikan sebagai calon sektor unggulan baru — sering jadi target kebijakan pengembangan.',
+    trajCara3:'Sektor <b>Declining Specialist</b> perlu perhatian karena keunggulan yang dulu dimiliki sedang terkikis.',
+    trajCara4:'<b>DSS</b> yang lebih tinggi menunjukkan lintasan yang lebih positif dibanding kondisi awal 2010.',
+    trajDistTitle:'Distribusi Klasifikasi Lintasan Sektor', trajMapTitle:'Peta Lintasan Tiap Sektor (SLQ Awal → SLQ',
+    trajTableTitle:'Tabel Klasifikasi Lintasan Sektor', trajSlqAwal:'SLQ Awal', trajSlqAwal2010:'SLQ Awal (2010)',
+    axSlqValue:'Nilai SLQ',
     definisi:'Definisi', noDefinition:'Belum ada deskripsi definisi untuk indikator ini.', cmpDefsTitle:'Definisi Indikator Terpilih',
     filterShowData:'Tampilkan Data', filterShowAll:'Tampilkan Semua', filterToggle:'semua/tidak',
     convTitle:'Konvergensi',
@@ -2905,6 +2930,31 @@ const I18N = {
     ecpChartTs:'ECP Trend Over Time', ecpChartRca:'RCA per Sector', ecpTable:'ECP Table by Year',
     axEcpNorm:'Normalized ECP',
     thSektorUnggulanShort:'Advantaged Sectors', thDiversifikasi:'Diversification', thAvgRcaUnggulan:'Avg RCA (Advantaged)', thRawEcp:'Raw ECP', thEcpNorm:'ECP Normalized',
+    reriSangatTahan:'Very Resilient', reriCukupTahan:'Fairly Resilient', reriRentan:'Vulnerable',
+    reriApaItu:'The Regional Economic Resilience Index (RERI) — a composite index measuring how resilient Klungkung\'s economic structure is: whether it\'s sufficiently diversified, stable over time, not overly concentrated, and able to recover after shocks (e.g. the pandemic).',
+    reriFormula:'RERI = 100 × (0.25×DE + 0.25×Stability + 0.25×HHI_Diversification + 0.25×RC)',
+    reriCaption:'DE = normalized Entropy; Stability = 1 − structural REI (the inverse of the year-to-year structural shift, see the Diversity tab); HHI_Diversification = 1 − HHI; RC (Recovery Capacity) is computed for 2021–2025 against a 2019 baseline, other years N/A. All four are weighted equally (25%).',
+    reriCaraBaca:'A high RERI (close to 100) = Klungkung\'s economy is well-diversified, its structure is stable year to year, it doesn\'t rely on just one or two sectors, and (for years after 2021) it has recovered from prior shocks. A low RERI signals one or more of these aspects is weak — check which component is dragging the score down in the chart below.',
+    reriDiversifikasi:'Diversification (DE)', reriStabilitas:'Structural Stability', reriRecoveryCap:'Recovery Capacity',
+    reriChartTitle:'RERI Trend &amp; Its Components', reriTable:'RERI Table by Year', reriMinOne:'At least 1 index must be shown.',
+    axSkor0100:'Score (0–100)',
+    thHhiDiv:'HHI Div.', thRecoveryCapShort:'Recovery Cap.',
+    trajDescLeader:'Consistently an advantaged sector (SLQ≥1) from the start of the period to now.',
+    trajDescEmerging:'Not advantaged initially, but its SLQ trend is rising — a candidate for a new advantaged sector.',
+    trajDescDeclining:'Previously advantaged, but its SLQ is declining — at risk of losing its base-sector status.',
+    trajDescNonspec:'Consistently not an advantaged sector throughout the period.',
+    trajDescPotential:'Not yet advantaged, trend not clearly up or down — needs further monitoring.',
+    trajApaItu:'Combines LQ status over time to trace each sector\'s trajectory — not just "advantaged or not right now", but "which direction it\'s heading" from 2010 to the latest year.',
+    trajFormulaTitle:'🧮 Formula &amp; Classification',
+    trajFormula1:'DLQ &amp; ΔSLQ are computed each year (see the LQ tab for DLQ details)', trajFormula2:'DSS = trajectory score relative to the 2010 base year',
+    trajKlasifikasiCaption:'Classification: <b>Persistent Leader</b> (consistently advantaged), <b>Emerging</b> (rising trend toward advantaged), <b>Declining Specialist</b> (once advantaged, now declining), <b>Persistent Non-specialist</b> (consistently not advantaged), <b>Potential</b> (direction unclear yet).',
+    trajCara1:'<b>Persistent Leader</b> sectors are the most reliable economic foundation, since their advantage has been proven over a long time.',
+    trajCara2:'<b>Emerging</b> sectors are worth watching as candidates for new advantaged sectors — often a target for development policy.',
+    trajCara3:'<b>Declining Specialist</b> sectors need attention because an advantage they once held is eroding.',
+    trajCara4:'A higher <b>DSS</b> indicates a more positive trajectory compared to the 2010 starting point.',
+    trajDistTitle:'Sector Trajectory Classification Distribution', trajMapTitle:'Trajectory Map per Sector (Starting SLQ → SLQ',
+    trajTableTitle:'Sector Trajectory Classification Table', trajSlqAwal:'Starting SLQ', trajSlqAwal2010:'Starting SLQ (2010)',
+    axSlqValue:'SLQ value',
     definisi:'Definition', noDefinition:'No definition is available for this indicator yet.', cmpDefsTitle:'Selected Indicator Definitions',
     filterShowData:'Show Data', filterShowAll:'Show All', filterToggle:'all/none',
     convTitle:'Convergence',
@@ -14550,9 +14600,9 @@ function advBuildResilienceRows(){
   return rows;
 }
 function reriBadge(v){
-  if(v>=80) return {label:'Sangat Tahan', color:'#3e5a2a'};
-  if(v>=60) return {label:'Cukup Tahan', color:THEME.c3};
-  return {label:'Rentan', color:THEME.accent};
+  if(v>=80) return {label:trx('reriSangatTahan'), color:'#3e5a2a'};
+  if(v>=60) return {label:trx('reriCukupTahan'), color:THEME.c3};
+  return {label:trx('reriRentan'), color:THEME.accent};
 }
 function renderAdvResilience(){
   if(!advEnsureLoaded('resilience')) return;
@@ -14565,37 +14615,37 @@ function renderAdvResilience(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b class="mn-label">📖 Apa itu indeks ini</b> Regional Economic Resilience Index (RERI) — indeks komposit yang mengukur seberapa tahan struktur ekonomi Klungkung: apakah cukup terdiversifikasi, stabil dari waktu ke waktu, tidak terlalu terkonsentrasi, dan mampu pulih setelah guncangan (mis. pandemi).</div>
-      <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
-      <ul class="formula-list"><li>RERI = 100 × (0,25×DE + 0,25×Stability + 0,25×HHI_Diversification + 0,25×RC)</li></ul>
-      <div class="formula-caption">DE = Entropy ternormalisasi; Stability = 1 − REI struktur (kebalikan pergeseran struktur antar tahun, lihat tab Diversitas); HHI_Diversification = 1 − HHI; RC (Recovery Capacity) dihitung untuk 2021–2025 terhadap baseline 2019, tahun lain N/A. Bobot keempatnya sama rata (25%).</div>
-      <div style="margin-top:8px"><b class="mn-label">💡 Cara membaca angka</b> RERI tinggi (mendekati 100) = ekonomi Klungkung terdiversifikasi baik, strukturnya stabil dari tahun ke tahun, tidak bertumpu pada satu-dua sektor, dan (untuk tahun setelah 2021) sudah pulih dari guncangan sebelumnya. RERI rendah menandakan salah satu atau lebih aspek itu lemah — cek komponen mana yang paling menekan skornya lewat grafik di bawah.</div>
+      <div><b class="mn-label">${trx('advApaIni')}</b> ${trx('reriApaItu')}</div>
+      <div style="margin-top:8px"><b class="mn-label">${trx('divFormula')}</b></div>
+      <ul class="formula-list"><li>${trx('reriFormula')}</li></ul>
+      <div class="formula-caption">${trx('reriCaption')}</div>
+      <div style="margin-top:8px"><b class="mn-label">${trx('advCaraBaca')}</b> ${trx('reriCaraBaca')}</div>
     </div>
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('yearlyLatestYear')}</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
       <div class="stat-box"><div class="stat-label">RERI</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${latest.reri.toFixedID(1)} · ${badge.label}</div></div>
-      <div class="stat-box"><div class="stat-label">Diversifikasi (DE)</div><div class="stat-value" style="font-size:15px;">${(latest.de*100).toFixedID(1)}%</div></div>
-      <div class="stat-box"><div class="stat-label">Stabilitas Struktur</div><div class="stat-value" style="font-size:15px;">${(latest.stability*100).toFixedID(1)}%</div></div>
-      <div class="stat-box"><div class="stat-label">Recovery Capacity</div><div class="stat-value" style="font-size:15px;">${latest.rc!==null? (latest.rc*100).toFixedID(1)+'%' : 'N/A'}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('reriDiversifikasi')}</div><div class="stat-value" style="font-size:15px;">${(latest.de*100).toFixedID(1)}%</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('reriStabilitas')}</div><div class="stat-value" style="font-size:15px;">${(latest.stability*100).toFixedID(1)}%</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('reriRecoveryCap')}</div><div class="stat-value" style="font-size:15px;">${latest.rc!==null? (latest.rc*100).toFixedID(1)+'%' : 'N/A'}</div></div>
     </div>
-    <div class="ss-section-title">Tren RERI &amp; Komponennya</div>
+    <div class="ss-section-title">${trx('reriChartTitle')}</div>
     <div class="ss-controls" style="margin-bottom:8px;">
       <div class="ms-dropdown" id="advReriMetricDropdown">
-        <button type="button" class="ms-dropdown-btn" id="advReriMetricBtn">📊 Pilih Indeks ▾</button>
+        <button type="button" class="ms-dropdown-btn" id="advReriMetricBtn">${trx('divChooseIdx')}</button>
         <div class="ms-dropdown-panel" id="advReriMetricPanel">
           <label class="ms-dropdown-item"><input type="checkbox" data-metric="reri" ${advReriMetrics.has('reri')?'checked':''}> RERI</label>
-          <label class="ms-dropdown-item"><input type="checkbox" data-metric="de" ${advReriMetrics.has('de')?'checked':''}> Diversifikasi (DE)</label>
-          <label class="ms-dropdown-item"><input type="checkbox" data-metric="stability" ${advReriMetrics.has('stability')?'checked':''}> Stabilitas</label>
-          <label class="ms-dropdown-item"><input type="checkbox" data-metric="rc" ${advReriMetrics.has('rc')?'checked':''}> Recovery Capacity</label>
+          <label class="ms-dropdown-item"><input type="checkbox" data-metric="de" ${advReriMetrics.has('de')?'checked':''}> ${trx('reriDiversifikasi')}</label>
+          <label class="ms-dropdown-item"><input type="checkbox" data-metric="stability" ${advReriMetrics.has('stability')?'checked':''}> ${trx('reriStabilitas')}</label>
+          <label class="ms-dropdown-item"><input type="checkbox" data-metric="rc" ${advReriMetrics.has('rc')?'checked':''}> ${trx('reriRecoveryCap')}</label>
         </div>
       </div>
     </div>
     <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvReri">${trx('downloadJpg')}</button><div class="chart-box" style="height:320px;"><canvas id="advReriCanvas"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel RERI per Tahun</span><button class="dl-btn" id="advReriExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
+    <div class="table-head-row"><span class="table-head-label">${trx('reriTable')}</span><button class="dl-btn" id="advReriExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advReriTable"></table></div>
   `;
 
-  document.getElementById('advReriTable').innerHTML = `<thead><tr><th>Tahun</th><th>DE</th><th>Stability</th><th>HHI Div.</th><th>Recovery Cap.</th><th>RERI</th></tr></thead><tbody>${
+  document.getElementById('advReriTable').innerHTML = `<thead><tr><th>${trx('thTahun2')}</th><th>DE</th><th>Stability</th><th>${trx('thHhiDiv')}</th><th>${trx('thRecoveryCapShort')}</th><th>RERI</th></tr></thead><tbody>${
     rows.map(r=>`<tr><td>${r.tahun}</td><td>${(r.de*100).toFixedID(1)}%</td><td>${(r.stability*100).toFixedID(1)}%</td><td>${(r.hhiDiv*100).toFixedID(1)}%</td><td>${r.rc!==null?(r.rc*100).toFixedID(1)+'%':'N/A'}</td><td>${r.reri.toFixedID(1)}</td></tr>`).join('')
   }</tbody>`;
 
@@ -14617,7 +14667,7 @@ function renderAdvResilience(){
       if(cb.checked){
         advReriMetrics.add(m);
       }else{
-        if(advReriMetrics.size<=1){ cb.checked = true; alert('Minimal 1 indeks harus ditampilkan.'); return; }
+        if(advReriMetrics.size<=1){ cb.checked = true; alert(trx('reriMinOne')); return; }
         advReriMetrics.delete(m);
       }
       renderAdvReriChart(rows);
@@ -14628,7 +14678,7 @@ function renderAdvResilience(){
 
   document.getElementById('dlAdvReri').onclick = ()=> triggerJPGDownload(advCharts.reri, 'reri_tren');
   document.getElementById('advReriExcelBtn').onclick = async ()=>{
-    await exportStyledExcel('resilience_index', 'RERI', ['Tahun','DE','Stability','HHI Diversification','Recovery Capacity','RERI'], rows.map(r=>[r.tahun,r.de,r.stability,r.hhiDiv,r.rc,r.reri]));
+    await exportStyledExcel('resilience_index', 'RERI', [trx('thTahun2'),'DE','Stability','HHI Diversification',trx('reriRecoveryCap'),'RERI'], rows.map(r=>[r.tahun,r.de,r.stability,r.hhiDiv,r.rc,r.reri]));
   };
 }
 
@@ -14637,16 +14687,16 @@ function renderAdvReriChart(rows){
   if(advCharts.reri){ advCharts.reri.destroy(); }
   const allDatasets = [
     { m:'reri', ds:{ label:'RERI', data: rows.map(r=>r.reri), borderColor:THEME.main, backgroundColor:'rgba(16,26,30,0.14)', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100' } },
-    { m:'de', ds:{ label:'Diversifikasi (DE)', data: rows.map(r=>r.de*100), borderColor:THEME.c4, backgroundColor:'transparent', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100' } },
-    { m:'stability', ds:{ label:'Stabilitas', data: rows.map(r=>r.stability*100), borderColor:THEME.c3, backgroundColor:'transparent', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100' } },
-    { m:'rc', ds:{ label:'Recovery Capacity', data: rows.map(r=>r.rc!==null?r.rc*100:null), borderColor:'#3e5a2a', backgroundColor:'transparent', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100', spanGaps:false } }
+    { m:'de', ds:{ label:trx('reriDiversifikasi'), data: rows.map(r=>r.de*100), borderColor:THEME.c4, backgroundColor:'transparent', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100' } },
+    { m:'stability', ds:{ label:trx('reriStabilitas'), data: rows.map(r=>r.stability*100), borderColor:THEME.c3, backgroundColor:'transparent', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100' } },
+    { m:'rc', ds:{ label:trx('reriRecoveryCap'), data: rows.map(r=>r.rc!==null?r.rc*100:null), borderColor:'#3e5a2a', backgroundColor:'transparent', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', yAxisID:'y100', spanGaps:false } }
   ];
   const datasets = allDatasets.filter(d=> advReriMetrics.has(d.m)).map(d=>d.ds);
   advCharts.reri = new Chart(ctx, {
     type:'line',
     data:{ labels: rows.map(r=>r.tahun), datasets },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:10.5},color:THEME.main,boxWidth:14}}},
-      scales:{ x:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y100:{title:axTitle('Skor (0–100)'), min:0,max:100,grid:{color:THEME.light},ticks:{color:THEME.mid,font:{size:10}}} } }
+      scales:{ x:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y100:{title:axTitle(trx('axSkor0100')), min:0,max:100,grid:{color:THEME.light},ticks:{color:THEME.mid,font:{size:10}}} } }
   });
 }
 
@@ -14680,11 +14730,11 @@ function advBuildTrajectoryRows(){
   return rows;
 }
 const TRAJ_INFO = {
-  'Persistent Leader': {color:'#3e5a2a', desc:'Konsisten jadi sektor unggulan (SLQ≥1) sejak awal periode hingga sekarang.'},
-  'Emerging': {color:THEME.c4, desc:'Awalnya bukan unggulan, tapi tren SLQ-nya naik — kandidat sektor unggulan baru.'},
-  'Declining Specialist': {color:THEME.accent, desc:'Dulunya unggulan, tapi SLQ-nya menurun — berisiko kehilangan status basisnya.'},
-  'Persistent Non-specialist': {color:THEME.mid, desc:'Konsisten bukan sektor unggulan sepanjang periode.'},
-  'Potential': {color:THEME.c3, desc:'Belum unggulan, tren belum cukup jelas naik/turun — perlu dipantau lebih lanjut.'}
+  get 'Persistent Leader'(){ return {color:'#3e5a2a', desc:trx('trajDescLeader')}; },
+  get 'Emerging'(){ return {color:THEME.c4, desc:trx('trajDescEmerging')}; },
+  get 'Declining Specialist'(){ return {color:THEME.accent, desc:trx('trajDescDeclining')}; },
+  get 'Persistent Non-specialist'(){ return {color:THEME.mid, desc:trx('trajDescNonspec')}; },
+  get 'Potential'(){ return {color:THEME.c3, desc:trx('trajDescPotential')}; }
 };
 function renderAdvTrajectory(){
   if(!advEnsureLoaded('trajectory')) return;
@@ -14708,16 +14758,16 @@ function renderAdvTrajectory(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b class="mn-label">📖 Apa itu analisis ini</b> Menggabungkan status LQ sepanjang waktu untuk melihat lintasan tiap sektor — bukan cuma "unggul atau tidak sekarang", tapi "menuju ke arah mana" dari 2010 sampai tahun terakhir.</div>
-      <div style="margin-top:8px"><b class="mn-label">🧮 Formula &amp; Klasifikasi</b></div>
+      <div><b class="mn-label">${trx('advApaIni')}</b> ${trx('trajApaItu')}</div>
+      <div style="margin-top:8px"><b class="mn-label">${trx('trajFormulaTitle')}</b></div>
       <ul class="formula-list">
-        <li>DLQ &amp; ΔSLQ dihitung tiap tahun (lihat tab LQ untuk detail DLQ)</li>
-        <li>DSS = skor lintasan relatif terhadap tahun dasar 2010</li>
+        <li>${trx('trajFormula1')}</li>
+        <li>${trx('trajFormula2')}</li>
       </ul>
-      <div class="formula-caption">Klasifikasi: <b>Persistent Leader</b> (konsisten unggul), <b>Emerging</b> (tren naik menuju unggul), <b>Declining Specialist</b> (dulu unggul, kini menurun), <b>Persistent Non-specialist</b> (konsisten tidak unggul), <b>Potential</b> (belum jelas arahnya).</div>
-      <div class="mn-row"><b class="mn-label">💡 Cara membaca angka</b><ul class="mn-points"><li>Sektor <b>Persistent Leader</b> adalah fondasi ekonomi yang paling bisa diandalkan karena keunggulannya teruji lama.</li><li>Sektor <b>Emerging</b> patut diperhatikan sebagai calon sektor unggulan baru — sering jadi target kebijakan pengembangan.</li><li>Sektor <b>Declining Specialist</b> perlu perhatian karena keunggulan yang dulu dimiliki sedang terkikis.</li><li><b>DSS</b> yang lebih tinggi menunjukkan lintasan yang lebih positif dibanding kondisi awal 2010.</li></ul></div>
+      <div class="formula-caption">${trx('trajKlasifikasiCaption')}</div>
+      <div class="mn-row"><b class="mn-label">${trx('advCaraBaca')}</b><ul class="mn-points"><li>${trx('trajCara1')}</li><li>${trx('trajCara2')}</li><li>${trx('trajCara3')}</li><li>${trx('trajCara4')}</li></ul></div>
     </div>
-    <div class="ss-section-title">Distribusi Klasifikasi Lintasan Sektor</div>
+    <div class="ss-section-title">${trx('trajDistTitle')}</div>
     <div class="ss-quad-legend" style="margin-bottom:16px;">
       ${Object.keys(TRAJ_INFO).map(k=>`
         <div class="ss-quad-legend-item">
@@ -14725,13 +14775,13 @@ function renderAdvTrajectory(){
           ${TRAJ_INFO[k].desc}
         </div>`).join('')}
     </div>
-    <div class="ss-section-title">Peta Lintasan Tiap Sektor (SLQ Awal → SLQ ${latestYear})</div>
+    <div class="ss-section-title">${trx('trajMapTitle')} ${latestYear})</div>
     <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvTraj">${trx('downloadJpg')}</button><div class="chart-box" style="height:${Math.max(320, summary.length*26)}px;"><canvas id="advTrajCanvas"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Klasifikasi Lintasan Sektor</span><button class="dl-btn" id="advTrajExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
+    <div class="table-head-row"><span class="table-head-label">${trx('trajTableTitle')}</span><button class="dl-btn" id="advTrajExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advTrajTable"></table></div>
   `;
 
-  document.getElementById('advTrajTable').innerHTML = `<thead><tr><th>Sektor</th><th>Klasifikasi</th><th>SLQ Awal</th><th>SLQ ${latestYear}</th><th>DSS</th></tr></thead><tbody>${
+  document.getElementById('advTrajTable').innerHTML = `<thead><tr><th>${trx('thSektor')}</th><th>${trx('thKlasifikasi')}</th><th>${trx('trajSlqAwal')}</th><th>SLQ ${latestYear}</th><th>DSS</th></tr></thead><tbody>${
     summary.map(s=>`<tr><td>${escapeHtml(s.sektor)}</td><td><span class="ss-badge-quad" style="background:${(TRAJ_INFO[s.trajectory]||{color:'#999'}).color}">${escapeHtml(s.trajectory)}</span></td><td>${s.slqAwal.toFixedID(2)}</td><td>${s.slqLatest.toFixedID(2)}</td><td class="${s.dss>=0?'pos':'neg'}">${s.dss.toFixedID(3)}</td></tr>`).join('')
   }</tbody>`;
 
@@ -14740,17 +14790,17 @@ function renderAdvTrajectory(){
   advCharts.traj = new Chart(ctx, {
     type:'bar',
     data:{ labels: summary.map(s=>s.sektor), datasets:[
-      { label:'SLQ Awal (2010)', data: summary.map(s=>s.slqAwal), backgroundColor:THEME.c7 },
+      { label:trx('trajSlqAwal2010'), data: summary.map(s=>s.slqAwal), backgroundColor:THEME.c7 },
       { label:`SLQ ${latestYear}`, data: summary.map(s=>s.slqLatest), backgroundColor: summary.map(s=>(TRAJ_INFO[s.trajectory]||{color:'#999'}).color) }
     ]},
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
       plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main}}},
-      scales:{ x:{title:axTitle('Nilai SLQ'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
+      scales:{ x:{title:axTitle(trx('axSlqValue')), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
   });
 
   document.getElementById('dlAdvTraj').onclick = ()=> triggerJPGDownload(advCharts.traj, 'dynamic_specialization');
   document.getElementById('advTrajExcelBtn').onclick = async ()=>{
-    await exportStyledExcel('dynamic_specialization', 'Trajectory', ['Sektor','Klasifikasi','SLQ Awal','SLQ Terakhir','DSS'], summary.map(s=>[s.sektor,s.trajectory,s.slqAwal,s.slqLatest,s.dss]));
+    await exportStyledExcel('dynamic_specialization', 'Trajectory', [trx('thSektor'),trx('thKlasifikasi'),trx('trajSlqAwal'),'SLQ '+trx('yearlyLatestYear'),'DSS'], summary.map(s=>[s.sektor,s.trajectory,s.slqAwal,s.slqLatest,s.dss]));
   };
 }
 
