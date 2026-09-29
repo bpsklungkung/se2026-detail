@@ -2041,6 +2041,8 @@
 </div>
 
 <script>
+let LANG = 'id';
+try{ const savedLang = localStorage.getItem('klk_lang'); if(savedLang==='id' || savedLang==='en') LANG = savedLang; }catch(e){}
 /* ===== Format angka Indonesia (koma desimal) ===== */
 function numLoc(){ return (typeof LANG!=='undefined' && LANG==='en') ? 'en-US' : 'id-ID'; }
 function DEC(){ return (typeof LANG!=='undefined' && LANG==='en') ? '.' : ','; }
@@ -2549,8 +2551,6 @@ let cardColorMode = 'senada';    // 'senada' = turunan palet · 'beragam' = warn
 try{ const m = localStorage.getItem('klk_card_color_mode'); if(m==='senada' || m==='beragam') cardColorMode = m; }catch(e){}
 
 /* ===== Bahasa (ID/EN) — dictionary untuk elemen chrome statis; konten analitik per-tab menyusul bertahap ===== */
-var LANG = 'id';
-try{ const savedLang = localStorage.getItem('klk_lang'); if(savedLang==='id' || savedLang==='en') LANG = savedLang; }catch(e){}
 const I18N = {
   id: {
     heroEyebrow:'BPS Kabupaten Klungkung', heroSubtitle:'Dashboard Insight dan Data Makro',
@@ -2704,7 +2704,7 @@ function setLang(lang){
 }
 
 /* ===== Mode gelap: permukaan gelap bernuansa palet, teks terang, warna grafik diangkat agar terbaca ===== */
-var darkMode = true;
+let darkMode = true;
 try{ const savedDarkMode = localStorage.getItem('klk_dark'); if(savedDarkMode !== null) darkMode = savedDarkMode === '1'; }catch(e){}
 function ccDarkAdjust(hex, minL, maxL){
   const [h, s, l] = ccRgbToHsl(...ccHexToRgb(hex));
