@@ -2598,6 +2598,81 @@ const I18N = {
     cinsLargest:'kontribusi terbesar berasal dari', cinsOfTotal:'dari total', cinsIn:'Di', cinsTopGrowth:'Pertumbuhan tertinggi di', cinsRecordedBy:'dicatat oleh',
     cinsLargestIn:'Kontribusi terbesar di', cinsComesFrom:'berasal dari',
     gsNone:'Tidak ada yang cocok.', gsIndicator:'Indikator', gsTabs:'Tab &amp; Analisis',
+    convSekTitle:'Rincian konvergensi Klungkung–Bali per <b>sektor</b> (17 sektor), dari enam sudut pandang: potret satu tahun, ringkasan tren tiap sektor 2011–2025, peta panas antar tahun, klasifikasi mirip/berbeda, seberapa serempak sektor bergerak (sinkronisasi), dan ringkasan tahunan seluruh sektor.',
+    convSekV1:'01 Detail per Tahun', convSekV2:'02 Trajectory Sektor', convSekV3:'03 Heatmap', convSekV4:'04 Snapshot Tahun', convSekV5:'05 Sinkronisasi', convSekV6:'06 Ringkasan Tahunan',
+    apaIni:'📖 Apa ini', caraMembaca:'💡 Cara membaca', lblTahun2:'Tahun',
+    avgGap:'Rata-rata Gap', sekConv:'Sektor Converging', sekDiv:'Sektor Diverging', gapTerbesar:'Gap Terbesar',
+    absGapTitle:'Absolute Growth Gap per Sektor', tblDetailSektor:'Tabel Detail Sektor', axAbsGrowth:'Selisih pertumbuhan absolut (pp)',
+    thSektor:'Sektor', thStatus:'Status', thGrowthK:'Growth K.', thGrowthBali:'Growth Bali', thGrowthDiff:'Growth Diff. (pp)', thAbsGap:'Abs. Gap (pp)',
+    trajDesc:'Ringkasan tren tiap sektor sepanjang 2011–2025.', trajDesc2:'<b>Convergence Rate</b> negatif berarti gap makin melebar; positif berarti gap makin menyempit dari 2011 ke 2025.',
+    trajConv:'Sektor Trajectory Converging', trajDiv:'Sektor Trajectory Diverging', trajBest:'Paling Konvergen', trajWorst:'Paling Divergen',
+    trajChartTitle:'Gap 2011 vs 2025 per Sektor', trajTable:'Tabel Trajectory Sektor', axGapGrowth:'Gap pertumbuhan (pp)',
+    gap2011:'Gap 2011 (pp)', gap2025:'Gap 2025 (pp)',
+    thTrajectory:'Trajectory', thAvgGap:'Avg. Gap', thGap2011:'Gap 2011', thGap2025:'Gap 2025', thPerubahan:'Perubahan', thConvRate:'Conv. Rate', thThConv:'Th. Converging', thThDiv:'Th. Diverging',
+    heatmapDesc:'Baris = sektor, kolom = tahun. Warna hijau → gap pertumbuhan sektor tsb terhadap Bali kecil di tahun itu; merah → gap besar. Kolom tahun baru otomatis muncul begitu ditambahkan di sheet sumber.',
+    heatmapTitle:'Heatmap Absolute Growth Gap (pp)',
+    snapDesc:'Potret satu tahun: sektor mana yang laju pertumbuhannya <b>SANGAT MIRIP</b> dengan Bali (gap &lt; {th}pp) dan mana yang <b>BERBEDA</b> jauh (gap ≥ {th}pp). Dihitung langsung dari data per-tahun, jadi tahun bisa diganti bebas.',
+    sangatMirip:'Sangat Mirip', berbeda:'Berbeda', snapshotTitle:'Snapshot',
+    syncDesc:'<b>Synchronization Index</b> = seberapa dekat gap pertumbuhan sektor tsb dibanding gap sektor paling ekstrem di tahun yang sama (1 = paling serempak, 0 = paling menyimpang).',
+    syncHigh:'Sinkronisasi Tinggi', syncMed:'Sinkronisasi Sedang', syncLow:'Sinkronisasi Rendah',
+    syncChartTitle:'Synchronization Index per Sektor', syncTable:'Tabel Sinkronisasi', axSyncIndex:'Indeks sinkronisasi (0–1)',
+    thMaxGapAll:'Max Gap (semua sektor)', thSyncIndex:'Sync. Index',
+    yearlyDesc:'Ringkasan seluruh 17 sektor tiap tahun: rata-rata/median gap, serta berapa sektor yang sedang converging vs diverging tahun itu.',
+    yearlyLatestYear:'Tahun Terbaru', yearlyMeanGap:'Mean Gap Terbaru',
+    yearlyChartTitle:'Mean & Median Absolute Gap per Tahun', yearlyTable:'Tabel Ringkasan Tahunan',
+    meanGapDs:'Mean Gap (pp)', medianGapDs:'Median Gap (pp)',
+    thMeanGap:'Mean Gap', thMedianGap:'Median Gap', thMaxGap:'Max Gap', thMinGap:'Min Gap', thConverging:'Converging', thDiverging:'Diverging', thTahun:'Tahun',
+    matrixDesc:'Matriks 17×17 <b>Absolute Growth Gap</b> (poin persentase) antar sektor — seberapa berbeda laju pertumbuhan satu sektor dibanding sektor lainnya, dihitung ulang langsung dari data mentah 136 pasangan sektor untuk tahun yang dipilih.',
+    matrixDesc2:'Angka kecil (hijau) → perubahan pertumbuhan kedua sektor relatif mirip. Angka besar (merah) → perubahan pertumbuhan kedua sektor berbeda jauh.',
+    matrixYear:'Tahun Matriks', matrixMostSim:'Pasangan Paling Mirip', matrixMostDiff:'Pasangan Paling Beda', matrixTableTitle:'Matriks Absolute Growth Gap (pp)',
+    mrDesc:'Melihat apakah penyimpangan pertumbuhan Klungkung dari rata-rata historisnya (Growth Gap) cenderung <b>kembali normal</b> atau <b>makin melebar</b> dari tahun ke tahun. Ada 3 status, bukan 2:',
+    mrMR:'MEAN-REVERTING — gap terhadap rata-rata mengecil. Contoh: +5pp → +3pp → +1pp.',
+    mrP:'PERSISTENT — gap relatif bertahan. Contoh: +5pp → +5,1pp → +4,9pp.',
+    mrD:'DIVERGING — gap semakin membesar. Contoh: +2pp → +4pp → +6pp.',
+    mrMeanReverting:'Mean-Reverting', mrPersistent:'Persistent', mrDiverging:'Diverging',
+    mrChartTitle:'Growth Gap per Tahun', mrTable:'Tabel Growth Mean-Reversion', axGrowthDiffPp:'Selisih pertumbuhan (pp)',
+    thGrowth:'Growth', thAvgGrowth:'Avg. Growth', thGrowthGap:'Growth Gap', thMrRatio:'MR Ratio', thInterpretasi:'Interpretasi',
+    divPageTitle:'Analisis Diversitas Ekonomi',
+    divPageIntro:'Mengukur seberapa merata PDRB Klungkung tersebar di antara berbagai sektor (diversifikasi) versus seberapa bertumpu pada segelintir sektor saja (konsentrasi), serta seberapa besar struktur itu bergeser dari tahun ke tahun. Empat indeks — <b>Entropy/Shannon-Weaver</b>, <b>HHI</b>, <b>REI</b>, dan <b>Tress Index</b> — sudah dihitung langsung di sumber data (Google Sheets) untuk Klungkung, dan juga tersedia untuk Bali sebagai pembanding.',
+    divUrlLabel:'Link CSV Sumber Data', divUrlPlaceholder:'Tempel link publish-to-CSV Google Sheets di sini…', divUrlLoadBtn:'Muat Data', divNoSource:'Belum ada sumber data.',
+    divMapMissing:'Kolom wajib (Tahun, K Entropy, K HHI, K Tress Index, K Share – ...) belum lengkap terdeteksi dari header sheet. Periksa nama kolom di sumber data.',
+    divNoValidRows:'Tidak ada baris data yang valid.', divUrlChangeBtn:'Ganti Link Sumber Data',
+    divCompareBaliLabel:'Bandingkan dengan Bali', divYearsShown:'titik tahun ditampilkan', divNoYearsInRange:'Tidak ada tahun pada rentang',
+    divIdxMethod:'📖 Apa itu indeks-indeks ini', divIdxMethodBody:'Keempatnya sama-sama dihitung dari pangsa (share) pᵢ tiap sektor terhadap total PDRB tiap tahun, tapi menyorot sisi berbeda: <b>Entropy/Shannon-Weaver</b> &amp; <b>HHI</b> mengukur tingkat keberagaman/konsentrasi struktur ekonomi pada satu titik waktu, <b>REI</b> mengukur seberapa besar struktur itu bergeser dibanding tahun sebelumnya, dan <b>Tress Index</b> mengukur konsentrasi dengan pendekatan berbasis ranking.',
+    divFormula:'🧮 Formula', divRankCaption:'rank 1 = share terkecil, rank n = share terbesar, n = ',
+    divReadPts:'<li><b>Entropy</b> makin tinggi (mendekati ln({N})≈{lnN}) = ekonomi makin merata/terdiversifikasi antar sektor; mendekati 0 = sangat bertumpu pada segelintir sektor.</li><li><b>HHI</b> arahnya kebalikan: mendekati 1/{N}≈{invN} = merata; mendekati 1 = sangat terkonsentrasi (ambang umum: &lt;0,15 terdiversifikasi baik, 0,15–0,25 konsentrasi sedang, &gt;0,25 sangat terkonsentrasi).</li><li><b>REI</b> mendekati 0 = struktur ekonomi stabil dari tahun sebelumnya; makin tinggi = terjadi pergeseran porsi sektor yang signifikan dalam setahun.</li><li><b>Tress</b> 0 = seluruh sektor porsinya sama besar; mendekati 100 = ekonomi sangat bertumpu pada satu sektor dominan.</li>',
+    divReadNumbers:'💡 Cara membaca angka',
+    divLastYear:'Tahun Terakhir', divEntropy:'Entropy', divHhi:'HHI', divTress:'Tress Index', divReiLatest:'REI Terbaru',
+    divTrendTitle:'Tren Indeks Antar Tahun', divVsBali:' — Klungkung vs Bali',
+    divChooseIdx:'📊 Pilih Indeks ▾', divCompositionTitle:'Komposisi Sektor', divIdxTableTitle:'Tabel Indeks per Tahun',
+    divMinOneIdx:'Minimal 1 indeks harus ditampilkan.',
+    thTahun2:'Tahun', thKlasifikasi:'Klasifikasi', thEntropy:'Entropy', thHhi:'HHI', thTress:'Tress', thRei:'REI',
+    divPctOfTotal:'% terhadap Total PDRB',
+    advTitle:'Analisis Struktural',
+    advIntro:'Sepuluh analisis pelengkap Shift-Share, LQ, dan Diversitas: selisih laju pertumbuhan Klungkung vs Bali, seberapa besar dan di sektor mana struktur ekonomi berubah tiap tahun, derajat spesialisasi ala Krugman, seberapa mirip struktur ekonomi Klungkung dengan Bali, sektor mana penyumbang perbedaan terbesar, klasifikasi tiap sektor ala Tipologi Klassen (maju/berkembang/tertinggal dibanding Bali), bagaimana sektor berpindah kelas dari waktu ke waktu, seberapa kompleks kapabilitas ekonominya, seberapa tahan terhadap guncangan, dan bagaimana pola spesialisasi tiap sektor sejak 2010.',
+    advRetry:'Coba Lagi',
+    gdKFaster:'Klungkung Lebih Cepat', gdKSlower:'Klungkung Lebih Lambat', gdSame:'Sama',
+    gdTitle:'Growth Differential — Klungkung vs Bali', gdIntro:'Selisih laju pertumbuhan Klungkung dikurangi Bali tiap tahun, plus kesenjangan kumulatif sejak tahun dasar. Positif = Klungkung tumbuh lebih cepat dari Bali tahun itu.',
+    gdLatestYear:'Tahun Terbaru', gdDiffPp:'Growth Diff. (pp)', gdCumGap:'Cumulative Gap', gdStatusLatest:'Status Terbaru',
+    gdChart1:'Growth Klungkung vs Bali', gdChart2:'Growth Differential per Tahun (pp)', gdChart3:'Cumulative Relative Gap',
+    gdTable:'Tabel Growth Differential',
+    thAdhkK:'ADHK Klungkung', thAdhkB:'ADHK Bali', thRelDiff:'Rel. Diff', thCumGap:'Cum. Gap',
+    advApaIni:'📖 Apa itu analisis ini', advCaraBaca:'💡 Cara membaca angka',
+    gdNoData:'Tidak ada data valid — periksa struktur kolom sumber data.',
+    gdApaItu:'Growth Differential membandingkan laju pertumbuhan ekonomi (ADHK) Klungkung terhadap Bali dari tahun ke tahun — apakah Klungkung tumbuh lebih cepat, lebih lambat, atau setara Bali.',
+    gdFormula1:'Growth Diff (pp) = (Growthₖ − Growth_Bali) × 100', gdFormula2:'Cumulative Relative Gap = Σ Relative Growth Diff sejak tahun dasar',
+    gdCaraBaca1:'<b>Growth Diff (pp) positif</b> = pertumbuhan Klungkung tahun itu lebih cepat dari Bali dalam poin persentase.',
+    gdCaraBaca2:'<b>Cumulative Relative Gap</b> menunjukkan akumulasi selisih sejak tahun dasar — tren naik berarti Klungkung perlahan mengejar/melampaui Bali, tren turun berarti sebaliknya.',
+    gdChartTs:'Tren Pertumbuhan: Klungkung vs Bali',
+    thDiffPp:'Diff (pp)', thCumRelGap:'Cum. Relative Gap',
+    scNoValid:'Tidak ada data valid.',
+    scApaItu:'Structural Change Index (SCI) mengukur seberapa besar komposisi sektoral berubah dari tahun ke tahun sebelumnya (bukan dibandingkan wilayah lain seperti SSI) — dan sektor mana yang paling bergeser pada tahun tertentu.',
+    scFormula1:'SCIₜ = ½ × Σ |Shareᵢ,ₜ − Shareᵢ,ₜ₋₁|', scFormula2:'Structural Gap Sektoral = ΔShareₖ − ΔShare_Bali untuk sektor tsb',
+    scCaraBaca1:'<b>SCI</b> makin besar berarti struktur ekonomi berubah makin cepat tahun itu.',
+    scCaraBaca2:'<b>Structural Gap Sektoral</b> menunjukkan sektor mana yang pergeserannya paling berbeda arah/besaran antara Klungkung dan Bali. Pilih tahun untuk melihat detail per sektor.',
+    scChartTs:'Tren SCI: Klungkung vs Bali', scChartSektor:'Perubahan Share per Sektor', scTable:'Tabel Perubahan Struktur Sektoral',
+    axSci:'Structural Change Index (%)', axShareChange:'Perubahan pangsa (pp)',
+    thShareK:'Share K', thShareB:'Share Bali', thDeltaShareK:'Δ Share K', thDeltaShareB:'Δ Share Bali', thGapSektoral:'Gap Sektoral',
     definisi:'Definisi', noDefinition:'Belum ada deskripsi definisi untuk indikator ini.', cmpDefsTitle:'Definisi Indikator Terpilih',
     filterShowData:'Tampilkan Data', filterShowAll:'Tampilkan Semua', filterToggle:'semua/tidak',
     convTitle:'Konvergensi',
@@ -2657,6 +2732,81 @@ const I18N = {
     cinsLargest:'the largest contribution comes from', cinsOfTotal:'of total', cinsIn:'In', cinsTopGrowth:'The highest growth in',  cinsRecordedBy:'was recorded by',
     cinsLargestIn:'The largest contribution in', cinsComesFrom:'comes from',
     gsNone:'No matches found.', gsIndicator:'Indicators', gsTabs:'Tabs &amp; Analyses',
+    convSekTitle:'A breakdown of Klungkung–Bali convergence per <b>sector</b> (17 sectors), from six angles: a snapshot of one year, a trend summary per sector for 2011–2025, a year-by-year heatmap, similar/different classification, how synchronized sectors move together, and an annual summary across all sectors.',
+    convSekV1:'01 Yearly Detail', convSekV2:'02 Sector Trajectory', convSekV3:'03 Heatmap', convSekV4:'04 Year Snapshot', convSekV5:'05 Synchronization', convSekV6:'06 Annual Summary',
+    apaIni:'📖 What this is', caraMembaca:'💡 How to read', lblTahun2:'Year',
+    avgGap:'Average Gap', sekConv:'Converging Sectors', sekDiv:'Diverging Sectors', gapTerbesar:'Largest Gap',
+    absGapTitle:'Absolute Growth Gap per Sector', tblDetailSektor:'Sector Detail Table', axAbsGrowth:'Absolute growth difference (pp)',
+    thSektor:'Sector', thStatus:'Status', thGrowthK:'Growth K.', thGrowthBali:'Growth Bali', thGrowthDiff:'Growth Diff. (pp)', thAbsGap:'Abs. Gap (pp)',
+    trajDesc:'A trend summary for each sector across 2011–2025.', trajDesc2:'A negative <b>Convergence Rate</b> means the gap is widening; positive means the gap is narrowing from 2011 to 2025.',
+    trajConv:'Converging-Trajectory Sectors', trajDiv:'Diverging-Trajectory Sectors', trajBest:'Most Convergent', trajWorst:'Most Divergent',
+    trajChartTitle:'2011 vs 2025 Gap per Sector', trajTable:'Sector Trajectory Table', axGapGrowth:'Growth gap (pp)',
+    gap2011:'2011 Gap (pp)', gap2025:'2025 Gap (pp)',
+    thTrajectory:'Trajectory', thAvgGap:'Avg. Gap', thGap2011:'2011 Gap', thGap2025:'2025 Gap', thPerubahan:'Change', thConvRate:'Conv. Rate', thThConv:'Yrs Converging', thThDiv:'Yrs Diverging',
+    heatmapDesc:'Rows = sector, columns = year. Green → the sector\'s growth gap vs. Bali was small that year; red → the gap was large. New year columns appear automatically once added to the source sheet.',
+    heatmapTitle:'Absolute Growth Gap Heatmap (pp)',
+    snapDesc:'A single-year snapshot: which sectors\' growth rates are <b>VERY SIMILAR</b> to Bali\'s (gap &lt; {th}pp) and which are <b>DIFFERENT</b> (gap ≥ {th}pp). Computed directly from the yearly data, so the year can be changed freely.',
+    sangatMirip:'Very Similar', berbeda:'Different', snapshotTitle:'Snapshot',
+    syncDesc:'<b>Synchronization Index</b> = how close a sector\'s growth gap is to the most extreme sector gap in the same year (1 = most synchronized, 0 = most divergent).',
+    syncHigh:'High Synchronization', syncMed:'Medium Synchronization', syncLow:'Low Synchronization',
+    syncChartTitle:'Synchronization Index per Sector', syncTable:'Synchronization Table', axSyncIndex:'Synchronization index (0–1)',
+    thMaxGapAll:'Max Gap (all sectors)', thSyncIndex:'Sync. Index',
+    yearlyDesc:'A summary of all 17 sectors each year: mean/median gap, and how many sectors were converging vs. diverging that year.',
+    yearlyLatestYear:'Latest Year', yearlyMeanGap:'Latest Mean Gap',
+    yearlyChartTitle:'Mean & Median Absolute Gap per Year', yearlyTable:'Annual Summary Table',
+    meanGapDs:'Mean Gap (pp)', medianGapDs:'Median Gap (pp)',
+    thMeanGap:'Mean Gap', thMedianGap:'Median Gap', thMaxGap:'Max Gap', thMinGap:'Min Gap', thConverging:'Converging', thDiverging:'Diverging', thTahun:'Year',
+    matrixDesc:'A 17×17 matrix of <b>Absolute Growth Gap</b> (percentage points) between sectors — how different one sector\'s growth rate is from another\'s, recomputed directly from the raw 136 sector-pair data for the selected year.',
+    matrixDesc2:'Small numbers (green) → the two sectors\' growth changes are relatively similar. Large numbers (red) → the two sectors\' growth changes differ widely.',
+    matrixYear:'Matrix Year', matrixMostSim:'Most Similar Pair', matrixMostDiff:'Most Different Pair', matrixTableTitle:'Absolute Growth Gap Matrix (pp)',
+    mrDesc:'Looks at whether Klungkung\'s growth deviation from its own historical average (Growth Gap) tends to <b>revert to normal</b> or <b>keep widening</b> over time. There are 3 statuses, not 2:',
+    mrMR:'MEAN-REVERTING — the gap to the average shrinks. Example: +5pp → +3pp → +1pp.',
+    mrP:'PERSISTENT — the gap stays roughly the same. Example: +5pp → +5.1pp → +4.9pp.',
+    mrD:'DIVERGING — the gap keeps growing. Example: +2pp → +4pp → +6pp.',
+    mrMeanReverting:'Mean-Reverting', mrPersistent:'Persistent', mrDiverging:'Diverging',
+    mrChartTitle:'Growth Gap per Year', mrTable:'Growth Mean-Reversion Table', axGrowthDiffPp:'Growth difference (pp)',
+    thGrowth:'Growth', thAvgGrowth:'Avg. Growth', thGrowthGap:'Growth Gap', thMrRatio:'MR Ratio', thInterpretasi:'Interpretation',
+    divPageTitle:'Economic Diversity Analysis',
+    divPageIntro:'Measures how evenly Klungkung\'s GRDP is spread across sectors (diversification) versus how concentrated it is in just a few sectors, and how much that structure has shifted year to year. Four indices — <b>Entropy/Shannon-Weaver</b>, <b>HHI</b>, <b>REI</b>, and the <b>Tress Index</b> — are computed directly in the data source (Google Sheets) for Klungkung, and also available for Bali as a comparison.',
+    divUrlLabel:'Data Source CSV Link', divUrlPlaceholder:'Paste a Google Sheets publish-to-CSV link here…', divUrlLoadBtn:'Load Data', divNoSource:'No data source yet.',
+    divMapMissing:'Required columns (Tahun, K Entropy, K HHI, K Tress Index, K Share – ...) could not be fully detected from the sheet headers. Check the column names in the data source.',
+    divNoValidRows:'No valid data rows.', divUrlChangeBtn:'Change Data Source Link',
+    divCompareBaliLabel:'Compare with Bali', divYearsShown:'year points shown', divNoYearsInRange:'No years in the range',
+    divIdxMethod:'📖 What these indices are', divIdxMethodBody:'All four are computed from each sector\'s share pᵢ of total GRDP each year, but highlight different aspects: <b>Entropy/Shannon-Weaver</b> &amp; <b>HHI</b> measure the diversity/concentration of the economic structure at a point in time, <b>REI</b> measures how much that structure shifted from the previous year, and the <b>Tress Index</b> measures concentration using a ranking-based approach.',
+    divFormula:'🧮 Formula', divRankCaption:'rank 1 = smallest share, rank n = largest share, n = ',
+    divReadPts:'<li><b>Entropy</b> higher (closer to ln({N})≈{lnN}) = the economy is more evenly diversified across sectors; closer to 0 = heavily concentrated in a few sectors.</li><li><b>HHI</b> runs the other way: closer to 1/{N}≈{invN} = evenly spread; closer to 1 = highly concentrated (common thresholds: &lt;0.15 well-diversified, 0.15–0.25 moderate concentration, &gt;0.25 highly concentrated).</li><li><b>REI</b> closer to 0 = the economic structure was stable from the previous year; higher = a significant shift in sector shares occurred within the year.</li><li><b>Tress</b> 0 = every sector has an equal share; closer to 100 = the economy is heavily dominated by a single sector.</li>',
+    divReadNumbers:'💡 How to read the numbers',
+    divLastYear:'Latest Year', divEntropy:'Entropy', divHhi:'HHI', divTress:'Tress Index', divReiLatest:'Latest REI',
+    divTrendTitle:'Index Trend Over Time', divVsBali:' — Klungkung vs Bali',
+    divChooseIdx:'📊 Choose Index ▾', divCompositionTitle:'Sector Composition', divIdxTableTitle:'Index Table by Year',
+    divMinOneIdx:'At least 1 index must be shown.',
+    thTahun2:'Year', thKlasifikasi:'Classification', thEntropy:'Entropy', thHhi:'HHI', thTress:'Tress', thRei:'REI',
+    divPctOfTotal:'% of Total GRDP',
+    advTitle:'Structural Analysis',
+    advIntro:'Ten analyses that complement Shift-Share, LQ, and Diversity: the growth-rate gap between Klungkung and Bali, how much and in which sectors the economic structure changes each year, degree of Krugman-style specialization, how similar Klungkung\'s economic structure is to Bali\'s, which sectors drive the largest gaps, a Klassen Typology classification per sector (advanced/developing/lagging vs. Bali), how sectors move between classes over time, how complex the economic capabilities are, how resilient the economy is to shocks, and each sector\'s specialization pattern since 2010.',
+    advRetry:'Retry',
+    gdKFaster:'Klungkung Faster', gdKSlower:'Klungkung Slower', gdSame:'Equal',
+    gdTitle:'Growth Differential — Klungkung vs Bali', gdIntro:'The difference between Klungkung\'s and Bali\'s growth rate each year, plus the cumulative gap since the base year. Positive = Klungkung grew faster than Bali that year.',
+    gdLatestYear:'Latest Year', gdDiffPp:'Growth Diff. (pp)', gdCumGap:'Cumulative Gap', gdStatusLatest:'Latest Status',
+    gdChart1:'Growth: Klungkung vs Bali', gdChart2:'Growth Differential per Year (pp)', gdChart3:'Cumulative Relative Gap',
+    gdTable:'Growth Differential Table',
+    thAdhkK:'ADHK Klungkung', thAdhkB:'ADHK Bali', thRelDiff:'Rel. Diff', thCumGap:'Cum. Gap',
+    advApaIni:'📖 What this analysis is', advCaraBaca:'💡 How to read the numbers',
+    gdNoData:'No valid data — check the source data\'s column structure.',
+    gdApaItu:'Growth Differential compares Klungkung\'s economic growth rate (ADHK) to Bali\'s year by year — whether Klungkung grew faster, slower, or on par with Bali.',
+    gdFormula1:'Growth Diff (pp) = (Growthₖ − Growth_Bali) × 100', gdFormula2:'Cumulative Relative Gap = Σ Relative Growth Diff since the base year',
+    gdCaraBaca1:'<b>A positive Growth Diff (pp)</b> = Klungkung grew faster than Bali that year, in percentage points.',
+    gdCaraBaca2:'<b>Cumulative Relative Gap</b> shows the accumulated difference since the base year — an upward trend means Klungkung is gradually catching up to/overtaking Bali, a downward trend means the opposite.',
+    gdChartTs:'Growth Trend: Klungkung vs Bali',
+    thDiffPp:'Diff (pp)', thCumRelGap:'Cum. Relative Gap',
+    scNoValid:'No valid data.',
+    scApaItu:'The Structural Change Index (SCI) measures how much the sectoral composition changed from the previous year (not compared to another region like SSI) — and which sector shifted the most in a given year.',
+    scFormula1:'SCIₜ = ½ × Σ |Shareᵢ,ₜ − Shareᵢ,ₜ₋₁|', scFormula2:'Sectoral Structural Gap = ΔShareₖ − ΔShare_Bali for that sector',
+    scCaraBaca1:'<b>A larger SCI</b> means the economic structure changed faster that year.',
+    scCaraBaca2:'<b>Sectoral Structural Gap</b> shows which sector\'s shift differed most in direction/magnitude between Klungkung and Bali. Pick a year to see the per-sector detail.',
+    scChartTs:'SCI Trend: Klungkung vs Bali', scChartSektor:'Share Change per Sector', scTable:'Sectoral Structural Change Table',
+    axSci:'Structural Change Index (%)', axShareChange:'Share change (pp)',
+    thShareK:'Share K', thShareB:'Share Bali', thDeltaShareK:'Δ Share K', thDeltaShareB:'Δ Share Bali', thGapSektoral:'Sectoral Gap',
     definisi:'Definition', noDefinition:'No definition is available for this indicator yet.', cmpDefsTitle:'Selected Indicator Definitions',
     filterShowData:'Show Data', filterShowAll:'Show All', filterToggle:'all/none',
     convTitle:'Convergence',
@@ -11867,10 +12017,17 @@ function getConvStatusColor(){
   };
 }
 
+const CONV_STATUS_EN = {
+  'CONVERGING':'CONVERGING','DIVERGING':'DIVERGING','STABLE':'STABLE',
+  'SANGAT MIRIP':'VERY SIMILAR','BERBEDA':'DIFFERENT',
+  'HIGH':'HIGH','MEDIUM':'MEDIUM','LOW':'LOW',
+  'MEAN-REVERTING':'MEAN-REVERTING','PERSISTENT':'PERSISTENT','BASE':'BASE'
+};
 function convStatusBadge(status){
   const s = (status||'').toString().trim().toUpperCase();
   const color = getConvStatusColor()[s] || THEME.mid;
-  return `<span class="ss-badge-quad" style="background:${color}">${escapeHtml(s||'-')}</span>`;
+  const shown = LANG==='en' ? (CONV_STATUS_EN[s] || s) : s;
+  return `<span class="ss-badge-quad" style="background:${color}">${escapeHtml(shown||'-')}</span>`;
 }
 
 /* ---------- Loader umum: satu sheet, header bersih di baris pertama ---------- */
@@ -12032,7 +12189,7 @@ function renderConvBali(){
       <div class="stat-box"><div class="stat-label">${trx('convYearLatest')}</div><div class="stat-value" style="font-size:15px;">${last.tahun}</div></div>
       <div class="stat-box"><div class="stat-label">${trx('convRelLevel')}</div><div class="stat-value" style="font-size:15px;">${(last.relLevel*100).toFixedID(2)}%</div></div>
       <div class="stat-box"><div class="stat-label">${trx('convGrowthDiff')}</div><div class="stat-value" style="font-size:15px;color:${last.growthDiff>=0?'var(--green)':'var(--rust)'};">${last.growthDiff>=0?'+':''}${last.growthDiff.toFixedID(2)} pp</div></div>
-      <div class="stat-box"><div class="stat-label">${trx('convStatusLatest')}</div><div class="stat-value" style="font-size:14px;color:${getConvStatusColor()[last.status]||'var(--brown)'};">${escapeHtml(last.status)}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('convStatusLatest')}</div><div class="stat-value" style="font-size:14px;color:${getConvStatusColor()[last.status]||'var(--brown)'};">${escapeHtml(LANG==='en' ? (CONV_STATUS_EN[last.status]||last.status) : last.status)}</div></div>
       <div class="stat-box"><div class="stat-label">${trx('convYearConverging')}</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().CONVERGING};">${cCounts.CONVERGING}</div></div>
       <div class="stat-box"><div class="stat-label">${trx('convYearDiverging')}</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().DIVERGING};">${cCounts.DIVERGING}</div></div>
     </div>
@@ -12256,20 +12413,20 @@ function renderConvBaliSektoral(){
   const body = document.getElementById('convBody');
 
   const views = [
-    {key:'detail',     label:'01 Detail per Tahun'},
-    {key:'trajectory', label:'02 Trajectory Sektor'},
-    {key:'heatmap',    label:'03 Heatmap'},
-    {key:'snapshot',   label:'04 Snapshot Tahun'},
-    {key:'sync',       label:'05 Sinkronisasi'},
-    {key:'yearly',     label:'06 Ringkasan Tahunan'}
+    {key:'detail',     labelKey:'convSekV1'},
+    {key:'trajectory', labelKey:'convSekV2'},
+    {key:'heatmap',    labelKey:'convSekV3'},
+    {key:'snapshot',   labelKey:'convSekV4'},
+    {key:'sync',       labelKey:'convSekV5'},
+    {key:'yearly',     labelKey:'convSekV6'}
   ];
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b class="mn-label">📖 Apa ini</b> Rincian konvergensi Klungkung–Bali per <b>sektor</b> (17 sektor), dari enam sudut pandang: potret satu tahun, ringkasan tren tiap sektor 2011–2025, peta panas antar tahun, klasifikasi mirip/berbeda, seberapa serempak sektor bergerak (sinkronisasi), dan ringkasan tahunan seluruh sektor.</div>
+      <div><b class="mn-label">${trx('apaIni')}</b> ${trx('convSekTitle')}</div>
     </div>
     <div class="ss-method-tabs" id="convSektoralSubTabs">
-      ${views.map(v=>`<button class="ss-method-tab" data-k="${v.key}">${escapeHtml(v.label)}</button>`).join('')}
+      ${views.map(v=>`<button class="ss-method-tab" data-k="${v.key}">${escapeHtml(trx(v.labelKey))}</button>`).join('')}
     </div>
     <div id="convSektoralBody"></div>
   `;
@@ -12291,7 +12448,7 @@ function renderConvBaliSektoral(){
 }
 
 function convYearSelectHtml(id, years, selected){
-  return `<div class="ctrl-item"><label>Tahun</label><select id="${id}">${years.map(y=>`<option value="${y}" ${y===selected?'selected':''}>${y}</option>`).join('')}</select></div>`;
+  return `<div class="ctrl-item"><label>${trx('lblTahun2')}</label><select id="${id}">${years.map(y=>`<option value="${y}" ${y===selected?'selected':''}>${y}</option>`).join('')}</select></div>`;
 }
 
 /* ---- 01. Detail per Tahun (per sektor) ---- */
@@ -12313,14 +12470,14 @@ function renderConvSektorDetail(){
   el.innerHTML = `
     <div class="ss-controls">${convYearSelectHtml('convSektorDetailYear', years, convSektorYear)}</div>
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">Rata-rata Gap</div><div class="stat-value" style="font-size:15px;">${avgGap.toFixedID(2)} pp</div></div>
-      <div class="stat-box"><div class="stat-label">Sektor Converging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().CONVERGING};">${cConv}</div></div>
-      <div class="stat-box"><div class="stat-label">Sektor Diverging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().DIVERGING};">${cDiv}</div></div>
-      <div class="stat-box"><div class="stat-label">Gap Terbesar</div><div class="stat-value" style="font-size:11px;line-height:1.4;">${rows[0]?escapeHtml(rows[0].sektor)+' ('+rows[0].absGap.toFixedID(2)+' pp)':'-'}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('avgGap')}</div><div class="stat-value" style="font-size:15px;">${avgGap.toFixedID(2)} pp</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('sekConv')}</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().CONVERGING};">${cConv}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('sekDiv')}</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().DIVERGING};">${cDiv}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('gapTerbesar')}</div><div class="stat-value" style="font-size:11px;line-height:1.4;">${rows[0]?escapeHtml(rows[0].sektor)+' ('+rows[0].absGap.toFixedID(2)+' pp)':'-'}</div></div>
     </div>
-    <div class="ss-section-title">Absolute Growth Gap per Sektor — ${convSektorYear}</div>
+    <div class="ss-section-title">${trx('absGapTitle')} — ${convSektorYear}</div>
     <div class="chart-box-wrap"><button class="dl-btn" id="dlConvSektorDetailChart">${trx('downloadJpg')}</button><div class="chart-box" style="height:340px;"><canvas id="convSektorDetailChart"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Detail Sektor — ${convSektorYear}</span><button class="dl-btn" id="convSektorDetailExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
+    <div class="table-head-row"><span class="table-head-label">${trx('tblDetailSektor')} — ${convSektorYear}</span><button class="dl-btn" id="convSektorDetailExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="convSektorDetailTable"></table></div>
   `;
 
@@ -12332,11 +12489,11 @@ function renderConvSektorDetail(){
     data:{ labels: rows.map(r=>r.sektor), datasets:[{ label:'Absolute Growth Gap (pp)', data: rows.map(r=>r.absGap), backgroundColor: rows.map(r=> getConvStatusColor()[r.status] || THEME.mid) }] },
     options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
       plugins:{ legend:{ display:false } },
-      scales:{ x:{title:axTitle('Selisih pertumbuhan absolut (pp)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10}}}, y:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:9.5}}} }
+      scales:{ x:{title:axTitle(trx('axAbsGrowth')), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10}}}, y:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:9.5}}} }
     }
   });
 
-  const head = `<tr><th>Sektor</th><th>Status</th><th>Growth K.</th><th>Growth Bali</th><th>Growth Diff. (pp)</th><th>Abs. Gap (pp)</th></tr>`;
+  const head = `<tr><th>${trx('thSektor')}</th><th>${trx('thStatus')}</th><th>${trx('thGrowthK')}</th><th>${trx('thGrowthBali')}</th><th>${trx('thGrowthDiff')}</th><th>${trx('thAbsGap')}</th></tr>`;
   const bodyRows = rows.map(r=>`<tr>
     <td style="text-align:left;">${escapeHtml(r.sektor)}</td>
     <td>${convStatusBadge(r.status)}</td>
@@ -12368,16 +12525,16 @@ function renderConvSektorTrajectory(){
   const nDiv = rows.filter(r=>r.trajectory==='DIVERGING').length;
 
   el.innerHTML = `
-    <div class="ss-method-note"><div class="mn-row"><b class="mn-label">💡 Cara membaca</b><ul class="mn-points"><li>Ringkasan tren tiap sektor sepanjang 2011–2025.</li><li><b>Convergence Rate</b> negatif berarti gap makin melebar; positif berarti gap makin menyempit dari 2011 ke 2025.</li></ul></div></div>
+    <div class="ss-method-note"><div class="mn-row"><b class="mn-label">${trx('caraMembaca')}</b><ul class="mn-points"><li>${trx('trajDesc')}</li><li>${trx('trajDesc2')}</li></ul></div></div>
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">Sektor Trajectory Converging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().CONVERGING};">${nConv}</div></div>
-      <div class="stat-box"><div class="stat-label">Sektor Trajectory Diverging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().DIVERGING};">${nDiv}</div></div>
-      <div class="stat-box"><div class="stat-label">Paling Konvergen</div><div class="stat-value" style="font-size:11px;line-height:1.4;">${rows[0]?escapeHtml(rows[0].sektor):'-'}</div></div>
-      <div class="stat-box"><div class="stat-label">Paling Divergen</div><div class="stat-value" style="font-size:11px;line-height:1.4;">${rows[rows.length-1]?escapeHtml(rows[rows.length-1].sektor):'-'}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('trajConv')}</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().CONVERGING};">${nConv}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('trajDiv')}</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().DIVERGING};">${nDiv}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('trajBest')}</div><div class="stat-value" style="font-size:11px;line-height:1.4;">${rows[0]?escapeHtml(rows[0].sektor):'-'}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('trajWorst')}</div><div class="stat-value" style="font-size:11px;line-height:1.4;">${rows[rows.length-1]?escapeHtml(rows[rows.length-1].sektor):'-'}</div></div>
     </div>
-    <div class="ss-section-title">Gap 2011 vs 2025 per Sektor</div>
+    <div class="ss-section-title">${trx('trajChartTitle')}</div>
     <div class="chart-box-wrap"><button class="dl-btn" id="dlConvSektorTrajChart">${trx('downloadJpg')}</button><div class="chart-box" style="height:340px;"><canvas id="convSektorTrajChart"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Trajectory Sektor</span><button class="dl-btn" id="convSektorTrajExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
+    <div class="table-head-row"><span class="table-head-label">${trx('trajTable')}</span><button class="dl-btn" id="convSektorTrajExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="convSektorTrajTable"></table></div>
   `;
 
@@ -12385,16 +12542,16 @@ function renderConvSektorTrajectory(){
   convSektorChart1 = new Chart(document.getElementById('convSektorTrajChart'), {
     type:'bar',
     data:{ labels: rows.map(r=>r.sektor), datasets:[
-      { label:'Gap 2011 (pp)', data: rows.map(r=>r.gapAwal), backgroundColor:THEME.c4 },
-      { label:'Gap 2025 (pp)', data: rows.map(r=>r.gapAkhir), backgroundColor:THEME.accent }
+      { label:trx('gap2011'), data: rows.map(r=>r.gapAwal), backgroundColor:THEME.c4 },
+      { label:trx('gap2025'), data: rows.map(r=>r.gapAkhir), backgroundColor:THEME.accent }
     ]},
     options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
       plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main} } },
-      scales:{ x:{title:axTitle('Gap pertumbuhan (pp)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10}}}, y:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:9.5}}} }
+      scales:{ x:{title:axTitle(trx('axGapGrowth')), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10}}}, y:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:9.5}}} }
     }
   });
 
-  const head = `<tr><th>Sektor</th><th>Trajectory</th><th>Avg. Gap</th><th>Gap 2011</th><th>Gap 2025</th><th>Perubahan</th><th>Conv. Rate</th><th>Th. Converging</th><th>Th. Diverging</th></tr>`;
+  const head = `<tr><th>${trx('thSektor')}</th><th>${trx('thTrajectory')}</th><th>${trx('thAvgGap')}</th><th>${trx('thGap2011')}</th><th>${trx('thGap2025')}</th><th>${trx('thPerubahan')}</th><th>${trx('thConvRate')}</th><th>${trx('thThConv')}</th><th>${trx('thThDiv')}</th></tr>`;
   const bodyRows = rows.map(r=>`<tr>
     <td style="text-align:left;">${escapeHtml(r.sektor)}</td>
     <td>${convStatusBadge(r.trajectory)}</td>
@@ -12430,12 +12587,12 @@ function renderConvSektorHeatmap(){
   const maxAbs = allVals.length ? Math.max(...allVals) : 1;
 
   el.innerHTML = `
-    <div class="ss-method-note"><div><b class="mn-label">💡 Cara membaca</b> Baris = sektor, kolom = tahun. Warna hijau → gap pertumbuhan sektor tsb terhadap Bali kecil di tahun itu; merah → gap besar. Kolom tahun baru otomatis muncul begitu ditambahkan di sheet sumber.</div></div>
-    <div class="table-head-row"><span class="table-head-label">Heatmap Absolute Growth Gap (pp)</span><button class="dl-btn" id="convSektorHeatmapExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
+    <div class="ss-method-note"><div><b class="mn-label">${trx('caraMembaca')}</b> ${trx('heatmapDesc')}</div></div>
+    <div class="table-head-row"><span class="table-head-label">${trx('heatmapTitle')}</span><button class="dl-btn" id="convSektorHeatmapExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll" style="max-height:560px;"><table class="ss-table" id="convSektorHeatmapTable" style="font-size:10.5px;"></table></div>
   `;
 
-  const head = `<tr><th>Sektor</th>${years.map(y=>`<th>${y}</th>`).join('')}</tr>`;
+  const head = `<tr><th>${trx('thSektor')}</th>${years.map(y=>`<th>${y}</th>`).join('')}</tr>`;
   const bodyRows = sectors.map(s=>{
     const cells = years.map(y=>{
       const v = matrix[s][y];
@@ -12472,19 +12629,19 @@ function renderConvSektorSnapshot(){
   const nBeda = rows.length - nMirip;
 
   el.innerHTML = `
-    <div class="ss-method-note"><div><b class="mn-label">📖 Apa ini</b> Potret satu tahun: sektor mana yang laju pertumbuhannya <b>SANGAT MIRIP</b> dengan Bali (gap &lt; ${SNAPSHOT_THRESHOLD}pp) dan mana yang <b>BERBEDA</b> jauh (gap ≥ ${SNAPSHOT_THRESHOLD}pp). Dihitung langsung dari data per-tahun, jadi tahun bisa diganti bebas.</div></div>
+    <div class="ss-method-note"><div><b class="mn-label">${trx('apaIni')}</b> ${trx('snapDesc').replace(/\{th\}/g, SNAPSHOT_THRESHOLD)}</div></div>
     <div class="ss-controls">${convYearSelectHtml('convSektorSnapYear', years, convSektorYear)}</div>
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">Sangat Mirip</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor()['SANGAT MIRIP']};">${nMirip}</div></div>
-      <div class="stat-box"><div class="stat-label">Berbeda</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().BERBEDA};">${nBeda}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('sangatMirip')}</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor()['SANGAT MIRIP']};">${nMirip}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('berbeda')}</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().BERBEDA};">${nBeda}</div></div>
     </div>
-    <div class="table-head-row"><span class="table-head-label">Snapshot ${convSektorYear}</span><button class="dl-btn" id="convSektorSnapExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
+    <div class="table-head-row"><span class="table-head-label">${trx('snapshotTitle')} ${convSektorYear}</span><button class="dl-btn" id="convSektorSnapExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="convSektorSnapTable"></table></div>
   `;
 
   document.getElementById('convSektorSnapYear').onchange = (e)=>{ convSektorYear = parseInt(e.target.value); renderConvSektorSnapshot(); };
 
-  const head = `<tr><th>Sektor</th><th>Growth K.</th><th>Growth Bali</th><th>Growth Diff. (pp)</th><th>Abs. Gap (pp)</th><th>Status</th></tr>`;
+  const head = `<tr><th>${trx('thSektor')}</th><th>${trx('thGrowthK')}</th><th>${trx('thGrowthBali')}</th><th>${trx('thGrowthDiff')}</th><th>${trx('thAbsGap')}</th><th>${trx('thStatus')}</th></tr>`;
   const bodyRows = rows.map(r=>`<tr>
     <td style="text-align:left;">${escapeHtml(r.sektor)}</td>
     <td class="${r.growthK>=0?'pos':'neg'}">${isNaN(r.growthK)?'-':(r.growthK*100).toFixedID(2)+'%'}</td>
@@ -12519,16 +12676,16 @@ function renderConvSektorSync(){
   const nLow = rows.filter(r=>r.status==='LOW').length;
 
   el.innerHTML = `
-    <div class="ss-method-note"><div><b class="mn-label">📖 Apa ini</b> <b>Synchronization Index</b> = seberapa dekat gap pertumbuhan sektor tsb dibanding gap sektor paling ekstrem di tahun yang sama (1 = paling serempak, 0 = paling menyimpang).</div></div>
+    <div class="ss-method-note"><div><b class="mn-label">${trx('apaIni')}</b> ${trx('syncDesc')}</div></div>
     <div class="ss-controls">${convYearSelectHtml('convSektorSyncYear', years, convSektorYear)}</div>
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">Sinkronisasi Tinggi</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().HIGH};">${nHigh}</div></div>
-      <div class="stat-box"><div class="stat-label">Sinkronisasi Sedang</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().MEDIUM};">${nMed}</div></div>
-      <div class="stat-box"><div class="stat-label">Sinkronisasi Rendah</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().LOW};">${nLow}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('syncHigh')}</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().HIGH};">${nHigh}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('syncMed')}</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().MEDIUM};">${nMed}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('syncLow')}</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().LOW};">${nLow}</div></div>
     </div>
-    <div class="ss-section-title">Synchronization Index per Sektor — ${convSektorYear}</div>
+    <div class="ss-section-title">${trx('syncChartTitle')} — ${convSektorYear}</div>
     <div class="chart-box-wrap"><button class="dl-btn" id="dlConvSektorSyncChart">${trx('downloadJpg')}</button><div class="chart-box" style="height:340px;"><canvas id="convSektorSyncChart"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Sinkronisasi — ${convSektorYear}</span><button class="dl-btn" id="convSektorSyncExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
+    <div class="table-head-row"><span class="table-head-label">${trx('syncTable')} — ${convSektorYear}</span><button class="dl-btn" id="convSektorSyncExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="convSektorSyncTable"></table></div>
   `;
 
@@ -12540,11 +12697,11 @@ function renderConvSektorSync(){
     data:{ labels: rows.map(r=>r.sektor), datasets:[{ label:'Synchronization Index', data: rows.map(r=>r.syncIndex), backgroundColor: rows.map(r=> getConvStatusColor()[r.status] || THEME.mid) }] },
     options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
       plugins:{ legend:{ display:false } },
-      scales:{ x:{title:axTitle('Indeks sinkronisasi (0–1)'), min:0, max:1, grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10}}}, y:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:9.5}}} }
+      scales:{ x:{title:axTitle(trx('axSyncIndex')), min:0, max:1, grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10}}}, y:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:9.5}}} }
     }
   });
 
-  const head = `<tr><th>Sektor</th><th>Status</th><th>Abs. Gap</th><th>Max Gap (semua sektor)</th><th>Sync. Index</th></tr>`;
+  const head = `<tr><th>${trx('thSektor')}</th><th>${trx('thStatus')}</th><th>${trx('thAbsGap')}</th><th>${trx('thMaxGapAll')}</th><th>${trx('thSyncIndex')}</th></tr>`;
   const bodyRows = rows.map(r=>`<tr>
     <td style="text-align:left;">${escapeHtml(r.sektor)}</td>
     <td>${convStatusBadge(r.status)}</td>
@@ -12574,16 +12731,16 @@ function renderConvSektorYearly(){
   const last = rows[rows.length-1];
 
   el.innerHTML = `
-    <div class="ss-method-note"><div><b class="mn-label">💡 Cara membaca</b> Ringkasan seluruh 17 sektor tiap tahun: rata-rata/median gap, serta berapa sektor yang sedang converging vs diverging tahun itu.</div></div>
+    <div class="ss-method-note"><div><b class="mn-label">${trx('caraMembaca')}</b> ${trx('yearlyDesc')}</div></div>
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">Tahun Terbaru</div><div class="stat-value" style="font-size:15px;">${last.tahun}</div></div>
-      <div class="stat-box"><div class="stat-label">Mean Gap Terbaru</div><div class="stat-value" style="font-size:15px;">${last.meanGap.toFixedID(2)} pp</div></div>
-      <div class="stat-box"><div class="stat-label">Sektor Converging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().CONVERGING};">${isNaN(last.sectorsConv)?'-':last.sectorsConv}</div></div>
-      <div class="stat-box"><div class="stat-label">Sektor Diverging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().DIVERGING};">${isNaN(last.sectorsDiv)?'-':last.sectorsDiv}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('yearlyLatestYear')}</div><div class="stat-value" style="font-size:15px;">${last.tahun}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('yearlyMeanGap')}</div><div class="stat-value" style="font-size:15px;">${last.meanGap.toFixedID(2)} pp</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('sekConv')}</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().CONVERGING};">${isNaN(last.sectorsConv)?'-':last.sectorsConv}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('sekDiv')}</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().DIVERGING};">${isNaN(last.sectorsDiv)?'-':last.sectorsDiv}</div></div>
     </div>
-    <div class="ss-section-title">Mean & Median Absolute Gap per Tahun</div>
+    <div class="ss-section-title">${trx('yearlyChartTitle')}</div>
     <div class="chart-box-wrap"><button class="dl-btn" id="dlConvSektorYearlyChart">${trx('downloadJpg')}</button><div class="chart-box" style="height:300px;"><canvas id="convSektorYearlyChart"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Ringkasan Tahunan</span><button class="dl-btn" id="convSektorYearlyExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
+    <div class="table-head-row"><span class="table-head-label">${trx('yearlyTable')}</span><button class="dl-btn" id="convSektorYearlyExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="convSektorYearlyTable"></table></div>
   `;
 
@@ -12592,16 +12749,16 @@ function renderConvSektorYearly(){
   convSektorChart1 = new Chart(document.getElementById('convSektorYearlyChart'), {
     type:'line',
     data:{ labels, datasets:[
-      { label:'Mean Gap (pp)', data: rows.map(r=>r.meanGap), borderColor:THEME.accent, backgroundColor:THEME.accent, tension:0.35, pointRadius:0 },
-      { label:'Median Gap (pp)', data: rows.map(r=>r.medianGap), borderColor:THEME.c4, backgroundColor:THEME.c4, tension:0.35, pointRadius:0 }
+      { label:trx('meanGapDs'), data: rows.map(r=>r.meanGap), borderColor:THEME.accent, backgroundColor:THEME.accent, tension:0.35, pointRadius:0 },
+      { label:trx('medianGapDs'), data: rows.map(r=>r.medianGap), borderColor:THEME.c4, backgroundColor:THEME.c4, tension:0.35, pointRadius:0 }
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main} } },
-      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle('Gap pertumbuhan (pp)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} }
+      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle(trx('axGapGrowth')), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} }
     }
   });
 
-  const head = `<tr><th>Tahun</th><th>Status</th><th>Mean Gap</th><th>Median Gap</th><th>Max Gap</th><th>Min Gap</th><th>Converging</th><th>Diverging</th></tr>`;
+  const head = `<tr><th>${trx('thTahun')}</th><th>${trx('thStatus')}</th><th>${trx('thMeanGap')}</th><th>${trx('thMedianGap')}</th><th>${trx('thMaxGap')}</th><th>${trx('thMinGap')}</th><th>${trx('thConverging')}</th><th>${trx('thDiverging')}</th></tr>`;
   const bodyRows = rows.map(r=>`<tr>
     <td>${r.tahun}</td>
     <td>${convStatusBadge(r.status)}</td>
@@ -12666,23 +12823,23 @@ function renderConvMatrix(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b class="mn-label">📖 Apa ini</b> Matriks 17×17 <b>Absolute Growth Gap</b> (poin persentase) antar sektor — seberapa berbeda laju pertumbuhan satu sektor dibanding sektor lainnya, dihitung ulang langsung dari data mentah 136 pasangan sektor untuk tahun yang dipilih.</div>
-      <div style="margin-top:6px"><b class="mn-label">💡 Cara membaca</b> Angka kecil (hijau) → perubahan pertumbuhan kedua sektor relatif mirip. Angka besar (merah) → perubahan pertumbuhan kedua sektor berbeda jauh.</div>
+      <div><b class="mn-label">${trx('apaIni')}</b> ${trx('matrixDesc')}</div>
+      <div style="margin-top:6px"><b class="mn-label">${trx('caraMembaca')}</b> ${trx('matrixDesc2')}</div>
     </div>
 
     <div class="ss-controls">
-      <div class="ctrl-item"><label>Tahun</label><select id="convMatrixTahun"></select></div>
+      <div class="ctrl-item"><label>${trx('lblTahun2')}</label><select id="convMatrixTahun"></select></div>
     </div>
 
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">Tahun Matriks</div><div class="stat-value" style="font-size:15px;">${convMatrixYear}</div></div>
-      <div class="stat-box"><div class="stat-label">Rata-rata Gap</div><div class="stat-value" style="font-size:15px;">${avg.toFixedID(2)} pp</div></div>
-      <div class="stat-box"><div class="stat-label">Pasangan Paling Mirip</div><div class="stat-value" style="font-size:11.5px;line-height:1.4;">${minPair?escapeHtml(minPair.a)+' & '+escapeHtml(minPair.b)+' ('+minPair.v.toFixedID(2)+' pp)':'-'}</div></div>
-      <div class="stat-box"><div class="stat-label">Pasangan Paling Beda</div><div class="stat-value" style="font-size:11.5px;line-height:1.4;">${maxPair?escapeHtml(maxPair.a)+' & '+escapeHtml(maxPair.b)+' ('+maxPair.v.toFixedID(2)+' pp)':'-'}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('matrixYear')}</div><div class="stat-value" style="font-size:15px;">${convMatrixYear}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('avgGap')}</div><div class="stat-value" style="font-size:15px;">${avg.toFixedID(2)} pp</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('matrixMostSim')}</div><div class="stat-value" style="font-size:11.5px;line-height:1.4;">${minPair?escapeHtml(minPair.a)+' & '+escapeHtml(minPair.b)+' ('+minPair.v.toFixedID(2)+' pp)':'-'}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('matrixMostDiff')}</div><div class="stat-value" style="font-size:11.5px;line-height:1.4;">${maxPair?escapeHtml(maxPair.a)+' & '+escapeHtml(maxPair.b)+' ('+maxPair.v.toFixedID(2)+' pp)':'-'}</div></div>
     </div>
 
     <div class="table-head-row">
-      <span class="table-head-label">Matriks Absolute Growth Gap (pp) — ${convMatrixYear}</span>
+      <span class="table-head-label">${trx('matrixTableTitle')} — ${convMatrixYear}</span>
       <button class="dl-btn" id="convMatrixExcelBtn" style="position:static;">${trx('downloadExcel')}</button>
     </div>
     <div class="ss-table-wrap ss-table-scroll" style="max-height:560px;">
@@ -12697,7 +12854,7 @@ function renderConvMatrix(){
   tahunSel.onchange = ()=>{ convMatrixYear = parseInt(tahunSel.value); renderConvMatrix(); };
 
   const headCells = sectors.map(s=>`<th title="${escapeHtml(s)}">${escapeHtml(s)}</th>`).join('');
-  const head = `<tr><th>Sektor</th>${headCells}</tr>`;
+  const head = `<tr><th>${trx('thSektor')}</th>${headCells}</tr>`;
   const bodyRows = sectors.map(rowS=>{
     const cells = sectors.map(colS=>{
       if(rowS===colS) return `<td style="background:var(--cream-deep);color:var(--brown-soft);text-align:center;">—</td>`;
@@ -12747,30 +12904,30 @@ function renderConvMr(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b class="mn-label">📖 Apa ini</b> Melihat apakah penyimpangan pertumbuhan Klungkung dari rata-rata historisnya (Growth Gap) cenderung <b>kembali normal</b> atau <b>makin melebar</b> dari tahun ke tahun. Ada 3 status, bukan 2:</div>
+      <div><b class="mn-label">${trx('apaIni')}</b> ${trx('mrDesc')}</div>
       <ul class="formula-list" style="font-family:'Inter',sans-serif !important;font-weight:600 !important;font-size:12.5px !important;">
-        <li style="color:${getConvStatusColor()['MEAN-REVERTING']}">MEAN-REVERTING — gap terhadap rata-rata mengecil. Contoh: +5pp → +3pp → +1pp.</li>
-        <li style="color:${getConvStatusColor().PERSISTENT}">PERSISTENT — gap relatif bertahan. Contoh: +5pp → +5,1pp → +4,9pp.</li>
-        <li style="color:${getConvStatusColor().DIVERGING}">DIVERGING — gap semakin membesar. Contoh: +2pp → +4pp → +6pp.</li>
+        <li style="color:${getConvStatusColor()['MEAN-REVERTING']}">${trx('mrMR')}</li>
+        <li style="color:${getConvStatusColor().PERSISTENT}">${trx('mrP')}</li>
+        <li style="color:${getConvStatusColor().DIVERGING}">${trx('mrD')}</li>
       </ul>
     </div>
 
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">Tahun Terbaru</div><div class="stat-value" style="font-size:15px;">${last.tahun}</div></div>
-      <div class="stat-box"><div class="stat-label">Status Terbaru</div><div class="stat-value" style="font-size:13px;color:${getConvStatusColor()[last.status]||'var(--brown)'};">${escapeHtml(last.status)}</div></div>
-      <div class="stat-box"><div class="stat-label">Mean-Reverting</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor()['MEAN-REVERTING']};">${counts['MEAN-REVERTING']}</div></div>
-      <div class="stat-box"><div class="stat-label">Persistent</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().PERSISTENT};">${counts.PERSISTENT}</div></div>
-      <div class="stat-box"><div class="stat-label">Diverging</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().DIVERGING};">${counts.DIVERGING}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('yearlyLatestYear')}</div><div class="stat-value" style="font-size:15px;">${last.tahun}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('convStatusLatest')}</div><div class="stat-value" style="font-size:13px;color:${getConvStatusColor()[last.status]||'var(--brown)'};">${escapeHtml(LANG==='en' ? (CONV_STATUS_EN[last.status]||last.status) : last.status)}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('mrMeanReverting')}</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor()['MEAN-REVERTING']};">${counts['MEAN-REVERTING']}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('mrPersistent')}</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().PERSISTENT};">${counts.PERSISTENT}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('mrDiverging')}</div><div class="stat-value" style="font-size:15px;color:${getConvStatusColor().DIVERGING};">${counts.DIVERGING}</div></div>
     </div>
 
-    <div class="ss-section-title">Growth Gap per Tahun</div>
+    <div class="ss-section-title">${trx('mrChartTitle')}</div>
     <div class="chart-box-wrap">
       <button class="dl-btn" id="dlConvMrChart" title="${trx('downloadJpgTitle')}">${trx('downloadJpg')}</button>
       <div class="chart-box" style="height:280px;"><canvas id="convMrChartCanvas"></canvas></div>
     </div>
 
     <div class="table-head-row">
-      <span class="table-head-label">Tabel Growth Mean-Reversion</span>
+      <span class="table-head-label">${trx('mrTable')}</span>
       <button class="dl-btn" id="convMrExcelBtn" style="position:static;">${trx('downloadExcel')}</button>
     </div>
     <div class="ss-table-wrap ss-table-scroll">
@@ -12783,18 +12940,18 @@ function renderConvMr(){
   convMrChart = new Chart(document.getElementById('convMrChartCanvas'), {
     type:'bar',
     data:{ labels, datasets:[
-      { label:'Growth Gap', data:rows.map(r=> isNaN(r.growthGap)?null:r.growthGap*100), backgroundColor: rows.map(r=> getConvStatusColor()[r.status] || THEME.mid) }
+      { label:trx('thGrowthGap'), data:rows.map(r=> isNaN(r.growthGap)?null:r.growthGap*100), backgroundColor: rows.map(r=> getConvStatusColor()[r.status] || THEME.mid) }
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ display:false }, tooltip:{ callbacks:{
         label:(it)=> `Growth Gap: ${it.parsed.y.toFixedID(2)} pp`,
         afterLabel:(it)=> `Status: ${rows[it.dataIndex].status}`
       } } },
-      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle('Selisih pertumbuhan (pp)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}, callback:(v)=>nfmt(v)+' pp'}} }
+      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle(trx('axGrowthDiffPp')), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}, callback:(v)=>nfmt(v)+' pp'}} }
     }
   });
 
-  const head = `<tr><th>Tahun</th><th>Status</th><th>Growth</th><th>Avg. Growth</th><th>Growth Gap</th><th>MR Ratio</th><th>Interpretasi</th></tr>`;
+  const head = `<tr><th>${trx('thTahun')}</th><th>${trx('thStatus')}</th><th>${trx('thGrowth')}</th><th>${trx('thAvgGrowth')}</th><th>${trx('thGrowthGap')}</th><th>${trx('thMrRatio')}</th><th>${trx('thInterpretasi')}</th></tr>`;
   const bodyRows = rows.map(r=>`<tr>
     <td>${r.tahun}</td>
     <td>${convStatusBadge(r.status)}</td>
@@ -12935,9 +13092,9 @@ function buildDivSeries(){
 }
 
 function divHHIBadge(hhi){
-  if(hhi < 0.15) return { label:'Terdiversifikasi', color:'#3e5a2a' };
-  if(hhi < 0.25) return { label:'Konsentrasi Sedang', color:THEME.c3 };
-  return { label:'Sangat Terkonsentrasi', color:THEME.accent };
+  if(hhi < 0.15) return { label: LANG==='en' ? 'Diversified' : 'Terdiversifikasi', color:'#3e5a2a' };
+  if(hhi < 0.25) return { label: LANG==='en' ? 'Moderate Concentration' : 'Konsentrasi Sedang', color:THEME.c3 };
+  return { label: LANG==='en' ? 'Highly Concentrated' : 'Sangat Terkonsentrasi', color:THEME.accent };
 }
 
 function renderDiversityView(){
@@ -12947,20 +13104,20 @@ function renderDiversityView(){
 
   const introHtml = `
     <div class="ss-intro">
-      <h2>Analisis Diversitas Ekonomi</h2>
-      <p>Mengukur seberapa merata PDRB Klungkung tersebar di antara berbagai sektor (diversifikasi) versus seberapa bertumpu pada segelintir sektor saja (konsentrasi), serta seberapa besar struktur itu bergeser dari tahun ke tahun. Empat indeks — <b>Entropy/Shannon-Weaver</b>, <b>HHI</b>, <b>REI</b>, dan <b>Tress Index</b> — sudah dihitung langsung di sumber data (Google Sheets) untuk Klungkung, dan juga tersedia untuk Bali sebagai pembanding.</p>
+      <h2>${trx('divPageTitle')}</h2>
+      <p>${trx('divPageIntro')}</p>
     </div>`;
 
   if(!DIV_CSV_URL){
     main.innerHTML = `<section class="ss-wrap">${introHtml}
       <div class="ss-controls">
         <div class="ctrl-item" style="flex:1;min-width:280px;">
-          <label>Link CSV Sumber Data</label>
-          <input type="text" id="divUrlInput" placeholder="Tempel link publish-to-CSV Google Sheets di sini…" style="width:100%;font-family:'Inter',sans-serif;font-size:12.5px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card-bg);color:var(--brown);">
+          <label>${trx('divUrlLabel')}</label>
+          <input type="text" id="divUrlInput" placeholder="${trx('divUrlPlaceholder')}" style="width:100%;font-family:'Inter',sans-serif;font-size:12.5px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card-bg);color:var(--brown);">
         </div>
-        <button class="ss-mapping-apply" id="divUrlApply">Muat Data</button>
+        <button class="ss-mapping-apply" id="divUrlApply">${trx('divUrlLoadBtn')}</button>
       </div>
-      <div class="state-msg">Belum ada sumber data.</div>
+      <div class="state-msg">${trx('divNoSource')}</div>
     </section>`;
     document.getElementById('divUrlApply').onclick = ()=>{
       const val = document.getElementById('divUrlInput').value.trim();
@@ -12983,7 +13140,7 @@ function renderDiversityView(){
   }
   if(divLoadState==='error'){
     main.innerHTML = `<section class="ss-wrap">${introHtml}<div class="state-msg">${trx('ssLoadError')}: ${escapeHtml(divLoadError)}<br><br><a href="${DIV_CSV_URL}" target="_blank" style="color:var(--orange-deep);font-weight:600;">${trx('ssOpenSource')}</a></div>
-      <button class="ss-mapping-apply" id="divUrlReset" style="margin-top:10px;">Ganti Link Sumber Data</button>
+      <button class="ss-mapping-apply" id="divUrlReset" style="margin-top:10px;">${trx('divUrlChangeBtn')}</button>
     </section>`;
     document.getElementById('divUrlReset').onclick = ()=>{ DIV_CSV_URL=''; divLoadState='idle'; renderDiversityView(); };
     return;
@@ -13001,9 +13158,9 @@ function renderDiversityView(){
       <div class="ss-method-note" id="divMethodNote"></div>
 
       <div class="ss-controls">
-        <div class="ctrl-item"><label>Tahun Awal</label><select id="divFrom"></select></div>
-        <div class="ctrl-item"><label>Tahun Akhir</label><select id="divTo"></select></div>
-        ${divHasBaliData() ? `<div class="ctrl-item"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="divCompareBali"${divCompareBali?' checked':''}> Bandingkan dengan Bali</label></div>` : ''}
+        <div class="ctrl-item"><label>${trx('ssYearFrom')}</label><select id="divFrom"></select></div>
+        <div class="ctrl-item"><label>${trx('ssYearTo')}</label><select id="divTo"></select></div>
+        ${divHasBaliData() ? `<div class="ctrl-item"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="divCompareBali"${divCompareBali?' checked':''}> ${trx('divCompareBaliLabel')}</label></div>` : ''}
         <div class="ctrl-item" style="font-size:11.5px;color:var(--brown-soft);" id="divIntervalInfo"></div>
       </div>
 
@@ -13016,13 +13173,13 @@ function renderDiversityView(){
   }
 
   if(!mappingOk){
-    document.getElementById('divBody').innerHTML = `<div class="state-msg">Kolom wajib (Tahun, K Entropy, K HHI, K Tress Index, K Share – ...) belum lengkap terdeteksi dari header sheet. Periksa nama kolom di sumber data.</div>`;
+    document.getElementById('divBody').innerHTML = `<div class="state-msg">${trx('divMapMissing')}</div>`;
     return;
   }
 
   const series = buildDivSeries();
   if(!series.length){
-    document.getElementById('divBody').innerHTML = `<div class="state-msg">Tidak ada baris data yang valid.</div>`;
+    document.getElementById('divBody').innerHTML = `<div class="state-msg">${trx('divNoValidRows')}</div>`;
     return;
   }
 
@@ -13044,10 +13201,10 @@ function renderDiversityView(){
   toSel.onchange = ()=>{ divYearTo = parseInt(toSel.value); renderDiversityView(); };
 
   const filtered = series.filter(s=> s.tahun>=divYearFrom && s.tahun<=divYearTo);
-  document.getElementById('divIntervalInfo').textContent = `${filtered.length} titik tahun ditampilkan`;
+  document.getElementById('divIntervalInfo').textContent = `${filtered.length} ${trx('divYearsShown')}`;
 
   if(!filtered.length){
-    document.getElementById('divBody').innerHTML = `<div class="state-msg">Tidak ada tahun pada rentang ${divYearFrom}–${divYearTo}.</div>`;
+    document.getElementById('divBody').innerHTML = `<div class="state-msg">${trx('divNoYearsInRange')} ${divYearFrom}–${divYearTo}.</div>`;
     return;
   }
 
@@ -13058,17 +13215,18 @@ function renderDiversityView(){
 }
 
 function updateDivMethodNote(){
+  const N = DIV_N_SEKTOR;
   document.getElementById('divMethodNote').innerHTML = `
-    <div><b class="mn-label">📖 Apa itu indeks-indeks ini</b> Keempatnya sama-sama dihitung dari pangsa (share) pᵢ tiap sektor terhadap total PDRB tiap tahun, tapi menyorot sisi berbeda: <b>Entropy/Shannon-Weaver</b> & <b>HHI</b> mengukur tingkat keberagaman/konsentrasi struktur ekonomi pada satu titik waktu, <b>REI</b> mengukur seberapa besar struktur itu bergeser dibanding tahun sebelumnya, dan <b>Tress Index</b> mengukur konsentrasi dengan bobot ranking sehingga lebih peka terhadap dominasi sektor terbesar.</div>
-    <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
+    <div><b class="mn-label">${trx('divIdxMethod')}</b> ${trx('divIdxMethodBody')}</div>
+    <div style="margin-top:8px"><b class="mn-label">${trx('divFormula')}</b></div>
     <ul class="formula-list">
       <li>Entropy = −Σ pᵢ ln(pᵢ)</li>
       <li>HHI = Σ pᵢ²</li>
       <li>REIₜ = ½ Σ |pᵢ,ₜ − pᵢ,ₜ₋₁|</li>
       <li>Tress = [(Σ(shareᵢ × rankᵢ) − (n+1)/2) / (n − (n+1)/2)] × 100</li>
     </ul>
-    <div class="formula-caption">rank 1 = share terkecil, rank n = share terbesar, n = ${DIV_N_SEKTOR}.</div>
-    <div class="mn-row"><b class="mn-label">💡 Cara membaca angka</b><ul class="mn-points"><li><b>Entropy</b> makin tinggi (mendekati ln(${DIV_N_SEKTOR})≈${Math.log(DIV_N_SEKTOR).toFixedID(2)}) = ekonomi makin merata/terdiversifikasi antar sektor; mendekati 0 = sangat bertumpu pada segelintir sektor.</li><li><b>HHI</b> arahnya kebalikan: mendekati 1/${DIV_N_SEKTOR}≈${(1/DIV_N_SEKTOR).toFixedID(2)} = merata; mendekati 1 = sangat terkonsentrasi (ambang umum: &lt;0,15 terdiversifikasi baik, 0,15–0,25 konsentrasi sedang, &gt;0,25 sangat terkonsentrasi).</li><li><b>REI</b> mendekati 0 = struktur ekonomi stabil dari tahun sebelumnya; makin tinggi = terjadi pergeseran porsi sektor yang signifikan dalam setahun.</li><li><b>Tress</b> 0 = seluruh sektor porsinya sama besar; mendekati 100 = ekonomi sangat bertumpu pada satu sektor dominan.</li></ul></div>`;
+    <div class="formula-caption">${trx('divRankCaption')}${N}.</div>
+    <div class="mn-row"><b class="mn-label">${trx('divReadNumbers')}</b><ul class="mn-points">${trx('divReadPts').replace(/\{N\}/g, N).replace(/\{lnN\}/g, Math.log(N).toFixedID(2)).replace(/\{invN\}/g, (1/N).toFixedID(2))}</ul></div>`;
 }
 
 function renderDivBody(series){
@@ -13080,22 +13238,22 @@ function renderDivBody(series){
 
   body.innerHTML = `
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
-      <div class="stat-box"><div class="stat-label">Entropy</div><div class="stat-value" style="font-size:15px;">${latest.kEntropy.toFixedID(3)}${showBali && latest.bEntropy!==undefined?` <span style="font-size:11px;color:var(--brown-soft);">(Bali ${latest.bEntropy.toFixedID(3)})</span>`:''}</div></div>
-      <div class="stat-box"><div class="stat-label">HHI</div><div class="stat-value" style="font-size:15px;color:${hhiBadge.color};">${latest.kHhi.toFixedID(3)} · ${hhiBadge.label}</div></div>
-      <div class="stat-box"><div class="stat-label">Tress Index</div><div class="stat-value" style="font-size:15px;">${latest.kTress.toFixedID(1)}${showBali && latest.bTress!==undefined?` <span style="font-size:11px;color:var(--brown-soft);">(Bali ${latest.bTress.toFixedID(1)})</span>`:''}</div></div>
-      <div class="stat-box"><div class="stat-label">REI Terbaru</div><div class="stat-value" style="font-size:15px;">${latestREI?latestREI.kRei.toFixedID(3)+' ('+latestREI.tahun+')':'—'}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('divLastYear')}</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('divEntropy')}</div><div class="stat-value" style="font-size:15px;">${latest.kEntropy.toFixedID(3)}${showBali && latest.bEntropy!==undefined?` <span style="font-size:11px;color:var(--brown-soft);">(Bali ${latest.bEntropy.toFixedID(3)})</span>`:''}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('divHhi')}</div><div class="stat-value" style="font-size:15px;color:${hhiBadge.color};">${latest.kHhi.toFixedID(3)} · ${hhiBadge.label}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('divTress')}</div><div class="stat-value" style="font-size:15px;">${latest.kTress.toFixedID(1)}${showBali && latest.bTress!==undefined?` <span style="font-size:11px;color:var(--brown-soft);">(Bali ${latest.bTress.toFixedID(1)})</span>`:''}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('divReiLatest')}</div><div class="stat-value" style="font-size:15px;">${latestREI?latestREI.kRei.toFixedID(3)+' ('+latestREI.tahun+')':'—'}</div></div>
     </div>
 
-    <div class="ss-section-title">Tren Indeks Antar Tahun${showBali?' — Klungkung vs Bali':''}</div>
+    <div class="ss-section-title">${trx('divTrendTitle')}${showBali?trx('divVsBali'):''}</div>
     <div class="ss-controls" style="margin-bottom:8px;">
       <div class="ms-dropdown" id="divMetricDropdown">
-        <button type="button" class="ms-dropdown-btn" id="divMetricBtn">📊 Pilih Indeks ▾</button>
+        <button type="button" class="ms-dropdown-btn" id="divMetricBtn">${trx('divChooseIdx')}</button>
         <div class="ms-dropdown-panel" id="divMetricPanel">
-          <label class="ms-dropdown-item"><input type="checkbox" data-metric="entropy" ${divChartMetrics.has('entropy')?'checked':''}> Entropy</label>
-          <label class="ms-dropdown-item"><input type="checkbox" data-metric="hhi" ${divChartMetrics.has('hhi')?'checked':''}> HHI</label>
+          <label class="ms-dropdown-item"><input type="checkbox" data-metric="entropy" ${divChartMetrics.has('entropy')?'checked':''}> ${trx('divEntropy')}</label>
+          <label class="ms-dropdown-item"><input type="checkbox" data-metric="hhi" ${divChartMetrics.has('hhi')?'checked':''}> ${trx('divHhi')}</label>
           <label class="ms-dropdown-item"><input type="checkbox" data-metric="rei" ${divChartMetrics.has('rei')?'checked':''}> REI</label>
-          <label class="ms-dropdown-item"><input type="checkbox" data-metric="tress" ${divChartMetrics.has('tress')?'checked':''}> Tress Index</label>
+          <label class="ms-dropdown-item"><input type="checkbox" data-metric="tress" ${divChartMetrics.has('tress')?'checked':''}> ${trx('divTress')}</label>
         </div>
       </div>
     </div>
@@ -13104,9 +13262,9 @@ function renderDivBody(series){
       <div class="chart-box" style="height:320px;"><canvas id="divTsCanvas"></canvas></div>
     </div>
 
-    <div class="ss-section-title">Komposisi Sektor</div>
+    <div class="ss-section-title">${trx('divCompositionTitle')}</div>
     <div class="ss-controls" style="margin-bottom:10px;">
-      <div class="ctrl-item"><label>Tahun</label><select id="divCompYear"></select></div>
+      <div class="ctrl-item"><label>${trx('lblTahun2')}</label><select id="divCompYear"></select></div>
     </div>
     <div class="chart-box-wrap">
       <button class="dl-btn" id="dlDivComp" title="${trx('downloadJpgTitle')}">${trx('downloadJpg')}</button>
@@ -13114,7 +13272,7 @@ function renderDivBody(series){
     </div>
 
     <div class="table-head-row">
-      <span class="table-head-label">Tabel Indeks per Tahun</span>
+      <span class="table-head-label">${trx('divIdxTableTitle')}</span>
       <button class="dl-btn" id="divExcelBtn" style="position:static;">${trx('downloadExcel')}</button>
     </div>
     <div class="ss-table-wrap ss-table-scroll">
@@ -13149,7 +13307,7 @@ function renderDivBody(series){
       if(cb.checked){
         divChartMetrics.add(m);
       }else{
-        if(divChartMetrics.size<=1){ cb.checked = true; alert('Minimal 1 indeks harus ditampilkan.'); return; }
+        if(divChartMetrics.size<=1){ cb.checked = true; alert(trx('divMinOneIdx')); return; }
         divChartMetrics.delete(m);
       }
       renderDivTimeSeriesChart(series, showBali);
@@ -13168,8 +13326,8 @@ function renderDivBody(series){
 function renderDivTable(series, showBali){
   const table = document.getElementById('divTable');
   const head = showBali
-    ? `<tr><th>Tahun</th><th>K Entropy</th><th>K HHI</th><th>Klasifikasi</th><th>K Tress</th><th>K REI</th><th>B Entropy</th><th>B HHI</th><th>B Tress</th><th>B REI</th></tr>`
-    : `<tr><th>Tahun</th><th>Entropy</th><th>HHI</th><th>Klasifikasi</th><th>Tress</th><th>REI</th></tr>`;
+    ? `<tr><th>${trx('thTahun2')}</th><th>K ${trx('thEntropy')}</th><th>K ${trx('thHhi')}</th><th>${trx('thKlasifikasi')}</th><th>K ${trx('thTress')}</th><th>K ${trx('thRei')}</th><th>B ${trx('thEntropy')}</th><th>B ${trx('thHhi')}</th><th>B ${trx('thTress')}</th><th>B ${trx('thRei')}</th></tr>`
+    : `<tr><th>${trx('thTahun2')}</th><th>${trx('thEntropy')}</th><th>${trx('thHhi')}</th><th>${trx('thKlasifikasi')}</th><th>${trx('thTress')}</th><th>${trx('thRei')}</th></tr>`;
   const rows = series.map(s=>{
     const b = divHHIBadge(s.kHhi);
     const base = `<td>${s.tahun}</td>
@@ -13196,16 +13354,16 @@ function renderDivTimeSeriesChart(series, showBali){
   if(divTsChart){ divTsChart.destroy(); divTsChart=null; }
   const labels = series.map(s=>s.tahun);
   const allDatasets = [
-    { m:'entropy', ds:{ label:'K Entropy', data:series.map(s=>s.kEntropy), borderColor:THEME.c4, backgroundColor:hexToRgba(THEME.c4,0.16), yAxisID:'yEntropy', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } },
-    { m:'hhi', ds:{ label:'K HHI', data:series.map(s=>s.kHhi), borderColor:THEME.accent, backgroundColor:'rgba(193,68,14,0.14)', yAxisID:'yHhiRei', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } },
-    { m:'rei', ds:{ label:'K REI', data:series.map(s=>s.kRei), borderColor:THEME.c5, backgroundColor:hexToRgba(THEME.c5,0.14), yAxisID:'yHhiRei', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', spanGaps:true } },
-    { m:'tress', ds:{ label:'K Tress', data:series.map(s=>s.kTress), borderColor:THEME.c3, backgroundColor:hexToRgba(THEME.c3,0.14), yAxisID:'yTress', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } }
+    { m:'entropy', ds:{ label:'K '+trx('divEntropy'), data:series.map(s=>s.kEntropy), borderColor:THEME.c4, backgroundColor:hexToRgba(THEME.c4,0.16), yAxisID:'yEntropy', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } },
+    { m:'hhi', ds:{ label:'K '+trx('divHhi'), data:series.map(s=>s.kHhi), borderColor:THEME.accent, backgroundColor:'rgba(193,68,14,0.14)', yAxisID:'yHhiRei', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } },
+    { m:'rei', ds:{ label:'K '+trx('thRei'), data:series.map(s=>s.kRei), borderColor:THEME.c5, backgroundColor:hexToRgba(THEME.c5,0.14), yAxisID:'yHhiRei', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone', spanGaps:true } },
+    { m:'tress', ds:{ label:'K '+trx('divTress'), data:series.map(s=>s.kTress), borderColor:THEME.c3, backgroundColor:hexToRgba(THEME.c3,0.14), yAxisID:'yTress', fill:true, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } }
   ];
   if(showBali){
     allDatasets.push(
-      { m:'entropy', ds:{ label:'B Entropy', data:series.map(s=>s.bEntropy), borderColor:THEME.c4, borderDash:[5,4], backgroundColor:'transparent', yAxisID:'yEntropy', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } },
-      { m:'hhi', ds:{ label:'B HHI', data:series.map(s=>s.bHhi), borderColor:THEME.accent, borderDash:[5,4], backgroundColor:'transparent', yAxisID:'yHhiRei', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } },
-      { m:'tress', ds:{ label:'B Tress', data:series.map(s=>s.bTress), borderColor:THEME.c3, borderDash:[5,4], backgroundColor:'transparent', yAxisID:'yTress', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } }
+      { m:'entropy', ds:{ label:'B '+trx('divEntropy'), data:series.map(s=>s.bEntropy), borderColor:THEME.c4, borderDash:[5,4], backgroundColor:'transparent', yAxisID:'yEntropy', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } },
+      { m:'hhi', ds:{ label:'B '+trx('divHhi'), data:series.map(s=>s.bHhi), borderColor:THEME.accent, borderDash:[5,4], backgroundColor:'transparent', yAxisID:'yHhiRei', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } },
+      { m:'tress', ds:{ label:'B '+trx('divTress'), data:series.map(s=>s.bTress), borderColor:THEME.c3, borderDash:[5,4], backgroundColor:'transparent', yAxisID:'yTress', fill:false, pointRadius:0, pointHoverRadius:4, tension:0.4, cubicInterpolationMode:'monotone' } }
     );
   }
   const datasets = allDatasets.filter(d=> divChartMetrics.has(d.m)).map(d=>d.ds);
@@ -13218,7 +13376,7 @@ function renderDivTimeSeriesChart(series, showBali){
       plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Inter', size:10.5}, color:THEME.main, boxWidth:14 } } },
       scales:{
         x:{ grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } },
-        yEntropy:{ position:'left', grid:{color:THEME.light}, title:{display:true, text:'Entropy', color:THEME.c4, font:{size:10}}, ticks:{ color:THEME.mid, font:{size:10} } },
+        yEntropy:{ position:'left', grid:{color:THEME.light}, title:{display:true, text:trx('divEntropy'), color:THEME.c4, font:{size:10}}, ticks:{ color:THEME.mid, font:{size:10} } },
         yHhiRei:{ position:'right', min:0, max:1, grid:{display:false}, title:{display:true, text:'HHI / REI', color:THEME.accent, font:{size:10}}, ticks:{ color:THEME.mid, font:{size:10} } },
         yTress:{ display:false, min:0, max:100 }
       }
@@ -13243,7 +13401,7 @@ function renderDivCompositionChart(s){
       responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ display: datasets.length>1, position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main} } },
       scales:{
-        x:{ grid:{color:THEME.light}, title:{display:true, text:'% terhadap Total PDRB', color:THEME.mid, font:{size:10.5}}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5}, callback:v=>nfmt(v)+'%' } },
+        x:{ grid:{color:THEME.light}, title:{display:true, text:trx('divPctOfTotal'), color:THEME.mid, font:{size:10.5}}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5}, callback:v=>nfmt(v)+'%' } },
         y:{ grid:{display:false}, ticks:{ color:THEME.mid, font:{family:'Inter', size:10.5} } }
       }
     }
@@ -13252,8 +13410,8 @@ function renderDivCompositionChart(s){
 
 async function exportDivExcel(series, showBali){
   const header = showBali
-    ? ['Tahun','K Entropy','K HHI','Klasifikasi K','K Tress','K REI','B Entropy','B HHI','B Tress','B REI']
-    : ['Tahun','Entropy','HHI','Klasifikasi','Tress','REI'];
+    ? [trx('thTahun2'),'K '+trx('thEntropy'),'K '+trx('thHhi'),trx('thKlasifikasi')+' K','K '+trx('thTress'),'K '+trx('thRei'),'B '+trx('thEntropy'),'B '+trx('thHhi'),'B '+trx('thTress'),'B '+trx('thRei')]
+    : [trx('thTahun2'),trx('thEntropy'),trx('thHhi'),trx('thKlasifikasi'),trx('thTress'),trx('thRei')];
   const rows = series.map(s=>{
     const base = [s.tahun, s.kEntropy, s.kHhi, divHHIBadge(s.kHhi).label, s.kTress, s.kRei];
     if(showBali && s.bEntropy!==undefined) return [...base, s.bEntropy, s.bHhi, s.bTress, s.bRei];
@@ -13320,8 +13478,8 @@ function renderAdvancedView(){
   main.innerHTML = `
     <section class="ss-wrap">
       <div class="ss-intro">
-        <h2>Analisis Struktural</h2>
-        <p>Sepuluh analisis pelengkap Shift-Share, LQ, dan Diversitas: selisih laju pertumbuhan Klungkung vs Bali, seberapa besar dan di sektor mana struktur ekonomi berubah tiap tahun, derajat spesialisasi ala Krugman, seberapa mirip struktur ekonomi Klungkung dengan Bali, sektor mana penyumbang perbedaan terbesar, klasifikasi tiap sektor ala Tipologi Klassen (maju/berkembang/tertinggal dibanding Bali), bagaimana sektor berpindah kelas dari waktu ke waktu, seberapa kompleks kapabilitas ekonominya, seberapa tahan terhadap guncangan, dan bagaimana pola spesialisasi tiap sektor sejak 2010.</p>
+        <h2>${trx('advTitle')}</h2>
+        <p>${trx('advIntro')}</p>
       </div>
       <div class="ss-method-tabs" id="advSubTabs">
         ${subTabs.map(t=>`<button class="ss-method-tab" data-k="${t.key}">${escapeHtml(tl(t.label))}</button>`).join('')}
@@ -13388,7 +13546,7 @@ function advEnsureLoaded(key){
   if(state==='loading'){ body.innerHTML = `<div class="state-msg"><span class="spinner"></span>${trx('loadingGeneric')}</div>`; return false; }
   if(state==='error'){
     body.innerHTML = `<div class="state-msg">${trx('ssLoadError')}: ${escapeHtml(advLoadError[key]||'')}<br><br><a href="${ADV_URLS[key]}" target="_blank" style="color:var(--orange-deep);font-weight:600;">${trx('ssOpenSource')}</a></div>
-      <button class="ss-mapping-apply" id="advRetryBtn" style="margin-top:10px;">Coba Lagi</button>`;
+      <button class="ss-mapping-apply" id="advRetryBtn" style="margin-top:10px;">${trx('advRetry')}</button>`;
     const btn = document.getElementById('advRetryBtn');
     if(btn) btn.onclick = ()=>{ advLoadState[key]='idle'; renderAdvancedView(); };
     return false;
@@ -13433,44 +13591,44 @@ function advBuildGrowthDiffSeries(){
   return rows;
 }
 function growthDiffBadge(status){
-  if(/lebih cepat/i.test(status)) return {label:'Klungkung Lebih Cepat', color:'#3e5a2a'};
-  if(/lebih lambat/i.test(status)) return {label:'Klungkung Lebih Lambat', color:THEME.accent};
-  return {label:status||'Sama', color:THEME.mid};
+  if(/lebih cepat/i.test(status)) return {label:trx('gdKFaster'), color:'#3e5a2a'};
+  if(/lebih lambat/i.test(status)) return {label:trx('gdKSlower'), color:THEME.accent};
+  return {label: status ? status : trx('gdSame'), color:THEME.mid};
 }
 function renderAdvGrowthDiff(){
   if(!advEnsureLoaded('growth_diff')) return;
   if(!advMap.growth_diff) advDetectGrowthDiffCols();
   const series = advBuildGrowthDiffSeries();
   const body = document.getElementById('advBody');
-  if(!series.length){ body.innerHTML = `<div class="state-msg">Tidak ada data valid — periksa struktur kolom sumber data.</div>`; return; }
+  if(!series.length){ body.innerHTML = `<div class="state-msg">${trx('gdNoData')}</div>`; return; }
 
   const latest = series[series.length-1];
   const badge = growthDiffBadge(latest.status);
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b class="mn-label">📖 Apa itu analisis ini</b> Growth Differential membandingkan laju pertumbuhan ekonomi (ADHK) Klungkung terhadap Bali dari tahun ke tahun — apakah Klungkung tumbuh lebih cepat, lebih lambat, atau setara Bali.</div>
-      <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
+      <div><b class="mn-label">${trx('advApaIni')}</b> ${trx('gdApaItu')}</div>
+      <div style="margin-top:8px"><b class="mn-label">${trx('divFormula')}</b></div>
       <ul class="formula-list">
-        <li>Growth Diff (pp) = (Growthₖ − Growth_Bali) × 100</li>
-        <li>Cumulative Relative Gap = Σ Relative Growth Diff sejak tahun dasar</li>
+        <li>${trx('gdFormula1')}</li>
+        <li>${trx('gdFormula2')}</li>
       </ul>
-      <div class="mn-row"><b class="mn-label">💡 Cara membaca angka</b><ul class="mn-points"><li><b>Growth Diff (pp) positif</b> = pertumbuhan Klungkung tahun itu lebih cepat dari Bali dalam poin persentase.</li><li><b>Cumulative Relative Gap</b> menunjukkan akumulasi selisih sejak tahun dasar — tren naik berarti Klungkung perlahan mengejar/melampaui Bali, tren turun berarti sebaliknya.</li></ul></div>
+      <div class="mn-row"><b class="mn-label">${trx('advCaraBaca')}</b><ul class="mn-points"><li>${trx('gdCaraBaca1')}</li><li>${trx('gdCaraBaca2')}</li></ul></div>
     </div>
     <div class="ss-kpi-grid">
-      <div class="stat-box"><div class="stat-label">Tahun Terakhir</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('yearlyLatestYear')}</div><div class="stat-value" style="font-size:15px;">${latest.tahun}</div></div>
       <div class="stat-box"><div class="stat-label">Growth Diff (pp)</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${latest.diffPp>=0?'+':''}${latest.diffPp.toFixedID(3)} pp</div></div>
-      <div class="stat-box"><div class="stat-label">Status</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${escapeHtml(badge.label)}</div></div>
+      <div class="stat-box"><div class="stat-label">${trx('thStatus')}</div><div class="stat-value" style="font-size:15px;color:${badge.color};">${escapeHtml(badge.label)}</div></div>
     </div>
-    <div class="ss-section-title">Tren Pertumbuhan: Klungkung vs Bali</div>
+    <div class="ss-section-title">${trx('gdChartTs')}</div>
     <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvGrowthTs">${trx('downloadJpg')}</button><div class="chart-box" style="height:280px;"><canvas id="advGrowthTsCanvas"></canvas></div></div>
     <div class="ss-section-title">Growth Differential & Cumulative Relative Gap</div>
     <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvGrowthDiff">${trx('downloadJpg')}</button><div class="chart-box" style="height:280px;"><canvas id="advGrowthDiffCanvas"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Growth Differential per Tahun</span><button class="dl-btn" id="advGrowthExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
+    <div class="table-head-row"><span class="table-head-label">${trx('gdTable')}</span><button class="dl-btn" id="advGrowthExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advGrowthTable"></table></div>
   `;
 
-  document.getElementById('advGrowthTable').innerHTML = `<thead><tr><th>Tahun</th><th>Growth K</th><th>Growth Bali</th><th>Diff (pp)</th><th>Cum. Relative Gap</th><th>Status</th></tr></thead><tbody>${
+  document.getElementById('advGrowthTable').innerHTML = `<thead><tr><th>${trx('thTahun2')}</th><th>Growth K</th><th>Growth Bali</th><th>${trx('thDiffPp')}</th><th>${trx('thCumRelGap')}</th><th>${trx('thStatus')}</th></tr></thead><tbody>${
     series.map(s=>{ const b=growthDiffBadge(s.status); return `<tr><td>${s.tahun}</td><td>${isNaN(s.growthK)?'-':(s.growthK*100).toFixedID(2)+'%'}</td><td>${isNaN(s.growthB)?'-':(s.growthB*100).toFixedID(2)+'%'}</td><td>${isNaN(s.diffPp)?'-':s.diffPp.toFixedID(3)}</td><td>${isNaN(s.cumGap)?'-':(s.cumGap*100).toFixedID(2)+'%'}</td><td><span class="ss-badge-quad" style="background:${b.color}">${escapeHtml(b.label)}</span></td></tr>`; }).join('')
   }</tbody>`;
 
@@ -13484,7 +13642,7 @@ function renderAdvGrowthDiff(){
     ]},
     options:{ responsive:true, maintainAspectRatio:false, interaction:{intersect:false, mode:'index'},
       plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main}}},
-      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle('Pertumbuhan (%)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>nfmt(v)+'%'}} } }
+      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle(trx('growthPercent')), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>nfmt(v)+'%'}} } }
   });
 
   const diffCtx = document.getElementById('advGrowthDiffCanvas');
@@ -13506,7 +13664,7 @@ function renderAdvGrowthDiff(){
   document.getElementById('dlAdvGrowthTs').onclick = ()=> triggerJPGDownload(advCharts.growthTs, `growth_differential_tren`);
   document.getElementById('dlAdvGrowthDiff').onclick = ()=> triggerJPGDownload(advCharts.growthDiff, `growth_differential_gap`);
   document.getElementById('advGrowthExcelBtn').onclick = async ()=>{
-    await exportStyledExcel('growth_differential', 'Growth Differential', ['Tahun','Growth K','Growth Bali','Diff (pp)','Relative Growth Diff','Cumulative Relative Gap','Status'], series.map(s=>[s.tahun,s.growthK,s.growthB,s.diffPp,s.relDiff,s.cumGap,s.status]));
+    await exportStyledExcel('growth_differential', 'Growth Differential', [trx('thTahun2'),'Growth K','Growth Bali',trx('thDiffPp'),'Relative Growth Diff',trx('thCumRelGap'),trx('thStatus')], series.map(s=>[s.tahun,s.growthK,s.growthB,s.diffPp,s.relDiff,s.cumGap,s.status]));
   };
 }
 
@@ -13548,7 +13706,7 @@ function renderAdvStructChange(){
   if(!advMap.structural_change) advDetectStructChangeCols();
   const rows = advBuildStructChangeRows();
   const body = document.getElementById('advBody');
-  if(!rows.length){ body.innerHTML = `<div class="state-msg">Tidak ada data valid.</div>`; return; }
+  if(!rows.length){ body.innerHTML = `<div class="state-msg">${trx('scNoValid')}</div>`; return; }
   const years = [...new Set(rows.map(r=>r.tahun))].sort((a,b)=>a-b);
   if(!advCompYear.structural_change || !years.includes(advCompYear.structural_change)) advCompYear.structural_change = years[years.length-1];
 
@@ -13560,20 +13718,20 @@ function renderAdvStructChange(){
 
   body.innerHTML = `
     <div class="ss-method-note">
-      <div><b class="mn-label">📖 Apa itu analisis ini</b> Structural Change Index (SCI) mengukur seberapa besar komposisi sektoral berubah dari tahun ke tahun sebelumnya (bukan dibandingkan wilayah lain seperti SSI) — dan sektor mana yang paling bergeser pada tahun tertentu.</div>
-      <div style="margin-top:8px"><b class="mn-label">🧮 Formula</b></div>
+      <div><b class="mn-label">${trx('advApaIni')}</b> ${trx('scApaItu')}</div>
+      <div style="margin-top:8px"><b class="mn-label">${trx('divFormula')}</b></div>
       <ul class="formula-list">
-        <li>SCIₜ = ½ × Σ |Shareᵢ,ₜ − Shareᵢ,ₜ₋₁|</li>
-        <li>Structural Gap Sektoral = ΔShareₖ − ΔShare_Bali untuk sektor tsb</li>
+        <li>${trx('scFormula1')}</li>
+        <li>${trx('scFormula2')}</li>
       </ul>
-      <div class="mn-row"><b class="mn-label">💡 Cara membaca angka</b><ul class="mn-points"><li><b>SCI</b> makin besar berarti struktur ekonomi berubah makin cepat tahun itu.</li><li><b>Structural Gap Sektoral</b> menunjukkan sektor mana yang pergeserannya paling berbeda arah/besaran antara Klungkung dan Bali. Pilih tahun untuk melihat detail per sektor.</li></ul></div>
+      <div class="mn-row"><b class="mn-label">${trx('advCaraBaca')}</b><ul class="mn-points"><li>${trx('scCaraBaca1')}</li><li>${trx('scCaraBaca2')}</li></ul></div>
     </div>
-    <div class="ss-section-title">Tren SCI: Klungkung vs Bali</div>
+    <div class="ss-section-title">${trx('scChartTs')}</div>
     <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvSciTs">${trx('downloadJpg')}</button><div class="chart-box" style="height:280px;"><canvas id="advSciTsCanvas"></canvas></div></div>
-    <div class="ss-controls" style="margin-bottom:10px;"><div class="ctrl-item"><label>Tahun</label><select id="advSciYear"></select></div></div>
-    <div class="ss-section-title">Perubahan Share per Sektor</div>
+    <div class="ss-controls" style="margin-bottom:10px;"><div class="ctrl-item"><label>${trx('lblTahun2')}</label><select id="advSciYear"></select></div></div>
+    <div class="ss-section-title">${trx('scChartSektor')}</div>
     <div class="chart-box-wrap"><button class="dl-btn" id="dlAdvSciSektor">${trx('downloadJpg')}</button><div class="chart-box" style="height:400px;"><canvas id="advSciSektorCanvas"></canvas></div></div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Perubahan Struktur Sektoral</span><button class="dl-btn" id="advSciExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
+    <div class="table-head-row"><span class="table-head-label">${trx('scTable')}</span><button class="dl-btn" id="advSciExcelBtn" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="advSciTable"></table></div>
   `;
 
@@ -13587,7 +13745,7 @@ function renderAdvStructChange(){
     ]},
     options:{ responsive:true, maintainAspectRatio:false, interaction:{intersect:false, mode:'index'},
       plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main}}},
-      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle('Structural Change Index (%)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>nfmt(v)+'%'}} } }
+      scales:{ x:{grid:{display:false}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}}, y:{title:axTitle(trx('axSci')), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>nfmt(v)+'%'}} } }
   });
   document.getElementById('dlAdvSciTs').onclick = ()=> triggerJPGDownload(advCharts.sciTs, `sci_tren`);
 
@@ -13598,7 +13756,7 @@ function renderAdvStructChange(){
   renderAdvSciForYear(rows);
 
   document.getElementById('advSciExcelBtn').onclick = async ()=>{
-    await exportStyledExcel('structural_change', 'SCI', ['Tahun','Sektor','Share K','Share Bali','Delta Share K','Delta Share Bali','Structural Gap Sektoral','SCI K','SCI Bali','SCI Difference'], rows.map(r=>[r.tahun,r.sektor,r.shareK,r.shareB,r.deltaK,r.deltaB,r.gap,r.sciK,r.sciB,r.sciDiff]));
+    await exportStyledExcel('structural_change', 'SCI', [trx('thTahun2'),trx('thSektor'),'Share K','Share Bali','Delta Share K','Delta Share Bali','Structural Gap Sektoral','SCI K','SCI Bali','SCI Difference'], rows.map(r=>[r.tahun,r.sektor,r.shareK,r.shareB,r.deltaK,r.deltaB,r.gap,r.sciK,r.sciB,r.sciDiff]));
   };
 }
 function renderAdvSciForYear(rows){
@@ -13613,10 +13771,10 @@ function renderAdvSciForYear(rows){
     ] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
       plugins:{legend:{position:'bottom', labels:{font:{family:'Inter',size:11},color:THEME.main}}},
-      scales:{ x:{title:axTitle('Perubahan pangsa (pp)'), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>nfmt(v)+' pp'}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
+      scales:{ x:{title:axTitle(trx('axShareChange')), grid:{color:THEME.light}, ticks:{color:THEME.mid,font:{family:'Inter',size:10.5},callback:v=>nfmt(v)+' pp'}}, y:{grid:{display:false},ticks:{color:THEME.mid,font:{family:'Inter',size:10.5}}} } }
   });
   document.getElementById('dlAdvSciSektor').onclick = ()=> triggerJPGDownload(advCharts.sciSektor, `sci_sektor_${advCompYear.structural_change}`);
-  document.getElementById('advSciTable').innerHTML = `<thead><tr><th>Sektor</th><th>Share K</th><th>Share Bali</th><th>Δ Share K</th><th>Δ Share Bali</th><th>Gap Sektoral</th></tr></thead><tbody>${
+  document.getElementById('advSciTable').innerHTML = `<thead><tr><th>${trx('thSektor')}</th><th>${trx('thShareK')}</th><th>${trx('thShareB')}</th><th>${trx('thDeltaShareK')}</th><th>${trx('thDeltaShareB')}</th><th>${trx('thGapSektoral')}</th></tr></thead><tbody>${
     yr.map(r=>`<tr><td>${escapeHtml(r.sektor)}</td><td>${isNaN(r.shareK)?'-':(r.shareK*100).toFixedID(2)+'%'}</td><td>${isNaN(r.shareB)?'-':(r.shareB*100).toFixedID(2)+'%'}</td><td>${isNaN(r.deltaK)?'-':(r.deltaK*100).toFixedID(2)+' pp'}</td><td>${isNaN(r.deltaB)?'-':(r.deltaB*100).toFixedID(2)+' pp'}</td><td>${isNaN(r.gap)?'-':(r.gap*100).toFixedID(3)+' pp'}</td></tr>`).join('')
   }</tbody>`;
 }
@@ -13827,7 +13985,7 @@ function renderAdvKrugman(){
   if(!advMap.krugman) advDetectKrugmanCols();
   const series = advBuildKrugmanSeries();
   const body = document.getElementById('advBody');
-  if(!series.length){ body.innerHTML = `<div class="state-msg">Tidak ada data valid.</div>`; return; }
+  if(!series.length){ body.innerHTML = `<div class="state-msg">${trx('scNoValid')}</div>`; return; }
   const latest = series[series.length-1];
   const badge = krugmanBadge(latest.status);
 
@@ -14015,7 +14173,7 @@ function renderAdvGap(){
   if(!advMap.gap) advDetectGapCols();
   const rows = advBuildGapRows();
   const body = document.getElementById('advBody');
-  if(!rows.length){ body.innerHTML = `<div class="state-msg">Tidak ada data valid.</div>`; return; }
+  if(!rows.length){ body.innerHTML = `<div class="state-msg">${trx('scNoValid')}</div>`; return; }
   const years = [...new Set(rows.map(r=>r.tahun))].sort((a,b)=>a-b);
   if(!advCompYear.gap || !years.includes(advCompYear.gap)) advCompYear.gap = years[years.length-1];
 
@@ -14092,7 +14250,7 @@ function renderAdvMarkov(){
   if(!advMap.markov) advDetectMarkovCols();
   const rows = advBuildMarkovRows();
   const body = document.getElementById('advBody');
-  if(!rows.length){ body.innerHTML = `<div class="state-msg">Tidak ada data valid.</div>`; return; }
+  if(!rows.length){ body.innerHTML = `<div class="state-msg">${trx('scNoValid')}</div>`; return; }
 
   const withPrev = rows.filter(r=> MARKOV_ORDER.includes(r.kelasSebelum) && MARKOV_ORDER.includes(r.kelas));
   const counts = {}; MARKOV_ORDER.forEach(a=>{ counts[a]={}; MARKOV_ORDER.forEach(b=> counts[a][b]=0); });
@@ -14186,7 +14344,7 @@ function renderAdvComplexity(){
   if(!advMap.complexity) advDetectComplexityCols();
   const rows = advBuildComplexityRows();
   const body = document.getElementById('advBody');
-  if(!rows.length){ body.innerHTML = `<div class="state-msg">Tidak ada data valid.</div>`; return; }
+  if(!rows.length){ body.innerHTML = `<div class="state-msg">${trx('scNoValid')}</div>`; return; }
 
   const byYear = {};
   rows.forEach(r=>{ if(!byYear[r.tahun]) byYear[r.tahun] = { tahun:r.tahun, dt:r.dt, divers:r.divers, avgRca:r.avgRca, rawEcp:r.rawEcp, ecpNorm:r.ecpNorm, sektor: [] }; byYear[r.tahun].sektor.push(r); });
@@ -14302,7 +14460,7 @@ function renderAdvResilience(){
   if(!advMap.resilience) advDetectResilienceCols();
   const rows = advBuildResilienceRows();
   const body = document.getElementById('advBody');
-  if(!rows.length){ body.innerHTML = `<div class="state-msg">Tidak ada data valid.</div>`; return; }
+  if(!rows.length){ body.innerHTML = `<div class="state-msg">${trx('scNoValid')}</div>`; return; }
   const latest = rows[rows.length-1];
   const badge = reriBadge(latest.reri);
 
@@ -14434,7 +14592,7 @@ function renderAdvTrajectory(){
   if(!advMap.trajectory) advDetectTrajectoryCols();
   const rows = advBuildTrajectoryRows();
   const body = document.getElementById('advBody');
-  if(!rows.length){ body.innerHTML = `<div class="state-msg">Tidak ada data valid.</div>`; return; }
+  if(!rows.length){ body.innerHTML = `<div class="state-msg">${trx('scNoValid')}</div>`; return; }
 
   const years = [...new Set(rows.map(r=>r.tahun))].sort((a,b)=>a-b);
   const latestYear = years[years.length-1];
