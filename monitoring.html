@@ -577,7 +577,7 @@
           <option value="ganda">Ganda</option>
           <option value="tutup">Tutup</option>
           <option value="paksa">Submit Paksa</option>
-          <option value="__belum">Belum Diverifikasi</option>
+          <option value="__belum" selected>Belum Diverifikasi</option>
         </select>
       </div>
     </div>
@@ -754,7 +754,7 @@ let currentSimilarMatches = [];
 let currentSimilarSearch = '';
 let currentSimilarSort = 'score'; // 'score' (kecocokan tertinggi, default) atau 'distance' (jarak terdekat)
 let pendingSelectedIdentity = null; // { rowId, text } — hasil klik "Pilih" pada card Cek Serupa
-let state = { kecamatan:"", desa:"", sls:"", subslsKode:"", ppl:"", pml:"", verif:"", status:"", search:"" };
+let state = { kecamatan:"", desa:"", sls:"", subslsKode:"", ppl:"", pml:"", verif:"__belum", status:"", search:"" };
 
 let currentSortColumn = null;
 let currentSortDirection = 0; 
@@ -1250,7 +1250,7 @@ function statusMatches(r){
   return (r.statusLabel||'') === state.status;
 }
 
-function filteredExcept(except){
+function filteredExcept(except, includeVerification=true){
   return RAW_ROWS.filter(r=>{
     if(except!=='kecamatan' && state.kecamatan && r.kecamatan !== state.kecamatan) return false;
     if(except!=='desa' && state.desa && r.desa !== state.desa) return false;
@@ -1258,15 +1258,15 @@ function filteredExcept(except){
     if(except!=='subslsKode' && state.subslsKode && r.subsls_kode !== state.subslsKode) return false;
     if(except!=='ppl' && state.ppl && r.ppl !== state.ppl) return false;
     if(except!=='pml' && state.pml && r.pml !== state.pml) return false;
-    if(!verifMatches(r)) return false;
+    if(includeVerification && !verifMatches(r)) return false;
     if(!statusMatches(r)) return false;
     return true;
   });
 }
 
-function fullyFiltered(){
+function fullyFiltered(includeVerification=true){
   const q = state.search.trim().toLowerCase();
-  return filteredExcept(null).filter(r=>{
+  return filteredExcept(null, includeVerification).filter(r=>{
     if(!q) return true;
     return (r.nama_usaha||'').toLowerCase().includes(q) || (r.alamat||'').toLowerCase().includes(q);
   });
@@ -1285,12 +1285,13 @@ function escapeHtml(s){
 function escapeAttr(s){ return escapeHtml(s).replace(/"/g,'&quot;'); }
 
 function renderFilters(){
-  fillSelect(els.kecamatan, uniqueSorted(filteredExcept('kecamatan').map(r=>r.kecamatan)), state.kecamatan, 'Semua Kecamatan');
-  fillSelect(els.desa, uniqueSorted(filteredExcept('desa').map(r=>r.desa)), state.desa, 'Semua Desa');
-  fillSelect(els.sls, uniqueSorted(filteredExcept('sls').map(r=>r.sls)), state.sls, 'Semua SLS');
-  fillSelect(els.subslsKode, uniqueSorted(filteredExcept('subslsKode').map(r=>r.subsls_kode)), state.subslsKode, 'Semua Kode SubSLS');
-  fillSelect(els.ppl, uniqueSorted(filteredExcept('ppl').map(r=>r.ppl)), state.ppl, 'Semua PPL');
-  fillSelect(els.pml, uniqueSorted(filteredExcept('pml').map(r=>r.pml)), state.pml, 'Semua PML');
+  const includeVerification = state.verif !== '__belum';
+  fillSelect(els.kecamatan, uniqueSorted(filteredExcept('kecamatan', includeVerification).map(r=>r.kecamatan)), state.kecamatan, 'Semua Kecamatan');
+  fillSelect(els.desa, uniqueSorted(filteredExcept('desa', includeVerification).map(r=>r.desa)), state.desa, 'Semua Desa');
+  fillSelect(els.sls, uniqueSorted(filteredExcept('sls', includeVerification).map(r=>r.sls)), state.sls, 'Semua SLS');
+  fillSelect(els.subslsKode, uniqueSorted(filteredExcept('subslsKode', includeVerification).map(r=>r.subsls_kode)), state.subslsKode, 'Semua Kode SubSLS');
+  fillSelect(els.ppl, uniqueSorted(filteredExcept('ppl', includeVerification).map(r=>r.ppl)), state.ppl, 'Semua PPL');
+  fillSelect(els.pml, uniqueSorted(filteredExcept('pml', includeVerification).map(r=>r.pml)), state.pml, 'Semua PML');
 }
 
 function renderStats(rows){
@@ -1464,10 +1465,11 @@ function verifCellHtml(rowId){
 
 function renderTable(){
   const rows = fullyFiltered();
+  const summaryRows = state.verif === '__belum' ? fullyFiltered(false) : rows;
   lastFilteredRows = rows;
-  renderStats(rows);
-  renderSummaryTables(rows);
-  renderMap(rows);
+  renderStats(summaryRows);
+  renderSummaryTables(summaryRows);
+  renderMap(summaryRows);
   lastSortedRows = computeSortedRows(rows);
   renderTableBody();
 }
@@ -1695,6 +1697,13 @@ function renderAll(){
   renderTable();
 }
 
+function renderAllPreservingTablePosition(){
+  const tableScroll = document.querySelector('.table-scroll');
+  const scrollTop = tableScroll ? tableScroll.scrollTop : 0;
+  renderAll();
+  if(tableScroll) tableScroll.scrollTop = scrollTop;
+}
+
 function wireEvents(){
   els.kecamatan.addEventListener('change', e=>{ state.kecamatan = e.target.value; state.desa=""; state.sls=""; state.subslsKode=""; currentPage=1; renderAll(); });
   els.desa.addEventListener('change', e=>{ state.desa = e.target.value; state.sls=""; state.subslsKode=""; currentPage=1; renderAll(); });
@@ -1706,9 +1715,9 @@ function wireEvents(){
   els.verif.addEventListener('change', e=>{ state.verif = e.target.value; currentPage=1; renderAll(); });
   els.search.addEventListener('input', e=>{ state.search = e.target.value; currentPage=1; renderTable(); });
   els.resetBtn.addEventListener('click', ()=>{
-    state = { kecamatan:"", desa:"", sls:"", subslsKode:"", ppl:"", pml:"", verif:"", status:"", search:"" };
+    state = { kecamatan:"", desa:"", sls:"", subslsKode:"", ppl:"", pml:"", verif:"__belum", status:"", search:"" };
     els.search.value = "";
-    els.verif.value = "";
+    els.verif.value = "__belum";
     els.status.value = "";
     currentPage = 1;
     renderAll();
@@ -1719,6 +1728,8 @@ function wireEvents(){
 let isLoadingData = false;
 function loadData(){
   if(isLoadingData) return;
+  const tableScroll = document.querySelector('.table-scroll');
+  const previousScrollTop = tableScroll ? tableScroll.scrollTop : 0;
   isLoadingData = true;
   els.lastUpdated.textContent = "Memuat data…";
   els.tbody.innerHTML = `<tr><td colspan="10"><div class="loading-state"><div class="spinner"></div>Memuat data usaha…</div></td></tr>`;
@@ -1761,6 +1772,7 @@ function loadData(){
       }
       els.lastUpdated.textContent = "Data dimuat: " + new Date().toLocaleString('id-ID');
       renderAll();
+      if(tableScroll) tableScroll.scrollTop = previousScrollTop;
     }catch(err){
       showError(err.message);
     }
@@ -2081,11 +2093,9 @@ document.getElementById('step2Save').addEventListener('click', async ()=>{
       Keterangan: keterangan,
       "Waktu Update": new Date().toISOString()
     };
-    const badgeEl = document.querySelector(`[data-badge-for="${CSS.escape(pendingVerif.rowId)}"]`);
-    if(badgeEl) badgeEl.innerHTML = statusBadgeHtml(pendingVerif.rowId);
-    updateMarkerColorForRow(pendingVerif.rowId);
-    showToast('Verifikasi tersimpan.');
     closeModals(false);
+    renderAllPreservingTablePosition();
+    showToast('Verifikasi tersimpan.');
   }catch(err){
     showToast('Gagal menyimpan: ' + err.message, true);
   }finally{
@@ -2114,7 +2124,7 @@ function showToast(msg, isError){
 async function loadStatusCache(){
   if(!STATUS_API_URL || STATUS_API_URL.includes('PASTE_URL')) return;
   try{
-    const res = await fetch(STATUS_API_URL, { method:'GET' });
+    const res = await fetch(STATUS_API_URL, { method:'GET', cache:'no-store' });
     const json = await res.json();
     if(json.ok && json.data) statusCache = json.data;
   }catch(err){
@@ -2122,7 +2132,44 @@ async function loadStatusCache(){
   }
 }
 
+let isRefreshingStatus = false;
+function statusCachesDiffer(current, latest){
+  const rowIds = new Set([...Object.keys(current), ...Object.keys(latest)]);
+  return [...rowIds].some(rowId=>{
+    const before = current[rowId] || {};
+    const after = latest[rowId] || {};
+    return before.Status !== after.Status ||
+      before.Supervisor !== after.Supervisor ||
+      before.Keterangan !== after.Keterangan ||
+      before['Waktu Update'] !== after['Waktu Update'];
+  });
+}
+
+async function refreshStatusCache(){
+  if(isRefreshingStatus || pendingVerif || document.hidden || !STATUS_API_URL || STATUS_API_URL.includes('PASTE_URL')) return;
+  isRefreshingStatus = true;
+  try{
+    const res = await fetch(STATUS_API_URL, { method:'GET', cache:'no-store' });
+    const json = await res.json();
+    if(!res.ok || !json.ok || !json.data) return;
+    if(pendingVerif) return;
+    const latest = json.data;
+    if(statusCachesDiffer(statusCache, latest)){
+      statusCache = latest;
+      renderAllPreservingTablePosition();
+    }
+  }catch(err){
+    console.warn('Gagal menyegarkan status verifikasi:', err.message);
+  }finally{
+    isRefreshingStatus = false;
+  }
+}
+
 window.addEventListener('resize', ()=> map.invalidateSize());
+document.addEventListener('visibilitychange', ()=>{
+  if(!document.hidden) refreshStatusCache();
+});
+setInterval(refreshStatusCache, 15000);
 
 wireEvents();
 loadData();
