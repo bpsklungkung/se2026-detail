@@ -638,6 +638,23 @@ h1,h2,h3,.display { font-family:'Sora',sans-serif; color: var(--brown-deep); }
 .layer-btn-progresdesa { border-color:#d97706; color:#b45309; background:#fffbeb; }
 .layer-btn-tidakditemukan { border-color:#dc2626; color:#b91c1c; background:#fef2f2; }
 .layer-btn-cekbangunan { border-color:#b45309; color:#92400e; background:#fef3c7; }
+.coordinate-controls {
+  display:inline-flex; align-items:center; gap:4px; margin-left:auto;
+  padding:2px 4px; border:1px solid #dbe3ea; border-radius:20px; background:#f8fafc;
+}
+.coordinate-controls input {
+  width:78px; padding:4px 6px; border:1px solid #cbd5e1; border-radius:12px;
+  background:#fff; color:#334155; font-size:10px; outline:none;
+}
+.coordinate-controls input:focus { border-color:#2563eb; }
+.coordinate-controls button {
+  padding:4px 9px; border:0; border-radius:14px; background:#0f766e; color:#fff;
+  font-size:10px; font-weight:700; cursor:pointer;
+}
+.coordinate-controls button:hover { background:#115e59; }
+@media (max-width: 900px) {
+  .coordinate-controls { margin-left:0; width:100%; justify-content:flex-start; }
+}
 /* Progres Pendataan legend */
 .progres-legend {
   font-size: 11px; line-height: 1.5;
@@ -2196,6 +2213,11 @@ h1,h2,h3,.display { font-family:'Sora',sans-serif; color: var(--brown-deep); }
       <button type="button" class="btn btn-sm" id="btnLokasiSaya" onclick="showMyLocation()"
         style="margin-left:auto;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600"
         title="Tampilkan posisi Anda saat ini di peta (butuh izin lokasi browser)">📍 Lokasi Saya</button>
+      <div class="coordinate-controls" title="Tampilkan koordinat tertentu pada peta">
+        <input type="number" id="inputLatitude" step="any" min="-90" max="90" placeholder="Latitude" aria-label="Latitude">
+        <input type="number" id="inputLongitude" step="any" min="-180" max="180" placeholder="Longitude" aria-label="Longitude">
+        <button type="button" onclick="showCoordinateOnMap()">Tampilkan</button>
+      </div>
       <button type="button" class="btn btn-sm" onclick="printMapJpg()"
         style="background:linear-gradient(135deg,#4A1620,#2E0D14);color:#fff;border:none;display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600"
         title="Cetak peta (sesuai layer & filter aktif) sbg JPG & otomatis salin ke clipboard (Ctrl+V utk tempel)">🖼️ Cetak JPG</button>
@@ -10049,6 +10071,30 @@ function getAssignColor(assignment) {
 let myLocationMarker = null;
 let myLocationAccuracyCircle = null;
 let myLocationWatchId = null;
+let coordinateMarker = null;
+
+function showCoordinateOnMap(){
+  if(!mapInstance){ alert('Peta belum siap, coba lagi sebentar.'); return; }
+
+  const latitude = Number(document.getElementById('inputLatitude').value);
+  const longitude = Number(document.getElementById('inputLongitude').value);
+  if(!Number.isFinite(latitude) || !Number.isFinite(longitude) || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180){
+    alert('Masukkan latitude antara -90 sampai 90 dan longitude antara -180 sampai 180.');
+    return;
+  }
+
+  if(coordinateMarker) mapInstance.removeLayer(coordinateMarker);
+  const coordinateIcon = L.divIcon({
+    className: '',
+    html: '<div style="width:20px;height:20px;border-radius:50%;background:#dc2626;border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.45);"></div>',
+    iconSize: [20, 20], iconAnchor: [10, 10]
+  });
+  coordinateMarker = L.marker([latitude, longitude], {
+    icon: coordinateIcon, pane: 'pointsPane', zIndexOffset: 2000
+  }).addTo(mapInstance);
+  coordinateMarker.bindPopup(`<div style="font-size:12px;font-family:'Plus Jakarta Sans',sans-serif"><b>Koordinat pilihan</b><br>Latitude: ${latitude.toFixed(6)}<br>Longitude: ${longitude.toFixed(6)}</div>`).openPopup();
+  mapInstance.setView([latitude, longitude], Math.max(mapInstance.getZoom(), 16), {animate:true});
+}
 
 /* ── Point-in-polygon (ray casting), mendukung Polygon & MultiPolygon + lubang ── */
 function pointInRing(lat, lng, ring){
@@ -10242,9 +10288,9 @@ function initMap(){
   mapInstance.getPane('pointsPane').style.zIndex = 650;
   mapInstance.getPane('pointsPane').style.pointerEvents = 'auto';
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>',
-    subdomains: 'abcd', maxZoom: 19, crossOrigin: true
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19, crossOrigin: true
   }).addTo(mapInstance);
 
   slsLayerGroup = L.layerGroup();
