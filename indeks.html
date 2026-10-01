@@ -2862,6 +2862,85 @@ const I18N = {
     ilorFoot1:'† TK Klungkung bernilai 0 pada tahun ini atau tahun pembanding (data tidak tercatat): ILOR sektor menjadi tidak bermakna (ditampilkan “—” bila TK = 0 di kedua tahun), dan bila hanya 0 di salah satu tahun angkanya mencerminkan hilang/munculnya data, bukan perubahan riil.',
     ilorFoot2:'‡ Perubahan PDRB ADHK kurang dari 0,5% dari PDRB awal (di Klungkung atau Bali): pembagi hampir nol sehingga ILOR bisa meledak dan tidak stabil — jangan dibaca sebagai penyerapan TK yang benar-benar “sangat besar”.',
     ilorFoot3:'§ Rasio Klungkung/Bali dibaca hati-hati: Klungkung dan Bali tidak berada pada pola yang sama (mis. satu berekspansi sementara yang lain berkontraksi) atau ada ILOR negatif (TK dan output berlawanan arah), sehingga rasio tidak dapat langsung ditafsirkan sebagai lebih hemat atau lebih boros tenaga kerja.',
+    ilorRatioMixed:'pola berbeda dengan Bali — lihat catatan §', ilorRatioPadat:'lebih padat karya dari Bali', ilorRatioHemat:'lebih hemat TK dari Bali',
+    ilorRatioTerpukul:'TK lebih terpukul dari Bali', ilorRatioTahan:'TK lebih tahan dari Bali',
+    nkKpiIlorK:'ILOR Klungkung (seluruh sektor)', nkKpiIlorB:'ILOR Bali (seluruh sektor)', nkOrangMiliar:'orang per Rp miliar PDRB ADHK',
+    nkKpiIlorRasio:'ILOR Klungkung/Bali', nkKpiDeltaTkK:'Δ TK Klungkung', nkKpiDeltaPdrbAdhkK:'Δ PDRB ADHK Klungkung', nkKpiTipologiK:'Tipologi Klungkung', nkSeluruhSektor:'seluruh sektor',
+    nkNoteIlor:' ILOR (<i>Incremental Labor-Output Ratio</i>) menunjukkan berapa tambahan tenaga kerja yang menyertai setiap tambahan output. Berbeda dari produktivitas rata-rata (PDRB ÷ TK pada satu tahun), ILOR hanya melihat <b>perubahan</b>: dari tahun pembanding ke tahun terpilih, berapa orang TK bertambah (atau berkurang) untuk tiap Rp 1 miliar kenaikan (atau penurunan) PDRB ADHK. Dibandingkan dengan ILOR Bali, analisis ini memperlihatkan apakah pertumbuhan Klungkung lebih padat karya atau lebih hemat tenaga kerja daripada Bali.',
+    nkNoteIlorF1:'ILOR Klungkung = Δ TK Klungkung ÷ Δ PDRB ADHK Klungkung = (TK<sub>t</sub> − TK<sub>pembanding</sub>) ÷ (PDRB<sub>t</sub> − PDRB<sub>pembanding</sub>)', nkNoteIlorF2:'ILOR Bali = Δ TK Bali ÷ Δ PDRB ADHK Bali', nkNoteIlorF3:'ILOR Klungkung/Bali = ILOR Klungkung ÷ ILOR Bali', nkNoteIlorF4:'ILOR seluruh sektor = Σ Δ TK ÷ Σ Δ PDRB ADHK (total dijumlah lebih dulu, baru dibagi — bukan rata-rata ILOR sektor)',
+    nkNoteIlorCaption:'Satuan ILOR: orang per Rp miliar PDRB ADHK. Perubahan dihitung dari tahun pembanding ke tahun terpilih; bila pembanding adalah tahun sebelumnya, angka per sektor sama dengan kolom ILOR di sheet. Tanda ‡ dipasang bila |Δ PDRB| &lt; 0,5% dari PDRB awal karena pembagi yang sangat kecil membuat ILOR tidak stabil.',
+    nkNoteIlorC1:'<b>Tanda ILOR mengikuti arah Δ TK dan Δ PDRB, bukan baik–buruk.</b> ILOR positif muncul saat TK dan output bergerak searah — bisa ekspansi (keduanya naik) maupun kontraksi (keduanya turun). ILOR negatif muncul saat keduanya berlawanan arah.',
+    nkNoteIlorC2:'<b>ILOR negatif bukan berarti lebih baik.</b> Output naik sementara TK turun memang berarti produktivitas per pekerja naik, tetapi juga berarti lapangan kerja berkurang (tumbuh tanpa serapan TK). Sebaliknya, TK naik sementara output turun berarti produktivitas per pekerja merosot. Angka negatif yang “besar” atau “kecil” tidak punya arti kinerja — baca selalu bersama Δ TK, Δ PDRB, dan tipologinya.',
+    nkNoteIlorC3:'<b>ILOR positif kecil tidak otomatis lebih baik, ILOR positif besar tidak otomatis lebih buruk.</b> ILOR kecil berarti tambahan output hemat tenaga kerja (produktivitas marjinal tinggi) namun sedikit menciptakan lapangan kerja; ILOR besar berarti pertumbuhan padat karya (banyak menyerap TK) namun produktivitas marjinalnya rendah. Mana yang diinginkan bergantung pada tujuan: penyerapan tenaga kerja atau peningkatan produktivitas. Pada tipologi Kontraksi, ILOR positif justru menggambarkan pekerja yang hilang seiring output yang menyusut.',
+    nkNoteIlorC4:'<b>ILOR Klungkung/Bali</b> &gt; 1: tiap tambahan output di Klungkung disertai lebih banyak pekerja daripada di Bali (lebih padat karya); &lt; 1: lebih hemat TK. Rasio hanya dapat ditafsirkan bila Klungkung dan Bali berpola sama — keduanya berekspansi (ILOR positif dari tambahan output) atau keduanya berkontraksi. Bila tidak (§), mis. ada ILOR negatif, kedua wilayah bergerak dengan pola berbeda.',
+    nkNoteIlorC5:'ILOR tahunan sangat berfluktuasi dan sensitif terhadap pembagi yang kecil; sektor ber-TK kecil mudah memberi angka ekstrem. Gunakan sebagai gambaran hubungan TK–output pada periode tertentu, bukan indikator jangka panjang.',
+    nkIlorInsAllSektor:'Seluruh sektor', nkIlorInsNaik:'bertambah', nkIlorInsTurun:'berkurang', nkIlorInsOrang:'orang sementara PDRB ADHK', nkIlorInsPdrbNaik:'naik', nkIlorInsPdrbTurun:'turun', nkIlorInsMiliar:'miliar',
+    nkIlorInsMeaningEkspansi:'artinya tiap tambahan Rp 1 miliar output disertai sekitar <b>{v} tambahan pekerja</b>',
+    nkIlorInsMeaningHemat:'ILOR negatif ini muncul karena output naik sementara jumlah pekerja turun — produktivitas per pekerja meningkat, tetapi tidak ada tambahan lapangan kerja, jadi tidak otomatis berarti kondisi yang lebih baik',
+    nkIlorInsMeaningPadat:'ILOR negatif ini muncul karena pekerja bertambah saat output menyusut — produktivitas per pekerja melemah',
+    nkIlorInsMeaningKontraksi:'ILOR positif ini berasal dari kontraksi (TK dan output sama-sama turun), bukan dari ekspansi',
+    nkIlorInsMain:'{sektor} {base}→{year}: {dir}, sehingga <b>ILOR Klungkung {ilk}</b> orang per Rp miliar — {meaning}.{unstable}',
+    nkIlorInsUnstableNote:' (‡ perubahan PDRB sangat kecil sehingga angka ini tidak stabil.)',
+    nkIlorInsNoCalc:'ILOR seluruh sektor tidak dapat dihitung karena PDRB ADHK Klungkung tidak berubah di antara kedua tahun.',
+    nkIlorInsBali:'ILOR Bali {ilb} (Δ TK {dtkb} orang, Δ PDRB ADHK {dyb} miliar)',
+    nkIlorInsRasioExp:'{bali}. Rasio Klungkung/Bali <b>{ratio}</b>: tambahan output di Klungkung {desc} daripada di Bali.',
+    nkIlorInsPadatKaryaBesar:'lebih padat karya — butuh lebih banyak pekerja', nkIlorInsHematKecil:'lebih hemat tenaga kerja — butuh lebih sedikit pekerja',
+    nkIlorInsRasioKontraksi:'{bali}. Klungkung dan Bali sama-sama berkontraksi; rasio <b>{ratio}</b> berarti pekerja yang hilang per output yang hilang di Klungkung {cmp} daripada di Bali — gambaran kepekaan TK terhadap penurunan output, bukan ukuran efisiensi.',
+    nkLebihBanyak:'lebih banyak', nkLebihSedikit:'lebih sedikit',
+    nkIlorInsRasioMixed:'{bali}. Klungkung dan Bali tidak berada pada pola yang sama (mis. satu berekspansi sementara yang lain berkontraksi, atau ada ILOR negatif); rasio{ratio} tidak dapat dibaca sebagai “lebih efisien” atau “kurang efisien” — bandingkan arah Δ TK dan Δ PDRB masing-masing.',
+    nkIlorInsTipologi:'Dari {n} lapangan usaha yang ILOR-nya dapat dihitung, sebaran tipologinya: {list}.',
+    nkIlorInsExpRange:'Di antara sektor yang berekspansi, tambahan output paling padat karya di <b>{hi}</b> ({vhi}) dan paling hemat tenaga kerja di <b>{lo}</b> ({vlo} orang per Rp miliar). Keduanya bukan penilaian baik–buruk, melainkan corak pertumbuhannya.',
+    nkTitleIlorSeluruh:'ILOR Seluruh Sektor', nkTitleIlorPerSektor:'ILOR per Lapangan Usaha: Klungkung vs Bali',
+    nkTitlePdrbXTkKlungkung:'Perubahan PDRB × Perubahan TK (Klungkung)',
+    nkIlorSlopeNote:'ILOR sektor sama dengan kemiringan garis dari titik asal (0,0) ke titik sektor: kuadran kanan-atas dan kiri-bawah menghasilkan ILOR positif, kuadran kiri-atas dan kanan-bawah menghasilkan ILOR negatif.',
+    nkTableIlorSektor:'Tabel ILOR per Lapangan Usaha', nkTitleTrenIlorTahun:'Tren ILOR per Tahun (dibanding tahun sebelumnya)',
+    nkDibandingTahunSebelumnya:'dibanding tahun sebelumnya',
+    nkSkalaSumbu:'Skala sumbu', nkTtPenuh:'Seluruh nilai tampil apa adanya (skala linear)', nkTtFokus:'Skala linear dipusatkan pada nilai wajar; nilai ekstrem terpotong', nkTtLog:'Skala simetris-log: nilai ekstrem dipadatkan, tanda positif/negatif tetap benar',
+    nkBtnPenuh:'Penuh', nkBtnFokus:'Fokus', nkBtnLog:'Log simetris',
+    nkTitleIlorSeluruhTahun:'ILOR Seluruh Sektor per Tahun', nkYtdRowHl:'Baris tahun {y} disorot.',
+    nkYtdRowHlDiff:'Baris tahun {y} disorot. Angkanya membandingkan {y} dengan tahun sebelumnya, sehingga dapat berbeda dari ringkasan di atas yang memakai tahun pembanding {b}.',
+    thDeltaTkK:'Δ TK Klungkung', thDeltaPdrbK:'Δ PDRB Klungkung (Rp miliar)', thIlorK:'ILOR Klungkung', thDeltaTkB:'Δ TK Bali', thDeltaPdrbB:'Δ PDRB Bali (Rp miliar)', thIlorB:'ILOR Bali', thIlorRasio:'ILOR Klungkung/Bali', thCatatan:'Catatan',
+    nkIlorOutBarNote:'Di luar rentang grafik (batang terpotong di tepi; nilai lengkap ada di tabel dan tooltip): {list}.',
+    nkIlorOutQuadNote:'Di luar rentang grafik (lihat tabel): {list}.',
+    axIlorOrangMiliar:'ILOR (orang per Rp miliar PDRB ADHK)', axDeltaPdrbAdhkK:'Δ PDRB ADHK Klungkung (Rp miliar)', axDeltaTkK:'Δ TK Klungkung (orang)',
+    nkScaleNotePenuh:'Skala sumbu: penuh (linear, seluruh nilai tampil).', nkScaleNoteFokus:'Skala sumbu: fokus (linear) — nilai yang jauh di luar rentang terpotong di tepi grafik.',
+    nkScaleNoteLog:'Skala sumbu: simetris-log — jarak antar-tick tidak linear; nilai ekstrem dipadatkan supaya pola tetap terbaca, tanda positif/negatif tetap benar. Baca angka pastinya pada tooltip.',
+    nkScaleAutoSuffix:' (dipilih otomatis; ubah lewat tombol Skala sumbu)', nkTrenOutside:'Di luar rentang: {list}. ',
+    nkTrenNoteFooter:'ILOR tahunan sangat berfluktuasi karena pembaginya (Δ PDRB) kecil; jangan dibaca sebagai tren jangka panjang, dan ILOR negatif tidak berarti lebih baik — lihat Δ TK dan Δ PDRB pada tooltip.',
+    axIlorLogSym:'ILOR (skala simetris-log)', nkTipologiLbl:'Tipologi:', nkUnstableShort:'‡ Δ PDRB sangat kecil — ILOR tidak stabil',
+    nkKpiPerubahanTk:'Perubahan TK (ΔTK)', nkKpiRs:'Regional Share (RS)', nkRsSub:'ikut pertumbuhan TK Bali',
+    nkKpiIm:'Industry Mix (IM)', nkImSub:'bauran sektor', nkKpiCs:'Competitive Shift (CS)', nkCsSub:'keunggulan kompetitif',
+    nkKpiSektorCsPositif:'Sektor CS Positif', nkCsPositifSub:'Klungkung menyerap lebih cepat dari Bali',
+    nkNoteSs:' Shift-Share menguraikan perubahan jumlah tenaga kerja Klungkung menjadi tiga komponen dengan Bali sebagai wilayah acuan: seberapa besar perubahan itu sekadar “ikut arus” pertumbuhan TK Bali, seberapa karena sektornya memang tumbuh cepat/lambat di Bali, dan seberapa karena Klungkung lebih unggul/kalah dibanding Bali pada sektor yang sama. Ini padanan berbasis tenaga kerja dari tab Shift-Share (yang berbasis PDRB).',
+    nkNoteSsCaption:'e = TK sektor i di Klungkung (0 = tahun pembanding, t = tahun terpilih); G = pertumbuhan TK total Bali; G<sub>i</sub> = pertumbuhan TK sektor i di Bali. Bentuk CS di atas identik dengan e<sub>i,0</sub> × (g<sub>i</sub> − G<sub>i</sub>), sehingga ketiga komponen selalu berjumlah tepat ΔTK.',
+    nkNoteSsC1:'<b>RS</b> positif bila TK Bali secara keseluruhan bertambah — porsi perubahan yang terjadi tanpa ada keunikan sektor maupun wilayah.', nkNoteSsC2:'<b>IM</b> positif untuk sektor yang di Bali tumbuh lebih cepat dari rata-rata (sektor “ikut tren”), negatif untuk sektor yang di Bali melambat.', nkNoteSsC3:'<b>CS</b> positif berarti Klungkung menambah TK di sektor itu lebih cepat dari Bali — keunggulan kompetitif lokal; CS negatif berarti kalah bersaing.',
+    nkChartDekompDeltaTk:'Dekomposisi ΔTK per Lapangan Usaha (orang)', nkChartKuadranImCs:'Posisi Kuadran: Industry Mix × Competitive Shift', nkTableSs:'Tabel Shift-Share Tenaga Kerja',
+    axKontribusiDeltaTk:'Kontribusi terhadap ΔTK (orang)', axIndustryMixOrang:'Industry Mix (orang)', axCompetitiveShiftOrang:'Competitive Shift (orang)',
+    thKuadran:'Kuadran', nkTotal:'Total',
+    nkDecNoData:'Tidak ada sektor dengan TK &gt; 0 pada kedua tahun untuk didekomposisi.',
+    nkDekDalamSektor:'Dalam sektor', nkDekRealokasiTk:'Realokasi TK',
+    nkKpiProdBase:'Produktivitas {y}', nkKpiDeltaProd:'Δ Produktivitas',
+    nkKpiWithin:'Within (dalam sektor)', nkKpiBetween:'Between (realokasi statis)', nkKpiInteraksi:'Interaksi (dinamis)',
+    nkNoteDek:' Produktivitas rata-rata seluruh ekonomi dapat naik karena dua hal yang berbeda: (1) tiap sektor menjadi lebih produktif (efek <b>within</b>), atau (2) pekerja berpindah dari sektor berproduktivitas rendah ke sektor berproduktivitas tinggi (efek <b>between</b>/realokasi). Dekomposisi ini memisahkan keduanya.',
+    nkNoteDekCaption:'s<sub>i</sub> = pangsa TK sektor i; p<sub>i</sub> = produktivitas sektor i (PDRB ADHK ÷ TK, Rp juta/pekerja); 0 = tahun pembanding. Efek struktural (McMillan &amp; Rodrik) = Between + Interaksi. Identitas berlaku eksak pada sektor yang TK-nya &gt; 0 di kedua tahun.',
+    nkNoteDekC1:'<b>Within dominan</b>: kenaikan produktivitas berasal dari efisiensi/nilai tambah di dalam masing-masing sektor.', nkNoteDekC2:'<b>Between positif</b>: pekerja bergeser ke sektor yang lebih produktif dari rata-rata; <b>negatif</b>: pekerja bergeser ke sektor yang kurang produktif (beban struktural).', nkNoteDekC3:'<b>Interaksi</b> positif bila sektor yang produktivitasnya naik juga menambah pangsa pekerjanya (dan sebaliknya).',
+    nkDekIns1:'Produktivitas rata-rata (pada {n} sektor yang dapat dibandingkan) <b>{dir} Rp {v} juta per pekerja</b> antara {b} dan {y}.',
+    nkDekInsNaik:'naik', nkDekInsTurun:'turun',
+    nkDekIns2a:'Kedua sumber sama-sama positif: efek dalam sektor {w} juta dan efek struktural (realokasi TK) {s} juta.',
+    nkDekIns2b:'Kenaikan berasal dari peningkatan produktivitas <b>di dalam sektor</b> ({w} juta), sedangkan perpindahan TK antarsektor justru menekan ({s} juta) — pekerja cenderung bergeser ke sektor berproduktivitas lebih rendah.',
+    nkDekIns2c:'Produktivitas di dalam sektor melemah ({w} juta) namun tertolong oleh perpindahan TK ke sektor berproduktivitas lebih tinggi ({s} juta).',
+    nkDekIns2d:'Baik efek dalam sektor ({w} juta) maupun efek struktural ({s} juta) sama-sama menekan produktivitas.',
+    nkDekInsPosBesar:'kontributor positif terbesar', nkDekInsNegBesar:'kontributor negatif terbesar', nkDekInsAntarSektor:'Antarsektor — {bits}.',
+    nkDekInsWithinBig:'Komponen within banyak dipengaruhi <b>{s}</b> ({v} juta) walau pangsa TK-nya hanya {sh} — sektor ber-TK kecil dengan produktivitas sangat tinggi mudah bergejolak, jadi bacalah angkanya dengan hati-hati.',
+    nkDekInsExcluded:'{n} sektor dikeluarkan karena TK bernilai 0 pada salah satu tahun ({list}), setara {pct} PDRB ADHK {y}; karenanya angka di sini dapat sedikit berbeda dari produktivitas total pada tab Produktivitas.',
+    nkChartKomponenProd:'Komponen Perubahan Produktivitas (Rp juta / pekerja)', nkChartKontribusiSektor:'Kontribusi per Lapangan Usaha', nkTableDekomposisi:'Tabel Dekomposisi Produktivitas',
+    thPenggerak:'Penggerak', thPangsaTkBase:'Pangsa TK {y}', thDeltaPangsaPp:'Δ Pangsa (pp)', thProdBaseJt:'Prod. {y} (jt)', thWithin:'Within', thBetween:'Between', thInteraksi:'Interaksi', thTotal:'Total',
+    axRpJutaPekerja2:'Rp juta / pekerja', axKontribusiDeltaP:'Kontribusi terhadap ΔP (Rp juta / pekerja)',
+    nkTrenMShareTk:'Pangsa TK Klungkung (%)', nkTrenMJumlahTk:'Jumlah Tenaga Kerja (orang)', nkTrenMProdTk:'Produktivitas TK (Rp juta / pekerja)',
+    nkTrenMLqTk:'LQ Tenaga Kerja', nkTrenMSharePdrb:'Pangsa PDRB ADHK Klungkung (%)', nkTrenMIp:'Indeks Produktivitas (rata-rata ekonomi = 1)',
+    nkLblMetrik:'Metrik', nkTop5Tk:'Top 5 TK', nkTampilkanBali:'Tampilkan pembanding Bali',
+    nkTrenCaption:'Pita berwarna menandai tahun terpilih ({y}). Klik nama seri pada legenda untuk mengganti warnanya. Maksimal {n} sektor ditampilkan sekaligus.',
+    nkTableTren:'Tabel Tren', nkPilihSektor:'🏷️ Pilih Sektor', nkMaxSektor:'Maksimal {n} sektor.', nkMinSatuSektor:'Minimal 1 sektor harus dipilih.',
     definisi:'Definisi', noDefinition:'Belum ada deskripsi definisi untuk indikator ini.', cmpDefsTitle:'Definisi Indikator Terpilih',
     filterShowData:'Tampilkan Data', filterShowAll:'Tampilkan Semua', filterToggle:'semua/tidak',
     convTitle:'Konvergensi',
@@ -3185,6 +3264,85 @@ const I18N = {
     ilorFoot1:'† Klungkung labor was 0 in this year or the comparison year (data not recorded): the sector\'s ILOR becomes meaningless (shown as “—” if labor = 0 in both years); if only 0 in one year, the figure reflects missing/appearing data rather than a real change.',
     ilorFoot2:'‡ The change in GRDP ADHK is less than 0.5% of the starting GRDP (in Klungkung or Bali): the denominator is near zero, so ILOR can spike and become unstable — don\'t read it as genuinely "very large" labor absorption.',
     ilorFoot3:'§ Read the Klungkung/Bali ratio with caution: Klungkung and Bali are not in the same pattern (e.g. one expanding while the other contracts) or there is a negative ILOR (labor and output move in opposite directions), so the ratio cannot be directly interpreted as more or less labor-saving.',
+    ilorRatioMixed:'a different pattern from Bali — see note §', ilorRatioPadat:'more labor-intensive than Bali', ilorRatioHemat:'more labor-saving than Bali',
+    ilorRatioTerpukul:'labor hit harder than Bali', ilorRatioTahan:'labor more resilient than Bali',
+    nkKpiIlorK:'Klungkung ILOR (all sectors)', nkKpiIlorB:'Bali ILOR (all sectors)', nkOrangMiliar:'people per Rp billion GRDP ADHK',
+    nkKpiIlorRasio:'Klungkung/Bali ILOR', nkKpiDeltaTkK:'Δ Klungkung Labor', nkKpiDeltaPdrbAdhkK:'Δ Klungkung GRDP ADHK', nkKpiTipologiK:'Klungkung Typology', nkSeluruhSektor:'all sectors',
+    nkNoteIlor:' ILOR (<i>Incremental Labor-Output Ratio</i>) shows how much labor is added for each additional unit of output. Unlike average productivity (GRDP ÷ labor in a single year), ILOR looks only at <b>change</b>: from the comparison year to the selected year, how many workers were added (or lost) per Rp 1 billion increase (or decrease) in GRDP ADHK. Compared to Bali\'s ILOR, this analysis shows whether Klungkung\'s growth is more labor-intensive or more labor-saving than Bali\'s.',
+    nkNoteIlorF1:'Klungkung ILOR = Δ Klungkung Labor ÷ Δ Klungkung GRDP ADHK = (TK<sub>t</sub> − TK<sub>comparison</sub>) ÷ (GRDP<sub>t</sub> − GRDP<sub>comparison</sub>)', nkNoteIlorF2:'Bali ILOR = Δ Bali Labor ÷ Δ Bali GRDP ADHK', nkNoteIlorF3:'Klungkung/Bali ILOR = Klungkung ILOR ÷ Bali ILOR', nkNoteIlorF4:'All-sector ILOR = Σ Δ Labor ÷ Σ Δ GRDP ADHK (totals summed first, then divided — not the average of sector ILORs)',
+    nkNoteIlorCaption:'ILOR unit: people per Rp billion GRDP ADHK. Change is computed from the comparison year to the selected year; if the comparison is the previous year, per-sector figures match the ILOR column in the sheet. A ‡ mark appears when |ΔGRDP| &lt; 0.5% of the starting GRDP, since a very small denominator makes ILOR unstable.',
+    nkNoteIlorC1:'<b>The sign of ILOR follows the direction of Δ Labor and Δ GRDP, not good vs. bad.</b> A positive ILOR appears when labor and output move in the same direction — either expansion (both rise) or contraction (both fall). A negative ILOR appears when they move in opposite directions.',
+    nkNoteIlorC2:'<b>A negative ILOR doesn\'t mean better.</b> Output rising while labor falls does mean productivity per worker rose, but it also means fewer jobs (jobless growth). Conversely, labor rising while output falls means productivity per worker declined. A "large" or "small" negative figure carries no performance meaning on its own — always read it alongside Δ Labor, Δ GRDP, and the typology.',
+    nkNoteIlorC3:'<b>A small positive ILOR isn\'t automatically better, and a large positive ILOR isn\'t automatically worse.</b> A small ILOR means added output is labor-saving (high marginal productivity) but creates few jobs; a large ILOR means labor-intensive growth (absorbs many workers) but low marginal productivity. Which is preferable depends on the goal: labor absorption or productivity gains. Under the Contraction typology, a positive ILOR actually reflects workers lost alongside shrinking output.',
+    nkNoteIlorC4:'<b>The Klungkung/Bali ILOR</b> &gt; 1: each additional unit of output in Klungkung is accompanied by more workers than in Bali (more labor-intensive); &lt; 1: more labor-saving. The ratio can only be interpreted when Klungkung and Bali share the same pattern — both expanding (positive ILOR from added output) or both contracting. If not (§), e.g. there\'s a negative ILOR, the two regions are moving in different patterns.',
+    nkNoteIlorC5:'Annual ILOR fluctuates heavily and is sensitive to a small denominator; sectors with small labor easily produce extreme figures. Use it as a snapshot of the labor–output relationship for a given period, not a long-term indicator.',
+    nkIlorInsAllSektor:'All sectors', nkIlorInsNaik:'increased', nkIlorInsTurun:'decreased', nkIlorInsOrang:'people while GRDP ADHK', nkIlorInsPdrbNaik:'rose', nkIlorInsPdrbTurun:'fell', nkIlorInsMiliar:'billion',
+    nkIlorInsMeaningEkspansi:'meaning each additional Rp 1 billion of output is accompanied by around <b>{v} additional workers</b>',
+    nkIlorInsMeaningHemat:'this negative ILOR arises because output rose while the number of workers fell — productivity per worker increased, but no jobs were added, so it doesn\'t automatically mean a better outcome',
+    nkIlorInsMeaningPadat:'this negative ILOR arises because workers increased while output shrank — productivity per worker weakened',
+    nkIlorInsMeaningKontraksi:'this positive ILOR comes from contraction (labor and output both fell), not from expansion',
+    nkIlorInsMain:'{sektor} {base}→{year}: {dir}, so <b>Klungkung ILOR {ilk}</b> people per Rp billion — {meaning}.{unstable}',
+    nkIlorInsUnstableNote:' (‡ the GRDP change is very small, so this figure is unstable.)',
+    nkIlorInsNoCalc:'The all-sector ILOR cannot be computed because Klungkung\'s GRDP ADHK did not change between the two years.',
+    nkIlorInsBali:'Bali ILOR {ilb} (Δ Labor {dtkb} people, Δ GRDP ADHK {dyb} billion)',
+    nkIlorInsRasioExp:'{bali}. Klungkung/Bali ratio <b>{ratio}</b>: added output in Klungkung is {desc} than in Bali.',
+    nkIlorInsPadatKaryaBesar:'more labor-intensive — needing more workers', nkIlorInsHematKecil:'more labor-saving — needing fewer workers',
+    nkIlorInsRasioKontraksi:'{bali}. Klungkung and Bali are both contracting; a ratio of <b>{ratio}</b> means the workers lost per unit of output lost in Klungkung are {cmp} than in Bali — a picture of labor sensitivity to declining output, not an efficiency measure.',
+    nkLebihBanyak:'higher', nkLebihSedikit:'lower',
+    nkIlorInsRasioMixed:'{bali}. Klungkung and Bali are not in the same pattern (e.g. one expanding while the other contracts, or there\'s a negative ILOR); the ratio{ratio} cannot be read as "more efficient" or "less efficient" — compare the direction of Δ Labor and Δ GRDP for each.',
+    nkIlorInsTipologi:'Of the {n} industries whose ILOR could be computed, the typology breakdown is: {list}.',
+    nkIlorInsExpRange:'Among expanding sectors, added output is most labor-intensive in <b>{hi}</b> ({vhi}) and most labor-saving in <b>{lo}</b> ({vlo} people per Rp billion). Neither is a good-or-bad judgment, just a growth pattern.',
+    nkTitleIlorSeluruh:'All-Sector ILOR', nkTitleIlorPerSektor:'ILOR by Industry: Klungkung vs Bali',
+    nkTitlePdrbXTkKlungkung:'GRDP Change × Labor Change (Klungkung)',
+    nkIlorSlopeNote:'A sector\'s ILOR equals the slope of the line from the origin (0,0) to the sector\'s point: the top-right and bottom-left quadrants yield a positive ILOR, the top-left and bottom-right quadrants yield a negative ILOR.',
+    nkTableIlorSektor:'ILOR by Industry Table', nkTitleTrenIlorTahun:'Annual ILOR Trend (vs. previous year)',
+    nkDibandingTahunSebelumnya:'vs. previous year',
+    nkSkalaSumbu:'Axis scale', nkTtPenuh:'All values shown as-is (linear scale)', nkTtFokus:'A linear scale centered on typical values; extreme values are clipped', nkTtLog:'Symmetric-log scale: extreme values are compressed, positive/negative signs remain correct',
+    nkBtnPenuh:'Full', nkBtnFokus:'Focus', nkBtnLog:'Sym-log',
+    nkTitleIlorSeluruhTahun:'All-Sector ILOR by Year', nkYtdRowHl:'The {y} row is highlighted.',
+    nkYtdRowHlDiff:'The {y} row is highlighted. Its figures compare {y} to the previous year, so they may differ from the summary above, which uses {b} as the comparison year.',
+    thDeltaTkK:'Δ Klungkung Labor', thDeltaPdrbK:'Δ Klungkung GRDP (Rp billion)', thIlorK:'Klungkung ILOR', thDeltaTkB:'Δ Bali Labor', thDeltaPdrbB:'Δ Bali GRDP (Rp billion)', thIlorB:'Bali ILOR', thIlorRasio:'Klungkung/Bali ILOR', thCatatan:'Note',
+    nkIlorOutBarNote:'Outside the chart range (bars clipped at the edge; full values are in the table and tooltip): {list}.',
+    nkIlorOutQuadNote:'Outside the chart range (see table): {list}.',
+    axIlorOrangMiliar:'ILOR (people per Rp billion GRDP ADHK)', axDeltaPdrbAdhkK:'Δ Klungkung GRDP ADHK (Rp billion)', axDeltaTkK:'Δ Klungkung Labor (people)',
+    nkScaleNotePenuh:'Axis scale: full (linear, all values shown).', nkScaleNoteFokus:'Axis scale: focus (linear) — values far outside the range are clipped at the chart edge.',
+    nkScaleNoteLog:'Axis scale: symmetric-log — tick spacing is nonlinear; extreme values are compressed so the pattern stays readable, positive/negative signs remain correct. Read exact figures in the tooltip.',
+    nkScaleAutoSuffix:' (chosen automatically; change via the Axis scale buttons)', nkTrenOutside:'Outside the range: {list}. ',
+    nkTrenNoteFooter:'Annual ILOR fluctuates heavily because its denominator (ΔGRDP) is small; don\'t read it as a long-term trend, and a negative ILOR doesn\'t mean better — check Δ Labor and Δ GRDP in the tooltip.',
+    axIlorLogSym:'ILOR (symmetric-log scale)', nkTipologiLbl:'Typology:', nkUnstableShort:'‡ ΔGRDP very small — ILOR unstable',
+    nkKpiPerubahanTk:'Labor Change (ΔLabor)', nkKpiRs:'Regional Share (RS)', nkRsSub:'follows Bali\'s labor growth',
+    nkKpiIm:'Industry Mix (IM)', nkImSub:'sector mix', nkKpiCs:'Competitive Shift (CS)', nkCsSub:'competitive advantage',
+    nkKpiSektorCsPositif:'Sectors With Positive CS', nkCsPositifSub:'Klungkung absorbs labor faster than Bali',
+    nkNoteSs:' Shift-Share breaks down the change in Klungkung\'s labor force into three components using Bali as the reference region: how much of that change is simply "riding along" with Bali\'s labor growth, how much is because the sector itself grows fast/slow in Bali, and how much is because Klungkung outperforms/underperforms Bali in the same sector. This is the labor-based counterpart to the Shift-Share tab (which is GRDP-based).',
+    nkNoteSsCaption:'e = sector i\'s labor in Klungkung (0 = comparison year, t = selected year); G = Bali\'s total labor growth; G<sub>i</sub> = Bali\'s sector-i labor growth. The CS form above is identical to e<sub>i,0</sub> × (g<sub>i</sub> − G<sub>i</sub>), so the three components always sum exactly to ΔLabor.',
+    nkNoteSsC1:'<b>RS</b> is positive when Bali\'s overall labor force grows — the portion of the change that happens with no sector- or region-specific effect.', nkNoteSsC2:'<b>IM</b> is positive for sectors that grow faster than average in Bali ("trend-following" sectors), negative for sectors that slow down in Bali.', nkNoteSsC3:'<b>CS</b> positive means Klungkung added labor in that sector faster than Bali — a local competitive advantage; a negative CS means it\'s losing out competitively.',
+    nkChartDekompDeltaTk:'ΔLabor Decomposition by Industry (people)', nkChartKuadranImCs:'Quadrant Position: Industry Mix × Competitive Shift', nkTableSs:'Labor Shift-Share Table',
+    axKontribusiDeltaTk:'Contribution to ΔLabor (people)', axIndustryMixOrang:'Industry Mix (people)', axCompetitiveShiftOrang:'Competitive Shift (people)',
+    thKuadran:'Quadrant', nkTotal:'Total',
+    nkDecNoData:'No sector has labor &gt; 0 in both years to decompose.',
+    nkDekDalamSektor:'Within sector', nkDekRealokasiTk:'Labor reallocation',
+    nkKpiProdBase:'Productivity {y}', nkKpiDeltaProd:'Δ Productivity',
+    nkKpiWithin:'Within (in-sector)', nkKpiBetween:'Between (static reallocation)', nkKpiInteraksi:'Interaction (dynamic)',
+    nkNoteDek:' The economy-wide average productivity can rise for two different reasons: (1) each sector becomes more productive (the <b>within</b> effect), or (2) workers shift from low-productivity to high-productivity sectors (the <b>between</b>/reallocation effect). This decomposition separates the two.',
+    nkNoteDekCaption:'s<sub>i</sub> = sector i\'s labor share; p<sub>i</sub> = sector i\'s productivity (GRDP ADHK ÷ labor, Rp million/worker); 0 = comparison year. The structural effect (McMillan &amp; Rodrik) = Between + Interaction. The identity holds exactly for sectors with labor &gt; 0 in both years.',
+    nkNoteDekC1:'<b>Within-dominant</b>: the productivity rise comes from efficiency/value-added gains within each sector.', nkNoteDekC2:'<b>A positive Between</b>: workers shift toward sectors more productive than average; <b>negative</b>: workers shift toward less productive sectors (a structural drag).', nkNoteDekC3:'<b>Interaction</b> is positive when a sector whose productivity rises also gains labor share (and vice versa).',
+    nkDekIns1:'Average productivity (across {n} comparable sectors) <b>{dir} by Rp {v} million per worker</b> between {b} and {y}.',
+    nkDekInsNaik:'rose', nkDekInsTurun:'fell',
+    nkDekIns2a:'Both sources are positive: the within-sector effect is {w} million and the structural effect (labor reallocation) is {s} million.',
+    nkDekIns2b:'The rise comes from productivity gains <b>within sectors</b> ({w} million), while labor movement between sectors actually drags it down ({s} million) — workers tended to shift toward lower-productivity sectors.',
+    nkDekIns2c:'Within-sector productivity weakened ({w} million) but was offset by labor shifting toward higher-productivity sectors ({s} million).',
+    nkDekIns2d:'Both the within-sector effect ({w} million) and the structural effect ({s} million) dragged productivity down.',
+    nkDekInsPosBesar:'the largest positive contributor', nkDekInsNegBesar:'the largest negative contributor', nkDekInsAntarSektor:'Across sectors — {bits}.',
+    nkDekInsWithinBig:'The within component is heavily influenced by <b>{s}</b> ({v} million) even though its labor share is only {sh} — small-labor sectors with very high productivity can swing sharply, so read this figure with caution.',
+    nkDekInsExcluded:'{n} sector(s) excluded because labor was 0 in one of the years ({list}), equal to {pct} of {y} GRDP ADHK; so the figures here may differ slightly from the total productivity in the Productivity tab.',
+    nkChartKomponenProd:'Productivity Change Components (Rp million / worker)', nkChartKontribusiSektor:'Contribution by Industry', nkTableDekomposisi:'Productivity Decomposition Table',
+    thPenggerak:'Driver', thPangsaTkBase:'Labor Share {y}', thDeltaPangsaPp:'Δ Share (pp)', thProdBaseJt:'Prod. {y} (mn)', thWithin:'Within', thBetween:'Between', thInteraksi:'Interaction', thTotal:'Total',
+    axRpJutaPekerja2:'Rp million / worker', axKontribusiDeltaP:'Contribution to ΔP (Rp million / worker)',
+    nkTrenMShareTk:'Klungkung Labor Share (%)', nkTrenMJumlahTk:'Labor Force (people)', nkTrenMProdTk:'Labor Productivity (Rp million / worker)',
+    nkTrenMLqTk:'Labor LQ', nkTrenMSharePdrb:'Klungkung GRDP ADHK Share (%)', nkTrenMIp:'Productivity Index (economy average = 1)',
+    nkLblMetrik:'Metric', nkTop5Tk:'Top 5 Labor', nkTampilkanBali:'Show Bali comparison',
+    nkTrenCaption:'The highlighted band marks the selected year ({y}). Click a series name in the legend to change its color. Up to {n} sectors can be shown at once.',
+    nkTableTren:'Trend Table', nkPilihSektor:'🏷️ Choose Sectors', nkMaxSektor:'Maximum {n} sectors.', nkMinSatuSektor:'At least 1 sector must be selected.',
     definisi:'Definition', noDefinition:'No definition is available for this indicator yet.', cmpDefsTitle:'Selected Indicator Definitions',
     filterShowData:'Show Data', filterShowAll:'Show All', filterToggle:'all/none',
     convTitle:'Convergence',
@@ -16061,200 +16219,194 @@ function renderNkIlor(){
   const kT = nkIlorKlas(t);
   const tag = r => (r.flag?' †':'') + (r.unstable?' ‡':'');
 
-  // Rasio total: teks bantu untuk KPI
+  // Total ratio: helper text for KPI
   let ratioSub = '—';
   if(nkOk(t.ratio)){
-    if(t.mixed) ratioSub = 'pola berbeda dengan Bali — lihat catatan §';
-    else if(t.regK==='e') ratioSub = t.ratio>1 ? 'lebih padat karya dari Bali' : 'lebih hemat TK dari Bali';
-    else ratioSub = t.ratio>1 ? 'TK lebih terpukul dari Bali' : 'TK lebih tahan dari Bali';
+    if(t.mixed) ratioSub = trx('ilorRatioMixed');
+    else if(t.regK==='e') ratioSub = t.ratio>1 ? trx('ilorRatioPadat') : trx('ilorRatioHemat');
+    else ratioSub = t.ratio>1 ? trx('ilorRatioTerpukul') : trx('ilorRatioTahan');
   }
 
   const kpis = [
-    nkKpi('ILOR Klungkung (seluruh sektor)', nkF(t.ilK,2)+(t.unstable?' ‡':''), 'orang per Rp miliar PDRB ADHK'),
-    nkKpi('ILOR Bali (seluruh sektor)', nkF(t.ilB,2), 'orang per Rp miliar PDRB ADHK'),
-    nkKpi('ILOR Klungkung/Bali', nkF(t.ratio,2)+(t.mixed?' §':''), ratioSub),
-    nkKpi('Δ TK Klungkung', nkSg(t.dTKk)+' orang', `${nkBase}→${nkYear}`),
-    nkKpi('Δ PDRB ADHK Klungkung', nkSg(t.dYk,1)+' miliar', 'Rp · '+nkPS(t.gYk,2)),
-    nkKpi('Tipologi Klungkung', kT ? def[kT].label : '—', 'seluruh sektor')
+    nkKpi(trx('nkKpiIlorK'), nkF(t.ilK,2)+(t.unstable?' ‡':''), trx('nkOrangMiliar')),
+    nkKpi(trx('nkKpiIlorB'), nkF(t.ilB,2), trx('nkOrangMiliar')),
+    nkKpi(trx('nkKpiIlorRasio'), nkF(t.ratio,2)+(t.mixed?' §':''), ratioSub),
+    nkKpi(trx('nkKpiDeltaTkK'), nkSg(t.dTKk)+' '+trx('nkKpiTkKUnit'), `${nkBase}→${nkYear}`),
+    nkKpi(trx('nkKpiDeltaPdrbAdhkK'), nkSg(t.dYk,1)+' miliar', 'Rp · '+nkPS(t.gYk,2)),
+    nkKpi(trx('nkKpiTipologiK'), kT ? def[kT].label : '—', trx('nkSeluruhSektor'))
   ];
 
   const note = nkNote(
-    ' ILOR (<i>Incremental Labor-Output Ratio</i>) menunjukkan berapa tambahan tenaga kerja yang menyertai setiap tambahan output. Berbeda dari produktivitas rata-rata (PDRB ÷ TK pada satu tahun), ILOR hanya melihat <b>perubahan</b>: dari tahun pembanding ke tahun terpilih, berapa orang TK bertambah (atau berkurang) untuk tiap Rp 1 miliar kenaikan (atau penurunan) PDRB ADHK. Dibandingkan dengan ILOR Bali, analisis ini memperlihatkan apakah pertumbuhan Klungkung lebih padat karya atau lebih hemat tenaga kerja daripada Bali.',
-    ['ILOR Klungkung = Δ TK Klungkung ÷ Δ PDRB ADHK Klungkung = (TK<sub>t</sub> − TK<sub>pembanding</sub>) ÷ (PDRB<sub>t</sub> − PDRB<sub>pembanding</sub>)', 'ILOR Bali = Δ TK Bali ÷ Δ PDRB ADHK Bali', 'ILOR Klungkung/Bali = ILOR Klungkung ÷ ILOR Bali', 'ILOR seluruh sektor = Σ Δ TK ÷ Σ Δ PDRB ADHK (total dijumlah lebih dulu, baru dibagi — bukan rata-rata ILOR sektor)'],
-    'Satuan ILOR: orang per Rp miliar PDRB ADHK. Perubahan dihitung dari tahun pembanding ke tahun terpilih; bila pembanding adalah tahun sebelumnya, angka per sektor sama dengan kolom ILOR di sheet. Tanda ‡ dipasang bila |Δ PDRB| &lt; 0,5% dari PDRB awal karena pembagi yang sangat kecil membuat ILOR tidak stabil.',
-    [
-      '<b>Tanda ILOR mengikuti arah Δ TK dan Δ PDRB, bukan baik–buruk.</b> ILOR positif muncul saat TK dan output bergerak searah — bisa ekspansi (keduanya naik) maupun kontraksi (keduanya turun). ILOR negatif muncul saat keduanya berlawanan arah.',
-      '<b>ILOR negatif bukan berarti lebih baik.</b> Output naik sementara TK turun memang berarti produktivitas per pekerja naik, tetapi juga berarti lapangan kerja berkurang (tumbuh tanpa serapan TK). Sebaliknya, TK naik sementara output turun berarti produktivitas per pekerja merosot. Angka negatif yang “besar” atau “kecil” tidak punya arti kinerja — baca selalu bersama Δ TK, Δ PDRB, dan tipologinya.',
-      '<b>ILOR positif kecil tidak otomatis lebih baik, ILOR positif besar tidak otomatis lebih buruk.</b> ILOR kecil berarti tambahan output hemat tenaga kerja (produktivitas marjinal tinggi) namun sedikit menciptakan lapangan kerja; ILOR besar berarti pertumbuhan padat karya (banyak menyerap TK) namun produktivitas marjinalnya rendah. Mana yang diinginkan bergantung pada tujuan: penyerapan tenaga kerja atau peningkatan produktivitas. Pada tipologi Kontraksi, ILOR positif justru menggambarkan pekerja yang hilang seiring output yang menyusut.',
-      '<b>ILOR Klungkung/Bali</b> &gt; 1: tiap tambahan output di Klungkung disertai lebih banyak pekerja daripada di Bali (lebih padat karya); &lt; 1: lebih hemat TK. Rasio hanya dapat ditafsirkan bila Klungkung dan Bali berpola sama — keduanya berekspansi (ILOR positif dari tambahan output) atau keduanya berkontraksi. Bila tidak (§), mis. ada ILOR negatif, kedua wilayah bergerak dengan pola berbeda.',
-      'ILOR tahunan sangat berfluktuasi dan sensitif terhadap pembagi yang kecil; sektor ber-TK kecil mudah memberi angka ekstrem. Gunakan sebagai gambaran hubungan TK–output pada periode tertentu, bukan indikator jangka panjang.'
-    ]
+    trx('nkNoteIlor'),
+    [trx('nkNoteIlorF1'), trx('nkNoteIlorF2'), trx('nkNoteIlorF3'), trx('nkNoteIlorF4')],
+    trx('nkNoteIlorCaption'),
+    [trx('nkNoteIlorC1'), trx('nkNoteIlorC2'), trx('nkNoteIlorC3'), trx('nkNoteIlorC4'), trx('nkNoteIlorC5')]
   );
 
-  // ---- Temuan utama ----
+  // ---- Key findings ----
   const insights = [];
   if(nkOk(t.ilK)){
-    const dir = `TK Klungkung ${t.dTKk>=0?'bertambah':'berkurang'} ${nkF(Math.abs(t.dTKk))} orang sementara PDRB ADHK ${t.dYk>=0?'naik':'turun'} Rp ${nkF(Math.abs(t.dYk),1)} miliar`;
+    const dir = `${trx('nkKpiTkKUnit')==='people'?'Klungkung labor':'TK Klungkung'} ${t.dTKk>=0?trx('nkIlorInsNaik'):trx('nkIlorInsTurun')} ${nkF(Math.abs(t.dTKk))} ${trx('nkIlorInsOrang')} ${t.dYk>=0?trx('nkIlorInsPdrbNaik'):trx('nkIlorInsPdrbTurun')} Rp ${nkF(Math.abs(t.dYk),1)} ${trx('nkIlorInsMiliar')}`;
     const meaning = {
-      ekspansi:  `artinya tiap tambahan Rp 1 miliar output disertai sekitar <b>${nkF(t.ilK,1)} tambahan pekerja</b>`,
-      hemat:     'ILOR negatif ini muncul karena output naik sementara jumlah pekerja turun — produktivitas per pekerja meningkat, tetapi tidak ada tambahan lapangan kerja, jadi tidak otomatis berarti kondisi yang lebih baik',
-      padat:     'ILOR negatif ini muncul karena pekerja bertambah saat output menyusut — produktivitas per pekerja melemah',
-      kontraksi: 'ILOR positif ini berasal dari kontraksi (TK dan output sama-sama turun), bukan dari ekspansi'
+      ekspansi:  trx('nkIlorInsMeaningEkspansi').replace('{v}', nkF(t.ilK,1)),
+      hemat:     trx('nkIlorInsMeaningHemat'),
+      padat:     trx('nkIlorInsMeaningPadat'),
+      kontraksi: trx('nkIlorInsMeaningKontraksi')
     }[kT];
-    insights.push(`Seluruh sektor ${nkBase}→${nkYear}: ${dir}, sehingga <b>ILOR Klungkung ${nkF(t.ilK,2)}</b> orang per Rp miliar — ${meaning}.${t.unstable?' (‡ perubahan PDRB sangat kecil sehingga angka ini tidak stabil.)':''}`);
+    insights.push(trx('nkIlorInsMain').replace('{sektor}', trx('nkIlorInsAllSektor')).replace('{base}', nkBase).replace('{year}', nkYear).replace('{dir}', dir).replace('{ilk}', nkF(t.ilK,2)).replace('{meaning}', meaning).replace('{unstable}', t.unstable?trx('nkIlorInsUnstableNote'):''));
   }else{
-    insights.push('ILOR seluruh sektor tidak dapat dihitung karena PDRB ADHK Klungkung tidak berubah di antara kedua tahun.');
+    insights.push(trx('nkIlorInsNoCalc'));
   }
   if(nkOk(t.ilB)){
-    const bali = `ILOR Bali ${nkF(t.ilB,2)} (Δ TK ${nkSg(t.dTKb)} orang, Δ PDRB ADHK ${nkSg(t.dYb,1)} miliar)`;
+    const bali = trx('nkIlorInsBali').replace('{ilb}', nkF(t.ilB,2)).replace('{dtkb}', nkSg(t.dTKb)).replace('{dyb}', nkSg(t.dYb,1));
     if(nkOk(t.ratio) && !t.mixed && t.regK==='e'){
-      insights.push(`${bali}. Rasio Klungkung/Bali <b>${nkF(t.ratio,2)}</b>: tambahan output di Klungkung ${t.ratio>1?'lebih padat karya — butuh lebih banyak pekerja':'lebih hemat tenaga kerja — butuh lebih sedikit pekerja'} daripada di Bali.`);
+      insights.push(trx('nkIlorInsRasioExp').replace('{bali}', bali).replace('{ratio}', nkF(t.ratio,2)).replace('{desc}', t.ratio>1?trx('nkIlorInsPadatKaryaBesar'):trx('nkIlorInsHematKecil')));
     }else if(nkOk(t.ratio) && !t.mixed){
-      insights.push(`${bali}. Klungkung dan Bali sama-sama berkontraksi; rasio <b>${nkF(t.ratio,2)}</b> berarti pekerja yang hilang per output yang hilang di Klungkung ${t.ratio>1?'lebih banyak':'lebih sedikit'} daripada di Bali — gambaran kepekaan TK terhadap penurunan output, bukan ukuran efisiensi.`);
+      insights.push(trx('nkIlorInsRasioKontraksi').replace('{bali}', bali).replace('{ratio}', nkF(t.ratio,2)).replace('{cmp}', t.ratio>1?trx('nkLebihBanyak'):trx('nkLebihSedikit')));
     }else{
-      insights.push(`${bali}. Klungkung dan Bali tidak berada pada pola yang sama (mis. satu berekspansi sementara yang lain berkontraksi, atau ada ILOR negatif); rasio${nkOk(t.ratio)?` (${nkF(t.ratio,2)})`:''} tidak dapat dibaca sebagai “lebih efisien” atau “kurang efisien” — bandingkan arah Δ TK dan Δ PDRB masing-masing.`);
+      insights.push(trx('nkIlorInsRasioMixed').replace('{bali}', bali).replace('{ratio}', nkOk(t.ratio)?` (${nkF(t.ratio,2)})`:''));
     }
   }
   if(nCalc){
-    insights.push(`Dari ${nCalc} lapangan usaha yang ILOR-nya dapat dihitung, sebaran tipologinya: ${order.filter(k=>counts[k]).map(k=>`${def[k].label} (${counts[k]})`).join('; ')}.`);
+    insights.push(trx('nkIlorInsTipologi').replace('{n}', nCalc).replace('{list}', order.filter(k=>counts[k]).map(k=>`${def[k].label} (${counts[k]})`).join('; ')));
   }
   const exp = rows.filter(r=>nkIlorKlas(r)==='ekspansi' && !r.unstable && !r.flag);
   if(exp.length>=2){
     const hi = exp[0], lo = exp[exp.length-1];
-    insights.push(`Di antara sektor yang berekspansi, tambahan output paling padat karya di <b>${escapeHtml(hi.sektor)}</b> (${nkF(hi.ilK,1)}) dan paling hemat tenaga kerja di <b>${escapeHtml(lo.sektor)}</b> (${nkF(lo.ilK,1)} orang per Rp miliar). Keduanya bukan penilaian baik–buruk, melainkan corak pertumbuhannya.`);
+    insights.push(trx('nkIlorInsExpRange').replace('{hi}', escapeHtml(dSub(hi.sektor))).replace('{vhi}', nkF(hi.ilK,1)).replace('{lo}', escapeHtml(dSub(lo.sektor))).replace('{vlo}', nkF(lo.ilK,1)));
   }
 
-  // ---- Rentang grafik: sektor besar & stabil menentukan sumbu; sisanya dicatat di bawah grafik ----
+  // ---- Chart range: large, stable sectors set the axis; the rest noted below the chart ----
   const pct = (arr, p)=>{ const a = arr.slice().sort((x,y)=>x-y); return a.length ? a[Math.floor(p*(a.length-1))] : NaN; };
   let vals = rows.filter(r=>!r.unstable && !r.flag && r.tk0>=1000 && r.tk1>=1000).flatMap(r=>[r.ilK, r.ilB]).filter(nkOk).map(Math.abs);
   if(vals.length<4) vals = rows.filter(r=>!r.unstable && !r.flag).flatMap(r=>[r.ilK, r.ilB]).filter(nkOk).map(Math.abs);
   const cap = Math.max(10, (pct(vals,0.9)||0)*1.4);
   const outBar = rows.filter(r=> (nkOk(r.ilK)&&Math.abs(r.ilK)>cap) || (nkOk(r.ilB)&&Math.abs(r.ilB)>cap) );
 
-  // ---- Data tahunan seluruh sektor (YoY) ----
+  // ---- Annual all-sector data (YoY) ----
   const yrs = nkData.years, yr = [];
   for(let i=1;i<yrs.length;i++){ yr.push({ y:yrs[i], b:yrs[i-1], t:nkIlor(yrs[i], yrs[i-1]).tot }); }
   const prevYear = yrs[yrs.indexOf(nkYear)-1];
 
   body.innerHTML = `
     ${note}
-    <div class="ss-section-title">ILOR Seluruh Sektor (${nkBase}→${nkYear})</div>
+    <div class="ss-section-title">${trx('nkTitleIlorSeluruh')} (${nkBase}→${nkYear})</div>
     <div class="ss-kpi-grid">${kpis.join('')}</div>
-    <div class="ss-section-title">ILOR per Lapangan Usaha: Klungkung vs Bali</div>
+    <div class="ss-section-title">${trx('nkTitleIlorPerSektor')}</div>
     ${nkChartBox('nkIlorBar', Math.max(360, rows.length*38), 'nkDlIlorBar')}
     <div class="nk-caption" id="nkIlorBarOutside"></div>
-    <div class="ss-section-title">Perubahan PDRB × Perubahan TK (Klungkung)</div>
+    <div class="ss-section-title">${trx('nkTitlePdrbXTkKlungkung')}</div>
     <div class="ss-quad-grid">
       ${nkChartBox('nkIlorQuad', 400, 'nkDlIlorQuad')}
       <div>${nkLegendHtml(def, order, counts)}</div>
     </div>
-    <div class="nk-caption">ILOR sektor sama dengan kemiringan garis dari titik asal (0,0) ke titik sektor: kuadran kanan-atas dan kiri-bawah menghasilkan ILOR positif, kuadran kiri-atas dan kanan-bawah menghasilkan ILOR negatif.</div>
+    <div class="nk-caption">${trx('nkIlorSlopeNote')}</div>
     <div class="nk-caption" id="nkIlorQuadOutside"></div>
     ${nkInsightBox(insights)}
-    <div class="table-head-row"><span class="table-head-label">Tabel ILOR per Lapangan Usaha (${nkBase}→${nkYear})</span><button class="dl-btn" id="nkIlorExcel" style="position:static;">${trx('downloadExcel')}</button></div>
+    <div class="table-head-row"><span class="table-head-label">${trx('nkTableIlorSektor')} (${nkBase}→${nkYear})</span><button class="dl-btn" id="nkIlorExcel" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="nkIlorTable"></table></div>
     ${nkIlorFootnotes(rows.concat([t]))}
-    <div class="ss-section-title">Tren ILOR per Tahun (dibanding tahun sebelumnya)</div>
-    <div class="ss-controls" style="margin-bottom:6px;"><div class="ctrl-item"><label>Lapangan usaha</label><select id="nkIlorTrenSel"></select></div>
-      <div class="ctrl-item"><label>Skala sumbu</label><div class="quickbtns" id="nkIlorSkalaBtns" style="margin-left:0;">
-        <button data-k="penuh" title="Seluruh nilai tampil apa adanya (skala linear)">Penuh</button>
-        <button data-k="fokus" title="Skala linear dipusatkan pada nilai wajar; nilai ekstrem terpotong">Fokus</button>
-        <button data-k="log" title="Skala simetris-log: nilai ekstrem dipadatkan, tanda positif/negatif tetap benar">Log simetris</button>
+    <div class="ss-section-title">${trx('nkTitleTrenIlorTahun')}</div>
+    <div class="ss-controls" style="margin-bottom:6px;"><div class="ctrl-item"><label>${trx('thSektor')}</label><select id="nkIlorTrenSel"></select></div>
+      <div class="ctrl-item"><label>${trx('nkSkalaSumbu')}</label><div class="quickbtns" id="nkIlorSkalaBtns" style="margin-left:0;">
+        <button data-k="penuh" title="${trx('nkTtPenuh')}">${trx('nkBtnPenuh')}</button>
+        <button data-k="fokus" title="${trx('nkTtFokus')}">${trx('nkBtnFokus')}</button>
+        <button data-k="log" title="${trx('nkTtLog')}">${trx('nkBtnLog')}</button>
       </div></div></div>
     ${nkChartBox('nkIlorTren', 300, 'nkDlIlorTren')}
     <div class="nk-caption" id="nkIlorTrenNote"></div>
-    <div class="table-head-row"><span class="table-head-label">ILOR Seluruh Sektor per Tahun (dibanding tahun sebelumnya)</span><button class="dl-btn" id="nkIlorYrExcel" style="position:static;">${trx('downloadExcel')}</button></div>
+    <div class="table-head-row"><span class="table-head-label">${trx('nkTitleIlorSeluruhTahun')} (${trx('nkDibandingTahunSebelumnya')})</span><button class="dl-btn" id="nkIlorYrExcel" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="nkIlorYrTable"></table></div>
-    ${nkBase!==prevYear ? `<div class="nk-caption">Baris tahun ${nkYear} disorot. Angkanya membandingkan ${nkYear} dengan tahun sebelumnya, sehingga dapat berbeda dari ringkasan di atas yang memakai tahun pembanding ${nkBase}.</div>` : `<div class="nk-caption">Baris tahun ${nkYear} disorot.</div>`}
+    ${nkBase!==prevYear ? `<div class="nk-caption">${trx('nkYtdRowHlDiff').replace('{y}',nkYear).replace('{b}',nkBase)}</div>` : `<div class="nk-caption">${trx('nkYtdRowHl').replace('{y}',nkYear)}</div>`}
     ${nkIlorFootnotes(yr.map(x=>x.t))}`;
 
-  // ---- Tabel sektor ----
-  document.getElementById('nkIlorTable').innerHTML = `<thead><tr><th>Sektor</th><th>Tipologi</th><th>Δ TK Klungkung</th><th>Δ PDRB Klungkung (Rp miliar)</th><th>ILOR Klungkung</th><th>Δ TK Bali</th><th>Δ PDRB Bali (Rp miliar)</th><th>ILOR Bali</th><th>ILOR Klungkung/Bali</th></tr></thead><tbody>${
+  // ---- Sector table ----
+  document.getElementById('nkIlorTable').innerHTML = `<thead><tr><th>${trx('thSektor')}</th><th>${trx('thTipologi')}</th><th>${trx('thDeltaTkK')}</th><th>${trx('thDeltaPdrbK')}</th><th>${trx('thIlorK')}</th><th>${trx('thDeltaTkB')}</th><th>${trx('thDeltaPdrbB')}</th><th>${trx('thIlorB')}</th><th>${trx('thIlorRasio')}</th></tr></thead><tbody>${
     rows.map(r=>{ const k = nkIlorKlas(r);
-      return `<tr><td>${escapeHtml(r.sektor)}${tag(r)}</td><td>${k?nkBadge(def[k].label, def[k].color):'<span style="color:var(--brown-soft)">n.a.</span>'}</td>
+      return `<tr><td>${escapeHtml(dSub(r.sektor))}${tag(r)}</td><td>${k?nkBadge(def[k].label, def[k].color):'<span style="color:var(--brown-soft)">n.a.</span>'}</td>
         <td class="${nkCls(r.dTKk)}">${nkSg(r.dTKk)}</td><td class="${nkCls(r.dYk)}">${nkSg(r.dYk,2)}</td><td>${nkF(r.ilK,2)}</td>
         <td class="${nkCls(r.dTKb)}">${nkSg(r.dTKb)}</td><td class="${nkCls(r.dYb)}">${nkSg(r.dYb,2)}</td><td>${nkF(r.ilB,2)}</td><td>${nkIlorRatioCell(r)}</td></tr>`; }).join('')
-  }<tr style="font-weight:800;background:var(--cream-deep);"><td>Seluruh Sektor${t.unstable?' ‡':''}</td><td>${kT?nkBadge(def[kT].label, def[kT].color):'<span style="color:var(--brown-soft)">n.a.</span>'}</td>
+  }<tr style="font-weight:800;background:var(--cream-deep);"><td>${trx('nkSeluruhSektor')}${t.unstable?' ‡':''}</td><td>${kT?nkBadge(def[kT].label, def[kT].color):'<span style="color:var(--brown-soft)">n.a.</span>'}</td>
     <td>${nkSg(t.dTKk)}</td><td>${nkSg(t.dYk,2)}</td><td>${nkF(t.ilK,2)}</td><td>${nkSg(t.dTKb)}</td><td>${nkSg(t.dYb,2)}</td><td>${nkF(t.ilB,2)}</td><td>${nkIlorRatioCell(t)}</td></tr></tbody>`;
 
-  // ---- Tabel tahunan (seluruh sektor) ----
-  document.getElementById('nkIlorYrTable').innerHTML = `<thead><tr><th>Tahun</th><th>Tipologi</th><th>Δ TK Klungkung</th><th>Δ PDRB Klungkung (Rp miliar)</th><th>ILOR Klungkung</th><th>Δ TK Bali</th><th>Δ PDRB Bali (Rp miliar)</th><th>ILOR Bali</th><th>ILOR Klungkung/Bali</th></tr></thead><tbody>${
+  // ---- Annual table (all sectors) ----
+  document.getElementById('nkIlorYrTable').innerHTML = `<thead><tr><th>${trx('thTahun2')}</th><th>${trx('thTipologi')}</th><th>${trx('thDeltaTkK')}</th><th>${trx('thDeltaPdrbK')}</th><th>${trx('thIlorK')}</th><th>${trx('thDeltaTkB')}</th><th>${trx('thDeltaPdrbB')}</th><th>${trx('thIlorB')}</th><th>${trx('thIlorRasio')}</th></tr></thead><tbody>${
     yr.map(x=>{ const k = nkIlorKlas(x.t), hl = x.y===nkYear;
       return `<tr${hl?' style="font-weight:800;background:var(--cream-deep);"':''}><td>${x.y}${x.t.unstable?' ‡':''}</td><td>${k?nkBadge(def[k].label, def[k].color):'<span style="color:var(--brown-soft)">n.a.</span>'}</td>
         <td class="${nkCls(x.t.dTKk)}">${nkSg(x.t.dTKk)}</td><td class="${nkCls(x.t.dYk)}">${nkSg(x.t.dYk,2)}</td><td>${nkF(x.t.ilK,2)}</td>
         <td class="${nkCls(x.t.dTKb)}">${nkSg(x.t.dTKb)}</td><td class="${nkCls(x.t.dYb)}">${nkSg(x.t.dYb,2)}</td><td>${nkF(x.t.ilB,2)}</td><td>${nkIlorRatioCell(x.t)}</td></tr>`; }).join('')
   }</tbody>`;
 
-  // ---- Grafik batang ILOR per sektor (Klungkung vs Bali) ----
+  // ---- Bar chart: ILOR per sector (Klungkung vs Bali) ----
   const outBarEl = document.getElementById('nkIlorBarOutside');
   outBarEl.innerHTML = outBar.length
-    ? `Di luar rentang grafik (batang terpotong di tepi; nilai lengkap ada di tabel dan tooltip): ${outBar.map(r=>`<b>${escapeHtml(r.sektor)}</b> (Klungkung ${nkF(r.ilK,1)}, Bali ${nkF(r.ilB,1)})`).join('; ')}.`
-    : 'Seluruh sektor berada dalam rentang grafik.';
+    ? trx('nkIlorOutBarNote').replace('{list}', outBar.map(r=>`<b>${escapeHtml(dSub(r.sektor))}</b> (Klungkung ${nkF(r.ilK,1)}, Bali ${nkF(r.ilB,1)})`).join('; '))
+    : trx('nkAllInRange');
   nkMakeChart('ilorBar', 'nkIlorBar', {
     type:'bar',
-    data:{ labels:rows.map(r=>r.sektor + tag(r)), datasets:[
-      { label:'ILOR Klungkung', data:rows.map(r=>nkOk(r.ilK)?r.ilK:null), backgroundColor:THEME.main },
-      { label:'ILOR Bali',      data:rows.map(r=>nkOk(r.ilB)?r.ilB:null), backgroundColor:THEME.soft }
+    data:{ labels:rows.map(r=>dSub(r.sektor) + tag(r)), datasets:[
+      { label:trx('thIlorK'), data:rows.map(r=>nkOk(r.ilK)?r.ilK:null), backgroundColor:THEME.main },
+      { label:trx('thIlorB'),      data:rows.map(r=>nkOk(r.ilB)?r.ilB:null), backgroundColor:THEME.soft }
     ]},
     options:{
       indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:nkLegendOpt(), tooltip:{ callbacks:{ label:(c)=> `${c.dataset.label}: ${nkF(c.parsed.x,2)} orang per Rp miliar` } } },
+      plugins:{ legend:nkLegendOpt(), tooltip:{ callbacks:{ label:(c)=> `${c.dataset.label}: ${nkF(c.parsed.x,2)} ${trx('nkOrangMiliar')}` } } },
       scales:{
-        x:{ min:-cap, max:cap, grid:{color:THEME.light}, title:nkAxisTitle('ILOR (orang per Rp miliar PDRB ADHK)'), ticks:Object.assign({callback:v=>nkF(v)}, nkTicks()) },
+        x:{ min:-cap, max:cap, grid:{color:THEME.light}, title:nkAxisTitle(trx('axIlorOrangMiliar')), ticks:Object.assign({callback:v=>nkF(v)}, nkTicks()) },
         y:{ grid:{display:false}, ticks:nkTicks() }
       }
     }
   });
   nkBindDl('nkDlIlorBar', 'ilorBar', `naker_ilor_sektor_${nkBase}_${nkYear}`);
 
-  // ---- Grafik sebar: Δ PDRB (x) × Δ TK (y) ----
-  const all = rows.filter(r=>nkIlorKlas(r)).map(r=>({ x:r.dYk, y:r.dTKk, label:r.sektor, k:nkIlorKlas(r), il:r.ilK, small:(r.flag || r.tk0<1000 || r.tk1<1000) }));
+  // ---- Scatter chart: Δ GRDP (x) × Δ Labor (y) ----
+  const all = rows.filter(r=>nkIlorKlas(r)).map(r=>({ x:r.dYk, y:r.dTKk, label:dSub(r.sektor), k:nkIlorKlas(r), il:r.ilK, small:(r.flag || r.tk0<1000 || r.tk1<1000) }));
   const core = all.filter(p=>!p.small), ref = core.length>=3 ? core : all;
   const limX = Math.max(5,   ...ref.map(p=>Math.abs(p.x))) * 1.2;
   const limY = Math.max(100, ...ref.map(p=>Math.abs(p.y))) * 1.2;
   const inside = all.filter(p=>Math.abs(p.x)<=limX && Math.abs(p.y)<=limY);
   const outside = all.filter(p=>!(Math.abs(p.x)<=limX && Math.abs(p.y)<=limY));
   document.getElementById('nkIlorQuadOutside').innerHTML = outside.length
-    ? `Di luar rentang grafik (lihat tabel): ${outside.map(p=>`<b>${escapeHtml(p.label)}</b> (Δ PDRB ${nkSg(p.x,1)} miliar, Δ TK ${nkSg(p.y)} orang)`).join('; ')}.`
-    : 'Seluruh sektor berada dalam rentang grafik.';
+    ? trx('nkIlorOutQuadNote').replace('{list}', outside.map(p=>`<b>${escapeHtml(p.label)}</b> (Δ GRDP ${nkSg(p.x,1)} miliar, Δ TK ${nkSg(p.y)} ${trx('nkKpiTkKUnit')})`).join('; '))
+    : trx('nkAllInRange');
   nkMakeChart('ilorQuad', 'nkIlorQuad', {
     type:'scatter',
-    data:{ datasets:[{ label:'Sektor', data:inside, backgroundColor:inside.map(p=>def[p.k].color), pointRadius:7, pointHoverRadius:9 }] },
+    data:{ datasets:[{ label:trx('nkLegendSektor'), data:inside, backgroundColor:inside.map(p=>def[p.k].color), pointRadius:7, pointHoverRadius:9 }] },
     options:{
       responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(c)=> `${c.raw.label}: Δ PDRB ${nkSg(c.raw.x,2)} miliar, Δ TK ${nkSg(c.raw.y)} orang · ILOR ${nkF(c.raw.il,2)}` } } },
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(c)=> `${c.raw.label}: Δ GRDP ${nkSg(c.raw.x,2)} miliar, Δ TK ${nkSg(c.raw.y)} ${trx('nkKpiTkKUnit')} · ILOR ${nkF(c.raw.il,2)}` } } },
       scales:{
-        x:{ min:-limX, max:limX, grid:{color:THEME.light}, title:nkAxisTitle('Δ PDRB ADHK Klungkung (Rp miliar)'), ticks:Object.assign({callback:v=>nkF(v,0)}, nkTicks()) },
-        y:{ min:-limY, max:limY, grid:{color:THEME.light}, title:nkAxisTitle('Δ TK Klungkung (orang)'), ticks:Object.assign({callback:v=>nkF(v,0)}, nkTicks()) }
+        x:{ min:-limX, max:limX, grid:{color:THEME.light}, title:nkAxisTitle(trx('axDeltaPdrbAdhkK')), ticks:Object.assign({callback:v=>nkF(v,0)}, nkTicks()) },
+        y:{ min:-limY, max:limY, grid:{color:THEME.light}, title:nkAxisTitle(trx('axDeltaTkK')), ticks:Object.assign({callback:v=>nkF(v,0)}, nkTicks()) }
       }
     },
     plugins:[lqCrosshairPlugin(0, 0)]
   });
   nkBindDl('nkDlIlorQuad', 'ilorQuad', `naker_ilor_kuadran_${nkBase}_${nkYear}`);
 
-  // ---- Tren ILOR tahunan (YoY) untuk sektor terpilih ----
+  // ---- Annual ILOR trend (YoY) for the selected sector ----
   const trend = [];
   for(let i=1;i<yrs.length;i++){ const c = nkIlor(yrs[i], yrs[i-1]); trend.push({ y:yrs[i], rows:c.rows, tot:c.tot }); }
-  const sektorList = ['Seluruh Sektor'].concat(ilr.rows.map(r=>r.sektor).sort((a,b)=>a.localeCompare(b,'id')));
-  if(!sektorList.includes(nkIlorTrenSektor)) nkIlorTrenSektor = 'Seluruh Sektor';
+  const sektorList = [trx('nkSeluruhSektor')].concat(ilr.rows.map(r=>r.sektor).sort((a,b)=>a.localeCompare(b,'id')));
+  if(!sektorList.includes(nkIlorTrenSektor)) nkIlorTrenSektor = trx('nkSeluruhSektor');
   const trenSel = document.getElementById('nkIlorTrenSel');
-  trenSel.innerHTML = sektorList.map(n=>`<option value="${escapeHtml(n)}"${n===nkIlorTrenSektor?' selected':''}>${escapeHtml(n)}</option>`).join('');
-  // Transformasi simetris-log: linear di sekitar 0, log untuk nilai besar; tanda dipertahankan
+  trenSel.innerHTML = sektorList.map(n=>`<option value="${escapeHtml(n)}"${n===nkIlorTrenSektor?' selected':''}>${n===trx('nkSeluruhSektor')?n:escapeHtml(dSub(n))}</option>`).join('');
+  // Symmetric-log transform: linear near 0, log for large values; sign preserved
   const slog = v => v===null ? null : Math.sign(v) * Math.log10(1 + Math.abs(v));
   const slogInv = t => Math.sign(t) * (Math.pow(10, Math.abs(t)) - 1);
   const drawTren = ()=>{
     const name = nkIlorTrenSektor;
-    const pts = trend.map(t=>({ y:t.y, r: name==='Seluruh Sektor' ? t.tot : t.rows.find(x=>x.sektor===name) }));
+    const pts = trend.map(t=>({ y:t.y, r: name===trx('nkSeluruhSektor') ? t.tot : t.rows.find(x=>x.sektor===name) }));
     const kv = pts.map(p=> p.r && nkOk(p.r.ilK) ? p.r.ilK : null);
     const bv = pts.map(p=> p.r && nkOk(p.r.ilB) ? p.r.ilB : null);
     const absAll = kv.concat(bv).filter(v=>v!==null).map(Math.abs);
     const maxAbs = absAll.length ? Math.max(...absAll) : 10;
     const medAbs = absAll.length ? absAll.slice().sort((a,b)=>a-b)[Math.floor((absAll.length-1)/2)] : 1;
-    // 'auto': skala log hanya bila ada nilai jauh lebih besar dari nilai tipikal; selain itu tampil penuh
+    // 'auto': use log scale only when some values are far larger than typical; otherwise show full range
     const mode = nkIlorTrenSkala==='auto' ? ((absAll.length>=4 && maxAbs/Math.max(medAbs,1) > 8) ? 'log' : 'penuh') : nkIlorTrenSkala;
     document.querySelectorAll('#nkIlorSkalaBtns button').forEach(b=> b.classList.toggle('active', b.dataset.k===mode));
 
-    // rentang untuk mode 'fokus'
+    // range for 'fokus' mode
     let vals = pts.filter(p=>p.r && !p.r.unstable).flatMap(p=>[p.r.ilK, p.r.ilB]).filter(nkOk).map(Math.abs);
     if(vals.length < 4) vals = absAll;
     const capT = vals.length ? Math.max(10, vals.length>=4 ? pct(vals,0.9)*1.4 : Math.max(...vals)*1.15) : 10;
@@ -16262,18 +16414,18 @@ function renderNkIlor(){
 
     const tf = mode==='log' ? slog : (v=>v);
     const scaleNote = {
-      penuh: 'Skala sumbu: penuh (linear, seluruh nilai tampil).',
-      fokus: 'Skala sumbu: fokus (linear) — nilai yang jauh di luar rentang terpotong di tepi grafik.',
-      log:   'Skala sumbu: simetris-log — jarak antar-tick tidak linear; nilai ekstrem dipadatkan supaya pola tetap terbaca, tanda positif/negatif tetap benar. Baca angka pastinya pada tooltip.'
-    }[mode] + (nkIlorTrenSkala==='auto' ? ' (dipilih otomatis; ubah lewat tombol Skala sumbu)' : '');
+      penuh: trx('nkScaleNotePenuh'),
+      fokus: trx('nkScaleNoteFokus'),
+      log:   trx('nkScaleNoteLog')
+    }[mode] + (nkIlorTrenSkala==='auto' ? trx('nkScaleAutoSuffix') : '');
     document.getElementById('nkIlorTrenNote').innerHTML =
       scaleNote + ' '
-      + (outT.length ? `Di luar rentang: ${outT.map(p=>`<b>${p.y}</b> (Klungkung ${nkF(p.r.ilK,1)}, Bali ${nkF(p.r.ilB,1)})`).join('; ')}. ` : '')
-      + 'ILOR tahunan sangat berfluktuasi karena pembaginya (Δ PDRB) kecil; jangan dibaca sebagai tren jangka panjang, dan ILOR negatif tidak berarti lebih baik — lihat Δ TK dan Δ PDRB pada tooltip.';
+      + (outT.length ? trx('nkTrenOutside').replace('{list}', outT.map(p=>`<b>${p.y}</b> (Klungkung ${nkF(p.r.ilK,1)}, Bali ${nkF(p.r.ilB,1)})`).join('; ')) : '')
+      + trx('nkTrenNoteFooter');
 
-    // sumbu-y
+    // y-axis
     const yScale = { grid:{ color:(c)=> (c.tick && c.tick.value===0) ? 'rgba(60,60,60,.45)' : THEME.light, lineWidth:(c)=> (c.tick && c.tick.value===0) ? 1.6 : 1 },
-                     title:nkAxisTitle(mode==='log' ? 'ILOR (skala simetris-log)' : 'ILOR (orang per Rp miliar PDRB ADHK)'),
+                     title:nkAxisTitle(mode==='log' ? trx('axIlorLogSym') : trx('axIlorOrangMiliar')),
                      ticks:Object.assign({ callback:v=> nkF(mode==='log' ? slogInv(v) : v) }, nkTicks()) };
     if(mode==='fokus'){ yScale.min = -capT; yScale.max = capT; }
     else if(mode==='penuh'){ yScale.grace = '8%'; }
@@ -16289,8 +16441,8 @@ function renderNkIlor(){
     nkMakeChart('ilorTren', 'nkIlorTren', {
       type:'line',
       data:{ labels:pts.map(p=>String(p.y)), datasets:[
-        { label:'ILOR Klungkung', data:kv.map(tf), borderColor:THEME.main, backgroundColor:hexToRgba(THEME.main, 0.24), fill:'origin', borderWidth:2.2, pointRadius:0, pointHoverRadius:5, tension:0, cubicInterpolationMode:'monotone', spanGaps:false },
-        { label:'ILOR Bali',      data:bv.map(tf), borderColor:THEME.soft, backgroundColor:hexToRgba(THEME.soft, 0.34), fill:'origin', borderWidth:2.2, pointRadius:0, pointHoverRadius:5, tension:0, cubicInterpolationMode:'monotone', spanGaps:false }
+        { label:trx('thIlorK'), data:kv.map(tf), borderColor:THEME.main, backgroundColor:hexToRgba(THEME.main, 0.24), fill:'origin', borderWidth:2.2, pointRadius:0, pointHoverRadius:5, tension:0, cubicInterpolationMode:'monotone', spanGaps:false },
+        { label:trx('thIlorB'),      data:bv.map(tf), borderColor:THEME.soft, backgroundColor:hexToRgba(THEME.soft, 0.34), fill:'origin', borderWidth:2.2, pointRadius:0, pointHoverRadius:5, tension:0, cubicInterpolationMode:'monotone', spanGaps:false }
       ]},
       options:{
         responsive:true, maintainAspectRatio:false,
@@ -16298,13 +16450,13 @@ function renderNkIlor(){
         plugins:{
           legend:nkLegendOpt(),
           tooltip:{ callbacks:{
-            label:(c)=>{ const v = (c.datasetIndex===0 ? kv : bv)[c.dataIndex]; return `${c.dataset.label}: ${v===null ? '—' : nkF(v,2)} orang per Rp miliar`; },
+            label:(c)=>{ const v = (c.datasetIndex===0 ? kv : bv)[c.dataIndex]; return `${c.dataset.label}: ${v===null ? '—' : nkF(v,2)} ${trx('nkOrangMiliar')}`; },
             afterBody:(items)=>{
               const p = pts[items[0].dataIndex]; if(!p || !p.r) return '';
               const k = nkIlorKlas(p.r);
-              return [ `Δ TK Klungkung ${nkSg(p.r.dTKk)} orang · Δ PDRB ${nkSg(p.r.dYk,1)} miliar`,
-                       k ? `Tipologi: ${def[k].label}` : '',
-                       p.r.unstable ? '‡ Δ PDRB sangat kecil — ILOR tidak stabil' : '' ].filter(Boolean);
+              return [ `Δ ${trx('nkKpiTkKUnit')==='people'?'Klungkung Labor':'TK Klungkung'} ${nkSg(p.r.dTKk)} ${trx('nkKpiTkKUnit')} · Δ GRDP ${nkSg(p.r.dYk,1)} miliar`,
+                       k ? `${trx('nkTipologiLbl')} ${def[k].label}` : '',
+                       p.r.unstable ? trx('nkUnstableShort') : '' ].filter(Boolean);
             }
           } }
         },
@@ -16317,13 +16469,13 @@ function renderNkIlor(){
   trenSel.onchange = ()=>{ nkIlorTrenSektor = trenSel.value; drawTren(); };
   drawTren();
 
-  // ---- Ekspor Excel ----
+  // ---- Excel export ----
   document.getElementById('nkIlorExcel').onclick = ()=> exportStyledExcel(`naker_ilor_${nkBase}_${nkYear}.xlsx`, 'ILOR',
-    ['Sektor','Tipologi','Δ TK Klungkung','Δ PDRB ADHK Klungkung (Rp miliar)','ILOR Klungkung','Δ TK Bali','Δ PDRB ADHK Bali (Rp miliar)','ILOR Bali','ILOR Klungkung/Bali','Catatan'],
+    [trx('thSektor'),trx('thTipologi'),trx('thDeltaTkK'),trx('thDeltaPdrbK'),trx('thIlorK'),trx('thDeltaTkB'),trx('thDeltaPdrbB'),trx('thIlorB'),trx('thIlorRasio'),trx('thCatatan')],
     rows.map(r=>{ const k = nkIlorKlas(r); return [r.sektor, k?def[k].label:'n.a.', r.dTKk, r.dYk, nkX(r.ilK), r.dTKb, r.dYb, nkX(r.ilB), nkX(r.ratio), nkIlorNoteOf(r)]; })
-      .concat([['Seluruh Sektor', kT?def[kT].label:'n.a.', t.dTKk, t.dYk, nkX(t.ilK), t.dTKb, t.dYb, nkX(t.ilB), nkX(t.ratio), nkIlorNoteOf(t)]]));
+      .concat([[trx('nkSeluruhSektor'), kT?def[kT].label:'n.a.', t.dTKk, t.dYk, nkX(t.ilK), t.dTKb, t.dYb, nkX(t.ilB), nkX(t.ratio), nkIlorNoteOf(t)]]));
   document.getElementById('nkIlorYrExcel').onclick = ()=> exportStyledExcel(`naker_ilor_total_tahunan.xlsx`, 'ILOR Seluruh Sektor',
-    ['Tahun','Tipologi','Δ TK Klungkung','Δ PDRB ADHK Klungkung (Rp miliar)','ILOR Klungkung','Δ TK Bali','Δ PDRB ADHK Bali (Rp miliar)','ILOR Bali','ILOR Klungkung/Bali','Catatan'],
+    [trx('thTahun2'),trx('thTipologi'),trx('thDeltaTkK'),trx('thDeltaPdrbK'),trx('thIlorK'),trx('thDeltaTkB'),trx('thDeltaPdrbB'),trx('thIlorB'),trx('thIlorRasio'),trx('thCatatan')],
     yr.map(x=>{ const k = nkIlorKlas(x.t); return [x.y, k?def[k].label:'n.a.', x.t.dTKk, x.t.dYk, nkX(x.t.ilK), x.t.dTKb, x.t.dYb, nkX(x.t.ilB), nkX(x.t.ratio), nkIlorNoteOf(x.t)]; }));
 }
 
@@ -16347,70 +16499,70 @@ function renderNkShiftShare(){
   const nCS = rows.filter(r=>r.CS>0).length;
 
   const kpis = [
-    nkKpi('Perubahan TK (ΔTK)', nkSg(t.dTK)+' orang', `${nkBase}→${nkYear}`),
-    nkKpi('Regional Share (RS)', nkSg(t.RS,0), 'ikut pertumbuhan TK Bali'),
-    nkKpi('Industry Mix (IM)', nkSg(t.IM,0), 'bauran sektor'),
-    nkKpi('Competitive Shift (CS)', nkSg(t.CS,0), 'keunggulan kompetitif', t.CS>=0?'#3e5a2a':THEME.accent),
-    nkKpi('Sektor CS Positif', `${nCS} dari ${rows.length}`, 'Klungkung menyerap lebih cepat dari Bali')
+    nkKpi(trx('nkKpiPerubahanTk'), nkSg(t.dTK)+' '+trx('nkKpiTkKUnit'), `${nkBase}→${nkYear}`),
+    nkKpi(trx('nkKpiRs'), nkSg(t.RS,0), trx('nkRsSub')),
+    nkKpi(trx('nkKpiIm'), nkSg(t.IM,0), trx('nkImSub')),
+    nkKpi(trx('nkKpiCs'), nkSg(t.CS,0), trx('nkCsSub'), t.CS>=0?'#3e5a2a':THEME.accent),
+    nkKpi(trx('nkKpiSektorCsPositif'), `${nCS} ${trx('nkDari')} ${rows.length}`, trx('nkCsPositifSub'))
   ];
 
   const note = nkNote(
-    ' Shift-Share menguraikan perubahan jumlah tenaga kerja Klungkung menjadi tiga komponen dengan Bali sebagai wilayah acuan: seberapa besar perubahan itu sekadar “ikut arus” pertumbuhan TK Bali, seberapa karena sektornya memang tumbuh cepat/lambat di Bali, dan seberapa karena Klungkung lebih unggul/kalah dibanding Bali pada sektor yang sama. Ini padanan berbasis tenaga kerja dari tab Shift-Share (yang berbasis PDRB).',
+    trx('nkNoteSs'),
     ['RS<sub>i</sub> = e<sub>i,0</sub> × G', 'IM<sub>i</sub> = e<sub>i,0</sub> × (G<sub>i</sub> − G)', 'CS<sub>i</sub> = e<sub>i,t</sub> − e<sub>i,0</sub> × (1 + G<sub>i</sub>)', 'ΔTK<sub>i</sub> = RS<sub>i</sub> + IM<sub>i</sub> + CS<sub>i</sub>'],
-    'e = TK sektor i di Klungkung (0 = tahun pembanding, t = tahun terpilih); G = pertumbuhan TK total Bali; G<sub>i</sub> = pertumbuhan TK sektor i di Bali. Bentuk CS di atas identik dengan e<sub>i,0</sub> × (g<sub>i</sub> − G<sub>i</sub>), sehingga ketiga komponen selalu berjumlah tepat ΔTK.',
-    ['<b>RS</b> positif bila TK Bali secara keseluruhan bertambah — porsi perubahan yang terjadi tanpa ada keunikan sektor maupun wilayah.', '<b>IM</b> positif untuk sektor yang di Bali tumbuh lebih cepat dari rata-rata (sektor “ikut tren”), negatif untuk sektor yang di Bali melambat.', '<b>CS</b> positif berarti Klungkung menambah TK di sektor itu lebih cepat dari Bali — keunggulan kompetitif lokal; CS negatif berarti kalah bersaing.']
+    trx('nkNoteSsCaption'),
+    [trx('nkNoteSsC1'), trx('nkNoteSsC2'), trx('nkNoteSsC3')]
   );
 
   body.innerHTML = `
     ${note}
     <div class="ss-kpi-grid">${kpis.join('')}</div>
-    <div class="ss-section-title">Dekomposisi ΔTK per Lapangan Usaha (orang)</div>
+    <div class="ss-section-title">${trx('nkChartDekompDeltaTk')}</div>
     ${nkChartBox('nkSsBar', Math.max(360, rows.length*30), 'nkDlSsBar')}
-    <div class="ss-section-title">Posisi Kuadran: Industry Mix × Competitive Shift</div>
+    <div class="ss-section-title">${trx('nkChartKuadranImCs')}</div>
     <div class="ss-quad-grid">
       ${nkChartBox('nkSsQuad', 380, 'nkDlSsQuad')}
       <div>${nkLegendHtml(def, order, counts)}</div>
     </div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Shift-Share Tenaga Kerja</span><button class="dl-btn" id="nkSsExcel" style="position:static;">${trx('downloadExcel')}</button></div>
+    <div class="table-head-row"><span class="table-head-label">${trx('nkTableSs')}</span><button class="dl-btn" id="nkSsExcel" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="nkSsTable"></table></div>
     ${rows.some(r=>r.flag)?nkFlagNote():''}`;
 
-  document.getElementById('nkSsTable').innerHTML = `<thead><tr><th>Sektor</th><th>Kuadran</th><th>TK ${nkBase}</th><th>TK ${nkYear}</th><th>ΔTK</th><th>RS</th><th>IM</th><th>CS</th></tr></thead><tbody>${
+  document.getElementById('nkSsTable').innerHTML = `<thead><tr><th>${trx('thSektor')}</th><th>${trx('thKuadran')}</th><th>${trx('thTk')} ${nkBase}</th><th>${trx('thTk')} ${nkYear}</th><th>ΔTK</th><th>RS</th><th>IM</th><th>CS</th></tr></thead><tbody>${
     rows.map(r=>{ const k = nkSsKlas(r);
-      return `<tr><td>${escapeHtml(r.sektor)}${r.flag?' †':''}</td><td>${k?nkBadge(def[k].label, def[k].color):'<span style="color:var(--brown-soft)">n.a.</span>'}</td>
+      return `<tr><td>${escapeHtml(dSub(r.sektor))}${r.flag?' †':''}</td><td>${k?nkBadge(def[k].label, def[k].color):'<span style="color:var(--brown-soft)">n.a.</span>'}</td>
         <td>${nkF(r.tk0)}</td><td>${nkF(r.tk1)}</td><td class="${nkCls(r.dTK)}">${nkSg(r.dTK)}</td>
         <td class="${nkCls(r.RS)}">${nkSg(r.RS,0)}</td><td class="${nkCls(r.IM)}">${nkSg(r.IM,0)}</td><td class="${nkCls(r.CS)}">${nkSg(r.CS,0)}</td></tr>`; }).join('')
-  }<tr style="font-weight:800;background:var(--cream-deep);"><td>Total</td><td></td><td>${nkF(ch.L0.T.tkK)}</td><td>${nkF(ch.L1.T.tkK)}</td><td>${nkSg(t.dTK)}</td><td>${nkSg(t.RS,0)}</td><td>${nkSg(t.IM,0)}</td><td>${nkSg(t.CS,0)}</td></tr></tbody>`;
+  }<tr style="font-weight:800;background:var(--cream-deep);"><td>${trx('nkTotal')}</td><td></td><td>${nkF(ch.L0.T.tkK)}</td><td>${nkF(ch.L1.T.tkK)}</td><td>${nkSg(t.dTK)}</td><td>${nkSg(t.RS,0)}</td><td>${nkSg(t.IM,0)}</td><td>${nkSg(t.CS,0)}</td></tr></tbody>`;
 
   nkMakeChart('ssBar', 'nkSsBar', {
     type:'bar',
-    data:{ labels:rows.map(r=>r.sektor), datasets:[
+    data:{ labels:rows.map(r=>dSub(r.sektor)), datasets:[
       { label:'Regional Share (RS)',      data:rows.map(r=>r.RS), backgroundColor:KATEGORI_PALETTE[2] },
       { label:'Industry Mix (IM)',        data:rows.map(r=>r.IM), backgroundColor:KATEGORI_PALETTE[1] },
       { label:'Competitive Shift (CS)',   data:rows.map(r=>r.CS), backgroundColor:KATEGORI_PALETTE[0] }
     ]},
     options:{
       indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:nkLegendOpt(), tooltip:{ mode:'index', intersect:false, callbacks:{ label:(c)=> `${c.dataset.label}: ${nkSg(c.parsed.x,0)}`, footer:(items)=>{ const i = items[0].dataIndex; return `ΔTK: ${nkSg(rows[i].dTK)} orang`; } } } },
+      plugins:{ legend:nkLegendOpt(), tooltip:{ mode:'index', intersect:false, callbacks:{ label:(c)=> `${c.dataset.label}: ${nkSg(c.parsed.x,0)}`, footer:(items)=>{ const i = items[0].dataIndex; return `ΔTK: ${nkSg(rows[i].dTK)} ${trx('nkKpiTkKUnit')}`; } } } },
       scales:{
-        x:{ stacked:true, grid:{color:THEME.light}, title:nkAxisTitle('Kontribusi terhadap ΔTK (orang)'), ticks:Object.assign({callback:v=>nkF(v)}, nkTicks()) },
+        x:{ stacked:true, grid:{color:THEME.light}, title:nkAxisTitle(trx('axKontribusiDeltaTk')), ticks:Object.assign({callback:v=>nkF(v)}, nkTicks()) },
         y:{ stacked:true, grid:{display:false}, ticks:nkTicks() }
       }
     }
   });
   nkBindDl('nkDlSsBar', 'ssBar', `naker_shiftshare_${nkBase}_${nkYear}`);
 
-  const pts = rows.filter(r=>nkSsKlas(r)).map(r=>({ x:r.IM, y:r.CS, label:r.sektor, k:nkSsKlas(r) }));
+  const pts = rows.filter(r=>nkSsKlas(r)).map(r=>({ x:r.IM, y:r.CS, label:dSub(r.sektor), k:nkSsKlas(r) }));
   const mx = Math.max(50, ...pts.map(p=>Math.abs(p.x)))*1.25, my = Math.max(50, ...pts.map(p=>Math.abs(p.y)))*1.25;
   nkMakeChart('ssQuad', 'nkSsQuad', {
     type:'scatter',
-    data:{ datasets:[{ label:'Sektor', data:pts, backgroundColor:pts.map(p=>def[p.k].color), pointRadius:7, pointHoverRadius:9 }] },
+    data:{ datasets:[{ label:trx('nkLegendSektor'), data:pts, backgroundColor:pts.map(p=>def[p.k].color), pointRadius:7, pointHoverRadius:9 }] },
     options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(c)=> `${c.raw.label}: IM ${nkSg(c.raw.x,0)}, CS ${nkSg(c.raw.y,0)}` } } },
       scales:{
-        x:{ min:-mx, max:mx, grid:{color:THEME.light}, title:nkAxisTitle('Industry Mix (orang)'), ticks:Object.assign({callback:v=>nkF(v)}, nkTicks()) },
-        y:{ min:-my, max:my, grid:{color:THEME.light}, title:nkAxisTitle('Competitive Shift (orang)'), ticks:Object.assign({callback:v=>nkF(v)}, nkTicks()) }
+        x:{ min:-mx, max:mx, grid:{color:THEME.light}, title:nkAxisTitle(trx('axIndustryMixOrang')), ticks:Object.assign({callback:v=>nkF(v)}, nkTicks()) },
+        y:{ min:-my, max:my, grid:{color:THEME.light}, title:nkAxisTitle(trx('axCompetitiveShiftOrang')), ticks:Object.assign({callback:v=>nkF(v)}, nkTicks()) }
       }
     },
     plugins:[lqCrosshairPlugin(0, 0)]
@@ -16418,9 +16570,9 @@ function renderNkShiftShare(){
   nkBindDl('nkDlSsQuad', 'ssQuad', `naker_shiftshare_kuadran_${nkBase}_${nkYear}`);
 
   document.getElementById('nkSsExcel').onclick = ()=> exportStyledExcel(`naker_shiftshare_${nkBase}_${nkYear}.xlsx`, 'Shift-Share TK',
-    ['Sektor','Kuadran',`TK ${nkBase}`,`TK ${nkYear}`,'ΔTK','RS','IM','CS'],
+    [trx('thSektor'),trx('thKuadran'),`${trx('thTk')} ${nkBase}`,`${trx('thTk')} ${nkYear}`,'ΔTK','RS','IM','CS'],
     rows.map(r=>[r.sektor, nkSsKlas(r)?def[nkSsKlas(r)].label:'n.a.', r.tk0, r.tk1, r.dTK, r.RS, r.IM, r.CS])
-      .concat([['Total','',ch.L0.T.tkK, ch.L1.T.tkK, t.dTK, t.RS, t.IM, t.CS]]));
+      .concat([[trx('nkTotal'),'',ch.L0.T.tkK, ch.L1.T.tkK, t.dTK, t.RS, t.IM, t.CS]]));
 }
 
 /* =========================================================
@@ -16430,89 +16582,89 @@ function renderNkDekomposisi(){
   const body = document.getElementById('nkBody');
   if(nkBase===null){ body.innerHTML = nkNeedBase(); return; }
   const d = nkDecomp(nkYear, nkBase);
-  if(!d.rows.length || !nkOk(d.dP)){ body.innerHTML = `<div class="state-msg">Tidak ada sektor dengan TK &gt; 0 pada kedua tahun untuk didekomposisi.</div>`; return; }
+  if(!d.rows.length || !nkOk(d.dP)){ body.innerHTML = `<div class="state-msg">${trx('nkDecNoData')}</div>`; return; }
   const struct = d.between + d.inter;
   const pctOf = v => Math.abs(d.dP)>=0.05 ? `${nkF(v/d.dP*100,0)}% dari ΔP` : '';
   const rows = nkSort(d.rows, 'total', -1);
-  const driver = r => Math.abs(r.within) >= Math.abs(r.between + r.inter) ? {l:'Dalam sektor', c:THEME.main} : {l:'Realokasi TK', c:THEME.c4};
+  const driver = r => Math.abs(r.within) >= Math.abs(r.between + r.inter) ? {l:trx('nkDekDalamSektor'), c:THEME.main} : {l:trx('nkDekRealokasiTk'), c:THEME.c4};
 
   const kpis = [
-    nkKpi(`Produktivitas ${nkBase}`, nkF(d.P0,1)+' jt', 'Rp juta / pekerja'),
-    nkKpi(`Produktivitas ${nkYear}`, nkF(d.P1,1)+' jt', 'Rp juta / pekerja'),
-    nkKpi('Δ Produktivitas', nkSg(d.dP,2)+' jt', nkPS(d.P0>0?d.dP/d.P0:NaN,1), d.dP>=0?'#3e5a2a':THEME.accent),
-    nkKpi('Within (dalam sektor)', nkSg(d.within,2)+' jt', pctOf(d.within), d.within>=0?'#3e5a2a':THEME.accent),
-    nkKpi('Between (realokasi statis)', nkSg(d.between,2)+' jt', pctOf(d.between), d.between>=0?'#3e5a2a':THEME.accent),
-    nkKpi('Interaksi (dinamis)', nkSg(d.inter,2)+' jt', pctOf(d.inter), d.inter>=0?'#3e5a2a':THEME.accent)
+    nkKpi(trx('nkKpiProdBase').replace('{y}',nkBase), nkF(d.P0,1)+' jt', trx('nkJtPekerja')),
+    nkKpi(trx('nkKpiProdBase').replace('{y}',nkYear), nkF(d.P1,1)+' jt', trx('nkJtPekerja')),
+    nkKpi(trx('nkKpiDeltaProd'), nkSg(d.dP,2)+' jt', nkPS(d.P0>0?d.dP/d.P0:NaN,1), d.dP>=0?'#3e5a2a':THEME.accent),
+    nkKpi(trx('nkKpiWithin'), nkSg(d.within,2)+' jt', pctOf(d.within), d.within>=0?'#3e5a2a':THEME.accent),
+    nkKpi(trx('nkKpiBetween'), nkSg(d.between,2)+' jt', pctOf(d.between), d.between>=0?'#3e5a2a':THEME.accent),
+    nkKpi(trx('nkKpiInteraksi'), nkSg(d.inter,2)+' jt', pctOf(d.inter), d.inter>=0?'#3e5a2a':THEME.accent)
   ];
 
   const note = nkNote(
-    ' Produktivitas rata-rata seluruh ekonomi dapat naik karena dua hal yang berbeda: (1) tiap sektor menjadi lebih produktif (efek <b>within</b>), atau (2) pekerja berpindah dari sektor berproduktivitas rendah ke sektor berproduktivitas tinggi (efek <b>between</b>/realokasi). Dekomposisi ini memisahkan keduanya.',
+    trx('nkNoteDek'),
     ['ΔP = Σ s<sub>i,0</sub>·Δp<sub>i</sub> &nbsp;+&nbsp; Σ p<sub>i,0</sub>·Δs<sub>i</sub> &nbsp;+&nbsp; Σ Δp<sub>i</sub>·Δs<sub>i</sub>', 'Within = Σ s<sub>i,0</sub>·Δp<sub>i</sub>', 'Between = Σ p<sub>i,0</sub>·Δs<sub>i</sub>', 'Interaksi = Σ Δp<sub>i</sub>·Δs<sub>i</sub>'],
-    's<sub>i</sub> = pangsa TK sektor i; p<sub>i</sub> = produktivitas sektor i (PDRB ADHK ÷ TK, Rp juta/pekerja); 0 = tahun pembanding. Efek struktural (McMillan &amp; Rodrik) = Between + Interaksi. Identitas berlaku eksak pada sektor yang TK-nya &gt; 0 di kedua tahun.',
-    ['<b>Within dominan</b>: kenaikan produktivitas berasal dari efisiensi/nilai tambah di dalam masing-masing sektor.', '<b>Between positif</b>: pekerja bergeser ke sektor yang lebih produktif dari rata-rata; <b>negatif</b>: pekerja bergeser ke sektor yang kurang produktif (beban struktural).', '<b>Interaksi</b> positif bila sektor yang produktivitasnya naik juga menambah pangsa pekerjanya (dan sebaliknya).']
+    trx('nkNoteDekCaption'),
+    [trx('nkNoteDekC1'), trx('nkNoteDekC2'), trx('nkNoteDekC3')]
   );
 
   const insights = [];
-  insights.push(`Produktivitas rata-rata (pada ${d.rows.length} sektor yang dapat dibandingkan) <b>${d.dP>=0?'naik':'turun'} Rp ${nkF(Math.abs(d.dP),2)} juta per pekerja</b> antara ${nkBase} dan ${nkYear}.`);
+  insights.push(trx('nkDekIns1').replace('{n}',d.rows.length).replace('{dir}', d.dP>=0?trx('nkDekInsNaik'):trx('nkDekInsTurun')).replace('{v}', nkF(Math.abs(d.dP),2)).replace('{b}',nkBase).replace('{y}',nkYear));
   const sw = d.within>=0, ss = struct>=0;
   insights.push(
-    sw && ss ? `Kedua sumber sama-sama positif: efek dalam sektor ${nkSg(d.within,2)} juta dan efek struktural (realokasi TK) ${nkSg(struct,2)} juta.` :
-    sw && !ss ? `Kenaikan berasal dari peningkatan produktivitas <b>di dalam sektor</b> (${nkSg(d.within,2)} juta), sedangkan perpindahan TK antarsektor justru menekan (${nkSg(struct,2)} juta) — pekerja cenderung bergeser ke sektor berproduktivitas lebih rendah.` :
-    !sw && ss ? `Produktivitas di dalam sektor melemah (${nkSg(d.within,2)} juta) namun tertolong oleh perpindahan TK ke sektor berproduktivitas lebih tinggi (${nkSg(struct,2)} juta).` :
-    `Baik efek dalam sektor (${nkSg(d.within,2)} juta) maupun efek struktural (${nkSg(struct,2)} juta) sama-sama menekan produktivitas.`
+    sw && ss ? trx('nkDekIns2a').replace('{w}',nkSg(d.within,2)).replace('{s}',nkSg(struct,2)) :
+    sw && !ss ? trx('nkDekIns2b').replace('{w}',nkSg(d.within,2)).replace('{s}',nkSg(struct,2)) :
+    !sw && ss ? trx('nkDekIns2c').replace('{w}',nkSg(d.within,2)).replace('{s}',nkSg(struct,2)) :
+    trx('nkDekIns2d').replace('{w}',nkSg(d.within,2)).replace('{s}',nkSg(struct,2))
   );
   const up = rows[0], down = rows[rows.length-1];
   const bits = [];
-  if(up && up.total>0) bits.push(`kontributor positif terbesar: <b>${escapeHtml(up.sektor)}</b> (${nkSg(up.total,2)} juta)`);
-  if(down && down.total<0) bits.push(`kontributor negatif terbesar: <b>${escapeHtml(down.sektor)}</b> (${nkSg(down.total,2)} juta)`);
-  if(bits.length) insights.push(`Antarsektor — ${bits.join('; ')}.`);
+  if(up && up.total>0) bits.push(`${trx('nkDekInsPosBesar')}: <b>${escapeHtml(dSub(up.sektor))}</b> (${nkSg(up.total,2)} juta)`);
+  if(down && down.total<0) bits.push(`${trx('nkDekInsNegBesar')}: <b>${escapeHtml(dSub(down.sektor))}</b> (${nkSg(down.total,2)} juta)`);
+  if(bits.length) insights.push(trx('nkDekInsAntarSektor').replace('{bits}', bits.join('; ')));
   const bigWithin = nkSort(d.rows, r=>Math.abs(r.within), -1)[0];
-  if(bigWithin && bigWithin.s1 < 0.02 && Math.abs(bigWithin.within) >= 0.3*Math.abs(d.within)) insights.push(`Komponen within banyak dipengaruhi <b>${escapeHtml(bigWithin.sektor)}</b> (${nkSg(bigWithin.within,2)} juta) walau pangsa TK-nya hanya ${nkP(bigWithin.s1,1)} — sektor ber-TK kecil dengan produktivitas sangat tinggi mudah bergejolak, jadi bacalah angkanya dengan hati-hati.`);
-  if(d.excluded.length) insights.push(`${d.excluded.length} sektor dikeluarkan karena TK bernilai 0 pada salah satu tahun (${d.excluded.map(escapeHtml).join(', ')}), setara ${nkP(d.exclShare,1)} PDRB ADHK ${nkYear}; karenanya angka di sini dapat sedikit berbeda dari produktivitas total pada tab Produktivitas.`);
+  if(bigWithin && bigWithin.s1 < 0.02 && Math.abs(bigWithin.within) >= 0.3*Math.abs(d.within)) insights.push(trx('nkDekInsWithinBig').replace('{s}',escapeHtml(dSub(bigWithin.sektor))).replace('{v}',nkSg(bigWithin.within,2)).replace('{sh}',nkP(bigWithin.s1,1)));
+  if(d.excluded.length) insights.push(trx('nkDekInsExcluded').replace('{n}',d.excluded.length).replace('{list}', d.excluded.map(s=>escapeHtml(dSub(s))).join(', ')).replace('{pct}',nkP(d.exclShare,1)).replace('{y}',nkYear));
 
   body.innerHTML = `
     ${note}
     <div class="ss-kpi-grid">${kpis.join('')}</div>
-    <div class="ss-section-title">Komponen Perubahan Produktivitas (Rp juta / pekerja)</div>
+    <div class="ss-section-title">${trx('nkChartKomponenProd')}</div>
     ${nkChartBox('nkDecTot', 260, 'nkDlDecTot')}
-    <div class="ss-section-title">Kontribusi per Lapangan Usaha</div>
+    <div class="ss-section-title">${trx('nkChartKontribusiSektor')}</div>
     ${nkChartBox('nkDecBar', Math.max(340, rows.length*32), 'nkDlDecBar')}
     ${nkInsightBox(insights)}
-    <div class="table-head-row"><span class="table-head-label">Tabel Dekomposisi Produktivitas</span><button class="dl-btn" id="nkDecExcel" style="position:static;">${trx('downloadExcel')}</button></div>
+    <div class="table-head-row"><span class="table-head-label">${trx('nkTableDekomposisi')}</span><button class="dl-btn" id="nkDecExcel" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table" id="nkDecTable"></table></div>`;
 
-  document.getElementById('nkDecTable').innerHTML = `<thead><tr><th>Sektor</th><th>Penggerak</th><th>Pangsa TK ${nkBase}</th><th>Pangsa TK ${nkYear}</th><th>Δ Pangsa (pp)</th><th>Prod. ${nkBase} (jt)</th><th>Prod. ${nkYear} (jt)</th><th>Within</th><th>Between</th><th>Interaksi</th><th>Total</th></tr></thead><tbody>${
+  document.getElementById('nkDecTable').innerHTML = `<thead><tr><th>${trx('thSektor')}</th><th>${trx('thPenggerak')}</th><th>${trx('thPangsaTkBase').replace('{y}',nkBase)}</th><th>${trx('thPangsaTkBase').replace('{y}',nkYear)}</th><th>${trx('thDeltaPangsaPp')}</th><th>${trx('thProdBaseJt').replace('{y}',nkBase)}</th><th>${trx('thProdBaseJt').replace('{y}',nkYear)}</th><th>${trx('thWithin')}</th><th>${trx('thBetween')}</th><th>${trx('thInteraksi')}</th><th>${trx('thTotal')}</th></tr></thead><tbody>${
     rows.map(r=>{ const dv = driver(r);
-      return `<tr><td>${escapeHtml(r.sektor)}</td><td>${nkBadge(dv.l, dv.c)}</td><td>${nkP(r.s0)}</td><td>${nkP(r.s1)}</td><td class="${nkCls(r.s1-r.s0)}">${nkPP(r.s1-r.s0)}</td>
+      return `<tr><td>${escapeHtml(dSub(r.sektor))}</td><td>${nkBadge(dv.l, dv.c)}</td><td>${nkP(r.s0)}</td><td>${nkP(r.s1)}</td><td class="${nkCls(r.s1-r.s0)}">${nkPP(r.s1-r.s0)}</td>
         <td>${nkF(r.p0,1)}</td><td>${nkF(r.p1,1)}</td>
         <td class="${nkCls(r.within)}">${nkSg(r.within,2)}</td><td class="${nkCls(r.between)}">${nkSg(r.between,2)}</td><td class="${nkCls(r.inter)}">${nkSg(r.inter,2)}</td><td class="${nkCls(r.total)}">${nkSg(r.total,2)}</td></tr>`; }).join('')
-  }<tr style="font-weight:800;background:var(--cream-deep);"><td>Total</td><td></td><td>100%</td><td>100%</td><td></td><td>${nkF(d.P0,1)}</td><td>${nkF(d.P1,1)}</td><td>${nkSg(d.within,2)}</td><td>${nkSg(d.between,2)}</td><td>${nkSg(d.inter,2)}</td><td>${nkSg(d.dP,2)}</td></tr></tbody>`;
+  }<tr style="font-weight:800;background:var(--cream-deep);"><td>${trx('nkTotal')}</td><td></td><td>100%</td><td>100%</td><td></td><td>${nkF(d.P0,1)}</td><td>${nkF(d.P1,1)}</td><td>${nkSg(d.within,2)}</td><td>${nkSg(d.between,2)}</td><td>${nkSg(d.inter,2)}</td><td>${nkSg(d.dP,2)}</td></tr></tbody>`;
 
   const good = '#3e5a2a';
-  const comp = [ ['Within', d.within], ['Between', d.between], ['Interaksi', d.inter], ['Total ΔP', d.dP] ];
+  const comp = [ ['Within', d.within], ['Between', d.between], [trx('thInteraksi'), d.inter], ['Total ΔP', d.dP] ];
   nkMakeChart('decTot', 'nkDecTot', {
     type:'bar',
-    data:{ labels:comp.map(c=>c[0]), datasets:[{ label:'Rp juta / pekerja', data:comp.map(c=>c[1]), backgroundColor:comp.map((c,i)=> i===3 ? THEME.main : (c[1]>=0 ? good : THEME.accent)) }] },
+    data:{ labels:comp.map(c=>c[0]), datasets:[{ label:trx('axRpJutaPekerja2'), data:comp.map(c=>c[1]), backgroundColor:comp.map((c,i)=> i===3 ? THEME.main : (c[1]>=0 ? good : THEME.accent)) }] },
     options:{
       responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(c)=> `${c.label}: ${nkSg(c.parsed.y,2)} juta/pekerja` } } },
-      scales:{ x:{ grid:{display:false}, ticks:nkTicks() }, y:{ grid:{color:THEME.light}, title:nkAxisTitle('Rp juta / pekerja'), ticks:nkTicks() } }
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(c)=> `${c.label}: ${nkSg(c.parsed.y,2)} ${trx('nkJtPekerja')}` } } },
+      scales:{ x:{ grid:{display:false}, ticks:nkTicks() }, y:{ grid:{color:THEME.light}, title:nkAxisTitle(trx('axRpJutaPekerja2')), ticks:nkTicks() } }
     }
   });
   nkBindDl('nkDlDecTot', 'decTot', `naker_dekomposisi_total_${nkBase}_${nkYear}`);
 
   nkMakeChart('decBar', 'nkDecBar', {
     type:'bar',
-    data:{ labels:rows.map(r=>r.sektor), datasets:[
-      { label:'Within',    data:rows.map(r=>r.within),  backgroundColor:KATEGORI_PALETTE[0] },
-      { label:'Between',   data:rows.map(r=>r.between), backgroundColor:KATEGORI_PALETTE[1] },
-      { label:'Interaksi', data:rows.map(r=>r.inter),   backgroundColor:KATEGORI_PALETTE[2] }
+    data:{ labels:rows.map(r=>dSub(r.sektor)), datasets:[
+      { label:trx('thWithin'),    data:rows.map(r=>r.within),  backgroundColor:KATEGORI_PALETTE[0] },
+      { label:trx('thBetween'),   data:rows.map(r=>r.between), backgroundColor:KATEGORI_PALETTE[1] },
+      { label:trx('thInteraksi'), data:rows.map(r=>r.inter),   backgroundColor:KATEGORI_PALETTE[2] }
     ]},
     options:{
       indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:nkLegendOpt(), tooltip:{ mode:'index', intersect:false, callbacks:{ label:(c)=> `${c.dataset.label}: ${nkSg(c.parsed.x,2)}`, footer:(items)=> `Total: ${nkSg(rows[items[0].dataIndex].total,2)} juta/pekerja` } } },
+      plugins:{ legend:nkLegendOpt(), tooltip:{ mode:'index', intersect:false, callbacks:{ label:(c)=> `${c.dataset.label}: ${nkSg(c.parsed.x,2)}`, footer:(items)=> `${trx('thTotal')}: ${nkSg(rows[items[0].dataIndex].total,2)} ${trx('nkJtPekerja')}` } } },
       scales:{
-        x:{ stacked:true, grid:{color:THEME.light}, title:nkAxisTitle('Kontribusi terhadap ΔP (Rp juta / pekerja)'), ticks:nkTicks() },
+        x:{ stacked:true, grid:{color:THEME.light}, title:nkAxisTitle(trx('axKontribusiDeltaP')), ticks:nkTicks() },
         y:{ stacked:true, grid:{display:false}, ticks:nkTicks() }
       }
     }
@@ -16520,21 +16672,21 @@ function renderNkDekomposisi(){
   nkBindDl('nkDlDecBar', 'decBar', `naker_dekomposisi_sektor_${nkBase}_${nkYear}`);
 
   document.getElementById('nkDecExcel').onclick = ()=> exportStyledExcel(`naker_dekomposisi_${nkBase}_${nkYear}.xlsx`, 'Dekomposisi Produktivitas',
-    ['Sektor','Penggerak',`Pangsa TK ${nkBase} (%)`,`Pangsa TK ${nkYear} (%)`,'Δ Pangsa (pp)',`Produktivitas ${nkBase} (jt)`,`Produktivitas ${nkYear} (jt)`,'Within','Between','Interaksi','Total'],
+    [trx('thSektor'),trx('thPenggerak'),trx('thPangsaTkBase').replace('{y}',nkBase)+' (%)',trx('thPangsaTkBase').replace('{y}',nkYear)+' (%)',trx('thDeltaPangsaPp'),`Productivity ${nkBase} (mn)`,`Productivity ${nkYear} (mn)`,trx('thWithin'),trx('thBetween'),trx('thInteraksi'),trx('thTotal')],
     rows.map(r=>[r.sektor, driver(r).l, r.s0*100, r.s1*100, (r.s1-r.s0)*100, r.p0, r.p1, r.within, r.between, r.inter, r.total])
-      .concat([['Total','',100,100,'',d.P0,d.P1,d.within,d.between,d.inter,d.dP]]));
+      .concat([[trx('nkTotal'),'',100,100,'',d.P0,d.P1,d.within,d.between,d.inter,d.dP]]));
 }
 
 /* =========================================================
    8. TREN SEKTOR (multi-tahun, pilih metrik & sektor)
    ========================================================= */
 const NK_TREN_METRICS = {
-  shTK:  { label:'Pangsa TK Klungkung (%)',                       dec:2, val:r=>r.shTK*100, bali:r=>r.shTKB*100 },
-  tk:    { label:'Jumlah Tenaga Kerja (orang)',                   dec:0, val:r=>r.tkK },
-  prodK: { label:'Produktivitas TK (Rp juta / pekerja)',          dec:1, val:r=>r.prodK, bali:r=>r.prodB },
-  lqTK:  { label:'LQ Tenaga Kerja',                               dec:2, val:r=>r.tkK>0 ? r.lqTK : NaN },
-  shY:   { label:'Pangsa PDRB ADHK Klungkung (%)',                dec:2, val:r=>r.shY*100, bali:r=>r.shYB*100 },
-  ip:    { label:'Indeks Produktivitas (rata-rata ekonomi = 1)',  dec:2, val:r=>r.ip }
+  shTK:  { get label(){ return trx('nkTrenMShareTk'); },  dec:2, val:r=>r.shTK*100, bali:r=>r.shTKB*100 },
+  tk:    { get label(){ return trx('nkTrenMJumlahTk'); }, dec:0, val:r=>r.tkK },
+  prodK: { get label(){ return trx('nkTrenMProdTk'); },   dec:1, val:r=>r.prodK, bali:r=>r.prodB },
+  lqTK:  { get label(){ return trx('nkTrenMLqTk'); },     dec:2, val:r=>r.tkK>0 ? r.lqTK : NaN },
+  shY:   { get label(){ return trx('nkTrenMSharePdrb'); },dec:2, val:r=>r.shY*100, bali:r=>r.shYB*100 },
+  ip:    { get label(){ return trx('nkTrenMIp'); },       dec:2, val:r=>r.ip }
 };
 const NK_TREN_MAX = 10;
 
@@ -16551,8 +16703,8 @@ function nkTrenDraw(){
   const datasets = [];
   const grays = ['#9CA3AF','#6B7280','#C4C9D1','#4B5563','#B0B6BF','#7B8290','#D3D7DD','#5F6673','#A6ACB6','#888F9C'];
   series.forEach((se,i)=>{
-    datasets.push({ label:se.s, data:se.vals, borderColor:se.color, backgroundColor:se.color, pointRadius:0, pointHoverRadius:5, tension:0.3, spanGaps:false });
-    if(withBali) datasets.push({ label:`${se.s} (Bali)`, data:se.bali, borderColor:grays[i % grays.length], backgroundColor:grays[i % grays.length], borderWidth:1.5, pointRadius:0, pointHoverRadius:4, tension:0.3, spanGaps:false });
+    datasets.push({ label:dSub(se.s), data:se.vals, borderColor:se.color, backgroundColor:se.color, pointRadius:0, pointHoverRadius:5, tension:0.3, spanGaps:false });
+    if(withBali) datasets.push({ label:`${dSub(se.s)} (Bali)`, data:se.bali, borderColor:grays[i % grays.length], backgroundColor:grays[i % grays.length], borderWidth:1.5, pointRadius:0, pointHoverRadius:4, tension:0.3, spanGaps:false });
   });
   nkMakeChart('tren', 'nkTrenCanvas', {
     type:'line',
@@ -16565,10 +16717,10 @@ function nkTrenDraw(){
     plugins:[nkYearBandPlugin(D.years, nkYear)]
   });
 
-  const head = `<thead><tr><th>Sektor</th>${D.years.map(y=>`<th style="text-align:center;${y===nkYear?'text-decoration:underline;':''}">${y}</th>`).join('')}</tr></thead>`;
+  const head = `<thead><tr><th>${trx('thSektor')}</th>${D.years.map(y=>`<th style="text-align:center;${y===nkYear?'text-decoration:underline;':''}">${y}</th>`).join('')}</tr></thead>`;
   const line = (name, vals) => `<tr><td>${escapeHtml(name)}</td>${vals.map((v,i)=>`<td style="${D.years[i]===nkYear?'font-weight:800;color:var(--brown);':''}">${nkF(v, m.dec)}</td>`).join('')}</tr>`;
   document.getElementById('nkTrenTable').innerHTML = head + `<tbody>${
-    series.map(se=> line(se.s, se.vals) + (withBali ? line(se.s+' (Bali)', se.bali) : '')).join('')}</tbody>`;
+    series.map(se=> line(dSub(se.s), se.vals) + (withBali ? line(dSub(se.s)+' (Bali)', se.bali) : '')).join('')}</tbody>`;
 }
 function renderNkTren(){
   const body = document.getElementById('nkBody');
@@ -16581,24 +16733,24 @@ function renderNkTren(){
 
   body.innerHTML = `
     <div class="ss-controls">
-      <div class="ctrl-item"><label>Metrik</label><select id="nkTrenMetricSel">${Object.keys(NK_TREN_METRICS).map(k=>`<option value="${k}" ${k===nkTrenMetric?'selected':''}>${escapeHtml(NK_TREN_METRICS[k].label)}</option>`).join('')}</select></div>
+      <div class="ctrl-item"><label>${trx('nkLblMetrik')}</label><select id="nkTrenMetricSel">${Object.keys(NK_TREN_METRICS).map(k=>`<option value="${k}" ${k===nkTrenMetric?'selected':''}>${escapeHtml(NK_TREN_METRICS[k].label)}</option>`).join('')}</select></div>
       <div class="ms-dropdown" id="nkTrenDd">
         <button type="button" class="ms-dropdown-btn" id="nkTrenDdBtn"></button>
         <div class="ms-dropdown-panel" id="nkTrenDdPanel" style="max-height:340px;overflow:auto;min-width:230px;">
-          <div style="display:flex;gap:6px;margin-bottom:6px;"><button type="button" class="dl-btn" id="nkTrenTop5" style="position:static;">Top 5 TK</button></div>
-          ${D.sectors.map(s=>`<label class="ms-dropdown-item"><input type="checkbox" data-s="${escapeHtml(s)}" ${nkTrenSectors.has(s)?'checked':''}> ${escapeHtml(s)}</label>`).join('')}
+          <div style="display:flex;gap:6px;margin-bottom:6px;"><button type="button" class="dl-btn" id="nkTrenTop5" style="position:static;">${trx('nkTop5Tk')}</button></div>
+          ${D.sectors.map(s=>`<label class="ms-dropdown-item"><input type="checkbox" data-s="${escapeHtml(s)}" ${nkTrenSectors.has(s)?'checked':''}> ${escapeHtml(dSub(s))}</label>`).join('')}
         </div>
       </div>
-      <label class="ms-dropdown-item" id="nkTrenBaliWrap" style="padding:0;${m.bali?'':'display:none;'}"><input type="checkbox" id="nkTrenBaliChk" ${nkTrenBali?'checked':''}> Tampilkan pembanding Bali</label>
+      <label class="ms-dropdown-item" id="nkTrenBaliWrap" style="padding:0;${m.bali?'':'display:none;'}"><input type="checkbox" id="nkTrenBaliChk" ${nkTrenBali?'checked':''}> ${trx('nkTampilkanBali')}</label>
     </div>
     <div class="ss-section-title" id="nkTrenTitle"></div>
     ${nkChartBox('nkTrenCanvas', 380, 'nkDlTren')}
-    <div class="nk-caption">Pita berwarna menandai tahun terpilih (${nkYear}). Klik nama seri pada legenda untuk mengganti warnanya. Maksimal ${NK_TREN_MAX} sektor ditampilkan sekaligus.</div>
-    <div class="table-head-row"><span class="table-head-label">Tabel Tren</span><button class="dl-btn" id="nkTrenExcel" style="position:static;">${trx('downloadExcel')}</button></div>
+    <div class="nk-caption">${trx('nkTrenCaption').replace('{y}',nkYear).replace('{n}',NK_TREN_MAX)}</div>
+    <div class="table-head-row"><span class="table-head-label">${trx('nkTableTren')}</span><button class="dl-btn" id="nkTrenExcel" style="position:static;">${trx('downloadExcel')}</button></div>
     <div class="ss-table-wrap ss-table-scroll"><table class="ss-table nk-heat" id="nkTrenTable"></table></div>`;
 
   const updateHead = ()=>{
-    document.getElementById('nkTrenDdBtn').textContent = `🏷️ Pilih Sektor (${nkTrenSectors.size}) ▾`;
+    document.getElementById('nkTrenDdBtn').textContent = `${trx('nkPilihSektor')} (${nkTrenSectors.size}) ▾`;
     document.getElementById('nkTrenTitle').textContent = `${NK_TREN_METRICS[nkTrenMetric].label} · ${D.years[0]}–${D.years[D.years.length-1]}`;
     document.getElementById('nkTrenBaliWrap').style.display = NK_TREN_METRICS[nkTrenMetric].bali ? '' : 'none';
   };
@@ -16619,10 +16771,10 @@ function renderNkTren(){
     cb.onchange = ()=>{
       const s = cb.dataset.s;
       if(cb.checked){
-        if(nkTrenSectors.size>=NK_TREN_MAX){ cb.checked = false; alert(`Maksimal ${NK_TREN_MAX} sektor.`); return; }
+        if(nkTrenSectors.size>=NK_TREN_MAX){ cb.checked = false; alert(trx('nkMaxSektor').replace('{n}',NK_TREN_MAX)); return; }
         nkTrenSectors.add(s);
       }else{
-        if(nkTrenSectors.size<=1){ cb.checked = true; alert('Minimal 1 sektor harus dipilih.'); return; }
+        if(nkTrenSectors.size<=1){ cb.checked = true; alert(trx('nkMinSatuSektor')); return; }
         nkTrenSectors.delete(s);
       }
       updateHead(); nkTrenDraw();
@@ -16644,7 +16796,7 @@ function renderNkTren(){
       rows.push([se.s, ...se.vals.map(v=>nkX(v))]);
       if(withBali) rows.push([se.s+' (Bali)', ...se.bali.map(v=>nkX(v))]);
     });
-    exportStyledExcel(`naker_tren_${nkTrenMetric}.xlsx`, 'Tren Sektor', ['Sektor', ...D.years], rows);
+    exportStyledExcel(`naker_tren_${nkTrenMetric}.xlsx`, 'Tren Sektor', [trx('thSektor'), ...D.years], rows);
   };
 }
 
