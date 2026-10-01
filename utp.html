@@ -633,7 +633,7 @@ function handleSortClick(key) {
   renderTable();
 }
 
-function applyFilters() {
+function applyFilters(resetPage = true) {
   const definitions = getFilterDefinitions();
 
   let availableMap = {};
@@ -668,7 +668,7 @@ function applyFilters() {
   applySort();
   
   renderFilterUI(definitions, availableMap);
-  currentPage = 1;
+  if (resetPage) currentPage = 1;
   renderTable();
 }
 
@@ -1160,7 +1160,7 @@ async function saveVerifikasi(key) {
       editingKeys.delete(k);
     }
     
-    applyFilters(); 
+    applyFilters(false); 
   } catch (err) {
     console.error(err);
     alert("Gagal menyimpan beberapa data ke server. Coba lagi.");
@@ -1205,6 +1205,9 @@ function renderPagination(totalPages) {
 
   html += `<button type="button" id="nextPage" ${currentPage === totalPages ? "disabled" : ""}>Berikutnya →</button>`;
   html += `<span class="page-info">Halaman ${currentPage} dari ${totalPages}</span>`;
+  html += `<label class="page-jump-label" for="pageJumpInput">Ke halaman</label>`;
+  html += `<input type="number" id="pageJumpInput" min="1" max="${totalPages}" value="${currentPage}" aria-label="Nomor halaman" style="width:64px;padding:7px 8px;font-size:13px;">`;
+  html += `<button type="button" id="pageJumpBtn">Buka</button>`;
   pagination.innerHTML = html;
 
   document.getElementById("prevPage").addEventListener("click", () => {
@@ -1212,6 +1215,20 @@ function renderPagination(totalPages) {
   });
   document.getElementById("nextPage").addEventListener("click", () => {
     if (currentPage < totalPages) { currentPage++; renderTable(); }
+  });
+  const jumpToPage = () => {
+    const input = document.getElementById("pageJumpInput");
+    const requestedPage = Number(input.value);
+    if (!Number.isInteger(requestedPage) || requestedPage < 1 || requestedPage > totalPages) {
+      input.value = currentPage;
+      return;
+    }
+    currentPage = requestedPage;
+    renderTable();
+  };
+  document.getElementById("pageJumpBtn").addEventListener("click", jumpToPage);
+  document.getElementById("pageJumpInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") jumpToPage();
   });
   pagination.querySelectorAll(".page-btn").forEach(btn => {
     btn.addEventListener("click", () => {
