@@ -195,6 +195,9 @@
   .pg-nav button:hover:not(:disabled){background:#F3F4F6;}
   .pg-nav button:disabled{opacity:.4;cursor:not-allowed;}
   .pg-page{font-size:12.5px;color:var(--brown);font-weight:600;white-space:nowrap;}
+  .pg-jump{display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--brown-soft);white-space:nowrap;}
+  .pg-jump input{width:52px;padding:5px 6px;border:1px solid var(--line);border-radius:8px;background:var(--white);color:var(--brown);font-size:12.5px;text-align:center;}
+  .pg-jump input:disabled{opacity:.5;cursor:not-allowed;}
   table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;}
   thead th{
     position:sticky;top:0;z-index:2;background:var(--brown);color:var(--peach);
@@ -619,6 +622,9 @@
       <div class="pg-nav">
         <button type="button" id="pgPrev" onclick="goToPage(currentPage-1)">‹ Sebelumnya</button>
         <span class="pg-page" id="pgPageLabel"></span>
+        <label class="pg-jump" for="pgPageInput">Ke halaman
+          <input id="pgPageInput" type="number" min="1" inputmode="numeric" aria-label="Nomor halaman" onchange="jumpToPage(this.value)" onkeydown="if(event.key === 'Enter') jumpToPage(this.value)">
+        </label>
         <button type="button" id="pgNext" onclick="goToPage(currentPage+1)">Berikutnya ›</button>
       </div>
     </div>
@@ -807,8 +813,17 @@ function onPageSizeChange(val){
   renderTableBody();
 }
 
+function jumpToPage(value){
+  const totalPages = Math.max(1, Math.ceil(lastSortedRows.length / pageSize));
+  const requestedPage = parseInt(value, 10);
+  if(!Number.isFinite(requestedPage)) return;
+  currentPage = Math.min(totalPages, Math.max(1, requestedPage));
+  renderTableBody();
+}
+
 function goToPage(p){
-  currentPage = p;
+  const totalPages = Math.max(1, Math.ceil(lastSortedRows.length / pageSize));
+  currentPage = Math.min(totalPages, Math.max(1, Number(p) || 1));
   renderTableBody();
 }
 
@@ -1649,6 +1664,7 @@ function renderTableBody(){
 function renderPaginationBar(totalRows, totalPages){
   const pgInfo = document.getElementById('pgInfo');
   const pgPageLabel = document.getElementById('pgPageLabel');
+  const pgPageInput = document.getElementById('pgPageInput');
   const pgPrev = document.getElementById('pgPrev');
   const pgNext = document.getElementById('pgNext');
   const fPageSize = document.getElementById('fPageSize');
@@ -1657,6 +1673,8 @@ function renderPaginationBar(totalRows, totalPages){
   if(totalRows === 0){
     pgInfo.textContent = 'Tidak ada data';
     pgPageLabel.textContent = '';
+    pgPageInput.value = '';
+    pgPageInput.disabled = true;
     pgPrev.disabled = true;
     pgNext.disabled = true;
     return;
@@ -1665,6 +1683,9 @@ function renderPaginationBar(totalRows, totalPages){
   const endIdx = Math.min(currentPage * pageSize, totalRows);
   pgInfo.textContent = `Menampilkan ${startIdx.toLocaleString('id')}–${endIdx.toLocaleString('id')} dari ${totalRows.toLocaleString('id')} baris`;
   pgPageLabel.textContent = `Halaman ${currentPage} / ${totalPages}`;
+  pgPageInput.value = currentPage;
+  pgPageInput.max = totalPages;
+  pgPageInput.disabled = false;
   pgPrev.disabled = currentPage <= 1;
   pgNext.disabled = currentPage >= totalPages;
 }
