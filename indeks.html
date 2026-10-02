@@ -2941,6 +2941,49 @@ const I18N = {
     nkLblMetrik:'Metrik', nkTop5Tk:'Top 5 TK', nkTampilkanBali:'Tampilkan pembanding Bali',
     nkTrenCaption:'Pita berwarna menandai tahun terpilih ({y}). Klik nama seri pada legenda untuk mengganti warnanya. Maksimal {n} sektor ditampilkan sekaligus.',
     nkTableTren:'Tabel Tren', nkPilihSektor:'🏷️ Pilih Sektor', nkMaxSektor:'Maksimal {n} sektor.', nkMinSatuSektor:'Minimal 1 sektor harus dipilih.',
+    aiNeedCheck:'Silakan centang minimal satu indikator di panel sebelah kiri.',
+    aiTitlePerformance:'📊 Ringkasan Kinerja Lintas Indikator', aiRangeAnalisis:'Rentang analisis', aiNormalizeNote:' Grafik menggunakan indeks dengan nilai awal 100; analisis berikut tetap memakai perubahan nilai asli tiap indikator.',
+    aiTitleCoverage:'🧾 Kelengkapan Data &amp; Cakupan', aiCoverageIntro:'Periode yang memiliki data pada <b>semua indikator terpilih</b>: {n} dari {exp} ({pct}%).',
+    aiCoverageItem:'<b>{name}</b>: {n} dari {exp} periode ({pct}%).',
+    aiChangeSummary:'Dari {n} indikator yang persentase perubahannya bisa dihitung (nilai awal positif), <b>{rising} naik</b>, <b>{falling} turun</b>, dan <b>{unchanged} tidak berubah</b>. Perubahan kumulatif tertinggi: <b>{hi}</b> ({hiPct}%); terendah: <b>{lo}</b> ({loPct}%).{excl}',
+    aiChangeExcl:' {n} indikator lain tidak disertakan di sini karena nilai awalnya nol atau negatif — lihat baris "Tren, Rentang, dan Laju Tahunan" di bawah untuk indikator tersebut.',
+    aiChangeNone:'Perubahan persentase kumulatif tidak dapat dihitung karena nilai awal semua indikator bernilai nol atau negatif (basis persentase tidak wajar untuk kasus ini).',
+    aiTitleTrend:'📈 Tren, Rentang, dan Laju Tahunan',
+    aiTrendNoPct:'persentase kumulatif tidak dapat dihitung (basis awal nol/negatif)', aiTrendUp:'meningkat <b>+{v}%</b>', aiTrendDown:'menurun <b>{v}%</b>', aiTrendFlat:'tidak berubah',
+    aiCagrNone:'CAGR belum dapat dihitung untuk rentang ini', aiCagrVal:'CAGR <b>{v}%/tahun</b>',
+    aiTrendItem:'<b>{name}</b>: {trend} dari <b>{first}</b> ke <b>{last}</b>; {cagr}. Rentang nilai <b>{min}–{max} {unit}</b> (terendah {minLbl}, tertinggi {maxLbl}).',
+    aiTitleMomentum:'⏱ Perubahan Terbaru &amp; Momentum',
+    aiRecentChange:'Perubahan terbaru ({prev} → {last}): {v} {unit}', aiPctNone:' (persentase tidak tersedia: basis sebelumnya nol/negatif)',
+    aiYoy:'YoY terhadap {prior}: {v} {unit}', aiPctNoneYoy:' (persentase tidak tersedia: basis tahun lalu nol/negatif)',
+    aiMomentum:'Rata-rata 3 observasi terbaru {recent} dibanding {prev} pada 3 sebelumnya',
+    aiTitleVolatility:'📈 Volatilitas Tiap Indikator', aiVolStabil:'stabil', aiVolFluktuatif:'cukup fluktuatif', aiVolSedikit:'sedikit berfluktuasi', aiVolItem:'<b>{name}</b>: {w} (CV ≈ {v}%)',
+    aiTitleQuadrant:'▦ Kuadran Pertumbuhan &amp; Volatilitas', aiQuadrantIntro:'Posisi relatif terhadap median indikator terpilih: pertumbuhan {g}% dan CV {v}%.',
+    aiQ1:'pertumbuhan dan volatilitas relatif tinggi', aiQ2:'pertumbuhan relatif tinggi, volatilitas lebih rendah', aiQ3:'pertumbuhan relatif rendah, volatilitas lebih tinggi', aiQ4:'pertumbuhan dan volatilitas relatif rendah',
+    aiQuadrantItem:'<b>{name}</b>: {g} ({p}%; CV {cv}%).',
+    aiTitleConverge:'↔ Konvergensi / Divergensi Kinerja', aiConvMelebar:'melebar (divergen)', aiConvMenyempit:'menyempit (konvergen)', aiConvTetap:'relatif tetap',
+    aiConvNote:'Setelah tiap seri diindeks ke 100 pada periode bersama pertama, rentang antarindeks kini <b>{v} poin</b> dan {dir} {d} poin sejak observasi bersama sebelumnya. Ini membandingkan laju relatif, bukan level atau satuan asli.',
+    aiTitleLag:'⇢ Hubungan Tertunda Satu Periode', aiLagItem:'<b>{a}</b> mendahului <b>{b}</b>: r = {r} ({n} pasangan periode).',
+    aiLagNote:'Asosiasi dengan jeda satu periode bersifat eksploratif, bukan bukti sebab-akibat; tren bersama dapat memengaruhi korelasi.',
+    aiTitleCorr:'🔗 Korelasi Antar Indikator', aiCorrFlat:'nyaris tidak berkorelasi', aiCorrUpStrong:'bergerak searah dengan kuat', aiCorrUp:'cenderung bergerak searah', aiCorrDownStrong:'bergerak berlawanan arah dengan kuat (trade-off)', aiCorrDown:'cenderung bergerak berlawanan arah',
+    aiCorrItem:'<b>{a}</b> vs <b>{b}</b>: <span class="{cls}" style="font-weight:700;">{w}</span> (r = {r}, {n} periode bersama)',
+    aiTitleReko:'🔍 Catatan Komparasi &amp; Rekomendasi Analisis',
+    aiRekoOne:'Anda sedang memantau satu indikator tunggal. Tambahkan indikator pembanding lain di panel sebelah kiri untuk melihat pola korelasi atau divergensi antar variabel.',
+    aiRekoMulti:'Dengan membandingkan <b>{n} indikator terpilih</b>, Anda dapat mengamati apakah pergerakan variabel-variabel ini saling sejalan (sinkron) atau bergerak secara berlawanan (trade-off). Perhatikan bahwa korelasi statistik di atas tidak selalu menunjukkan hubungan sebab-akibat.',
+    cmpTitle:'Bandingkan Indikator', cmpIntro:'Pilih beberapa indikator dari periode yang sama untuk melihat trennya berdampingan dalam satu grafik.',
+    cmpLblPeriode:'Periode', cmpLblDari:'Dari', cmpLblSampai:'Sampai', cmpLblJenisGrafik:'Jenis Grafik',
+    cmpTypeLine:'Garis', cmpTypeArea:'Area Terisi', cmpTypeSpline:'Kurva Halus', cmpTypeBar:'Batang', cmpTypeRoundedBar:'Batang Bulat',
+    cmpTypeStackedBar:'Stacked Bar', cmpTypeStackedBar100:'Stacked Bar 100%', cmpTypeBullet:'Bullet Chart', cmpTypeSteppedArea:'Tangga', cmpTypeDashedArea:'Putus-putus',
+    cmpTypeScatter:'Sebar (Scatter)', cmpTypeCatScatter:'Sebar Kategorikal', cmpTypeDotPlot:'Dot Plot', cmpTypeLollipop:'Lollipop', cmpTypeBubbleTs:'Bubble Time Series',
+    cmpTypePureBubble:'Bubble Murni', cmpTypeSlope:'Slope (Awal vs Akhir)', cmpTypeRangePlot:'Range Plot', cmpTypeWaterfall:'Waterfall (Bridge)', cmpTypeFunnel:'Funnel (Ranking)',
+    cmpTypeSurface:'Surface (Heatmap)', cmpTypeRadar:'Radar', cmpTypePolarArea:'Polar Area', cmpTypeRadialBar:'Radial Bar', cmpTypeDiverging:'Diverging Bar',
+    cmpTypeCombo:'Combo Bar+Garis', cmpTypePareto:'Pareto', cmpTypeBump:'Bump (Ranking)', cmpTypeStackedArea:'Stacked Area', cmpTypeStream:'Stream', cmpTypeMarimekko:'Marimekko',
+    cmpLblIndeks:'Indeks (awal = 100)', cmpBtnHapus:'Hapus pilihan',
+    cmpSuggestPrefix:'Disarankan:', cmpSuggestApply:'Pakai saran',
+    cmpEmptyState:'Pilih minimal satu indikator di samping untuk mulai membandingkan.',
+    cmpAiTitle:'✨ Data Insight', cmpAiPlaceholder:'Pilih indikator untuk melihat analisis.',
+    cmpTableTitle:'Tabel Data Perbandingan', cmpTableDlTitle:'Unduh tabel sebagai Excel',
+    infTitle:'Analisis Inferensia', infIntro:'Uji hubungan statistik antar indikator kuantitatif dengan regresi linear atau ramalkan trennya dengan AR/MA/ARIMA.',
+    infLblMetode:'Metode', infMetodeRegresi:'Regresi Linear', infMetodeArima:'AR / MA / ARIMA', infMetodeArimax:'ARIMAX', infMetodeMatriks:'Matriks Korelasi',
     definisi:'Definisi', noDefinition:'Belum ada deskripsi definisi untuk indikator ini.', cmpDefsTitle:'Definisi Indikator Terpilih',
     filterShowData:'Tampilkan Data', filterShowAll:'Tampilkan Semua', filterToggle:'semua/tidak',
     convTitle:'Konvergensi',
@@ -3343,6 +3386,49 @@ const I18N = {
     nkLblMetrik:'Metric', nkTop5Tk:'Top 5 Labor', nkTampilkanBali:'Show Bali comparison',
     nkTrenCaption:'The highlighted band marks the selected year ({y}). Click a series name in the legend to change its color. Up to {n} sectors can be shown at once.',
     nkTableTren:'Trend Table', nkPilihSektor:'🏷️ Choose Sectors', nkMaxSektor:'Maximum {n} sectors.', nkMinSatuSektor:'At least 1 sector must be selected.',
+    aiNeedCheck:'Check at least one indicator in the panel on the left.',
+    aiTitlePerformance:'📊 Cross-Indicator Performance Summary', aiRangeAnalisis:'Analysis range', aiNormalizeNote:' The chart uses an index with a starting value of 100; the analysis below still uses each indicator\'s actual value changes.',
+    aiTitleCoverage:'🧾 Data Completeness &amp; Coverage', aiCoverageIntro:'Periods with data for <b>all selected indicators</b>: {n} of {exp} ({pct}%).',
+    aiCoverageItem:'<b>{name}</b>: {n} of {exp} periods ({pct}%).',
+    aiChangeSummary:'Of {n} indicators whose percentage change could be computed (positive starting value), <b>{rising} rose</b>, <b>{falling} fell</b>, and <b>{unchanged} were unchanged</b>. Largest cumulative change: <b>{hi}</b> ({hiPct}%); smallest: <b>{lo}</b> ({loPct}%).{excl}',
+    aiChangeExcl:' {n} other indicator(s) are not included here because their starting value is zero or negative — see the "Trend, Range, and Annual Rate" row below for those indicators.',
+    aiChangeNone:'The cumulative percentage change cannot be computed because the starting value of all indicators is zero or negative (an unreasonable base for a percentage in this case).',
+    aiTitleTrend:'📈 Trend, Range, and Annual Rate',
+    aiTrendNoPct:'cumulative percentage cannot be computed (zero/negative starting base)', aiTrendUp:'rose <b>+{v}%</b>', aiTrendDown:'fell <b>{v}%</b>', aiTrendFlat:'unchanged',
+    aiCagrNone:'CAGR could not be computed for this range', aiCagrVal:'CAGR <b>{v}%/year</b>',
+    aiTrendItem:'<b>{name}</b>: {trend} from <b>{first}</b> to <b>{last}</b>; {cagr}. Value range <b>{min}–{max} {unit}</b> (lowest {minLbl}, highest {maxLbl}).',
+    aiTitleMomentum:'⏱ Latest Change &amp; Momentum',
+    aiRecentChange:'Latest change ({prev} → {last}): {v} {unit}', aiPctNone:' (percentage unavailable: previous base is zero/negative)',
+    aiYoy:'YoY vs. {prior}: {v} {unit}', aiPctNoneYoy:' (percentage unavailable: prior-year base is zero/negative)',
+    aiMomentum:'Average of the latest 3 observations {recent} vs. {prev} in the previous 3',
+    aiTitleVolatility:'📈 Volatility by Indicator', aiVolStabil:'stable', aiVolFluktuatif:'fairly volatile', aiVolSedikit:'somewhat volatile', aiVolItem:'<b>{name}</b>: {w} (CV ≈ {v}%)',
+    aiTitleQuadrant:'▦ Growth &amp; Volatility Quadrant', aiQuadrantIntro:'Position relative to the median of selected indicators: growth {g}% and CV {v}%.',
+    aiQ1:'relatively high growth and volatility', aiQ2:'relatively high growth, lower volatility', aiQ3:'relatively low growth, higher volatility', aiQ4:'relatively low growth and volatility',
+    aiQuadrantItem:'<b>{name}</b>: {g} ({p}%; CV {cv}%).',
+    aiTitleConverge:'↔ Performance Convergence / Divergence', aiConvMelebar:'widening (diverging)', aiConvMenyempit:'narrowing (converging)', aiConvTetap:'relatively unchanged',
+    aiConvNote:'After indexing each series to 100 at the first shared period, the spread between indices is now <b>{v} points</b> and has {dir} by {d} points since the previous shared observation. This compares relative rates, not levels or original units.',
+    aiTitleLag:'⇢ One-Period Lagged Relationship', aiLagItem:'<b>{a}</b> leads <b>{b}</b>: r = {r} ({n} period pairs).',
+    aiLagNote:'A one-period lag association is exploratory, not evidence of causation; shared trends can inflate correlation.',
+    aiTitleCorr:'🔗 Correlation Between Indicators', aiCorrFlat:'barely correlated', aiCorrUpStrong:'move strongly together', aiCorrUp:'tend to move together', aiCorrDownStrong:'move strongly in opposite directions (trade-off)', aiCorrDown:'tend to move in opposite directions',
+    aiCorrItem:'<b>{a}</b> vs <b>{b}</b>: <span class="{cls}" style="font-weight:700;">{w}</span> (r = {r}, {n} shared periods)',
+    aiTitleReko:'🔍 Comparison Notes &amp; Analysis Recommendations',
+    aiRekoOne:'You\'re currently tracking a single indicator. Add another comparison indicator in the panel on the left to see correlation or divergence patterns between variables.',
+    aiRekoMulti:'By comparing <b>{n} selected indicators</b>, you can observe whether these variables move together (in sync) or in opposite directions (trade-off). Note that the statistical correlations above don\'t always indicate causation.',
+    cmpTitle:'Compare Indicators', cmpIntro:'Pick several indicators from the same period to see their trends side by side on one chart.',
+    cmpLblPeriode:'Period', cmpLblDari:'From', cmpLblSampai:'To', cmpLblJenisGrafik:'Chart Type',
+    cmpTypeLine:'Line', cmpTypeArea:'Filled Area', cmpTypeSpline:'Smooth Curve', cmpTypeBar:'Bar', cmpTypeRoundedBar:'Rounded Bar',
+    cmpTypeStackedBar:'Stacked Bar', cmpTypeStackedBar100:'100% Stacked Bar', cmpTypeBullet:'Bullet Chart', cmpTypeSteppedArea:'Stepped', cmpTypeDashedArea:'Dashed',
+    cmpTypeScatter:'Scatter', cmpTypeCatScatter:'Categorical Scatter', cmpTypeDotPlot:'Dot Plot', cmpTypeLollipop:'Lollipop', cmpTypeBubbleTs:'Bubble Time Series',
+    cmpTypePureBubble:'Pure Bubble', cmpTypeSlope:'Slope (Start vs. End)', cmpTypeRangePlot:'Range Plot', cmpTypeWaterfall:'Waterfall (Bridge)', cmpTypeFunnel:'Funnel (Ranking)',
+    cmpTypeSurface:'Surface (Heatmap)', cmpTypeRadar:'Radar', cmpTypePolarArea:'Polar Area', cmpTypeRadialBar:'Radial Bar', cmpTypeDiverging:'Diverging Bar',
+    cmpTypeCombo:'Combo Bar+Line', cmpTypePareto:'Pareto', cmpTypeBump:'Bump (Ranking)', cmpTypeStackedArea:'Stacked Area', cmpTypeStream:'Stream', cmpTypeMarimekko:'Marimekko',
+    cmpLblIndeks:'Index (start = 100)', cmpBtnHapus:'Clear selection',
+    cmpSuggestPrefix:'Suggested:', cmpSuggestApply:'Use suggestion',
+    cmpEmptyState:'Pick at least one indicator on the side to start comparing.',
+    cmpAiTitle:'✨ Data Insight', cmpAiPlaceholder:'Pick an indicator to see the analysis.',
+    cmpTableTitle:'Comparison Data Table', cmpTableDlTitle:'Download the table as Excel',
+    infTitle:'Inference Analysis', infIntro:'Test statistical relationships between quantitative indicators with linear regression, or forecast their trend with AR/MA/ARIMA.',
+    infLblMetode:'Method', infMetodeRegresi:'Linear Regression', infMetodeArima:'AR / MA / ARIMA', infMetodeArimax:'ARIMAX', infMetodeMatriks:'Correlation Matrix',
     definisi:'Definition', noDefinition:'No definition is available for this indicator yet.', cmpDefsTitle:'Selected Indicator Definitions',
     filterShowData:'Show Data', filterShowAll:'Show All', filterToggle:'all/none',
     convTitle:'Convergence',
@@ -8375,22 +8461,22 @@ function renderInferensiaView(){
   main.innerHTML = `
     <section class="compare-wrap">
       <div class="compare-intro">
-        <h2>Analisis Inferensia</h2>
-        <p>Uji hubungan statistik antar indikator kuantitatif dengan regresi linear atau ramalkan trennya dengan AR/MA/ARIMA.</p>
+        <h2>${trx('infTitle')}</h2>
+        <p>${trx('infIntro')}</p>
       </div>
       <div class="compare-controls">
-        <div class="ctrl-item"><label>Metode</label>
+        <div class="ctrl-item"><label>${trx('infLblMetode')}</label>
           <div class="inf-transform-btns">
-            <button type="button" class="inf-tbtn ${infMethod==='regresi'?'active':''}" id="infMethodRegresi">Regresi Linear</button>
-            <button type="button" class="inf-tbtn ${infMethod==='arima'?'active':''}" id="infMethodArima">AR / MA / ARIMA</button>
-            <button type="button" class="inf-tbtn ${infMethod==='arimax'?'active':''}" id="infMethodArimax">ARIMAX</button>
-            <button type="button" class="inf-tbtn ${infMethod==='matriks'?'active':''}" id="infMethodMatriks">Matriks Korelasi</button>
+            <button type="button" class="inf-tbtn ${infMethod==='regresi'?'active':''}" id="infMethodRegresi">${trx('infMetodeRegresi')}</button>
+            <button type="button" class="inf-tbtn ${infMethod==='arima'?'active':''}" id="infMethodArima">${trx('infMetodeArima')}</button>
+            <button type="button" class="inf-tbtn ${infMethod==='arimax'?'active':''}" id="infMethodArimax">${trx('infMetodeArimax')}</button>
+            <button type="button" class="inf-tbtn ${infMethod==='matriks'?'active':''}" id="infMethodMatriks">${trx('infMetodeMatriks')}</button>
           </div>
         </div>
-        <div class="ctrl-item"><label>Periode</label><select id="infPeriodeSel"></select></div>
-        <div class="ctrl-item"><label>Dari</label><select id="infFromSel"></select>${infIsQuarterly?'<select id="infFromTWSel">'+twOptions(infFromTW)+'</select>':''}</div>
-        <div class="ctrl-item"><label>Sampai</label><select id="infToSel"></select>${infIsQuarterly?'<select id="infToTWSel">'+twOptions(infToTW)+'</select>':''}</div>
-        <button class="cmp-clear" id="infClear">Hapus pilihan</button>
+        <div class="ctrl-item"><label>${trx('cmpLblPeriode')}</label><select id="infPeriodeSel"></select></div>
+        <div class="ctrl-item"><label>${trx('cmpLblDari')}</label><select id="infFromSel"></select>${infIsQuarterly?'<select id="infFromTWSel">'+twOptions(infFromTW)+'</select>':''}</div>
+        <div class="ctrl-item"><label>${trx('cmpLblSampai')}</label><select id="infToSel"></select>${infIsQuarterly?'<select id="infToTWSel">'+twOptions(infToTW)+'</select>':''}</div>
+        <button class="cmp-clear" id="infClear">${trx('cmpBtnHapus')}</button>
       </div>
       <div id="infSectionBody"></div>
     </section>
@@ -9255,53 +9341,53 @@ function renderCompareView(){
   main.innerHTML = `
     <section class="compare-wrap">
       <div class="compare-intro">
-        <h2>Bandingkan Indikator</h2>
-        <p>Pilih beberapa indikator dari periode yang sama untuk melihat trennya berdampingan dalam satu grafik.</p>
+        <h2>${trx('cmpTitle')}</h2>
+        <p>${trx('cmpIntro')}</p>
       </div>
       <div class="compare-controls">
-        <div class="ctrl-item"><label>Periode</label><select id="cmpPeriode"></select></div>
-        <div class="ctrl-item"><label>Dari</label><select id="cmpFrom"></select>${compareIsQuarterly?'<select id="cmpFromTW">'+cmpTwOptions(compareFromTW)+'</select>':''}</div>
-        <div class="ctrl-item"><label>Sampai</label><select id="cmpTo"></select>${compareIsQuarterly?'<select id="cmpToTW">'+cmpTwOptions(compareToTW)+'</select>':''}</div>
-        <div class="ctrl-item"><label>Jenis Grafik</label><select id="cmpChartType">
-          <option value="line">Garis</option>
-          <option value="area">Area Terisi</option>
-          <option value="spline">Kurva Halus</option>
-          <option value="bar">Batang</option>
-          <option value="rounded-bar">Batang Bulat</option>
-          <option value="stacked-bar">Stacked Bar</option>
-          <option value="stacked-bar-100">Stacked Bar 100%</option>
-          <option value="bullet">Bullet Chart</option>
-          <option value="stepped-area">Tangga</option>
-          <option value="dashed-area">Putus-putus</option>
-          <option value="scatter">Sebar (Scatter)</option>
-          <option value="categorical-scatter">Sebar Kategorikal</option>
-          <option value="dot-plot">Dot Plot</option>
-          <option value="lollipop">Lollipop</option>
-          <option value="bubble-ts">Bubble Time Series</option>
-          <option value="pure-bubble">Bubble Murni</option>
-          <option value="slope">Slope (Awal vs Akhir)</option>
-          <option value="range-plot">Range Plot</option>
-          <option value="waterfall">Waterfall (Bridge)</option>
-          <option value="funnel">Funnel (Ranking)</option>
-          <option value="surface">Surface (Heatmap)</option>
-          <option value="radar">Radar</option>
-          <option value="polar-area">Polar Area</option>
-          <option value="radial-bar">Radial Bar</option>
-          <option value="diverging-bar">Diverging Bar</option>
-          <option value="combo">Combo Bar+Garis</option>
-          <option value="pareto">Pareto</option>
-          <option value="bump">Bump (Ranking)</option>
-          <option value="stacked-area">Stacked Area</option>
-          <option value="stream">Stream</option>
-          <option value="marimekko">Marimekko</option>
+        <div class="ctrl-item"><label>${trx('cmpLblPeriode')}</label><select id="cmpPeriode"></select></div>
+        <div class="ctrl-item"><label>${trx('cmpLblDari')}</label><select id="cmpFrom"></select>${compareIsQuarterly?'<select id="cmpFromTW">'+cmpTwOptions(compareFromTW)+'</select>':''}</div>
+        <div class="ctrl-item"><label>${trx('cmpLblSampai')}</label><select id="cmpTo"></select>${compareIsQuarterly?'<select id="cmpToTW">'+cmpTwOptions(compareToTW)+'</select>':''}</div>
+        <div class="ctrl-item"><label>${trx('cmpLblJenisGrafik')}</label><select id="cmpChartType">
+          <option value="line">${trx('cmpTypeLine')}</option>
+          <option value="area">${trx('cmpTypeArea')}</option>
+          <option value="spline">${trx('cmpTypeSpline')}</option>
+          <option value="bar">${trx('cmpTypeBar')}</option>
+          <option value="rounded-bar">${trx('cmpTypeRoundedBar')}</option>
+          <option value="stacked-bar">${trx('cmpTypeStackedBar')}</option>
+          <option value="stacked-bar-100">${trx('cmpTypeStackedBar100')}</option>
+          <option value="bullet">${trx('cmpTypeBullet')}</option>
+          <option value="stepped-area">${trx('cmpTypeSteppedArea')}</option>
+          <option value="dashed-area">${trx('cmpTypeDashedArea')}</option>
+          <option value="scatter">${trx('cmpTypeScatter')}</option>
+          <option value="categorical-scatter">${trx('cmpTypeCatScatter')}</option>
+          <option value="dot-plot">${trx('cmpTypeDotPlot')}</option>
+          <option value="lollipop">${trx('cmpTypeLollipop')}</option>
+          <option value="bubble-ts">${trx('cmpTypeBubbleTs')}</option>
+          <option value="pure-bubble">${trx('cmpTypePureBubble')}</option>
+          <option value="slope">${trx('cmpTypeSlope')}</option>
+          <option value="range-plot">${trx('cmpTypeRangePlot')}</option>
+          <option value="waterfall">${trx('cmpTypeWaterfall')}</option>
+          <option value="funnel">${trx('cmpTypeFunnel')}</option>
+          <option value="surface">${trx('cmpTypeSurface')}</option>
+          <option value="radar">${trx('cmpTypeRadar')}</option>
+          <option value="polar-area">${trx('cmpTypePolarArea')}</option>
+          <option value="radial-bar">${trx('cmpTypeRadialBar')}</option>
+          <option value="diverging-bar">${trx('cmpTypeDiverging')}</option>
+          <option value="combo">${trx('cmpTypeCombo')}</option>
+          <option value="pareto">${trx('cmpTypePareto')}</option>
+          <option value="bump">${trx('cmpTypeBump')}</option>
+          <option value="stacked-area">${trx('cmpTypeStackedArea')}</option>
+          <option value="stream">${trx('cmpTypeStream')}</option>
+          <option value="marimekko">${trx('cmpTypeMarimekko')}</option>
         </select></div>
-        <label class="cmp-normalize"><input type="checkbox" id="cmpNormalize"> Indeks (awal = 100)</label>
-        <button class="cmp-clear" id="cmpClear">Hapus pilihan</button>
+        <label class="cmp-normalize"><input type="checkbox" id="cmpNormalize"> ${trx('cmpLblIndeks')}</label>
+        <button class="cmp-clear" id="cmpClear">${trx('cmpBtnHapus')}</button>
       </div>
       <div class="cmp-suggest" id="cmpSuggest" style="display:none;">
         <span class="cmp-suggest-icon" id="cmpSuggestIcon">💡</span>
-        <span><span id="cmpSuggestPrefix">Disarankan:</span> <b id="cmpSuggestLabel"></b> — <span id="cmpSuggestReason"></span></span>
-        <button class="cmp-suggest-btn" id="cmpSuggestApply">Pakai saran</button>
+        <span><span id="cmpSuggestPrefix">${trx('cmpSuggestPrefix')}</span> <b id="cmpSuggestLabel"></b> — <span id="cmpSuggestReason"></span></span>
+        <button class="cmp-suggest-btn" id="cmpSuggestApply">${trx('cmpSuggestApply')}</button>
       </div>
       <div class="compare-body">
         <div class="compare-picker" id="cmpPicker"></div>
@@ -9312,12 +9398,12 @@ function renderCompareView(){
               <canvas id="compareChart"></canvas>
             </div>
           </div>
-          <div class="compare-empty" id="cmpEmpty">Pilih minimal satu indikator di samping untuk mulai membandingkan.</div>
+          <div class="compare-empty" id="cmpEmpty">${trx('cmpEmptyState')}</div>
           
           <div class="cmp-info-grid" id="cmpInfoGrid" style="display:none;">
             <div class="ai-insight-box">
-              <div class="ai-insight-title">✨ Data Insight</div>
-              <div class="ai-insight-content" id="aiInsightText">Pilih indikator untuk melihat analisis.</div>
+              <div class="ai-insight-title">${trx('cmpAiTitle')}</div>
+              <div class="ai-insight-content" id="aiInsightText">${trx('cmpAiPlaceholder')}</div>
             </div>
             <div class="compare-defs-box">
               <div class="compare-defs-title">${trx('cmpDefsTitle')}</div>
@@ -9327,8 +9413,8 @@ function renderCompareView(){
 
           <div class="compare-defs-box" id="cmpDataTableBox" style="display:none;margin-top:14px;">
             <div class="compare-defs-title table-head-row" style="margin-top:0;">
-              <span>Tabel Data Perbandingan</span>
-              <button class="dl-btn" id="dlCompareTable" title="Unduh tabel sebagai Excel">⬇ XLSX</button>
+              <span>${trx('cmpTableTitle')}</span>
+              <button class="dl-btn" id="dlCompareTable" title="${trx('cmpTableDlTitle')}">⬇ XLSX</button>
             </div>
             <div class="ss-table-wrap" id="cmpDataTableWrap" style="margin-top:8px;max-height:340px;overflow:auto;"></div>
           </div>
@@ -10705,13 +10791,13 @@ function generateAdvancedAIInsight(dataList){
   if(!textEl) return;
 
   if(!dataList || dataList.length === 0){
-    textEl.innerHTML = `Silakan centang minimal satu indikator di panel sebelah kiri.`;
+    textEl.innerHTML = trx('aiNeedCheck');
     return;
   }
 
-  let html = `<span class="insight-section-title">📊 Ringkasan Kinerja Lintas Indikator</span>`;
-  html += `<div class="insight-intro">Rentang analisis: <b>${compareRangeLabel()}</b>.`;
-  if(normalizeCompare) html += ` Grafik menggunakan indeks dengan nilai awal 100; analisis berikut tetap memakai perubahan nilai asli tiap indikator.`;
+  let html = `<span class="insight-section-title">${trx('aiTitlePerformance')}</span>`;
+  html += `<div class="insight-intro">${trx('aiRangeAnalisis')}: <b>${compareRangeLabel()}</b>.`;
+  if(normalizeCompare) html += trx('aiNormalizeNote');
   html += `</div>`;
 
   const periodMaps = dataList.map(item=>new Map((item.periodEntries||[]).map(entry=>[sortKey(entry),entry])));
@@ -10723,11 +10809,11 @@ function generateAdvancedAIInsight(dataList){
     : Math.max(0,compareTo-compareFrom+1));
   if(expectedPeriods > 0){
     const sharedPct = commonPeriods.length/expectedPeriods*100;
-    html += `<span class="insight-section-title">🧾 Kelengkapan Data &amp; Cakupan</span>`;
-    html += `<div class="insight-intro">Periode yang memiliki data pada <b>semua indikator terpilih</b>: ${commonPeriods.length} dari ${expectedPeriods} (${sharedPct.toFixedID(1)}%).</div>`;
+    html += `<span class="insight-section-title">${trx('aiTitleCoverage')}</span>`;
+    html += `<div class="insight-intro">${trx('aiCoverageIntro').replace('{n}',commonPeriods.length).replace('{exp}',expectedPeriods).replace('{pct}',sharedPct.toFixedID(1))}</div>`;
     html += `<ul class="insight-list">` + dataList.map((item,index)=>{
       const count = periodMaps[index].size;
-      return `<li><b>${escapeHtml(item.name)}</b>: ${count} dari ${expectedPeriods} periode (${(count/expectedPeriods*100).toFixedID(1)}%).</li>`;
+      return `<li>${trx('aiCoverageItem').replace('{name}',escapeHtml(item.name)).replace('{n}',count).replace('{exp}',expectedPeriods).replace('{pct}',(count/expectedPeriods*100).toFixedID(1))}</li>`;
     }).join('') + `</ul>`;
   }
 
@@ -10738,24 +10824,24 @@ function generateAdvancedAIInsight(dataList){
     const unchanged = comparable.filter(item=>item.pct===0).length;
     const ranked = comparable.slice().sort((a,b)=>b.pct-a.pct);
     const excluded = dataList.length - comparable.length;
-    html += `<div class="insight-note">Dari ${comparable.length} indikator yang persentase perubahannya bisa dihitung (nilai awal positif), <b>${rising} naik</b>, <b>${falling} turun</b>, dan <b>${unchanged} tidak berubah</b>. Perubahan kumulatif tertinggi: <b>${escapeHtml(ranked[0].name)}</b> (${ranked[0].pct>0?'+':''}${ranked[0].pct.toFixedID(1)}%); terendah: <b>${escapeHtml(ranked[ranked.length-1].name)}</b> (${ranked[ranked.length-1].pct>0?'+':''}${ranked[ranked.length-1].pct.toFixedID(1)}%).${excluded>0?` ${excluded} indikator lain tidak disertakan di sini karena nilai awalnya nol atau negatif — lihat baris "Tren, Rentang, dan Laju Tahunan" di bawah untuk indikator tersebut.`:''}</div>`;
+    html += `<div class="insight-note">${trx('aiChangeSummary').replace('{n}',comparable.length).replace('{rising}',rising).replace('{falling}',falling).replace('{unchanged}',unchanged).replace('{hi}',escapeHtml(ranked[0].name)).replace('{hiPct}',(ranked[0].pct>0?'+':'')+ranked[0].pct.toFixedID(1)).replace('{lo}',escapeHtml(ranked[ranked.length-1].name)).replace('{loPct}',(ranked[ranked.length-1].pct>0?'+':'')+ranked[ranked.length-1].pct.toFixedID(1)).replace('{excl}', excluded>0?trx('aiChangeExcl').replace('{n}',excluded):'')}</div>`;
   }else{
-    html += `<div class="insight-note">Perubahan persentase kumulatif tidak dapat dihitung karena nilai awal semua indikator bernilai nol atau negatif (basis persentase tidak wajar untuk kasus ini).</div>`;
+    html += `<div class="insight-note">${trx('aiChangeNone')}</div>`;
   }
 
-  html += `<span class="insight-section-title">📈 Tren, Rentang, dan Laju Tahunan</span><ul class="insight-list">`;
+  html += `<span class="insight-section-title">${trx('aiTitleTrend')}</span><ul class="insight-list">`;
   dataList.forEach(item=>{
-    let trendText = item.pct === null ? 'persentase kumulatif tidak dapat dihitung (basis awal nol/negatif)' :
-      (item.pct > 0 ? `meningkat <b>+${item.pct.toFixedID(1)}%</b>` : (item.pct < 0 ? `menurun <b>${item.pct.toFixedID(1)}%</b>` : 'tidak berubah'));
-    let cagrText = item.cagr === null ? 'CAGR belum dapat dihitung untuk rentang ini' :
-      `CAGR <b>${item.cagr>0?'+':''}${item.cagr.toFixedID(2)}%/tahun</b>`;
-    html += `<li><b>${escapeHtml(item.name)}</b>: ${trendText} dari <b>${escapeHtml(item.firstLabel)}</b> ke <b>${escapeHtml(item.lastLabel)}</b>; ${cagrText}. Rentang nilai <b>${fmtNum(item.min)}–${fmtNum(item.max)} ${escapeHtml(item.unit)}</b> (terendah ${escapeHtml(item.minLabel)}, tertinggi ${escapeHtml(item.maxLabel)}).</li>`;
+    let trendText = item.pct === null ? trx('aiTrendNoPct') :
+      (item.pct > 0 ? trx('aiTrendUp').replace('{v}',item.pct.toFixedID(1)) : (item.pct < 0 ? trx('aiTrendDown').replace('{v}',item.pct.toFixedID(1)) : trx('aiTrendFlat')));
+    let cagrText = item.cagr === null ? trx('aiCagrNone') :
+      trx('aiCagrVal').replace('{v}', (item.cagr>0?'+':'')+item.cagr.toFixedID(2));
+    html += `<li>${trx('aiTrendItem').replace('{name}',escapeHtml(item.name)).replace('{trend}',trendText).replace('{first}',escapeHtml(item.firstLabel)).replace('{last}',escapeHtml(item.lastLabel)).replace('{cagr}',cagrText).replace('{min}',fmtNum(item.min)).replace('{max}',fmtNum(item.max)).replace('{unit}',escapeHtml(item.unit)).replace('{minLbl}',escapeHtml(item.minLabel)).replace('{maxLbl}',escapeHtml(item.maxLabel))}</li>`;
   });
   html += `</ul>`;
 
   const hasRecentDetails = dataList.some(item=>(item.periodEntries||[]).length>=2 || item.previousYearEntry || (item.periodEntries||[]).length>=6);
   if(hasRecentDetails){
-    html += `<span class="insight-section-title">⏱ Perubahan Terbaru &amp; Momentum</span><ul class="insight-list">`;
+    html += `<span class="insight-section-title">${trx('aiTitleMomentum')}</span><ul class="insight-list">`;
     dataList.forEach(item=>{
       const entries = item.periodEntries || [];
       const parts = [];
@@ -10763,9 +10849,9 @@ function generateAdvancedAIInsight(dataList){
         const previous = entries[entries.length-2], latest = entries[entries.length-1];
         const delta = latest.data-previous.data;
         const pct = previous.data>0 ? (delta/previous.data*100) : null;
-        let recent = `Perubahan terbaru (${escapeHtml(periodLabel(previous))} → ${escapeHtml(periodLabel(latest))}): ${delta>0?'+':''}${fmtNum(delta)} ${escapeHtml(item.unit)}`;
+        let recent = trx('aiRecentChange').replace('{prev}',escapeHtml(periodLabel(previous))).replace('{last}',escapeHtml(periodLabel(latest))).replace('{v}',(delta>0?'+':'')+fmtNum(delta)).replace('{unit}',escapeHtml(item.unit));
         if(pct!==null) recent += ` (${pct>0?'+':''}${pct.toFixedID(1)}%)`;
-        else recent += ` (persentase tidak tersedia: basis sebelumnya nol/negatif)`;
+        else recent += trx('aiPctNone');
         parts.push(recent);
       }
       if(item.previousYearEntry){
@@ -10773,9 +10859,9 @@ function generateAdvancedAIInsight(dataList){
         const prior = item.previousYearEntry;
         const delta = latest.data-prior.data;
         const pct = prior.data>0 ? (delta/prior.data*100) : null;
-        let yoy = `YoY terhadap ${escapeHtml(periodLabel(prior))}: ${delta>0?'+':''}${fmtNum(delta)} ${escapeHtml(item.unit)}`;
+        let yoy = trx('aiYoy').replace('{prior}',escapeHtml(periodLabel(prior))).replace('{v}',(delta>0?'+':'')+fmtNum(delta)).replace('{unit}',escapeHtml(item.unit));
         if(pct!==null) yoy += ` (${pct>0?'+':''}${pct.toFixedID(1)}%)`;
-        else yoy += ` (persentase tidak tersedia: basis tahun lalu nol/negatif)`;
+        else yoy += trx('aiPctNoneYoy');
         parts.push(yoy);
       }
       if(entries.length>=6){
@@ -10784,7 +10870,7 @@ function generateAdvancedAIInsight(dataList){
         const recentAverage=recentWindow.reduce((sum,entry)=>sum+entry.data,0)/recentWindow.length;
         const delta=recentAverage-previousAverage;
         const pct=previousAverage>0 ? (delta/previousAverage*100) : null;
-        let momentum=`Rata-rata 3 observasi terbaru ${fmtNum(recentAverage)} dibanding ${fmtNum(previousAverage)} pada 3 sebelumnya`;
+        let momentum=trx('aiMomentum').replace('{recent}',fmtNum(recentAverage)).replace('{prev}',fmtNum(previousAverage));
         if(pct!==null) momentum += ` (${pct>0?'+':''}${pct.toFixedID(1)}%)`;
         parts.push(momentum);
       }
@@ -10802,13 +10888,13 @@ function generateAdvancedAIInsight(dataList){
     return {name:item.name,cv:Math.abs(Math.sqrt(variance)/mean*100),pct:item.pct};
   }).filter(item=>item.cv!==null);
   if(volList.length){
-    html += `<span class="insight-section-title">📈 Volatilitas Tiap Indikator</span>`;
+    html += `<span class="insight-section-title">${trx('aiTitleVolatility')}</span>`;
     volList.sort((a,b)=>b.cv-a.cv);
     html += `<ul class="insight-list">` + volList.map(v=>{
-      let w = 'stabil';
-      if(v.cv >= 25) w = 'cukup fluktuatif';
-      else if(v.cv >= 10) w = 'sedikit berfluktuasi';
-      return `<li><b>${escapeHtml(v.name)}</b>: ${w} (CV ≈ ${v.cv.toFixedID(1)}%)</li>`;
+      let w = trx('aiVolStabil');
+      if(v.cv >= 25) w = trx('aiVolFluktuatif');
+      else if(v.cv >= 10) w = trx('aiVolSedikit');
+      return `<li>${trx('aiVolItem').replace('{name}',escapeHtml(v.name)).replace('{w}',w).replace('{v}',v.cv.toFixedID(1))}</li>`;
     }).join('') + `</ul>`;
   }
 
@@ -10816,15 +10902,15 @@ function generateAdvancedAIInsight(dataList){
   if(quadrantData.length >= 3){
     const medianGrowth = seriesMedian(quadrantData.map(item=>item.pct));
     const medianVolatility = seriesMedian(quadrantData.map(item=>item.cv));
-    html += `<span class="insight-section-title">▦ Kuadran Pertumbuhan &amp; Volatilitas</span>`;
-    html += `<div class="insight-intro">Posisi relatif terhadap median indikator terpilih: pertumbuhan ${medianGrowth>0?'+':''}${medianGrowth.toFixedID(1)}% dan CV ${medianVolatility.toFixedID(1)}%.</div>`;
+    html += `<span class="insight-section-title">${trx('aiTitleQuadrant')}</span>`;
+    html += `<div class="insight-intro">${trx('aiQuadrantIntro').replace('{g}',(medianGrowth>0?'+':'')+medianGrowth.toFixedID(1)).replace('{v}',medianVolatility.toFixedID(1))}</div>`;
     html += `<ul class="insight-list">` + quadrantData.map(item=>{
       const growthHigh = item.pct>=medianGrowth;
       const volatilityHigh = item.cv>=medianVolatility;
       const group = growthHigh
-        ? (volatilityHigh ? 'pertumbuhan dan volatilitas relatif tinggi' : 'pertumbuhan relatif tinggi, volatilitas lebih rendah')
-        : (volatilityHigh ? 'pertumbuhan relatif rendah, volatilitas lebih tinggi' : 'pertumbuhan dan volatilitas relatif rendah');
-      return `<li><b>${escapeHtml(item.name)}</b>: ${group} (${item.pct>0?'+':''}${item.pct.toFixedID(1)}%; CV ${item.cv.toFixedID(1)}%).</li>`;
+        ? (volatilityHigh ? trx('aiQ1') : trx('aiQ2'))
+        : (volatilityHigh ? trx('aiQ3') : trx('aiQ4'));
+      return `<li>${trx('aiQuadrantItem').replace('{name}',escapeHtml(item.name)).replace('{g}',group).replace('{p}',(item.pct>0?'+':'')+item.pct.toFixedID(1)).replace('{cv}',item.cv.toFixedID(1))}</li>`;
     }).join('') + `</ul>`;
   }
 
@@ -10839,9 +10925,9 @@ function generateAdvancedAIInsight(dataList){
       const previousSpread=spreadAt(commonPeriods[commonPeriods.length-2]);
       const latestSpread=spreadAt(commonPeriods[commonPeriods.length-1]);
       const spreadChange=latestSpread-previousSpread;
-      const direction=spreadChange>0.05?'melebar (divergen)':(spreadChange < -0.05?'menyempit (konvergen)':'relatif tetap');
-      html += `<span class="insight-section-title">↔ Konvergensi / Divergensi Kinerja</span>`;
-      html += `<div class="insight-note">Setelah tiap seri diindeks ke 100 pada periode bersama pertama, rentang antarindeks kini <b>${latestSpread.toFixedID(1)} poin</b> dan ${direction} ${Math.abs(spreadChange).toFixedID(1)} poin sejak observasi bersama sebelumnya. Ini membandingkan laju relatif, bukan level atau satuan asli.</div>`;
+      const direction=spreadChange>0.05?trx('aiConvMelebar'):(spreadChange < -0.05?trx('aiConvMenyempit'):trx('aiConvTetap'));
+      html += `<span class="insight-section-title">${trx('aiTitleConverge')}</span>`;
+      html += `<div class="insight-note">${trx('aiConvNote').replace('{v}',latestSpread.toFixedID(1)).replace('{dir}',direction).replace('{d}',Math.abs(spreadChange).toFixedID(1))}</div>`;
     }
   }
 
@@ -10871,11 +10957,11 @@ function generateAdvancedAIInsight(dataList){
     }
     if(lagPairs.length){
       lagPairs.sort((a,b)=>Math.abs(b.r)-Math.abs(a.r));
-      html += `<span class="insight-section-title">⇢ Hubungan Tertunda Satu Periode</span>`;
+      html += `<span class="insight-section-title">${trx('aiTitleLag')}</span>`;
       html += `<ul class="insight-list">` + lagPairs.slice(0,3).map(pair=>
-        `<li><b>${escapeHtml(pair.lead)}</b> mendahului <b>${escapeHtml(pair.follow)}</b>: r = ${pair.r.toFixedID(2)} (${pair.n} pasangan periode).</li>`
+        `<li>${trx('aiLagItem').replace('{a}',escapeHtml(pair.lead)).replace('{b}',escapeHtml(pair.follow)).replace('{r}',pair.r.toFixedID(2)).replace('{n}',pair.n)}</li>`
       ).join('') + `</ul>`;
-      html += `<div class="insight-note">Asosiasi dengan jeda satu periode bersifat eksploratif, bukan bukti sebab-akibat; tren bersama dapat memengaruhi korelasi.</div>`;
+      html += `<div class="insight-note">${trx('aiLagNote')}</div>`;
     }
   }
 
@@ -10892,26 +10978,26 @@ function generateAdvancedAIInsight(dataList){
     }
     if(corrPairs.length > 0){
       corrPairs.sort((x,y)=>Math.abs(y.r)-Math.abs(x.r));
-      html += `<span class="insight-section-title">🔗 Korelasi Antar Indikator</span>`;
+      html += `<span class="insight-section-title">${trx('aiTitleCorr')}</span>`;
       html += `<ul class="insight-list">`;
       corrPairs.slice(0,4).forEach(p=>{
-        let word = 'nyaris tidak berkorelasi';
+        let word = trx('aiCorrFlat');
         let cls = 'trend-flat';
-        if(p.r >= 0.7){ word = 'bergerak searah dengan kuat'; cls='trend-up'; }
-        else if(p.r >= 0.3){ word = 'cenderung bergerak searah'; cls='trend-up'; }
-        else if(p.r <= -0.7){ word = 'bergerak berlawanan arah dengan kuat (trade-off)'; cls='trend-down'; }
-        else if(p.r <= -0.3){ word = 'cenderung bergerak berlawanan arah'; cls='trend-down'; }
-        html += `<li><b>${escapeHtml(p.a)}</b> vs <b>${escapeHtml(p.b)}</b>: <span class="${cls}" style="font-weight:700;">${word}</span> (r = ${p.r.toFixedID(2)}, ${p.n} periode bersama)</li>`;
+        if(p.r >= 0.7){ word = trx('aiCorrUpStrong'); cls='trend-up'; }
+        else if(p.r >= 0.3){ word = trx('aiCorrUp'); cls='trend-up'; }
+        else if(p.r <= -0.7){ word = trx('aiCorrDownStrong'); cls='trend-down'; }
+        else if(p.r <= -0.3){ word = trx('aiCorrDown'); cls='trend-down'; }
+        html += `<li>${trx('aiCorrItem').replace('{a}',escapeHtml(p.a)).replace('{b}',escapeHtml(p.b)).replace('{cls}',cls).replace('{w}',word).replace('{r}',p.r.toFixedID(2)).replace('{n}',p.n)}</li>`;
       });
       html += `</ul>`;
     }
   }
 
-  html += `<span class="insight-section-title">🔍 Catatan Komparasi &amp; Rekomendasi Analisis</span>`;
+  html += `<span class="insight-section-title">${trx('aiTitleReko')}</span>`;
   if(dataList.length === 1){
-    html += `<div class="insight-note">Anda sedang memantau satu indikator tunggal. Tambahkan indikator pembanding lain di panel sebelah kiri untuk melihat pola korelasi atau divergensi antar variabel.</div>`;
+    html += `<div class="insight-note">${trx('aiRekoOne')}</div>`;
   } else {
-    html += `<div class="insight-note">Dengan membandingkan <b>${dataList.length} indikator terpilih</b>, Anda dapat mengamati apakah pergerakan variabel-variabel ini saling sejalan (sinkron) atau bergerak secara berlawanan (trade-off). Perhatikan bahwa korelasi statistik di atas tidak selalu menunjukkan hubungan sebab-akibat.</div>`;
+    html += `<div class="insight-note">${trx('aiRekoMulti').replace('{n}',dataList.length)}</div>`;
   }
 
   textEl.innerHTML = html;
@@ -10927,7 +11013,7 @@ function buildCompareTableData(keys){
   });
   const sortedKeys = [...uniqueLabelsMap.keys()].sort((a,b)=>a-b);
 
-  const header = ['Periode', ...keys.map(k=> subLabel(compareIndex[k].sub))];
+  const header = [trx('cmpLblPeriode'), ...keys.map(k=> subLabel(compareIndex[k].sub))];
   const rows = sortedKeys.map(sk=>{
     const row = [uniqueLabelsMap.get(sk)];
     keys.forEach(k=>{
