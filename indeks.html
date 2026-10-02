@@ -2984,6 +2984,28 @@ const I18N = {
     cmpTableTitle:'Tabel Data Perbandingan', cmpTableDlTitle:'Unduh tabel sebagai Excel',
     infTitle:'Analisis Inferensia', infIntro:'Uji hubungan statistik antar indikator kuantitatif dengan regresi linear atau ramalkan trennya dengan AR/MA/ARIMA.',
     infLblMetode:'Metode', infMetodeRegresi:'Regresi Linear', infMetodeArima:'AR / MA / ARIMA', infMetodeArimax:'ARIMAX', infMetodeMatriks:'Matriks Korelasi',
+    cariTitle:'Cari Data', cariIntro:'Tidak menemukan indikator yang Anda butuhkan di dashboard ini? Isi formulir di bawah, tim kami akan menindaklanjuti dan mengirimkan balasan ke email yang Anda cantumkan.',
+    cariNama:'Nama', cariAlamat:'Alamat', cariPekerjaan:'Pekerjaan', cariDataDicari:'Data yang Dicari',
+    cariDataDicariPh:'Jelaskan data/indikator apa yang Anda cari, mencakup periode, wilayah, atau rincian lain yang relevan.',
+    cariEmail:'Email (untuk balasan)', cariSubmit:'Kirim Permintaan',
+    cariErrRequired:'Semua kolom wajib diisi.', cariErrEmail:'Format email tidak valid.',
+    cariErrNotConnected:'Form ini belum tersambung ke Google Sheet — set CARI_DATA_WEBAPP_URL di kode dengan URL Web App Apps Script Anda (lihat CariDataAPI.gs).',
+    cariSending:'Mengirim…', cariOk:'Permintaan terkirim. Kami akan membalas ke email yang Anda cantumkan.', cariFail:'Gagal mengirim, periksa koneksi internet Anda dan coba lagi.',
+    modDataBelum:'Data belum tersedia.', modTitle:'Modifikasi', modIntro:'Buat indikator dari seri data yang tersedia.',
+    modNamaHasil:'Nama indikator hasil', modNamaPh:'Contoh: Rasio kedalaman terhadap keparahan', modPeriodeData:'Periode data',
+    modVariabel:'Variabel', modTambahVar:'+ Tambah variabel', modHapusVar:'Hapus variabel',
+    modRumus:'Rumus', modSisipkanVar:'Sisipkan variabel', modSisipkanOp:'Sisipkan operator',
+    modKali:'Kali', modBagi:'Bagi', modPangkat:'Pangkat', modKurungBuka:'Kurung buka', modKurungTutup:'Kurung tutup', modAkar:'Akar kuadrat',
+    modHitung:'Hitung indikator',
+    modPilihSumber:'Pilih sumber variabel', modPilihCariPh:'Pilih atau cari indikator...', modTampilkanIndikator:'Tampilkan indikator',
+    modErrVarNotRecognized:'Nama variabel atau fungsi "{w}" tidak dikenali.', modErrCharNotSupported:'Karakter "{c}" tidak didukung.',
+    modErrVarNotAdded:'Variabel {v} belum ditambahkan.', modErrSqrtUsage:'Gunakan akar sebagai sqrt(rumus).', modErrSqrtClose:'Kurung tutup untuk sqrt() belum ada.',
+    modErrUnclosedParen:'Ada kurung buka yang belum ditutup.', modErrIncomplete:'Rumus belum lengkap.', modErrUnexpected:'Bagian rumus "{w}" tidak diharapkan.',
+    modErrEmptyFormula:'Masukkan rumus terlebih dahulu.', modErrNeedVar:'Rumus harus menggunakan minimal satu variabel.',
+    modErrFillName:'Isi nama indikator hasil.', modErrPickSource:'Pilih indikator sumber untuk variabel {v}.', modErrNoCommonPeriod:'Indikator yang dipilih tidak memiliki periode bersama dengan data numerik.',
+    modStatusResult:'{n} periode bersama · {v} hasil valid', modErrGeneric:'Rumus tidak dapat dihitung.',
+    modThPeriode:'Periode', modDlCsv:'Unduh CSV', modDlXlsx:'Unduh XLSX', modChartTitle:'Grafik', modSkalaGrafik:'Skala grafik',
+    modNilaiAsli:'Nilai asli', modAwal100:'Awal = 100', modAriaChartLabel:'Grafik seri hasil modifikasi',
     definisi:'Definisi', noDefinition:'Belum ada deskripsi definisi untuk indikator ini.', cmpDefsTitle:'Definisi Indikator Terpilih',
     filterShowData:'Tampilkan Data', filterShowAll:'Tampilkan Semua', filterToggle:'semua/tidak',
     convTitle:'Konvergensi',
@@ -3429,6 +3451,28 @@ const I18N = {
     cmpTableTitle:'Comparison Data Table', cmpTableDlTitle:'Download the table as Excel',
     infTitle:'Inference Analysis', infIntro:'Test statistical relationships between quantitative indicators with linear regression, or forecast their trend with AR/MA/ARIMA.',
     infLblMetode:'Method', infMetodeRegresi:'Linear Regression', infMetodeArima:'AR / MA / ARIMA', infMetodeArimax:'ARIMAX', infMetodeMatriks:'Correlation Matrix',
+    cariTitle:'Data Request', cariIntro:'Can\'t find the indicator you need in this dashboard? Fill out the form below, and our team will follow up and reply to the email you provide.',
+    cariNama:'Name', cariAlamat:'Address', cariPekerjaan:'Occupation', cariDataDicari:'Data You Need',
+    cariDataDicariPh:'Describe what data/indicator you\'re looking for, including the period, region, or other relevant details.',
+    cariEmail:'Email (for reply)', cariSubmit:'Send Request',
+    cariErrRequired:'All fields are required.', cariErrEmail:'Invalid email format.',
+    cariErrNotConnected:'This form isn\'t connected to a Google Sheet yet — set CARI_DATA_WEBAPP_URL in the code to your Apps Script Web App URL (see CariDataAPI.gs).',
+    cariSending:'Sending…', cariOk:'Request sent. We\'ll reply to the email you provided.', cariFail:'Failed to send — check your internet connection and try again.',
+    modDataBelum:'Data not available yet.', modTitle:'Modify', modIntro:'Create an indicator from the available data series.',
+    modNamaHasil:'Result indicator name', modNamaPh:'Example: Poverty depth to severity ratio', modPeriodeData:'Data period',
+    modVariabel:'Variables', modTambahVar:'+ Add variable', modHapusVar:'Remove variable',
+    modRumus:'Formula', modSisipkanVar:'Insert variable', modSisipkanOp:'Insert operator',
+    modKali:'Multiply', modBagi:'Divide', modPangkat:'Power', modKurungBuka:'Open parenthesis', modKurungTutup:'Close parenthesis', modAkar:'Square root',
+    modHitung:'Calculate indicator',
+    modPilihSumber:'Choose variable source', modPilihCariPh:'Choose or search indicator...', modTampilkanIndikator:'Show indicator',
+    modErrVarNotRecognized:'Variable or function name "{w}" not recognized.', modErrCharNotSupported:'Character "{c}" not supported.',
+    modErrVarNotAdded:'Variable {v} has not been added.', modErrSqrtUsage:'Use square root as sqrt(formula).', modErrSqrtClose:'Missing closing parenthesis for sqrt().',
+    modErrUnclosedParen:'There\'s an unclosed opening parenthesis.', modErrIncomplete:'The formula is incomplete.', modErrUnexpected:'Unexpected part of the formula "{w}".',
+    modErrEmptyFormula:'Enter a formula first.', modErrNeedVar:'The formula must use at least one variable.',
+    modErrFillName:'Fill in the result indicator name.', modErrPickSource:'Choose a source indicator for variable {v}.', modErrNoCommonPeriod:'The selected indicators have no shared period with numeric data.',
+    modStatusResult:'{n} shared periods · {v} valid results', modErrGeneric:'The formula could not be computed.',
+    modThPeriode:'Period', modDlCsv:'Download CSV', modDlXlsx:'Download XLSX', modChartTitle:'Chart', modSkalaGrafik:'Chart scale',
+    modNilaiAsli:'Raw values', modAwal100:'Start = 100', modAriaChartLabel:'Chart of modified result series',
     definisi:'Definition', noDefinition:'No definition is available for this indicator yet.', cmpDefsTitle:'Selected Indicator Definitions',
     filterShowData:'Show Data', filterShowAll:'Show All', filterToggle:'all/none',
     convTitle:'Convergence',
@@ -5274,31 +5318,31 @@ function renderCariDataView(){
   main.innerHTML = `
     <section class="ss-wrap">
       <div class="ss-intro">
-        <h2>Cari Data</h2>
-        <p>Tidak menemukan indikator yang Anda butuhkan di dashboard ini? Isi formulir di bawah, tim kami akan menindaklanjuti dan mengirimkan balasan ke email yang Anda cantumkan.</p>
+        <h2>${trx('cariTitle')}</h2>
+        <p>${trx('cariIntro')}</p>
       </div>
       <form class="cari-form" id="cariForm">
         <div class="cari-field">
-          <label for="cariNama">Nama<span class="req">*</span></label>
+          <label for="cariNama">${trx('cariNama')}<span class="req">*</span></label>
           <input type="text" id="cariNama" name="nama" required autocomplete="name">
         </div>
         <div class="cari-field">
-          <label for="cariAlamat">Alamat<span class="req">*</span></label>
+          <label for="cariAlamat">${trx('cariAlamat')}<span class="req">*</span></label>
           <input type="text" id="cariAlamat" name="alamat" required autocomplete="street-address">
         </div>
         <div class="cari-field">
-          <label for="cariPekerjaan">Pekerjaan<span class="req">*</span></label>
+          <label for="cariPekerjaan">${trx('cariPekerjaan')}<span class="req">*</span></label>
           <input type="text" id="cariPekerjaan" name="pekerjaan" required autocomplete="organization-title">
         </div>
         <div class="cari-field">
-          <label for="cariDataDicari">Data yang Dicari<span class="req">*</span></label>
-          <textarea id="cariDataDicari" name="dataDicari" rows="4" required placeholder="Jelaskan data/indikator apa yang Anda cari, mencakup periode, wilayah, atau rincian lain yang relevan."></textarea>
+          <label for="cariDataDicari">${trx('cariDataDicari')}<span class="req">*</span></label>
+          <textarea id="cariDataDicari" name="dataDicari" rows="4" required placeholder="${trx('cariDataDicariPh')}"></textarea>
         </div>
         <div class="cari-field">
-          <label for="cariEmail">Email (untuk balasan)<span class="req">*</span></label>
+          <label for="cariEmail">${trx('cariEmail')}<span class="req">*</span></label>
           <input type="email" id="cariEmail" name="email" required autocomplete="email" placeholder="nama@contoh.com">
         </div>
-        <button type="submit" class="cari-submit-btn" id="cariSubmitBtn">Kirim Permintaan</button>
+        <button type="submit" class="cari-submit-btn" id="cariSubmitBtn">${trx('cariSubmit')}</button>
         <div class="cari-status" id="cariStatus"></div>
       </form>
     </section>`;
@@ -5314,7 +5358,7 @@ function renderModifikasiView(){
   if(filterPanel) filterPanel.style.display = 'none';
   const main = document.getElementById('main');
   const periods = ((STORE && STORE.__order) || []).filter(period=> STORE[period]);
-  if(!periods.length){ main.innerHTML = '<section class="ss-wrap"><div class="state-msg">Data belum tersedia.</div></section>'; return; }
+  if(!periods.length){ main.innerHTML = `<section class="ss-wrap"><div class="state-msg">${trx('modDataBelum')}</div></section>`; return; }
   if(!periods.includes(modState.period)) modState.period = periods.includes('Tahunan') ? 'Tahunan' : periods[0];
 
   const available = modAvailableSeries(modState.period);
@@ -5328,36 +5372,36 @@ function renderModifikasiView(){
 
   main.innerHTML = `
     <section class="ss-wrap mod-wrap">
-      <div class="ss-intro"><h2>Modifikasi</h2><p>Buat indikator dari seri data yang tersedia.</p></div>
+      <div class="ss-intro"><h2>${trx('modTitle')}</h2><p>${trx('modIntro')}</p></div>
       <div class="mod-builder">
         <div class="mod-top-grid">
-          <div class="mod-field"><label for="modName">Nama indikator hasil</label><input id="modName" type="text" value="${escapeHtml(modState.name)}" placeholder="Contoh: Rasio kedalaman terhadap keparahan"></div>
-          <div class="mod-field"><label for="modPeriod">Periode data</label><select id="modPeriod">${periods.map(period=>`<option value="${escapeHtml(period)}"${period===modState.period?' selected':''}>${escapeHtml(period)}</option>`).join('')}</select></div>
+          <div class="mod-field"><label for="modName">${trx('modNamaHasil')}</label><input id="modName" type="text" value="${escapeHtml(modState.name)}" placeholder="${trx('modNamaPh')}"></div>
+          <div class="mod-field"><label for="modPeriod">${trx('modPeriodeData')}</label><select id="modPeriod">${periods.map(period=>`<option value="${escapeHtml(period)}"${period===modState.period?' selected':''}>${escapeHtml(dPeriode(period))}</option>`).join('')}</select></div>
         </div>
-        <div class="mod-section-head"><b>Variabel</b><button type="button" class="mod-add" id="modAddVariable"${modState.variables.length>=MOD_SYMBOLS.length?' disabled':''}>+ Tambah variabel</button></div>
+        <div class="mod-section-head"><b>${trx('modVariabel')}</b><button type="button" class="mod-add" id="modAddVariable"${modState.variables.length>=MOD_SYMBOLS.length?' disabled':''}>${trx('modTambahVar')}</button></div>
         <div class="mod-variable-list" id="modVariables">${modState.variables.map((variable,index)=>`
           <div class="mod-variable-row">
             <label class="mod-variable-code" for="modVariable${index}">${variable.symbol}</label>
             ${modSourcePickerHtml(variable,index,available)}
-            <button type="button" class="mod-remove" data-remove="${index}" title="Hapus variabel ${variable.symbol}" aria-label="Hapus variabel ${variable.symbol}"${modState.variables.length<=1?' disabled':''}>×</button>
+            <button type="button" class="mod-remove" data-remove="${index}" title="${trx('modHapusVar')} ${variable.symbol}" aria-label="${trx('modHapusVar')} ${variable.symbol}"${modState.variables.length<=1?' disabled':''}>×</button>
           </div>`).join('')}
         </div>
         <div class="mod-field" style="margin-top:16px;">
-          <label for="modFormula">Rumus</label>
-          <div class="mod-formula-tools" aria-label="Sisipkan variabel">${modState.variables.map(variable=>`<button type="button" class="mod-token" data-mod-token="${variable.symbol}" title="Sisipkan variabel ${variable.symbol}">${variable.symbol}</button>`).join('')}</div>
+          <label for="modFormula">${trx('modRumus')}</label>
+          <div class="mod-formula-tools" aria-label="${trx('modSisipkanVar')}">${modState.variables.map(variable=>`<button type="button" class="mod-token" data-mod-token="${variable.symbol}" title="${trx('modSisipkanVar')} ${variable.symbol}">${variable.symbol}</button>`).join('')}</div>
           <input class="mod-formula-input" id="modFormula" type="text" value="${escapeHtml(modState.formula)}" placeholder="A / B" autocomplete="off" spellcheck="false">
-          <div class="mod-formula-tools" aria-label="Sisipkan operator">
+          <div class="mod-formula-tools" aria-label="${trx('modSisipkanOp')}">
             <button type="button" class="mod-token" data-mod-token=" + ">+</button>
             <button type="button" class="mod-token" data-mod-token=" - ">-</button>
-            <button type="button" class="mod-token" data-mod-token=" * " title="Kali">×</button>
-            <button type="button" class="mod-token" data-mod-token=" / " title="Bagi">÷</button>
-            <button type="button" class="mod-token" data-mod-token=" ^ " title="Pangkat">^</button>
-            <button type="button" class="mod-token" data-mod-token="(" title="Kurung buka">(</button>
-            <button type="button" class="mod-token" data-mod-token=")" title="Kurung tutup">)</button>
-            <button type="button" class="mod-token" data-mod-token="sqrt()" title="Akar kuadrat">√</button>
+            <button type="button" class="mod-token" data-mod-token=" * " title="${trx('modKali')}">×</button>
+            <button type="button" class="mod-token" data-mod-token=" / " title="${trx('modBagi')}">÷</button>
+            <button type="button" class="mod-token" data-mod-token=" ^ " title="${trx('modPangkat')}">^</button>
+            <button type="button" class="mod-token" data-mod-token="(" title="${trx('modKurungBuka')}">(</button>
+            <button type="button" class="mod-token" data-mod-token=")" title="${trx('modKurungTutup')}">)</button>
+            <button type="button" class="mod-token" data-mod-token="sqrt()" title="${trx('modAkar')}">√</button>
           </div>
         </div>
-        <button type="button" class="mod-calculate" id="modCalculate">Hitung indikator</button>
+        <button type="button" class="mod-calculate" id="modCalculate">${trx('modHitung')}</button>
         <div class="mod-status" id="modStatus" role="status" aria-live="polite"></div>
       </div>
       <div id="modResult"></div>
@@ -5396,7 +5440,7 @@ function modAvailableSeries(period){
   return Object.keys(index).map(key=>{
     const item = index[key];
     const unit = SATUAN[item.sub] ? ` (${SATUAN[item.sub]})` : '';
-    return {key, entries:item.entries, label:`${item.kategori} · ${item.kelompok} · ${item.sub}${unit}`, shortLabel:`${item.sub} · ${item.kategori} · ${item.kelompok}${unit}`};
+    return {key, entries:item.entries, label:`${dKat(item.kategori)} · ${dKel(item.kelompok)} · ${dSub(item.sub)}${unit}`, shortLabel:`${dSub(item.sub)} · ${dKat(item.kategori)} · ${dKel(item.kelompok)}${unit}`};
   });
 }
 
@@ -5404,8 +5448,8 @@ function modSourcePickerHtml(variable,index,available){
   const selected = available.find(item=>item.key===variable.key);
   const inputId = 'modVariable'+index, listId = 'modVariableOptions'+index;
   return `<div class="mod-source-picker" data-index="${index}">
-    <input class="mod-source-input" id="${inputId}" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="${listId}" aria-label="Pilih sumber variabel ${variable.symbol}" value="${selected?escapeHtml(selected.shortLabel):''}" placeholder="Pilih atau cari indikator..." autocomplete="off">
-    <button type="button" class="mod-source-toggle" data-index="${index}" aria-label="Tampilkan indikator untuk variabel ${variable.symbol}" title="Tampilkan indikator">▾</button>
+    <input class="mod-source-input" id="${inputId}" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="${listId}" aria-label="${trx('modPilihSumber')} ${variable.symbol}" value="${selected?escapeHtml(selected.shortLabel):''}" placeholder="${trx('modPilihCariPh')}" autocomplete="off">
+    <button type="button" class="mod-source-toggle" data-index="${index}" aria-label="${trx('modTampilkanIndikator')} ${variable.symbol}" title="${trx('modTampilkanIndikator')}">▾</button>
     <div class="mod-source-options" id="${listId}" role="listbox" hidden></div>
   </div>`;
 }
@@ -5553,13 +5597,13 @@ function modParseFormula(source, availableAliases){
       const lower = word[0].toLowerCase();
       if(lower==='sqrt') tokens.push({type:'sqrt',value:'sqrt'});
       else if(/^[a-j]$/i.test(word[0])) tokens.push({type:'alias',value:word[0].toUpperCase()});
-      else throw new Error(`Nama variabel atau fungsi "${word[0]}" tidak dikenali.`);
+      else throw new Error(trx('modErrVarNotRecognized').replace('{w}',word[0]));
       cursor += word[0].length;
       continue;
     }
     const character = source[cursor];
     if('+-*/^()'.includes(character)){ tokens.push({type:character,value:character}); cursor++; continue; }
-    throw new Error(`Karakter "${character}" tidak didukung.`);
+    throw new Error(trx('modErrCharNotSupported').replace('{c}',character));
   }
   tokens.push({type:'end',value:''});
 
@@ -5572,23 +5616,23 @@ function modParseFormula(source, availableAliases){
     if(token.type==='number'){ position++; return {type:'number',value:token.value}; }
     if(token.type==='alias'){
       position++;
-      if(!availableAliases.has(token.value)) throw new Error(`Variabel ${token.value} belum ditambahkan.`);
+      if(!availableAliases.has(token.value)) throw new Error(trx('modErrVarNotAdded').replace('{v}',token.value));
       used.add(token.value);
       return {type:'alias',value:token.value};
     }
     if(token.type==='sqrt'){
       position++;
-      if(!consume('(')) throw new Error('Gunakan akar sebagai sqrt(rumus).');
+      if(!consume('(')) throw new Error(trx('modErrSqrtUsage'));
       const value = additive();
-      if(!consume(')')) throw new Error('Kurung tutup untuk sqrt() belum ada.');
+      if(!consume(')')) throw new Error(trx('modErrSqrtClose'));
       return {type:'sqrt',value};
     }
     if(consume('(')){
       const value = additive();
-      if(!consume(')')) throw new Error('Ada kurung buka yang belum ditutup.');
+      if(!consume(')')) throw new Error(trx('modErrUnclosedParen'));
       return value;
     }
-    throw new Error(token.type==='end' ? 'Rumus belum lengkap.' : `Bagian rumus "${token.value}" tidak diharapkan.`);
+    throw new Error(token.type==='end' ? trx('modErrIncomplete') : trx('modErrUnexpected').replace('{w}',token.value));
   }
   function power(){
     const left = primary();
@@ -5616,10 +5660,10 @@ function modParseFormula(source, availableAliases){
     return left;
   }
 
-  if(!source.trim()) throw new Error('Masukkan rumus terlebih dahulu.');
+  if(!source.trim()) throw new Error(trx('modErrEmptyFormula'));
   const ast = additive();
-  if(peek().type!=='end') throw new Error(`Bagian rumus "${peek().value}" tidak diharapkan.`);
-  if(!used.size) throw new Error('Rumus harus menggunakan minimal satu variabel.');
+  if(peek().type!=='end') throw new Error(trx('modErrUnexpected').replace('{w}',peek().value));
+  if(!used.size) throw new Error(trx('modErrNeedVar'));
   return {ast,used};
 }
 
@@ -5649,7 +5693,7 @@ function modEvaluate(ast, values){
 function calculateModifikasi(){
   modClearResult();
   const name = modState.name.trim();
-  if(!name){ modSetStatus('Isi nama indikator hasil.','err'); return; }
+  if(!name){ modSetStatus(trx('modErrFillName'),'err'); return; }
   try{
     const available = modAvailableSeries(modState.period);
     const byKey = new Map(available.map(item=>[item.key,item]));
@@ -5657,7 +5701,7 @@ function calculateModifikasi(){
     const parsed = modParseFormula(modState.formula,aliases);
     const variables = modState.variables.filter(variable=>parsed.used.has(variable.symbol));
     const missing = variables.find(variable=>!variable.key || !byKey.has(variable.key));
-    if(missing) throw new Error(`Pilih indikator sumber untuk variabel ${missing.symbol}.`);
+    if(missing) throw new Error(trx('modErrPickSource').replace('{v}',missing.symbol));
 
     const mapped = variables.map(variable=>{
       const item = byKey.get(variable.key), values = new Map();
@@ -5665,7 +5709,7 @@ function calculateModifikasi(){
       return {symbol:variable.symbol,label:item.label,values};
     });
     const commonKeys = [...mapped[0].values.keys()].filter(key=>mapped.every(variable=>variable.values.has(key))).sort((a,b)=>a-b);
-    if(!commonKeys.length) throw new Error('Indikator yang dipilih tidak memiliki periode bersama dengan data numerik.');
+    if(!commonKeys.length) throw new Error(trx('modErrNoCommonPeriod'));
 
     const rows = commonKeys.map(key=>{
       const values = {};
@@ -5676,9 +5720,9 @@ function calculateModifikasi(){
     modState.chartSelection = ['result'];
     renderModifikasiResult();
     const valid = rows.filter(row=>row.value!==null).length;
-    modSetStatus(`${rows.length} periode bersama · ${valid} hasil valid`,'ok');
+    modSetStatus(trx('modStatusResult').replace('{n}',rows.length).replace('{v}',valid),'ok');
   }catch(error){
-    modSetStatus(error.message || 'Rumus tidak dapat dihitung.','err');
+    modSetStatus(error.message || trx('modErrGeneric'),'err');
   }
 }
 
@@ -5687,21 +5731,21 @@ function renderModifikasiResult(){
   const area = document.getElementById('modResult');
   if(!result || !area) return;
   if(modChart){ modChart.destroy(); modChart = null; }
-  const headers = `<th>Periode</th>${result.variables.map(variable=>`<th title="${escapeHtml(variable.label)}">${variable.symbol} · ${escapeHtml(variable.label)}</th>`).join('')}<th>${escapeHtml(result.name)}</th>`;
+  const headers = `<th>${trx('modThPeriode')}</th>${result.variables.map(variable=>`<th title="${escapeHtml(variable.label)}">${variable.symbol} · ${escapeHtml(variable.label)}</th>`).join('')}<th>${escapeHtml(result.name)}</th>`;
   const rows = result.rows.map(row=>`<tr><td>${escapeHtml(row.period)}</td>${result.variables.map(variable=>`<td>${fmtNum(row.values[variable.symbol])}</td>`).join('')}<td class="${row.value==null?'':'pos'}">${fmtNum(row.value)}</td></tr>`).join('');
   const chartSeries = [...result.variables.map(variable=>({key:variable.symbol,label:`${variable.symbol} · ${variable.label}`})),{key:'result',label:result.name}];
   area.innerHTML = `
     <div class="mod-result-head"><div><h3>${escapeHtml(result.name)}</h3><div class="nk-caption">${escapeHtml(result.period)} · ${escapeHtml(result.formula)}</div></div>
-      <div class="mod-downloads"><button type="button" class="mod-download" id="modDownloadCsv">Unduh CSV</button><button type="button" class="mod-download" id="modDownloadXlsx">Unduh XLSX</button></div>
+      <div class="mod-downloads"><button type="button" class="mod-download" id="modDownloadCsv">${trx('modDlCsv')}</button><button type="button" class="mod-download" id="modDownloadXlsx">${trx('modDlXlsx')}</button></div>
     </div>
     <div class="mod-result-wrap"><table class="ss-table cmp-table"><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table></div>
-    <div class="mod-chart-panel"><div class="mod-result-head"><h3>Grafik</h3>
-      <div class="mod-chart-scale" role="group" aria-label="Skala grafik">
-        <button type="button" class="mod-chart-scale-btn${modState.chartScale==='raw'?' active':''}" data-chart-scale="raw">Nilai asli</button>
-        <button type="button" class="mod-chart-scale-btn${modState.chartScale==='relative'?' active':''}" data-chart-scale="relative">Awal = 100</button>
+    <div class="mod-chart-panel"><div class="mod-result-head"><h3>${trx('modChartTitle')}</h3>
+      <div class="mod-chart-scale" role="group" aria-label="${trx('modSkalaGrafik')}">
+        <button type="button" class="mod-chart-scale-btn${modState.chartScale==='raw'?' active':''}" data-chart-scale="raw">${trx('modNilaiAsli')}</button>
+        <button type="button" class="mod-chart-scale-btn${modState.chartScale==='relative'?' active':''}" data-chart-scale="relative">${trx('modAwal100')}</button>
       </div></div>
       <div class="mod-chart-tools">${chartSeries.map(series=>`<label class="mod-chart-option"><input type="checkbox" data-mod-series="${escapeHtml(series.key)}"${modState.chartSelection.includes(series.key)?' checked':''}><span>${escapeHtml(series.label)}</span></label>`).join('')}</div>
-      <div class="chart-box mod-chart-box" id="modChartBox"><canvas id="modResultChart" role="img" aria-label="Grafik seri hasil modifikasi"></canvas></div>
+      <div class="chart-box mod-chart-box" id="modChartBox"><canvas id="modResultChart" role="img" aria-label="${trx('modAriaChartLabel')}"></canvas></div>
     </div>`;
   area.querySelectorAll('[data-chart-scale]').forEach(button=>button.addEventListener('click',()=>{
     modState.chartScale = button.dataset.chartScale;
@@ -5793,26 +5837,26 @@ function submitCariData(){
   if(!payload.nama || !payload.alamat || !payload.pekerjaan || !payload.dataDicari || !payload.email){
     cariSubmitState = 'error';
     statusEl.className = 'cari-status err';
-    statusEl.textContent = 'Semua kolom wajib diisi.';
+    statusEl.textContent = trx('cariErrRequired');
     return;
   }
   if(!/^\S+@\S+\.\S+$/.test(payload.email)){
     cariSubmitState = 'error';
     statusEl.className = 'cari-status err';
-    statusEl.textContent = 'Format email tidak valid.';
+    statusEl.textContent = trx('cariErrEmail');
     return;
   }
   if(CARI_DATA_WEBAPP_URL.includes('GANTI_DENGAN_URL_DEPLOYMENT_ANDA')){
     cariSubmitState = 'error';
     statusEl.className = 'cari-status err';
-    statusEl.textContent = 'Form ini belum tersambung ke Google Sheet — set CARI_DATA_WEBAPP_URL di kode dengan URL Web App Apps Script Anda (lihat CariDataAPI.gs).';
+    statusEl.textContent = trx('cariErrNotConnected');
     return;
   }
 
   cariSubmitState = 'sending';
   btnEl.disabled = true;
   statusEl.className = 'cari-status';
-  statusEl.textContent = 'Mengirim…';
+  statusEl.textContent = trx('cariSending');
 
   // Apps Script Web App tidak mengizinkan header CORS kustom, jadi dikirim sebagai
   // text/plain (dianggap "simple request" oleh browser) — mode 'no-cors' karena
@@ -5826,13 +5870,13 @@ function submitCariData(){
     cariSubmitState = 'success';
     btnEl.disabled = false;
     statusEl.className = 'cari-status ok';
-    statusEl.textContent = 'Permintaan terkirim. Kami akan membalas ke email yang Anda cantumkan.';
+    statusEl.textContent = trx('cariOk');
     document.getElementById('cariForm').reset();
   }).catch(()=>{
     cariSubmitState = 'error';
     btnEl.disabled = false;
     statusEl.className = 'cari-status err';
-    statusEl.textContent = 'Gagal mengirim, periksa koneksi internet Anda dan coba lagi.';
+    statusEl.textContent = trx('cariFail');
   });
 }
 
